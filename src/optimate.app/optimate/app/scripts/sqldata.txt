@@ -1,0 +1,16 @@
+Project A ADesc
+BudgetGroup ABGName ABGDesc
+BudgetItem ABIName ABIDesc 10 10
+Project B BDesc
+BudgetGroup B1BGName B1BGDesc
+BudgetItem B1BIName B1BIDesc 10 10
+BudgetGroup B2BGName B2BGDesc
+BudgetItem B2.1BIName B2.1BIDesc 10 10
+BudgetItem B2.2BIName B2.2BIDesc 10 10
+Project C CDesc
+BudgetGroup CBGName CBGDesc
+BudgetItem CBIName CBIDesc 10 10
+BudgetGroup C2BGName C2BGDesc
+BudgetItem C2.1CIName C2.1CIDesc 10 10
+BudgetItem CB2.2CIName C2.1CIDesc 10 10
+EOF
