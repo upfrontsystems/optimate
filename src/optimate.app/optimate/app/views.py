@@ -46,16 +46,6 @@ def childview(request):
 
     # Execute the sql query on the Node table to find all objects with that parent
     qry = DBSession.query(Node).filter_by(ParentID=parentid).all()
-    # qry = DBSession.query(Node).filter_by(ID=parentid).first()
-
-    # for value in qry.Children:
-    #     childrenlist.insert(len(childrenlist), {
-    #         "Name":value.Name,
-    #         "Description":value.Description,
-    #         "Subitem":[],
-    #         "ID":value.ID,
-    #         "Path": "/" + str(value.ID)+"/"})
-
 
     # Format the result into a json readable list and respond with that
     for value in qry:
@@ -104,9 +94,9 @@ def additemview(request):
             rate = request.json_body['Rate']
             newnode = BudgetItem(Name=name,
                                     Description=desc,
-                                    ParentID=parentid,
-                                    Quantity=quantity,
-                                    Rate=rate)
+                                    ParentID=parentid)
+            newnode.Quantity=quantity
+            newnode.Rate=rate
         elif objecttype == 'component':
             componenttype = request.json_body['ComponentType']
             quantity = request.json_body['Quantity']
@@ -114,27 +104,22 @@ def additemview(request):
             newnode = Component(Name=name,
                                     Description=desc,
                                     Type=componenttype,
-                                    Quantity=quantity,
-                                    Rate=rate,
                                     ParentID=parentid)
+            newnode.Quantity=quantity
+            newnode.Rate=rate
+
         else:
             return HTTPInternalServerError()
 
         DBSession.add(newnode)
         transaction.commit()
-        temp = parentid
-        print "\n\nBefore"
-        print DBSession.query(Node).filter_by(ID=parentid).first().Total
+
         # bubble up recalculating the totals in the hierarchy
-        while parentid!=0:
+        if parentid!=0:
             recalculate = DBSession.query(Node).filter_by(ID=parentid).first()
-            for child in recalculate.Children:
-                child.recalculateTotal()
-            parentid = recalculate.ParentID
+            recalculate.recalculateTotal()
 
         transaction.commit()
-        print "\n\nAfter"
-        print DBSession.query(Node).filter_by(ID=temp).first().Total
 
         return HTTPOk()
 
@@ -160,11 +145,10 @@ def deleteitemview(request):
         if qry == 0:
             return HTTPNotFound()
         transaction.commit()
-        # bubble up recalculating the totals in the hierarchy
-        while parentid!=0:
+
+        if parentid != 0:
             recalculate = DBSession.query(Node).filter_by(ID=parentid).first()
             recalculate.recalculateTotal()
-            parentid = recalculate.ParentID
 
         transaction.commit()
 
@@ -194,11 +178,10 @@ def pasteitemview(request):
         parentid = dest.ID
         dest.paste(source.copy(dest.ID), source.Children)
         transaction.commit()
-        # bubble up recalculating the totals in the hierarchy
-        while parentid!=0:
+
+        if parentid != 0:
             recalculate = DBSession.query(Node).filter_by(ID=parentid).first()
             recalculate.recalculateTotal()
-            parentid = recalculate.ParentID
 
         transaction.commit()
 
@@ -226,10 +209,6 @@ def costview(request):
             return HTTPNotFound()
 
         totalcost = qry.Total
-        if totalcost == 0 or totalcost == None:
-            totalcost = qry.recalculateTotal()
-            if totalcost == 0:
-                totalcost = qry.recalculateAll()
 
         transaction.commit()
 

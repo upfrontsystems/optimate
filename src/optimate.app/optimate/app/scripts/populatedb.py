@@ -97,17 +97,27 @@ if __name__ == "__main__":
             code = int(sheet.cell(x,codeindex).value)
             name = sheet.cell(x, nameindex).value
             description = sheet.cell(x, descriptionindex).value
-            budgetcost = sheet.cell(x, budgetcostindex).value
-            ordercost = sheet.cell(x, ordercostindex).value
-            claimedcost = sheet.cell(x, claimedcostindex).value
+            try:
+                budgetcost = int(sheet.cell(x, budgetcostindex).value)
+            except ValueError, e:
+                budgetcost = 0
+            try:
+                ordercost = int(sheet.cell(x, ordercostindex).value)
+            except ValueError, e:
+                ordercost = 0
+            try:
+                claimedcost = int(sheet.cell(x, claimedcostindex).value)
+            except ValueError, e:
+                claimedcost = 0
 
             project = Project(ID=code, Name=name,
                                 Description=description,
-                                Total=budgetcost,
-                                Ordered=ordercost,
-                                Claimed=claimedcost,
                                 ParentID=0)
+
             session.add(project)
+            project.Total=budgetcost
+            project.Ordered=ordercost
+            project.Claimed=claimedcost
 
         transaction.commit()
 
@@ -125,17 +135,6 @@ if __name__ == "__main__":
 
         newcode = 150000
         changedbgcodes = {}
-
-        # change the codes to unique ID's
-        # codeslice = sheet.col_values (parentindex, 1)
-
-        # for pid in codeslice:
-        #     if pid<0:
-        #         pid = -pid
-        #         if pid not in changedbgcodes:
-        #             pid = int(pid)
-        #             newcode+=1
-        #             changedbgcodes[pid] = newcode
 
         # correct negative codes and circular dependancies
         for x in range (1, sheet.nrows):
@@ -160,9 +159,18 @@ if __name__ == "__main__":
             code = int(sheet.cell(x,codeindex).value)
             name = sheet.cell(x, nameindex).value
             description = sheet.cell(x, descriptionindex).value
-            budgetcost = sheet.cell(x, budgetcostindex).value
-            ordercost = sheet.cell(x, ordercostindex).value
-            claimedcost = sheet.cell(x, claimedcostindex).value
+            try:
+                budgetcost = int(sheet.cell(x, budgetcostindex).value)
+            except ValueError, e:
+                budgetcost = 0
+            try:
+                ordercost = int(sheet.cell(x, ordercostindex).value)
+            except ValueError, e:
+                ordercost = 0
+            try:
+                claimedcost = int(sheet.cell(x, claimedcostindex).value)
+            except ValueError, e:
+                claimedcost = 0
             try:
                 parentcode = int(sheet.cell(x,parentindex).value)
             except ValueError, e:
@@ -179,33 +187,17 @@ if __name__ == "__main__":
                 parentcode = changedbgcodes[parentcode]
 
 
-            bg = BudgetGroup(ID=code, Name=name,
-                                Description=description,
-                                Total=budgetcost,
-                                Ordered=ordercost,
-                                Claimed=claimedcost,
-                                ParentID=parentcode)
+            bg = BudgetGroup(ID=code,
+                            Name=name,
+                            Description=description,
+                            ParentID=parentcode)
+
             session.add(bg)
+            bg.Total=budgetcost
+            bg.Ordered=ordercost
+            bg.Claimed=claimedcost
 
         transaction.commit()
-
-        # print "Building hierarchy"
-        # # build it again adding the heirarchy
-        # qry = session.query(BudgetGroup).all()
-        # for bg in qry:
-        #     #get the id
-        #     parentid = bg.ParentID
-        #     # get the parent
-        #     try:
-        #         parent = session.query(Node).filter_by(ID=parentid).first()
-        #         parent.Children.append(bg)
-        #     except AttributeError, a:
-        #         if parent:
-        #             raise AttributeError()
-        #     except Exception, e:
-        #         session.rollback()
-        #         # session.query(BudgetGroup).filter_by(ID=bg.ID).update({'ParentID': 0})
-        # transaction.commit()
 
         #build the budgetitems
         budgetitembook = xlrd.open_workbook("/home/niel/projects/exceldata/BudgetItems.xls")
@@ -216,23 +208,13 @@ if __name__ == "__main__":
         descriptionindex = 3
         quantityindex = 13
         rateindex = 14
-        # unitindex =
+        unitindex = 17
         budgetcostindex = 5
         ordercostindex = 6
         claimedcostindex = 9
 
         changedbicodes = {}
 
-        # change the codes to unique ID's
-        # codeslice = sheet.col_values (parentindex, 1)
-
-        # for pid in codeslice:
-        #     if pid<0:
-        #         pid = -pid
-        #         if pid not in changedbicodes:
-        #             pid = int(pid)
-        #             newcode+=1
-        #             changedbicodes[pid] = newcode
         # correct negative codes and circular dependancies
         for x in range (1, sheet.nrows):
             code = int(sheet.cell(x,codeindex).value)
@@ -269,6 +251,7 @@ if __name__ == "__main__":
             budgetcost = sheet.cell(x, budgetcostindex).value
             ordercost = sheet.cell(x, ordercostindex).value
             claimedcost = sheet.cell(x, claimedcostindex).value
+            measureunit = sheet.cell(x, unitindex).value
             try:
                 parentcode = int(sheet.cell(x,parentindex).value)
             except ValueError, e:
@@ -300,32 +283,17 @@ if __name__ == "__main__":
 
             bi = BudgetItem(ID=code, Name=name,
                                 Description=description,
-                                Total=budgetcost,
-                                Ordered=ordercost,
-                                Claimed=claimedcost, ParentID=parentcode,
-                                Quantity=quantity,
-                                Rate=rate)
+                                ParentID=parentcode,
+                                Unit=measureunit)
 
             session.add(bi)
+            bi.Total=budgetcost
+            bi.Ordered=ordercost
+            bi.Claimed=claimedcost
+            bi.Quantity=quantity
+            bi.Rate=rate
 
         transaction.commit()
-        # print "Building hierarchy"
-        # # build it again adding the heirarchy
-        # qry = session.query(BudgetItem).all()
-        # for bi in qry:
-        #     #get the id
-        #     parentid = bi.ParentID
-        #     # get the parent
-        #     try:
-        #         parent = session.query(Node).filter_by(ID=parentid).first()
-        #         parent.Children.append(bi)
-        #     except AttributeError, a:
-        #         if parent:
-        #             raise AttributeError()
-        #     except Exception, e:
-        #         session.rollback()
-        #         # session.query(BudgetGroup).filter_by(ID=bi.ID).update({'ParentID': 0})
-        #     transaction.commit()
 
         #build the components
         componentbook = xlrd.open_workbook("/home/niel/projects/exceldata/Components.xls")
@@ -337,7 +305,7 @@ if __name__ == "__main__":
         typeindex = 4
         rateindex = 14
         quantityindex = 13
-        # unitindex =
+        unitindex = 19
         budgetcostindex = 5
         ordercostindex = 6
         claimedcostindex = 8
@@ -388,6 +356,7 @@ if __name__ == "__main__":
             ordercost = sheet.cell(x, ordercostindex).value
             claimedcost = sheet.cell(x, claimedcostindex).value
             quantity = sheet.cell(x, quantityindex).value
+            measureunit = sheet.cell(x, unitindex).value
             try:
                 parentcode = int(sheet.cell(x,parentindex).value)
             except ValueError, e:
@@ -419,32 +388,17 @@ if __name__ == "__main__":
             co = Component(ID=code, Name=name,
                                 Description=description,
                                 Type=cotype,
-                                Total=budgetcost,
-                                Ordered=ordercost,
-                                Claimed=claimedcost,
-                                ParentID=parentcode,
-                                Quantity=quantity,
-                                Rate=rate)
+                                Unit=measureunit,
+                                ParentID=parentcode)
+
             session.add(co)
+            co.Total=budgetcost
+            co.Ordered=ordercost
+            co.Claimed=claimedcost
+            co.Quantity=quantity
+            co.Rate=rate
 
         transaction.commit()
-        # print "Building hierarchy"
-        # # build it again adding the heirarchy
-        # qry = session.query(Component).all()
-        # for co in qry:
-        #     #get the id
-        #     parentid = co.ParentID
-        #     # get the parent
-        #     try:
-        #         parent = session.query(Node).filter_by(ID=parentid).first()
-        #         parent.Children.append(co)
-        #     except AttributeError, a:
-        #         if parent:
-        #             raise AttributeError()
-        #     except Exception, e:
-        #         session.rollback()
-        #         # session.query(BudgetGroup).filter_by(ID=co.ID).update({'ParentID': 0})
-        #     transaction.commit()
 
         cotypebook = xlrd.open_workbook("/home/niel/projects/exceldata/CompTypes.xls")
         sheet = cotypebook.sheet_by_index(0)
@@ -461,30 +415,5 @@ if __name__ == "__main__":
             session.add(cotype)
 
         transaction.commit()
-
-    # for p in range(1, 11):
-    #     project = Project(Name="Project"+str(p), Description="projectdescription", ParentID='0')
-    #     print "adding: " + str(p)
-    #     # Build 100 budgetgroups
-    #     for bga in range(1, 11):
-    #         budgetgroupa = BudgetGroup(Name="BudgetGA"+str(bga), Description="bgadescription", ParentID=project.ID)
-
-    #         # Build 100 budgetgroups
-    #         for bgb in range(1, 11):
-    #             budgetgroupb = BudgetGroup(Name="BudgetGB", Description="bgbdescription", ParentID=budgetgroupa.ID)
-
-    #             # Build 1000 budgetitems
-    #             for bi in range(1, 11):
-    #                 budgetitem = BudgetItem(Name="BudgetItem", Description="bidescription", Quantity=randint(1, 100), Rate=randint(1, 100), ParentID=budgetgroupb.ID)
-    #                 budgetgroupb.Children.append(budgetitem)
-    #             # gc.collect()
-    #             budgetgroupa.Children.append(budgetgroupb)
-    #             # print "added to bg a"
-    #         # gc.collect()
-    #         project.Children.append(budgetgroupa)
-    #         # print "added to project: " + str(p)
-
-    #     session.add(project)
-    #     session.commit()
 
     print "done"

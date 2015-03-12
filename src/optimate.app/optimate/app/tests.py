@@ -40,20 +40,17 @@ def _initTestingDB():
                             ID=2,
                             Description="TestBGDesc",
                             ParentID=project.ID)
-        budgetitem = BudgetItem(Name="TestBIName",
-                            ID=3,
-                            Description="TestBIDesc",
-                            Quantity=10,
-                            ParentID=budgetgroup.ID)
-        comptype = ComponentType(ID=1,
-                            Name="type")
         comp = Component (ID=7,
                             Name="TestCName",
                             Description="TestCDesc",
                             Type=1,
-                            Quantity=5,
-                            Rate=10,
                             ParentID=budgetgroup.ID)
+        budgetitem = BudgetItem(Name="TestBIName",
+                            ID=3,
+                            Description="TestBIDesc",
+                            ParentID=budgetgroup.ID)
+        comptype = ComponentType(ID=1,
+                            Name="type")
         projectb = Project(Name="TestBPName",
                             ID=4,
                             Description="TestBPDesc",
@@ -65,15 +62,11 @@ def _initTestingDB():
         budgetitemb = BudgetItem(Name="TestBBIName",
                             ID=6,
                             Description="TestBBIDesc",
-                            Quantity=10,
-                            Rate=5,
                             ParentID=budgetgroupb.ID)
         compb = Component (ID=8,
                             Name="TestBCName",
                             Description="TestBCDesc",
                             Type=1,
-                            Quantity=5,
-                            Rate=10,
                             ParentID=budgetitemb.ID)
 
         DBSession.add(root)
@@ -86,6 +79,18 @@ def _initTestingDB():
         DBSession.add(budgetgroupb)
         DBSession.add(budgetitemb)
         DBSession.add(compb)
+
+        # project total should be 100
+        comp.Rate = 10
+        comp.Quantity = 5
+        budgetitem.Rate = 10
+        budgetitem.Quantity = 5
+
+        # project total should be 500
+        budgetitemb.Quantity = 10
+        budgetitemb.Rate = 50
+        compb.Rate = 10
+        compb.Quantity = 5
 
     return DBSession
 
@@ -175,7 +180,10 @@ class TestAddviewSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest(json_body={
                                                 'Name':'AddingName',
                                                 'Description':'Adding test item',
-                                                'NodeType':'budgetgroup'}
+                                                'NodeType':'component',
+                                                'ComponentType':1,
+                                                'Quantity': 10,
+                                                'Rate': 2}
                                         )
         request.matchdict= {'id':3}
         response = self._callFUT(request)
@@ -191,6 +199,13 @@ class TestAddviewSuccessCondition(unittest.TestCase):
 
         # true if the name of the child added to the node is 'AddingName'
         self.assertEqual(response[0]['Name'], 'AddingName')
+
+        # do another test to see if the cost is correct
+        request = testing.DummyRequest()
+        request.matchdict= {'id': 1}
+        from .views import costview
+        response = costview(request)
+        self.assertEqual(response["Cost"], 150)
 
 class TestDeleteviewSuccessCondition(unittest.TestCase):
     """
@@ -227,6 +242,13 @@ class TestDeleteviewSuccessCondition(unittest.TestCase):
         # test again that the children of the parent is now zero
         self.assertEqual(len(response), 0)
 
+        # do another test to see if the cost is correct
+        request = testing.DummyRequest()
+        request.matchdict= {'id': 1}
+        from .views import costview
+        response = costview(request)
+        self.assertEqual(response["Cost"], 0)
+
 class TestPasteviewSuccessCondition(unittest.TestCase):
     """
     Test that the paste functions correctly with pasting from a
@@ -258,13 +280,19 @@ class TestPasteviewSuccessCondition(unittest.TestCase):
         # true if the response from paste view is OK
         self.assertEqual(response.code, 200)
 
+        # do another test to see if the children of the parent is now two
         request = testing.DummyRequest()
         request.matchdict= {'parentid': 1}
         from .views import childview
         response = childview(request)
-
-        # do another test to see if the children of the parent is now two
         self.assertEqual(len(response), 2)
+
+        # do another test to see if the cost is correct
+        request = testing.DummyRequest()
+        request.matchdict= {'id': 1}
+        from .views import costview
+        response = costview(request)
+        self.assertEqual(response["Cost"], 150)
 
 class TestCostviewSuccessCondition(unittest.TestCase):
     """
@@ -288,7 +316,7 @@ class TestCostviewSuccessCondition(unittest.TestCase):
         _registerRoutes(self.config)
         # set the default node to get the cost of
         request = testing.DummyRequest()
-        request.matchdict= {'id': 1}
+        request.matchdict= {'id': 4}
         response = self._callFUT(request)
 
         # true if the cost is correct
