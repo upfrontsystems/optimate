@@ -46,7 +46,7 @@ setup(name='optimate.app',
       install_requires=requires,
       entry_points="""\
       [paste.app_factory]
-      main = server:main
+      main = optimate.app:main
       [console_scripts]
       initialize_server_db = server.scripts.initializedb:main
       """,
