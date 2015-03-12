@@ -3,7 +3,7 @@ from pyramid.paster import (
     setup_logging,
     )
 
-from server.models import (
+from optimate.app.models import (
     DBSession,
     Base,
     Node,

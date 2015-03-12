@@ -23,6 +23,7 @@ requires = [
     'zope.sqlalchemy',
     'waitress',
     'docutils',
+    'xlrd',
     ]
 
 setup(name='optimate.app',
@@ -42,7 +43,7 @@ setup(name='optimate.app',
       packages=find_packages(),
       include_package_data=True,
       zip_safe=False,
-      test_suite='server',
+      test_suite='optimate.app',
       install_requires=requires,
       entry_points="""\
       [paste.app_factory]
