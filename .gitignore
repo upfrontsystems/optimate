@@ -15,6 +15,12 @@ var
 sdist
 develop-eggs
 .installed.cfg
+include
+lib
+local
+theme/bower_components
+theme/node_modules
+server.sqlite
 
 # Installer logs
 pip-log.txt
