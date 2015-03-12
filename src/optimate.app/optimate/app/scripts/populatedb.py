@@ -50,8 +50,7 @@ if __name__ == "__main__":
             '__file__': '/home/niel/projects/optimatesql/optimatesql/development.ini',
             'pyramid.default_locale_name': 'en', 'pyramid.reload_templates': 'true',
             'here': '/home/niel/projects/optimatesql/optimatesql',
-            'pyramid.debug_notfound': 'false', 
-            'pyramid.debug_routematch': 'false',
+            'pyramid.debug_notfound': 'false', 'pyramid.debug_routematch': 'false',
             'pyramid.debug_authorization': 'false'}
 
     engine = engine_from_config(settings, 'sqlalchemy.')
