@@ -25,6 +25,19 @@ from .models import (
     )
 import pdb
 
+def contains_unicode(mystring):
+    """ auxilary method to determine if a string contains a unicode character
+    """
+    try:
+        mystring.decode('ascii')
+    except Exception:
+        # not an ascii-encoded unicode string
+        return True
+    else:
+        # an ascii-encoded unicode string
+        return False
+
+
 @view_config(route_name='rootview', renderer='json')
 @view_config(route_name="childview", renderer='json')
 def childview(request):
@@ -47,6 +60,11 @@ def childview(request):
 
     # Format the result into a json readable list and respond with that
     for value in qry:
+        if contains_unicode(value.Name):
+            if u"\u02c6" in value.Name:
+                value.Name = value.Name.replace(u"\u02c6", "e")
+            if u"\u2030" in value.Name:
+                value.Name = value.Name.replace(u"\u2030", "e")
         childrenlist.insert(len(childrenlist), {
             "Name":value.Name,
             "Description":value.Description,
