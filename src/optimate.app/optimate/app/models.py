@@ -457,7 +457,7 @@ class Component(Node):
             qry = DBSession.query(BudgetItem).filter_by(ID=p_ID).first()
             if qry != None:
                 qry.Rate = qry.Rate + difference
-            else:                
+            else:
                 qry = DBSession.query(Component).filter_by(ID=p_ID).first()
                 if qry != None:
                     qry.Rate = qry.Rate + difference
