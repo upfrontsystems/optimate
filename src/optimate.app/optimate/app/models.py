@@ -23,7 +23,8 @@ from sqlalchemy.orm import (
     )
 
 # Build the session and base used for the project
-DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension('changed')))
+DBSession = scoped_session(
+    sessionmaker(extension=ZopeTransactionExtension('changed')))
 Base = declarative_base()
 
 class Node(Base):
@@ -64,7 +65,8 @@ class Project(Node):
     """
 
     __tablename__ = 'Project'
-    ID = Column(Integer, ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
+    ID = Column(Integer, 
+                ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
     Name = Column(Text)
     Description = Column(Text)
     _Total = Column("Total", Integer)
@@ -172,7 +174,8 @@ class BudgetGroup(Node):
     """
 
     __tablename__ = 'BudgetGroup'
-    ID = Column(Integer, ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
+    ID = Column(Integer, 
+                ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
     Name = Column(Text)
     Description = Column(Text)
     _Total = Column("Total", Integer)
@@ -268,7 +271,8 @@ class BudgetItem(Node):
     """
 
     __tablename__ = 'BudgetItem'
-    ID = Column(Integer, ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
+    ID = Column(Integer, 
+                ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
     Name = Column(Text)
     Description = Column(Text)
     Unit=Column(Text)
@@ -313,12 +317,13 @@ class BudgetItem(Node):
         # update the parent with the new total
         # since the total has changed, change the rate of any parent
         # budgetitems, and then others
-        if self.ParentID != 0:
-            qry = DBSession.query(BudgetItem).filter_by(ID=self.ParentID).first()
+        p_ID = self.ParentID
+        if p_ID != 0:
+            qry = DBSession.query(BudgetItem).filter_by(ID=p_ID).first()
             if qry != None:
                 qry.Rate = qry.Total + difference
             else:
-                qry = DBSession.query(Node).filter_by(ID=self.ParentID).first()
+                qry = DBSession.query(Node).filter_by(ID=p_ID).first()
                 if qry._Total == None:
                     qry.resetTotal()
                 else:
@@ -402,7 +407,8 @@ class BudgetItem(Node):
 class Component(Node):
 
     __tablename__ = 'Component'
-    ID = Column(Integer, ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
+    ID = Column(Integer, 
+                ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
     Name = Column(Text)
     Description = Column(Text)
     Type = Column(Integer, ForeignKey('ComponentType.ID'))
@@ -446,16 +452,17 @@ class Component(Node):
 
         # since the total has changed, change the rate of any parent
         # components, budgetitems or others
-        if self.ParentID != 0:
-            qry = DBSession.query(BudgetItem).filter_by(ID=self.ParentID).first()
+        p_ID = self.ParentID
+        if p_ID != 0:
+            qry = DBSession.query(BudgetItem).filter_by(ID=p_ID).first()
             if qry != None:
                 qry.Rate = qry.Rate + difference
-            else:
-                qry = DBSession.query(Component).filter_by(ID=self.ParentID).first()
+            else:                
+                qry = DBSession.query(Component).filter_by(ID=p_ID).first()
                 if qry != None:
                     qry.Rate = qry.Rate + difference
                 else:
-                    qry = DBSession.query(Node).filter_by(ID=self.ParentID).first()
+                    qry = DBSession.query(Node).filter_by(ID=p_ID).first()
                     if qry._Total == None:
                         qry.resetTotal()
                     else:
@@ -555,13 +562,15 @@ class ResourceCategory(Base):
 
     __tablename__ = 'ResourceCategory'
     Name = Column(Text, primary_key = True)
-    ParentCategory = Column(Text, ForeignKey("ResourceCategory.Name", ondelete='CASCADE'))
+    ParentCategory = Column(Text, ForeignKey("ResourceCategory.Name", 
+                                             ondelete='CASCADE'))
 
     type = Column(Text)
 
     Children = relationship('ResourceCategory',
                         cascade="all",
-                        backref=backref("Parent", remote_side='ResourceCategory.Name'),
+                        backref=backref("Parent", 
+                                        remote_side='ResourceCategory.Name'),
                     )
 
     __mapper_args__ = {
@@ -572,7 +581,9 @@ class ResourceCategory(Base):
 class Resource(ResourceCategory):
 
     __tablename__ = 'Resource'
-    Name = Column(Text, ForeignKey('ResourceCategory.Name', ondelete='CASCADE'), primary_key=True)
+    Name = Column(Text,
+                  ForeignKey('ResourceCategory.Name', ondelete='CASCADE'),
+                  primary_key=True)
     Description = Column(Text)
     Rate = Column(Integer)
 
