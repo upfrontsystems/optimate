@@ -55,7 +55,8 @@ def childview(request):
             "ID":value.ID,
             "Path": "/" + str(value.ID)+"/"})
 
-    return childrenlist
+    sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name']) 
+    return sorted_childrenlist
 
 
 @view_config(route_name="addview", renderer='json')
