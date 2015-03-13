@@ -23,8 +23,7 @@ from .models import (
     Component,
     ComponentType,
     )
-
-test = 0
+import pdb
 
 @view_config(route_name='rootview', renderer='json')
 @view_config(route_name="childview", renderer='json')
@@ -55,7 +54,7 @@ def childview(request):
             "ID":value.ID,
             "Path": "/" + str(value.ID)+"/"})
 
-    sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name']) 
+    sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'])
     return sorted_childrenlist
 
 
@@ -169,12 +168,17 @@ def pasteitemview(request):
         destinationid = request.matchdict['id']
 
         source = DBSession.query(Node).filter_by(ID=sourceid).first()
+        # pdb.set_trace()
+        # print "the source"
         dest = DBSession.query(Node).filter_by(ID=destinationid).first()
+        # pdb.set_trace()
+        # print "the dest"
         # Paste the source into the destination
         parentid = dest.ID
         dest.paste(source.copy(dest.ID), source.Children)
         transaction.commit()
 
+        # print "resetting total"
         if parentid != 0:
             recalculate = DBSession.query(Node).filter_by(ID=parentid).first()
             recalculate.resetTotal()
@@ -198,15 +202,15 @@ def costview(request):
         # Get the id of the node to be costed
         costid = request.matchdict['id']
         qry = DBSession.query(Node).filter_by(ID=costid).first()
-        print "the query"
-        print qry
+        # print "the query"
+        # pdb.set_trace()
         if qry == None:
             return HTTPNotFound()
-        print "starting getting the total"
+        # print "starting getting the total"
+        # pdb.set_trace()
         totalcost = qry.Total
-        print "\n\n"
-        print totalcost
-        print "\n\n"
+        # print "got the total"
+        # pdb.set_trace()
         transaction.commit()
 
         return {'Cost': totalcost}

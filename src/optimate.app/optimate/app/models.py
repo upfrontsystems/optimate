@@ -2,7 +2,6 @@
 Models file contains resources used in the project
 """
 
-import uuid
 from zope.sqlalchemy import ZopeTransactionExtension
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -11,6 +10,7 @@ from sqlalchemy import (
     Column,
     Index,
     Integer,
+    Float,
     Text,
     ForeignKey,
     )
@@ -21,6 +21,8 @@ from sqlalchemy.orm import (
     relationship,
     backref,
     )
+
+import pdb
 
 # Build the session and base used for the project
 DBSession = scoped_session(
@@ -65,38 +67,40 @@ class Project(Node):
     """
 
     __tablename__ = 'Project'
-    ID = Column(Integer, 
+    ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
     Name = Column(Text)
     Description = Column(Text)
-    _Total = Column("Total", Integer)
-    _Ordered = Column("Ordered", Integer)
-    _Claimed = Column("Claimed", Integer)
+    _Total = Column("Total", Float)
+    _Ordered = Column("Ordered", Float)
+    _Claimed = Column("Claimed", Float)
 
     __mapper_args__ = {
         'polymorphic_identity':'Project',
     }
 
     def resetTotal(self):
-        if len(self.Children)!=0:
-            total = 0
-            print "getting project children totals"
-            print self.__repr__()
-            for item in self.Children:
-                total+=item.Total
-            print "project total: " + str(total)
-            self._Total = total
-            print "end of resetTotal"
-            print self._Total
+        # print "before if has children"
+        # pdb.set_trace()
+        # if len(self.Children)!=0:
+        total = 0
+        # print "before child loop"
+        # pdb.set_trace()
+        for item in self.Children:
+            total+=item.Total
+        # print "after child loop"
+        # pdb.set_trace()
+        self._Total = total
 
     @hybrid_property
     def Total(self):
         if self._Total == None:
-            print "resetting the total"
+            # print "resetting the total"
+            # pdb.set_trace()
             self._Total = 0.0
             self.resetTotal()
-        print "end of get total"
-        print self._Total
+        # print "end of get total"
+        # pdb.set_trace()
         return self._Total
     @Total.setter
     def Total(self, total):
@@ -156,7 +160,9 @@ class Project(Node):
         """
 
         self.Children.append(source)
-
+        # pdb.set_trace()
+        # print "pasting: "
+        # print self.__repr__()
         for child in sourcechildren:
             source.paste(child.copy(source.ID), child.Children)
 
@@ -174,25 +180,29 @@ class BudgetGroup(Node):
     """
 
     __tablename__ = 'BudgetGroup'
-    ID = Column(Integer, 
+    ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
     Name = Column(Text)
     Description = Column(Text)
-    _Total = Column("Total", Integer)
-    _Ordered = Column("Ordered", Integer)
-    _Claimed = Column("Claimed", Integer)
+    _Total = Column("Total", Float)
+    _Ordered = Column("Ordered", Float)
+    _Claimed = Column("Claimed", Float)
 
     __mapper_args__ = {
         'polymorphic_identity':'BudgetGroup',
     }
 
     def resetTotal(self):
-        if len(self.Children)!=0:
-            total = 0.0
-            for item in self.Children:
-                total+=item.Total
-
-            self._Total = total
+        # pdb.set_trace()
+        # if len(self.Children)!=0:
+        total = 0
+        # print "before child loop"
+        # pdb.set_trace()
+        for item in self.Children:
+            total+=item.Total
+        # print "after child loop"
+        # pdb.set_trace()
+        self._Total = total
 
     @hybrid_property
     def Total(self):
@@ -255,7 +265,7 @@ class BudgetGroup(Node):
         """
 
         self.Children.append(source)
-
+        # print "pasting again"
         for child in sourcechildren:
             source.paste(child.copy(source.ID), child.Children)
 
@@ -271,16 +281,16 @@ class BudgetItem(Node):
     """
 
     __tablename__ = 'BudgetItem'
-    ID = Column(Integer, 
+    ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
     Name = Column(Text)
     Description = Column(Text)
     Unit=Column(Text)
-    _Quantity = Column("Quantity", Integer)
-    _Rate = Column("Rate", Integer)
-    _Total = Column("Total", Integer)
-    _Ordered = Column("Ordered", Integer)
-    _Claimed = Column("Claimed", Integer)
+    _Quantity = Column("Quantity", Float)
+    _Rate = Column("Rate", Float)
+    _Total = Column("Total", Float)
+    _Ordered = Column("Ordered", Float)
+    _Claimed = Column("Claimed", Float)
 
     __mapper_args__ = {
         'polymorphic_identity':'BudgetItem',
@@ -289,16 +299,16 @@ class BudgetItem(Node):
     # the rate of a budgetitem is based on the totals of it's children
     # and the total is equal to rate * quantity
     def resetTotal(self):
-        if len(self.Children)!= 0:
-            rate = 0.0
-
-            for item in self.Children:
-                rate+=item.Total
-
-            # the total is changed when the rate changes
-            self.Rate = rate
-            # total = self.Rate * self.Quantity
-            # self._Total = total
+        # pdb.set_trace()
+        # if len(self.Children)!=0:
+        total = 0
+        # print "before child loop"
+        # pdb.set_trace()
+        for item in self.Children:
+            total+=item.Total
+        # print "after child loop"
+        # pdb.set_trace()
+        self._Total = total
 
     @hybrid_property
     def Total(self):
@@ -396,7 +406,7 @@ class BudgetItem(Node):
         and then recursively does the same with each child of the source object.
         """
         self.Children.append(source)
-
+        # print "pasting again"
         for child in sourcechildren:
             source.paste(child.copy(source.ID), child.Children)
 
@@ -407,17 +417,17 @@ class BudgetItem(Node):
 class Component(Node):
 
     __tablename__ = 'Component'
-    ID = Column(Integer, 
+    ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
     Name = Column(Text)
     Description = Column(Text)
     Type = Column(Integer, ForeignKey('ComponentType.ID'))
     Unit = Column(Text)
-    _Quantity = Column("Quantity", Integer)
-    _Rate = Column("Rate", Integer)
-    _Total = Column("Total", Integer)
-    _Ordered = Column("Ordered", Integer)
-    _Claimed = Column("Claimed", Integer)
+    _Quantity = Column("Quantity", Float)
+    _Rate = Column("Rate", Float)
+    _Total = Column("Total", Float)
+    _Ordered = Column("Ordered", Float)
+    _Claimed = Column("Claimed", Float)
 
     __mapper_args__ = {
         'polymorphic_identity':'Component',
@@ -426,15 +436,16 @@ class Component(Node):
     # the rate of a component is based on the totals of it's children
     # and the total is equal to rate * quantity
     def resetTotal(self):
-        if len(self.Children) != 0:
-            rate = 0.0
-            for item in self.Children:
-                rate+=item.Total
-
-            # the total is changed when the rate changes
-            self.Rate = rate
-            # total = self.Rate * self.Quantity
-            # self._Total = total
+        # pdb.set_trace()
+        # if len(self.Children)!=0:
+        total = 0
+        # print "before child loop"
+        # pdb.set_trace()
+        for item in self.Children:
+            total+=item.Total
+        # print "after child loop"
+        # pdb.set_trace()
+        self._Total = total
 
     @hybrid_property
     def Total(self):
@@ -535,7 +546,7 @@ class Component(Node):
         and then recursively does the same with each child of the source object.
         """
         self.Children.append(source)
-
+        # print "pasting again"
         for child in sourcechildren:
             source.paste(child.copy(source.ID), child.Children)
 
@@ -558,34 +569,27 @@ class ComponentType(Base):
         return "<ComponentType(Name='%s', ID='%s')>" % (
                             self.Name, self.ID)
 
-class ResourceCategory(Base):
+class ResourceCategory(Node):
 
     __tablename__ = 'ResourceCategory'
-    Name = Column(Text, primary_key = True)
-    ParentCategory = Column(Text, ForeignKey("ResourceCategory.Name", 
-                                             ondelete='CASCADE'))
-
-    type = Column(Text)
-
-    Children = relationship('ResourceCategory',
-                        cascade="all",
-                        backref=backref("Parent", 
-                                        remote_side='ResourceCategory.Name'),
-                    )
+    ID = Column(Integer,
+                ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
+    Name = Column(Text)
+    Description = Column(Text)
 
     __mapper_args__ = {
         'polymorphic_identity':'ResourceCategory',
-        'polymorphic_on':type
         }
 
-class Resource(ResourceCategory):
+class Resource(Node):
 
     __tablename__ = 'Resource'
-    Name = Column(Text,
-                  ForeignKey('ResourceCategory.Name', ondelete='CASCADE'),
-                  primary_key=True)
+    ID = Column(Integer,
+                ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
+    Code = Column(Text)
+    Name = Column(Text)
     Description = Column(Text)
-    Rate = Column(Integer)
+    Rate = Column(Float)
 
     __mapper_args__ = {
         'polymorphic_identity':'Resource',
