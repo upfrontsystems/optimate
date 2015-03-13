@@ -75,27 +75,47 @@ class Project(Node):
         'polymorphic_identity':'Project',
     }
 
+    def resetTotal(self):
+        if len(self.Children)!=0:
+            total = 0
+            print "getting project children totals"
+            print self.__repr__()
+            for item in self.Children:
+                total+=item.Total
+            print "project total: " + str(total)
+            self._Total = total
+            print "end of resetTotal"
+            print self._Total
+
     @hybrid_property
     def Total(self):
         if self._Total == None:
-            self.recalculateTotal()
+            print "resetting the total"
+            self._Total = 0.0
+            self.resetTotal()
+        print "end of get total"
+        print self._Total
         return self._Total
     @Total.setter
     def Total(self, total):
-        oldtotal = self.Total
+        if self._Total == None:
+            self._Total = 0.0
+        oldtotal = self._Total
         self._Total = total
         difference = total - oldtotal
 
         # update the parent with the new total
         if self.ParentID != 0:
             qry = DBSession.query(Node).filter_by(ID=self.ParentID).first()
-            if qry != None:
+            if qry._Total == None:
+                qry.resetTotal()
+            else:
                 qry.Total = qry.Total+difference
 
     @hybrid_property
     def Ordered(self):
         if self._Ordered == None:
-            self._Ordered = 0
+            self._Ordered = 0.0
         return self._Ordered
     @Ordered.setter
     def Ordered(self, ordered):
@@ -104,7 +124,7 @@ class Project(Node):
     @hybrid_property
     def Claimed(self):
         if self._Claimed == None:
-            self._Claimed = 0
+            self._Claimed = 0.0
         return self._Claimed
     @Claimed.setter
     def Claimed(self, claimed):
@@ -116,15 +136,15 @@ class Project(Node):
         but with the ParentID specified.
         """
 
-        copy = Project(Name=self.Name,
+        copied = Project(Name=self.Name,
                         Description=self.Description,
                         ParentID=parentid)
 
-        copy.Total=self.Total
-        copy.Ordered=self.Ordered
-        copy.Claimed=self.Claimed
+        copied._Total=self.Total
+        copied._Ordered=self.Ordered
+        copied._Claimed=self.Claimed
 
-        return copy
+        return copied
 
 
     def paste(self, source, sourcechildren):
@@ -138,16 +158,9 @@ class Project(Node):
         for child in sourcechildren:
             source.paste(child.copy(source.ID), child.Children)
 
-    def recalculateTotal(self):
-        total = 0
-        for item in self.Children:
-            total+=item.Total
-
-        self._Total = total
-        return total
 
     def __repr__(self):
-        return "<Node(Name='%s', ID='%s', ParentID='%s')>" % (
+        return "<Project(Name='%s', ID='%s', ParentID='%s')>" % (
                             self.Name, self.ID, self.ParentID)
 
 class BudgetGroup(Node):
@@ -170,27 +183,40 @@ class BudgetGroup(Node):
         'polymorphic_identity':'BudgetGroup',
     }
 
+    def resetTotal(self):
+        if len(self.Children)!=0:
+            total = 0.0
+            for item in self.Children:
+                total+=item.Total
+
+            self._Total = total
+
     @hybrid_property
     def Total(self):
         if self._Total == None:
-            self.recalculateTotal()
+            self._Total = 0.0
+            self.resetTotal()
         return self._Total
     @Total.setter
     def Total(self, total):
-        oldtotal = self.Total
+        if self._Total == None:
+            self._Total = 0.0
+        oldtotal = self._Total
         self._Total = total
         difference = total - oldtotal
 
         # update the parent with the new total
         if self.ParentID != 0:
             qry = DBSession.query(Node).filter_by(ID=self.ParentID).first()
-            if qry != None:
+            if qry._Total == None:
+                qry.resetTotal()
+            else:
                 qry.Total = qry.Total+difference
 
     @hybrid_property
     def Ordered(self):
         if self._Ordered == None:
-            self._Ordered = 0
+            self._Ordered = 0.0
         return self._Ordered
     @Ordered.setter
     def Ordered(self, ordered):
@@ -199,7 +225,7 @@ class BudgetGroup(Node):
     @hybrid_property
     def Claimed(self):
         if self._Claimed == None:
-            self._Claimed = 0
+            self._Claimed = 0.0
         return self._Claimed
     @Claimed.setter
     def Claimed(self, claimed):
@@ -210,15 +236,15 @@ class BudgetGroup(Node):
         copy returns an exact duplicate of this object,
         but with the ParentID specified.
         """
-        return BudgetGroup(Name=self.Name,
+        copied = BudgetGroup(Name=self.Name,
                             Description=self.Description,
                             ParentID=parentid)
 
-        copy.Total=self.Total
-        copy.Ordered=self.Ordered
-        copy.Claimed=self.Claimed
+        copied._Total=self.Total
+        copied._Ordered=self.Ordered
+        copied._Claimed=self.Claimed
 
-        return copy
+        return copied
     def paste(self, source, sourcechildren):
         """
         paste appends a source object to the children of this node,
@@ -230,18 +256,8 @@ class BudgetGroup(Node):
         for child in sourcechildren:
             source.paste(child.copy(source.ID), child.Children)
 
-    def recalculateTotal(self):
-        total = 0
-        # if self.Total == None:
-        #     self.recalculateAll()
-        for item in self.Children:
-            total+=item.Total
-
-        self._Total = total
-        return total
-
     def __repr__(self):
-        return "<Node(Name='%s', ID='%s', ParentID='%s')>" % (
+        return "<BudgetGroup(Name='%s', ID='%s', ParentID='%s')>" % (
                          self.Name, self.ID, self.ParentID)
 
 
@@ -266,27 +282,52 @@ class BudgetItem(Node):
         'polymorphic_identity':'BudgetItem',
     }
 
+    # the rate of a budgetitem is based on the totals of it's children
+    # and the total is equal to rate * quantity
+    def resetTotal(self):
+        if len(self.Children)!= 0:
+            rate = 0.0
+
+            for item in self.Children:
+                rate+=item.Total
+
+            # the total is changed when the rate changes
+            self.Rate = rate
+            # total = self.Rate * self.Quantity
+            # self._Total = total
+
     @hybrid_property
     def Total(self):
         if self._Total == None:
-            self.recalculateTotal()
+            self._Total = 0.0
+            self.resetTotal()
         return self._Total
     @Total.setter
     def Total(self, total):
-        oldtotal = self.Total
+        if self._Total == None:
+            self._Total = 0.0
+        oldtotal = self._Total
         self._Total = total
         difference = total - oldtotal
 
         # update the parent with the new total
+        # since the total has changed, change the rate of any parent
+        # budgetitems, and then others
         if self.ParentID != 0:
-            qry = DBSession.query(Node).filter_by(ID=self.ParentID).first()
+            qry = DBSession.query(BudgetItem).filter_by(ID=self.ParentID).first()
             if qry != None:
-                qry.Total = qry.Total+difference
+                qry.Rate = qry.Total + difference
+            else:
+                qry = DBSession.query(Node).filter_by(ID=self.ParentID).first()
+                if qry._Total == None:
+                    qry.resetTotal()
+                else:
+                    qry.Total = qry.Total+difference
 
     @hybrid_property
     def Ordered(self):
         if self._Ordered == None:
-            self._Ordered = 0
+            self._Ordered = 0.0
         return self._Ordered
     @Ordered.setter
     def Ordered(self, ordered):
@@ -295,7 +336,7 @@ class BudgetItem(Node):
     @hybrid_property
     def Claimed(self):
         if self._Claimed == None:
-            self._Claimed = 0
+            self._Claimed = 0.0
         return self._Claimed
     @Claimed.setter
     def Claimed(self, claimed):
@@ -304,7 +345,7 @@ class BudgetItem(Node):
     @hybrid_property
     def Rate(self):
         if self._Rate == None:
-            self._Rate = 0
+            self._Rate = 0.0
         return self._Rate
     @Rate.setter
     def Rate(self, rate):
@@ -313,16 +354,10 @@ class BudgetItem(Node):
         # change the total
         self.Total = self.Rate * self.Quantity
 
-        # since the total has changed, change the rate of any parent
-        # budgetitems
-        qry = DBSession.query(BudgetItem).filter_by(ID=self.ParentID).first()
-        if qry != None:
-            qry.Rate = self.Total
-
     @hybrid_property
     def Quantity(self):
         if self._Quantity == None:
-            self._Quantity = 0
+            self._Quantity = 0.0
         return self._Quantity
     @Quantity.setter
     def Quantity(self, quantity):
@@ -331,29 +366,24 @@ class BudgetItem(Node):
         # change the total
         self.Total = self.Rate * self.Quantity
 
-        # since the total has changed, change the rate of any parent
-        # budgetitems
-        qry = DBSession.query(BudgetItem).filter_by(ID=self.ParentID).first()
-        if qry != None:
-            qry.Rate = self.Total
-
     def copy(self, parentid):
         """
         copy returns an exact duplicate of this object,
         but with the ParentID specified.
         """
-        return BudgetItem(Name=self.Name,
+
+        copied = BudgetItem(Name=self.Name,
                             Description=self.Description,
                             Unit=self.Unit,
                             ParentID=parentid)
 
-        copy.Quantity=self.Quantity
-        copy.Rate=self.Rate
-        copy.Total=self.Total
-        copy.Ordered=self.Ordered
-        copy.Claimed=self.Claimed
+        copied._Quantity=self.Quantity
+        copied._Rate=self.Rate
+        copied._Total=self.Total
+        copied._Ordered=self.Ordered
+        copied._Claimed=self.Claimed
 
-        return copy
+        return copied
 
     def paste(self, source, sourcechildren):
         """
@@ -365,18 +395,8 @@ class BudgetItem(Node):
         for child in sourcechildren:
             source.paste(child.copy(source.ID), child.Children)
 
-    def recalculateTotal(self):
-        total = 0
-        for item in self.Children:
-            total+=item.Total
-
-        total = total + self.Quantity*self.Rate
-        self._Total = total
-        return total
-
-
     def __repr__(self):
-        return "<Node(Name='%s', ID='%s', ParentID='%s')>" % (
+        return "<BudgetItem(Name='%s', ID='%s', ParentID='%s')>" % (
                             self.Name, self.ID, self.ParentID)
 
 class Component(Node):
@@ -397,27 +417,54 @@ class Component(Node):
         'polymorphic_identity':'Component',
     }
 
+    # the rate of a component is based on the totals of it's children
+    # and the total is equal to rate * quantity
+    def resetTotal(self):
+        if len(self.Children) != 0:
+            rate = 0.0
+            for item in self.Children:
+                rate+=item.Total
+
+            # the total is changed when the rate changes
+            self.Rate = rate
+            # total = self.Rate * self.Quantity
+            # self._Total = total
+
     @hybrid_property
     def Total(self):
         if self._Total == None:
-            self.recalculateTotal()
+            self._Total = 0.0
+            self.resetTotal()
         return self._Total
     @Total.setter
     def Total(self, total):
-        oldtotal = self.Total
+        if self._Total == None:
+            self._Total = 0.0
+        oldtotal = self._Total
         self._Total = total
         difference = total - oldtotal
 
-        # update the parent with the new total
+        # since the total has changed, change the rate of any parent
+        # components, budgetitems or others
         if self.ParentID != 0:
-            qry = DBSession.query(Node).filter_by(ID=self.ParentID).first()
+            qry = DBSession.query(BudgetItem).filter_by(ID=self.ParentID).first()
             if qry != None:
-                qry.Total = qry.Total+difference
+                qry.Rate = qry.Rate + difference
+            else:
+                qry = DBSession.query(Component).filter_by(ID=self.ParentID).first()
+                if qry != None:
+                    qry.Rate = qry.Rate + difference
+                else:
+                    qry = DBSession.query(Node).filter_by(ID=self.ParentID).first()
+                    if qry._Total == None:
+                        qry.resetTotal()
+                    else:
+                        qry.Total = qry.Total+difference
 
     @hybrid_property
     def Ordered(self):
         if self._Ordered == None:
-            self._Ordered = 0
+            self._Ordered = 0.0
         return self._Ordered
     @Ordered.setter
     def Ordered(self, ordered):
@@ -426,7 +473,7 @@ class Component(Node):
     @hybrid_property
     def Claimed(self):
         if self._Claimed == None:
-            self._Claimed = 0
+            self._Claimed = 0.0
         return self._Claimed
     @Claimed.setter
     def Claimed(self, claimed):
@@ -435,7 +482,7 @@ class Component(Node):
     @hybrid_property
     def Rate(self):
         if self._Rate == None:
-            self._Rate = 0
+            self._Rate = 0.0
         return self._Rate
     @Rate.setter
     def Rate(self, rate):
@@ -443,16 +490,6 @@ class Component(Node):
 
         # change the total
         self.Total = self.Rate * self.Quantity
-
-        # since the total has changed, change the rate of any parent
-        # budgetitems
-        qry = DBSession.query(BudgetItem).filter_by(ID=self.ParentID).first()
-        if qry != None:
-            qry.Rate = self.Total
-
-        qry = DBSession.query(Component).filter_by(ID=self.ParentID).first()
-        if qry != None:
-            qry.Rate = self.Total
 
     @hybrid_property
     def Quantity(self):
@@ -466,35 +503,24 @@ class Component(Node):
         # change the total
         self.Total = self.Rate * self.Quantity
 
-        # since the total has changed, change the rate of any parent
-        # budgetitems and components
-        qry = DBSession.query(BudgetItem).filter_by(ID=self.ParentID).first()
-        if qry != None:
-            qry.Rate = self.Total
-
-        qry = DBSession.query(Component).filter_by(ID=self.ParentID).first()
-        if qry != None:
-            qry.Rate = self.Total
-
     def copy(self, parentid):
         """
         copy returns an exact duplicate of this object,
         but with the ParentID specified.
         """
-        return Component(Name=self.Name,
+        copied = Component(Name=self.Name,
                             Description=self.Description,
                             Type=self.Type,
                             Unit=self.Unit,
                             ParentID=parentid)
 
-        copy.Quantity=self.Quantity
-        copy.Rate=self.Rate
-        copy.Total=self.Total
-        copy.Ordered=self.Ordered
-        copy.Claimed=self.Claimed
+        copied._Quantity=self.Quantity
+        copied._Rate=self.Rate
+        copied._Total=self.Total
+        copied._Ordered=self.Ordered
+        copied._Claimed=self.Claimed
 
-        return copy
-
+        return copied
 
     def paste(self, source, sourcechildren):
         """
@@ -506,18 +532,9 @@ class Component(Node):
         for child in sourcechildren:
             source.paste(child.copy(source.ID), child.Children)
 
-    def recalculateTotal(self):
-        total = 0
-
-        for item in self.Children:
-            total+=item.Total
-
-        total = total + self.Quantity*self.Rate
-        self._Total = total
-        return total
 
     def __repr__(self):
-        return "<Node(Name='%s', ID='%s', ParentID='%s')>" % (
+        return "<Component(Name='%s', ID='%s', ParentID='%s')>" % (
                             self.Name, self.ID, self.ParentID)
 
 
@@ -538,32 +555,27 @@ class ResourceCategory(Base):
 
     __tablename__ = 'ResourceCategory'
     Name = Column(Text, primary_key = True)
-    Description = Column(Text)
-    Rate = Column(Integer)
+    ParentCategory = Column(Text, ForeignKey("ResourceCategory.Name", ondelete='CASCADE'))
 
-    # ResourceList = relationship('ResourceCategory',
-    #                     cascade="all",
-    #                     backref=backref("Category", remote_side='Category.Name'),
-    #                 )
-    # __mapper_args__ = {
-    #     'polymorphic_identity':'ResourceCategory'
-    #     }
+    type = Column(Text)
 
-    def __repr__(self):
-        return "<ResourceCategory(Name='%s', Description='%s')>" % (
-                            self.Name, self.Description)
+    Children = relationship('ResourceCategory',
+                        cascade="all",
+                        backref=backref("Parent", remote_side='ResourceCategory.Name'),
+                    )
+
+    __mapper_args__ = {
+        'polymorphic_identity':'ResourceCategory',
+        'polymorphic_on':type
+        }
 
 class Resource(ResourceCategory):
 
     __tablename__ = 'Resource'
-    Name = Column(Text, ForeignKey('ResourceCategory.Name'))
-    ID = Column(Integer, primary_key = True)
-    ParentID = Column(Integer)
+    Name = Column(Text, ForeignKey('ResourceCategory.Name', ondelete='CASCADE'), primary_key=True)
+    Description = Column(Text)
+    Rate = Column(Integer)
 
-    # __mapper_args__ = {
-    #     'polymorphic_identity':'Resource'
-    #     }
-
-    def __repr__(self):
-        return "<Resource(Name='%s', ID='%s')>" % (
-                            self.Name, self.ID)
+    __mapper_args__ = {
+        'polymorphic_identity':'Resource',
+    }

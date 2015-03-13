@@ -12,6 +12,8 @@ from optimate.app.models import (
     BudgetItem,
     Component,
     ComponentType,
+    ResourceCategory,
+    Resource,
     )
 
 from sqlalchemy import (

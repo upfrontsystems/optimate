@@ -25,6 +25,8 @@ def _initTestingDB():
         BudgetItem,
         Component,
         ComponentType,
+        ResourceCategory,
+        Resource,
         Base
         )
     engine = create_engine('sqlite://')
@@ -81,16 +83,16 @@ def _initTestingDB():
         DBSession.add(compb)
 
         # project total should be 100
-        comp.Rate = 10
-        comp.Quantity = 5
-        budgetitem.Rate = 10
-        budgetitem.Quantity = 5
+        comp.Rate = 10.0
+        comp.Quantity = 5.0
+        budgetitem.Rate = 10.0
+        budgetitem.Quantity = 5.0
 
         # project total should be 500
-        budgetitemb.Quantity = 10
-        budgetitemb.Rate = 50
-        compb.Rate = 10
-        compb.Quantity = 5
+        budgetitemb.Quantity = 10.0
+        budgetitemb.Rate = 50.0
+        compb.Rate = 10.0
+        compb.Quantity = 5.0
 
     return DBSession
 
@@ -182,10 +184,11 @@ class TestAddviewSuccessCondition(unittest.TestCase):
                                                 'Description':'Adding test item',
                                                 'NodeType':'component',
                                                 'ComponentType':1,
-                                                'Quantity': 10,
-                                                'Rate': 2}
+                                                'Quantity': 10.0,
+                                                'Rate': 2.0}
                                         )
-        request.matchdict= {'id':3}
+        # add it to id:6 the budgetitemb
+        request.matchdict= {'id':6}
         response = self._callFUT(request)
 
         # assert if the response from the add view is OK
@@ -193,19 +196,19 @@ class TestAddviewSuccessCondition(unittest.TestCase):
 
         # Create another request for the child of the node added to
         request = testing.DummyRequest()
-        request.matchdict= {'parentid': 3}
+        request.matchdict= {'parentid': 6}
         from .views import childview
         response = childview(request)
 
         # true if the name of the child added to the node is 'AddingName'
-        self.assertEqual(response[0]['Name'], 'AddingName')
+        self.assertEqual(response[1]['Name'], 'AddingName')
 
         # do another test to see if the cost is correct
         request = testing.DummyRequest()
-        request.matchdict= {'id': 1}
+        request.matchdict= {'id': 4}
         from .views import costview
         response = costview(request)
-        self.assertEqual(response["Cost"], 150)
+        self.assertEqual(response["Cost"], 700.0)
 
 class TestDeleteviewSuccessCondition(unittest.TestCase):
     """
@@ -247,7 +250,7 @@ class TestDeleteviewSuccessCondition(unittest.TestCase):
         request.matchdict= {'id': 1}
         from .views import costview
         response = costview(request)
-        self.assertEqual(response["Cost"], 0)
+        self.assertEqual(response["Cost"], 0.0)
 
 class TestPasteviewSuccessCondition(unittest.TestCase):
     """
@@ -292,7 +295,7 @@ class TestPasteviewSuccessCondition(unittest.TestCase):
         request.matchdict= {'id': 1}
         from .views import costview
         response = costview(request)
-        self.assertEqual(response["Cost"], 150)
+        self.assertEqual(response["Cost"], 150.0)
 
 class TestCostviewSuccessCondition(unittest.TestCase):
     """
@@ -320,5 +323,46 @@ class TestCostviewSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
 
         # true if the cost is correct
-        self.assertEqual(response["Cost"], 500)
+        self.assertEqual(response["Cost"], 500.0)
+
+class TestSetComponentRateSuccessCondition(unittest.TestCase):
+    """
+    Test that the paste functions correctly with getting the
+    total  cost of a node
+    """
+
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        self.session.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from .views import costview
+        return costview(request)
+
+    def test_it(self):
+        _registerRoutes(self.config)
+        # get the cost of the node as is
+        request = testing.DummyRequest()
+        request.matchdict= {'id': 4}
+        response = self._callFUT(request)
+
+        # true if the cost is correct
+        self.assertEqual(response["Cost"], 500.0)
+
+        # now change the rate of the component by calling the test view
+        request = testing.DummyRequest()
+        request.matchdict= {'id': 8}
+        from .views import testchangeview
+        testchangeview(request)
+
+        # now the project cost should be 50
+        request = testing.DummyRequest()
+        request.matchdict= {'id': 4}
+        response = self._callFUT(request)
+        self.assertEqual(response["Cost"], 50.0)
+
 

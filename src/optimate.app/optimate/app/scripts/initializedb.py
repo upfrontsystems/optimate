@@ -25,6 +25,8 @@ from ..models import (
     BudgetItem,
     Component,
     ComponentType,
+    ResourceCategory,
+    Resource,
     Base,
     )
 

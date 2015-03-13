@@ -41,7 +41,6 @@ def childview(request):
     if 'parentid' in request.matchdict:
         parentid = request.matchdict['parentid']
 
-    print "\n\n\nIn Child view: "+ str(parentid)+"\n\n"
     childrenlist = []
 
     # Execute the sql query on the Node table to find all objects with that parent
@@ -71,8 +70,7 @@ def additemview(request):
         return {"success" : True}
     else:
         # Get the parent to add the object to from the path
-        parentid = request.matchdict['id']
-        print "adding to item: " + str(parentid)
+        parentid = int(request.matchdict['id'])
 
         # Get the data to be added to the new object from the request body
         name = request.json_body['Name']
@@ -90,17 +88,17 @@ def additemview(request):
                                     Description=desc,
                                     ParentID=parentid)
         elif objecttype == 'budgetitem':
-            quantity = request.json_body['Quantity']
-            rate = request.json_body['Rate']
+            quantity = float(request.json_body['Quantity'])
+            rate = float(request.json_body['Rate'])
             newnode = BudgetItem(Name=name,
                                     Description=desc,
                                     ParentID=parentid)
             newnode.Quantity=quantity
             newnode.Rate=rate
         elif objecttype == 'component':
-            componenttype = request.json_body['ComponentType']
-            quantity = request.json_body['Quantity']
-            rate = request.json_body['Rate']
+            componenttype = int(request.json_body['ComponentType'])
+            quantity = float(request.json_body['Quantity'])
+            rate = float(request.json_body['Rate'])
             newnode = Component(Name=name,
                                     Description=desc,
                                     Type=componenttype,
@@ -114,10 +112,10 @@ def additemview(request):
         DBSession.add(newnode)
         transaction.commit()
 
-        # bubble up recalculating the totals in the hierarchy
+        # reset the total of the parent
         if parentid!=0:
             recalculate = DBSession.query(Node).filter_by(ID=parentid).first()
-            recalculate.recalculateTotal()
+            recalculate.resetTotal()
 
         transaction.commit()
 
@@ -135,7 +133,6 @@ def deleteitemview(request):
     else:
         # Get the id of the node to be deleted from the path
         deleteid = request.matchdict['id']
-        print "\n\nDeleting node: " + str(deleteid) +"\n\n"
 
         # Deleting it from the node table deleted the object
         deletethis = DBSession.query(Node).filter_by(ID=deleteid).first()
@@ -148,7 +145,7 @@ def deleteitemview(request):
 
         if parentid != 0:
             recalculate = DBSession.query(Node).filter_by(ID=parentid).first()
-            recalculate.recalculateTotal()
+            recalculate.resetTotal()
 
         transaction.commit()
 
@@ -165,7 +162,6 @@ def pasteitemview(request):
     if request.method == 'OPTIONS':
         return {"success" : True}
     else:
-        print "pasting to item"
         # Find the source object to be copied from the path in the request body
         sourceid = request.json_body["Path"][1:-1]
         # Find the object to be copied to from the path
@@ -173,7 +169,6 @@ def pasteitemview(request):
 
         source = DBSession.query(Node).filter_by(ID=sourceid).first()
         dest = DBSession.query(Node).filter_by(ID=destinationid).first()
-
         # Paste the source into the destination
         parentid = dest.ID
         dest.paste(source.copy(dest.ID), source.Children)
@@ -181,7 +176,7 @@ def pasteitemview(request):
 
         if parentid != 0:
             recalculate = DBSession.query(Node).filter_by(ID=parentid).first()
-            recalculate.recalculateTotal()
+            recalculate.resetTotal()
 
         transaction.commit()
 
@@ -199,17 +194,33 @@ def costview(request):
     if request.method == 'OPTIONS':
         return {"success" : True}
     else:
-        print "costing"
         # Get the id of the node to be costed
         costid = request.matchdict['id']
-
         qry = DBSession.query(Node).filter_by(ID=costid).first()
-
+        print "the query"
+        print qry
         if qry == None:
             return HTTPNotFound()
-
+        print "starting getting the total"
         totalcost = qry.Total
-
+        print "\n\n"
+        print totalcost
+        print "\n\n"
         transaction.commit()
 
         return {'Cost': totalcost}
+
+@view_config(route_name="testchangeview", renderer="json")
+def testchangeview(request):
+    """
+    This is for testing purposes only. The rate of a component is changed
+    so that its effect can be tested.
+    """
+
+    coid = request.matchdict['id']
+    qry = DBSession.query(Component).filter_by(ID=coid).first()
+
+    qry.Rate = 1
+    transaction.commit()
+
+    return HTTPOk()
