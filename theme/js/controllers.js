@@ -9,23 +9,6 @@
         {$scope.roleList = data;}
       );
 
-      // Toggle if the modal dialog displays or not
-      // $scope.modalShown = false;
-      // console.log($scope.modalShown);
-      // $scope.toggleModal = function() {
-      //   console.log("shown: " + $scope.modalShown);
-      //   $scope.modalShown = !$scope.modalShown;
-      //   console.log("shown after: " + $scope.modalShown);
-      // };
-
-      // $scope.openModal = function(){
-      //   $scope.modalShown = true;
-      // };
-
-      // $scope.logClose = function() {
-      //   $scope.modalShown = false;
-      //   console.log("modal shown: " + $scope.modalShown);
-      // };
       $scope.formData = {};
       $scope.closeModal = function(){
         $scope.modalShown = false;
