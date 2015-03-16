@@ -3,8 +3,8 @@ views uses pyramid and sqlalchemy to recieve requests from a user
 and send responses with appropriate data
 """
 
-import uuid
 import transaction
+import uuid
 from pyramid.view import view_config
 
 from pyramid.httpexceptions import (
@@ -23,7 +23,7 @@ from .models import (
     Component,
     ComponentType,
     )
-import pdb
+
 
 def contains_unicode(mystring):
     """ auxilary method to determine if a string contains a unicode character
@@ -38,7 +38,7 @@ def contains_unicode(mystring):
         return False
 
 
-@view_config(route_name='rootview', renderer='json')
+@view_config(route_name="rootview", renderer='json')
 @view_config(route_name="childview", renderer='json')
 def childview(request):
     """
@@ -52,6 +52,9 @@ def childview(request):
     parentid = 0
     if 'parentid' in request.matchdict:
         parentid = request.matchdict['parentid']
+
+    start = request.params.get('start')
+    end = request.params.get('end')
 
     childrenlist = []
 
@@ -73,6 +76,14 @@ def childview(request):
             "Path": "/" + str(value.ID)+"/"})
 
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'])
+    try:
+        start = int(start)
+        end = int(end)
+    except Exception:
+        return sorted_childrenlist
+
+    if start >= 0 and end >= 0 and start <= end:
+        return sorted_childrenlist[int(start):int(end)]
     return sorted_childrenlist
 
 
@@ -139,7 +150,8 @@ def additemview(request):
 
         return HTTPOk()
 
-@view_config(route_name = "deleteview",renderer='json')
+
+@view_config(route_name="deleteview", renderer='json')
 def deleteitemview(request):
     """
     The deleteitemview is called using the address from the node to be deleted.
@@ -169,7 +181,8 @@ def deleteitemview(request):
 
         return HTTPOk()
 
-@view_config(route_name = "pasteview", renderer='json')
+
+@view_config(route_name="pasteview", renderer='json')
 def pasteitemview(request):
     """
     The pasteitemview is sent the path of the node that is to be copied.
@@ -206,7 +219,7 @@ def pasteitemview(request):
         return HTTPOk()
 
 
-@view_config(route_name = "costview",renderer='json')
+@view_config(route_name="costview", renderer='json')
 def costview(request):
     """
     The costview is called using the address from the node to be costed.
@@ -232,6 +245,7 @@ def costview(request):
         transaction.commit()
 
         return {'Cost': totalcost}
+
 
 @view_config(route_name="testchangeview", renderer="json")
 def testchangeview(request):

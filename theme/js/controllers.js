@@ -4,7 +4,15 @@
     var myApp = angular.module('myApp', ['angularTreeview']);
     myApp.controller('myController',['$scope', '$http',
         function($scope, $http) {
-            $http.get('http://127.0.0.1:8100').success(function(data) {
+            var req = {
+                method: 'GET',
+                url: 'http://127.0.0.1:8100',
+                params: {
+                    start: '', // use blank '' string to show entire result
+                    end: ''
+                }
+            }
+            $http(req).success(function(data) {
                 $scope.roleList = data;
             });
             $scope.formData = {};
