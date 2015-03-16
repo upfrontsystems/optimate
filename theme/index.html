@@ -3,11 +3,9 @@
 <head>
     <meta charset="utf-8">
     <title>Optimate Cost System</title>
-    <link rel="stylesheet"
-          href="bower_components/bootstrap/dist/css/bootstrap.css">
-    <script type="text/javascript"
-            src="bower_components/angular/angular.js"></script>
+    <script type="text/javascript" src="bower_components/angular/angular.js"></script>
     <script type="text/javascript" src="js/controllers.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
      <!-- Angular treeview script and css -->
     <script type="text/javascript" src="js/angular.treeview.js"></script>
     <link rel="stylesheet" type="text/css" href="css/angular.treeview.css">
@@ -16,23 +14,21 @@
     <div ng-app="myApp">
         <div ng-controller="myController">
              <div
-              data-angular-treeview="true"
-              data-tree-id="mytree"
-              data-tree-model="roleList"
-              data-node-id="ID"
-              data-node-path="Path"
-              data-node-label="Name"
-              data-node-description="Description"
-              data-node-children="Subitem" >
+                data-angular-treeview="true"
+                data-tree-id="mytree"
+                data-tree-model="roleList"
+                data-node-id="ID"
+                data-node-path="Path"
+                data-node-label="Name"
+                data-node-description="Description"
+                data-node-children="Subitem" >
             </div>
-
-            <div style="margin:10px 0 30px 0; padding:10px; background-color:#EEEEEE; border-radius:5px; font:12px Tahoma;">
+            <div class="info-box">
                 <span>
                     <b>Selected Node path: </b>{{mytree.currentNode.Path}}<br>
                     <b>Selected Node description: </b>{{mytree.currentNode.Description}}<br>
                 </span>
             </div>
-
         </div>
     </div>
 </body>
