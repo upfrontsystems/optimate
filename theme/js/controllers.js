@@ -8,8 +8,8 @@
                 method: 'GET',
                 url: 'http://127.0.0.1:8100',
                 params: {
-                    start: '100', // use blank '' string to show entire result
-                    end: '105'
+                    start: '', // use blank '' string to show entire result
+                    end: ''
                 }
             }
             $http(req).success(function(data) {
