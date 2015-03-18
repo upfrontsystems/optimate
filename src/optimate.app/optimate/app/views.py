@@ -58,7 +58,8 @@ def childview(request):
 
     childrenlist = []
 
-    # Execute the sql query on the Node table to find all objects with that parent
+    # Execute the sql query on the Node table to find all objects with that 
+    # parent
     qry = DBSession.query(Node).filter_by(ParentID=parentid).all()
 
     # Format the result into a json readable list and respond with that
@@ -173,6 +174,7 @@ def deleteitemview(request):
             return HTTPNotFound()
         transaction.commit()
 
+        # reset the total of the parent node
         if parentid != 0:
             recalculate = DBSession.query(Node).filter_by(ID=parentid).first()
             recalculate.resetTotal()
@@ -199,11 +201,8 @@ def pasteitemview(request):
         destinationid = request.matchdict['id']
 
         source = DBSession.query(Node).filter_by(ID=sourceid).first()
-        # pdb.set_trace()
-        # print "the source"
         dest = DBSession.query(Node).filter_by(ID=destinationid).first()
-        # pdb.set_trace()
-        # print "the dest"
+
         # Paste the source into the destination
         parentid = dest.ID
         dest.paste(source.copy(dest.ID), source.Children)
@@ -233,15 +232,11 @@ def costview(request):
         # Get the id of the node to be costed
         costid = request.matchdict['id']
         qry = DBSession.query(Node).filter_by(ID=costid).first()
-        # print "the query"
-        # pdb.set_trace()
+
         if qry == None:
             return HTTPNotFound()
-        # print "starting getting the total"
-        # pdb.set_trace()
+
         totalcost = qry.Total
-        # print "got the total"
-        # pdb.set_trace()
         transaction.commit()
 
         return {'Cost': totalcost}

@@ -4,6 +4,7 @@ That is: Child view
         Add view
         Delete view
         Paste view
+    Cost view
 """
 
 import unittest
@@ -411,5 +412,4 @@ class TestSetComponentRateSuccessCondition(unittest.TestCase):
         request.matchdict= {'id': 4}
         response = self._callFUT(request)
         self.assertEqual(response["Cost"], 50.0)
-
 

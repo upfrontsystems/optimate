@@ -79,45 +79,54 @@ class Project(Node):
         'polymorphic_identity':'Project',
     }
 
-    def resetTotal(self):
-        # print "before if has children"
-        # pdb.set_trace()
-        # if len(self.Children)!=0:
+    def recalculateTotal(self):
+        """
+        recursively recalculate the total of all the node in the hierarchy
+        """
+
         total = 0
-        # print "before child loop"
-        # pdb.set_trace()
+        childr = DBSession.query(Node).filter_by(ParentID=self.ID).all()
+
+        for child in childr:
+            total+=child.recalculateTotal()
+
+        return total
+
+    def resetTotal(self):
+        """
+        return the sum of the totals of this node's children
+        """
+
+        total = 0
+
         for item in self.Children:
             total+=item.Total
-        # print "after child loop"
-        # pdb.set_trace()
+
         self._Total = total
 
     @hybrid_property
     def Total(self):
+        """
+        Get property total. If the Total has not been set yet, it is set to zero
+        and recalculated
+        """
+
         if self._Total == None:
-            # print "resetting the total"
-            # pdb.set_trace()
             self._Total = 0.0
             self.resetTotal()
-        # print "end of get total"
-        # pdb.set_trace()
+
         return self._Total
     @Total.setter
     def Total(self, total):
-        if self._Total == None:
-            self._Total = 0.0
-        oldtotal = self._Total
+        """
+        Set total property.
+        """
+
         self._Total = total
-        difference = total - oldtotal
 
-        # update the parent with the new total
-        if self.ParentID != 0:
-            qry = DBSession.query(Node).filter_by(ID=self.ParentID).first()
-            if qry._Total == None:
-                qry.resetTotal()
-            else:
-                qry.Total = qry.Total+difference
-
+    """
+    Get and set for the ordered property
+    """
     @hybrid_property
     def Ordered(self):
         if self._Ordered == None:
@@ -127,6 +136,9 @@ class Project(Node):
     def Ordered(self, ordered):
         self._Ordered = ordered
 
+    """
+    Get and set for the claimed property
+    """
     @hybrid_property
     def Claimed(self):
         if self._Claimed == None:
@@ -152,7 +164,6 @@ class Project(Node):
 
         return copied
 
-
     def paste(self, source, sourcechildren):
         """
         paste appends a source object to the children of this node,
@@ -160,14 +171,16 @@ class Project(Node):
         """
 
         self.Children.append(source)
-        # pdb.set_trace()
-        # print "pasting: "
-        # print self.__repr__()
+
         for child in sourcechildren:
             source.paste(child.copy(source.ID), child.Children)
 
 
     def __repr__(self):
+        """
+        Return a representation of this project
+        """
+
         return "<Project(Name='%s', ID='%s', ParentID='%s')>" % (
                             self.Name, self.ID, self.ParentID)
 
@@ -192,18 +205,34 @@ class BudgetGroup(Node):
         'polymorphic_identity':'BudgetGroup',
     }
 
-    def resetTotal(self):
-        # pdb.set_trace()
-        # if len(self.Children)!=0:
+    def recalculateTotal(self):
+        """
+        recursively recalculate the total of all the node in the hierarchy
+        """
+
         total = 0
-        # print "before child loop"
-        # pdb.set_trace()
+        childr = DBSession.query(Node).filter_by(ParentID=self.ID).all()
+
+        for child in childr:
+            total+=child.recalculateTotal()
+
+        return total
+
+    def resetTotal(self):
+        """
+        return the sum of the totals of this node's children
+        """
+
+        total = 0
+
         for item in self.Children:
             total+=item.Total
-        # print "after child loop"
-        # pdb.set_trace()
+
         self._Total = total
 
+    """
+    Get and set for the total property
+    """
     @hybrid_property
     def Total(self):
         if self._Total == None:
@@ -212,6 +241,10 @@ class BudgetGroup(Node):
         return self._Total
     @Total.setter
     def Total(self, total):
+        """
+        When the total is changed the parent's total is updated
+        """
+
         if self._Total == None:
             self._Total = 0.0
         oldtotal = self._Total
@@ -219,13 +252,16 @@ class BudgetGroup(Node):
         difference = total - oldtotal
 
         # update the parent with the new total
-        if self.ParentID != 0:
-            qry = DBSession.query(Node).filter_by(ID=self.ParentID).first()
+        qry = DBSession.query(Node).filter_by(ID=self.ParentID).first()
+        if qry != None:
             if qry._Total == None:
                 qry.resetTotal()
             else:
                 qry.Total = qry.Total+difference
 
+    """
+    Get and set for the ordered property
+    """
     @hybrid_property
     def Ordered(self):
         if self._Ordered == None:
@@ -235,6 +271,9 @@ class BudgetGroup(Node):
     def Ordered(self, ordered):
         self._Ordered = ordered
 
+    """
+    Get and set for the claimed property
+    """
     @hybrid_property
     def Claimed(self):
         if self._Claimed == None:
@@ -258,6 +297,7 @@ class BudgetGroup(Node):
         copied._Claimed=self.Claimed
 
         return copied
+
     def paste(self, source, sourcechildren):
         """
         paste appends a source object to the children of this node,
@@ -265,7 +305,7 @@ class BudgetGroup(Node):
         """
 
         self.Children.append(source)
-        # print "pasting again"
+
         for child in sourcechildren:
             source.paste(child.copy(source.ID), child.Children)
 
@@ -296,20 +336,39 @@ class BudgetItem(Node):
         'polymorphic_identity':'BudgetItem',
     }
 
-    # the rate of a budgetitem is based on the totals of it's children
-    # and the total is equal to rate * quantity
-    def resetTotal(self):
-        # pdb.set_trace()
-        # if len(self.Children)!=0:
-        total = 0
-        # print "before child loop"
-        # pdb.set_trace()
-        for item in self.Children:
-            total+=item.Total
-        # print "after child loop"
-        # pdb.set_trace()
-        self._Total = total
+    def recalculateTotal(self):
+        """
+        recursively recalculate the total of all the nodes in the hierarchy
+        """
 
+        rate = 0
+        childr = DBSession.query(Node).filter_by(ParentID=self.ID).all()
+
+        for child in childr:
+            rate+=child.recalculateTotal()
+
+        return rate*self.Quantity
+
+    def resetTotal(self):
+        """
+        the rate of a budgetitem is based on the totals of it's children
+        and the total is equal to rate * quantity. The rate is reset, the
+        total recalculated and returned
+        """
+
+        rate = 0
+
+        for item in self.Children:
+            rate+=item.Total
+
+        self._Rate = rate
+        self._Total = rate * self.Quantity
+
+        return self._Total
+
+    """
+    Get and set for the total property
+    """
     @hybrid_property
     def Total(self):
         if self._Total == None:
@@ -328,17 +387,20 @@ class BudgetItem(Node):
         # since the total has changed, change the rate of any parent
         # budgetitems, and then others
         p_ID = self.ParentID
-        if p_ID != 0:
+        nodeqry = DBSession.query(Node).filter_by(ID=p_ID).first()
+        if nodeqry != None:
             qry = DBSession.query(BudgetItem).filter_by(ID=p_ID).first()
-            if qry != None:
-                qry.Rate = qry.Total + difference
+            if qry!=None:
+                qry.Rate = qry.Rate + difference
             else:
-                qry = DBSession.query(Node).filter_by(ID=p_ID).first()
-                if qry._Total == None:
-                    qry.resetTotal()
+                if nodeqry._Total == None:
+                    nodeqry.resetTotal()
                 else:
-                    qry.Total = qry.Total+difference
+                    nodeqry.Total = nodeqry.Total+difference
 
+    """
+    Get and set for the ordered property
+    """
     @hybrid_property
     def Ordered(self):
         if self._Ordered == None:
@@ -348,6 +410,9 @@ class BudgetItem(Node):
     def Ordered(self, ordered):
         self._Ordered = ordered
 
+    """
+    Get and set for the claimed property
+    """
     @hybrid_property
     def Claimed(self):
         if self._Claimed == None:
@@ -357,6 +422,9 @@ class BudgetItem(Node):
     def Claimed(self, claimed):
         self._Claimed = claimed
 
+    """
+    Get and set for the rate property
+    """
     @hybrid_property
     def Rate(self):
         if self._Rate == None:
@@ -366,9 +434,12 @@ class BudgetItem(Node):
     def Rate(self, rate):
         self._Rate = rate
 
-        # change the total
+        # when the rate changes recalculate the total
         self.Total = self.Rate * self.Quantity
 
+    """
+    Get and set for the quantity property
+    """
     @hybrid_property
     def Quantity(self):
         if self._Quantity == None:
@@ -378,7 +449,7 @@ class BudgetItem(Node):
     def Quantity(self, quantity):
         self._Quantity = quantity
 
-        # change the total
+        # when the quantity changes recalculate the total
         self.Total = self.Rate * self.Quantity
 
     def copy(self, parentid):
@@ -405,48 +476,90 @@ class BudgetItem(Node):
         paste appends a source object to the children of this node,
         and then recursively does the same with each child of the source object.
         """
+
         self.Children.append(source)
-        # print "pasting again"
+
         for child in sourcechildren:
             source.paste(child.copy(source.ID), child.Children)
 
     def __repr__(self):
+        """
+        return a representation of this budgetitem
+        """
+
         return "<BudgetItem(Name='%s', ID='%s', ParentID='%s')>" % (
                             self.Name, self.ID, self.ParentID)
 
 class Component(Node):
+    """
+    A component represents a unique component in the project.
+    It can be the child of a budgetitem or another component
+    It has a many-to-one relationship with Resource, which
+    defines its Name, Description, and Rate.
+    It has a column name Type defined by the table ComponentType.
+    """
 
     __tablename__ = 'Component'
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
-    Name = Column(Text)
-    Description = Column(Text)
+    Name = Column(Text, ForeignKey('Resource.Name'))
+    Description = Column(Text, ForeignKey('Resource.Description'))
     Type = Column(Integer, ForeignKey('ComponentType.ID'))
     Unit = Column(Text)
     _Quantity = Column("Quantity", Float)
-    _Rate = Column("Rate", Float)
+    _Rate = Column("Rate", Float, ForeignKey('Resource.Rate'))
     _Total = Column("Total", Float)
     _Ordered = Column("Ordered", Float)
     _Claimed = Column("Claimed", Float)
+
+    ResourceName = relationship("Resource",
+                                foreign_keys=[Name],
+                                backref='ComponentName')
+    ResourceDescription = relationship("Resource",
+                                foreign_keys=[Description],
+                                backref='ComponentDescription')
+    ResourceRate = relationship("Resource",
+                                foreign_keys=[_Rate],
+                                backref='ComponentRate')
 
     __mapper_args__ = {
         'polymorphic_identity':'Component',
     }
 
-    # the rate of a component is based on the totals of it's children
-    # and the total is equal to rate * quantity
-    def resetTotal(self):
-        # pdb.set_trace()
-        # if len(self.Children)!=0:
-        total = 0
-        # print "before child loop"
-        # pdb.set_trace()
-        for item in self.Children:
-            total+=item.Total
-        # print "after child loop"
-        # pdb.set_trace()
-        self._Total = total
+    def recalculateTotal(self):
+        """
+        Recursively recalculate the total of this hierarchy
+        """
 
+        rate = 0
+        childr = DBSession.query(Node).filter_by(ParentID=self.ID).all()
+
+        for child in childr:
+            rate+=child.recalculateTotal()
+
+        return rate*self.Quantity
+
+
+    def resetTotal(self):
+        """
+        The rate of the component is based on the total of all its children
+        So the rate is recalculated and then the total recalculated and
+        returned
+        """
+
+        rate = 0
+
+        for item in self.Children:
+            rate+=item.Total
+
+        self._Rate = rate
+        self._Total = rate * self.Quantity
+
+        return self._Total
+
+    """
+    Get and set for the total property
+    """
     @hybrid_property
     def Total(self):
         if self._Total == None:
@@ -464,21 +577,24 @@ class Component(Node):
         # since the total has changed, change the rate of any parent
         # components, budgetitems or others
         p_ID = self.ParentID
-        if p_ID != 0:
+        nodeqry = DBSession.query(Node).filter_by(ID=p_ID).first()
+        if nodeqry != None:
             qry = DBSession.query(BudgetItem).filter_by(ID=p_ID).first()
-            if qry != None:
+            if qry!=None:
                 qry.Rate = qry.Rate + difference
             else:
                 qry = DBSession.query(Component).filter_by(ID=p_ID).first()
                 if qry != None:
                     qry.Rate = qry.Rate + difference
                 else:
-                    qry = DBSession.query(Node).filter_by(ID=p_ID).first()
-                    if qry._Total == None:
-                        qry.resetTotal()
+                    if nodeqry._Total == None:
+                        nodeqry.resetTotal()
                     else:
-                        qry.Total = qry.Total+difference
+                        nodeqry.Total = nodeqry.Total+difference
 
+    """
+    Get and set for the ordered property
+    """
     @hybrid_property
     def Ordered(self):
         if self._Ordered == None:
@@ -488,6 +604,9 @@ class Component(Node):
     def Ordered(self, ordered):
         self._Ordered = ordered
 
+    """
+    Get and set for the claimed property
+    """
     @hybrid_property
     def Claimed(self):
         if self._Claimed == None:
@@ -497,6 +616,9 @@ class Component(Node):
     def Claimed(self, claimed):
         self._Claimed = claimed
 
+    """
+    Get and set for the rate property
+    """
     @hybrid_property
     def Rate(self):
         if self._Rate == None:
@@ -506,9 +628,12 @@ class Component(Node):
     def Rate(self, rate):
         self._Rate = rate
 
-        # change the total
+        # change the total when the rate changes
         self.Total = self.Rate * self.Quantity
 
+    """
+    Get and set for the quantity property
+    """
     @hybrid_property
     def Quantity(self):
         if self._Quantity == None:
@@ -518,7 +643,7 @@ class Component(Node):
     def Quantity(self, quantity):
         self._Quantity = quantity
 
-        # change the total
+        # change the total when the quantity changes
         self.Total = self.Rate * self.Quantity
 
     def copy(self, parentid):
@@ -552,11 +677,20 @@ class Component(Node):
 
 
     def __repr__(self):
+        """
+        return a representation of this component
+        """
+
         return "<Component(Name='%s', ID='%s', ParentID='%s')>" % (
                             self.Name, self.ID, self.ParentID)
 
 
 class ComponentType(Base):
+    """
+    ComponentType defines the different type of component
+    It only has a unique ID and a name, it does not inherit from Node
+    or form path of the project hierarchy
+    """
 
     __tablename__ = 'ComponentType'
     ID = Column(Integer, primary_key=True)
@@ -570,6 +704,9 @@ class ComponentType(Base):
                             self.Name, self.ID)
 
 class ResourceCategory(Node):
+    """
+    ResourceCategory represents a unique set of resources used in a project
+    """
 
     __tablename__ = 'ResourceCategory'
     ID = Column(Integer,
@@ -582,6 +719,11 @@ class ResourceCategory(Node):
         }
 
 class Resource(Node):
+    """
+    Resource represents a specific resource used in Optimate
+    Each resource is unique and can be referenced by multiple Components
+    A list of resources has a resource category as its parent
+    """
 
     __tablename__ = 'Resource'
     ID = Column(Integer,
