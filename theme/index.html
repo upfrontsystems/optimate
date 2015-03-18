@@ -3,8 +3,10 @@
 <head>
     <meta charset="utf-8">
     <title>Optimate Cost System</title>
+    <script type="text/javascript" src="js/firebugx.js"></script>
     <script type="text/javascript" src="bower_components/angular/angular.js"></script>
     <script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
     <script type="text/javascript" src="js/controllers.js"></script>
     <link rel="stylesheet" type="text/css" href="css/styles.css">
      <!-- Angular treeview script and css -->
@@ -13,11 +15,18 @@
     <!-- Slickgrid -->
     <script type="text/javascript" src="js/slick.core.js"></script>
     <script type="text/javascript" src="js/jquery.event.drag-2.2.js"></script>
+    <script type="text/javascript" src="js/slick.editors.js"></script>
     <script type="text/javascript" src="js/slick.grid.js"></script>
+    <script type="text/javascript" src="js/slick.cellrangedecorator.js"></script>
+    <script type="text/javascript" src="js/slick.cellrangeselector.js"></script>
+    <script type="text/javascript" src="js/slick.cellselectionmodel.js"></script>
     <link rel="stylesheet" type="text/css" href="css/slick.grid.css">
+    <link rel="stylesheet" type="text/css" href="gridthemes/slick-default-theme.css">
+    <!-- Optimate slickgrid implementation -->
+    <script type="text/javascript" src="js/optimate.data.js"></script>
 </head>
 <body>
-    <div ng-app="myApp">
+    <div ng-app="myApp" class="left">
         <div ng-controller="myController">
              <div
                 data-angular-treeview="true"
@@ -37,6 +46,10 @@
             </div>
         </div>
     </div>
-
+    <div class="right">
+      <div id="optimate-data-grid-outer">
+        <div id="optimate-data-grid"></div>
+      </div>
+    </div>
 </body>
 </html> 
