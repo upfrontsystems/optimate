@@ -7,12 +7,14 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from sqlalchemy import (
+    Table,
     Column,
     Index,
     Integer,
     Float,
     Text,
     ForeignKey,
+    ForeignKeyConstraint,
     )
 
 from sqlalchemy.orm import (
@@ -21,8 +23,6 @@ from sqlalchemy.orm import (
     relationship,
     backref,
     )
-
-import pdb
 
 # Build the session and base used for the project
 DBSession = scoped_session(
@@ -45,7 +45,7 @@ class Node(Base):
 
     Children = relationship('Node',
                         cascade="all",
-                        backref=backref("Parent", remote_side='Node.ID'),
+                        # backref=backref("Parent", remote_side='Node.ID'),
                     )
 
     __mapper_args__ = {
@@ -168,6 +168,7 @@ class Project(Node):
         """
         paste appends a source object to the children of this node,
         and then recursively does the same with each child of the source object.
+        Reset the total when done.
         """
 
         self.Children.append(source)
@@ -175,6 +176,20 @@ class Project(Node):
         for child in sourcechildren:
             source.paste(child.copy(source.ID), child.Children)
 
+        self.resetTotal()
+
+    def getComponents(self):
+        """
+        Returns a list of all the Components that are used in this
+        project. The components are retrieved from the children of this project
+        """
+
+        componentlist = []
+        for child in self.Children:
+            if child.type != "ResourceCategory":
+                componentlist += child.getComponents()
+
+        return componentlist
 
     def __repr__(self):
         """
@@ -302,6 +317,7 @@ class BudgetGroup(Node):
         """
         paste appends a source object to the children of this node,
         and then recursively does the same with each child of the source object.
+        Reset the total when done
         """
 
         self.Children.append(source)
@@ -309,7 +325,27 @@ class BudgetGroup(Node):
         for child in sourcechildren:
             source.paste(child.copy(source.ID), child.Children)
 
+        self.resetTotal()
+
+    def getComponents(self):
+        """
+        Returns a list of all the Components that are used in this
+        budgetgroup. The components are retrieved from it's children and
+        and any component that is it's child
+        """
+        componentlist = []
+        for child in self.Children:
+            if child.type == "Component":
+                componentlist += [child]
+            componentlist += child.getComponents()
+
+        return componentlist
+
     def __repr__(self):
+        """
+        Return a representation of this budgetgroup
+        """
+
         return "<BudgetGroup(Name='%s', ID='%s', ParentID='%s')>" % (
                          self.Name, self.ID, self.ParentID)
 
@@ -357,7 +393,6 @@ class BudgetItem(Node):
         """
 
         rate = 0
-
         for item in self.Children:
             rate+=item.Total
 
@@ -475,12 +510,29 @@ class BudgetItem(Node):
         """
         paste appends a source object to the children of this node,
         and then recursively does the same with each child of the source object.
+        Reset the total when done
         """
 
         self.Children.append(source)
 
         for child in sourcechildren:
             source.paste(child.copy(source.ID), child.Children)
+
+        self.resetTotal()
+
+    def getComponents(self):
+        """
+        Returns a list of all the Components that are used in this
+        budgetitem. The components are retrieved from its children and any
+        children that are components are added to it
+        """
+        componentlist = []
+        for child in self.Children:
+            if child.type == "Component":
+                componentlist += [child]
+            componentlist += child.getComponents()
+
+        return componentlist
 
     def __repr__(self):
         """
@@ -502,25 +554,19 @@ class Component(Node):
     __tablename__ = 'Component'
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
-    Name = Column(Text, ForeignKey('Resource.Name'))
-    Description = Column(Text, ForeignKey('Resource.Description'))
+    Name = Column(Text)
+    Description = Column(Text)
     Type = Column(Integer, ForeignKey('ComponentType.ID'))
     Unit = Column(Text)
     _Quantity = Column("Quantity", Float)
-    _Rate = Column("Rate", Float, ForeignKey('Resource.Rate'))
+    _Rate = Column("Rate", Float)
     _Total = Column("Total", Float)
     _Ordered = Column("Ordered", Float)
     _Claimed = Column("Claimed", Float)
-
-    ResourceName = relationship("Resource",
-                                foreign_keys=[Name],
-                                backref='ComponentName')
-    ResourceDescription = relationship("Resource",
-                                foreign_keys=[Description],
-                                backref='ComponentDescription')
-    ResourceRate = relationship("Resource",
-                                foreign_keys=[_Rate],
-                                backref='ComponentRate')
+    __table_args__ = (ForeignKeyConstraint(
+                ['Name', 'Description', 'Rate'],
+                ['Resource.Name', 'Resource.Description', 'Resource.Rate']),
+            {})
 
     __mapper_args__ = {
         'polymorphic_identity':'Component',
@@ -669,20 +715,37 @@ class Component(Node):
         """
         paste appends a source object to the children of this node,
         and then recursively does the same with each child of the source object.
+        Reset the total of this component when its done
         """
+
         self.Children.append(source)
-        # print "pasting again"
         for child in sourcechildren:
             source.paste(child.copy(source.ID), child.Children)
 
+        self.resetTotal()
+
+    def getComponents(self):
+        """
+        Returns a list of all the Components that is used in this component.
+        The components are retrieved from its children and any child that is
+        a component is added to the list
+        """
+
+        componentlist = []
+        for child in self.Children:
+            if child.type == "Component":
+                componentlist += [child]
+            componentlist += child.getComponents()
+
+        return componentlist
 
     def __repr__(self):
         """
         return a representation of this component
         """
 
-        return "<Component(Name='%s', ID='%s', ParentID='%s')>" % (
-                            self.Name, self.ID, self.ParentID)
+        return "<Component(Name='%s', Rate='%s', Quantity='%s', ID='%s', ParentID='%s')>" % (
+                            self.Name, self._Rate, self._Quantity, self.ID, self.ParentID)
 
 
 class ComponentType(Base):
@@ -703,6 +766,15 @@ class ComponentType(Base):
         return "<ComponentType(Name='%s', ID='%s')>" % (
                             self.Name, self.ID)
 
+"""
+resourcelist is the association table 'ResourceList' used to map the many to
+many relationship between ResourceCategory and Resource
+"""
+resourcelist = Table('ResourceList', Base.metadata,
+    Column('ResourceCategory', Integer, ForeignKey('ResourceCategory.ID')),
+    Column('Resource', Integer, ForeignKey('Resource.ID'))
+)
+
 class ResourceCategory(Node):
     """
     ResourceCategory represents a unique set of resources used in a project
@@ -713,26 +785,74 @@ class ResourceCategory(Node):
                 ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
     Name = Column(Text)
     Description = Column(Text)
+    # Total is just a dummy column for when a project is calculating its total
+    _Total = Column("Total", Float, default=0.0)
+
+    # the relationship between resourcecategory and resource is defined using
+    # the association table resourcelist
+    Resources = relationship("Resource",
+                    secondary=resourcelist,
+                    backref="Categories")
 
     __mapper_args__ = {
         'polymorphic_identity':'ResourceCategory',
         }
 
-class Resource(Node):
+    @hybrid_property
+    def Total(self):
+        return self._Total
+    @Total.setter
+    def Total(self, total):
+        self._Total  =total
+
+    def addResource(self, resource):
+        """
+        check if the resource is already in this category and add it if not
+        """
+
+        if resource not in self.Resources:
+            self.Resources.append(resource)
+
+    def __repr__(self):
+        """
+        Return a representation of this ResourceCategory
+        """
+
+        return "<ResourceCategory(Name='%s', ID='%s')>" % (
+                            self.Name, self.ID)
+
+
+class Resource(Base):
     """
     Resource represents a specific resource used in Optimate
     Each resource is unique and can be referenced by multiple Components
+    All it's columns are primary keys and forms a composite primary key
     A list of resources has a resource category as its parent
+    Therefore Resource follows the Association object model and has
+    foreign keys pointing to ResourceCategory as it's parent and
+    to Component
     """
 
     __tablename__ = 'Resource'
-    ID = Column(Integer,
-                ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
-    Code = Column(Text)
-    Name = Column(Text)
-    Description = Column(Text)
-    Rate = Column(Float)
+    ID = Column(Integer, primary_key=True,)
+    Code = Column(Text, primary_key=True)
+    Name = Column(Text, primary_key=True)
+    Description = Column(Text, primary_key=True)
+    Rate = Column(Float, primary_key=True)
 
-    __mapper_args__ = {
-        'polymorphic_identity':'Resource',
-    }
+    def __eq__(self, other):
+        """
+        Test for equality, for now testing based on the name
+        """
+
+        if other == None: return False
+        else: return self.Name == other.Name
+
+    def __repr__(self):
+        """
+        Return a representation of this resource
+        """
+
+        return "<Resource(Name='%s', Rate='%s', ID='%s')>" % (
+                            self.Name,self.Rate, self.ID)
+
