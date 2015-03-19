@@ -3,8 +3,8 @@ views uses pyramid and sqlalchemy to recieve requests from a user
 and send responses with appropriate data
 """
 
-import transaction
 import uuid
+import transaction
 from pyramid.view import view_config
 
 from pyramid.httpexceptions import (
@@ -24,7 +24,6 @@ from .models import (
     ComponentType,
     )
 
-
 def contains_unicode(mystring):
     """ auxilary method to determine if a string contains a unicode character
     """
@@ -38,7 +37,7 @@ def contains_unicode(mystring):
         return False
 
 
-@view_config(route_name="rootview", renderer='json')
+@view_config(route_name='rootview', renderer='json')
 @view_config(route_name="childview", renderer='json')
 def childview(request):
     """
@@ -53,38 +52,37 @@ def childview(request):
     if 'parentid' in request.matchdict:
         parentid = request.matchdict['parentid']
 
-    start = request.params.get('start')
-    end = request.params.get('end')
-
     childrenlist = []
 
-    # Execute the sql query on the Node table to find all objects with that 
-    # parent
-    qry = DBSession.query(Node).filter_by(ParentID=parentid).all()
+    # Execute the sql query on the Node table to find the parent
+    qry = DBSession.query(Node).filter_by(ID=parentid).first()
 
     # Format the result into a json readable list and respond with that
-    for value in qry:
-        if contains_unicode(value.Name):
-            if u"\u02c6" in value.Name:
-                value.Name = value.Name.replace(u"\u02c6", "e")
-            if u"\u2030" in value.Name:
-                value.Name = value.Name.replace(u"\u2030", "e")
-        childrenlist.insert(len(childrenlist), {
-            "Name":value.Name,
-            "Description":value.Description,
-            "Subitem":[],
-            "ID":value.ID,
-            "Path": "/" + str(value.ID)+"/"})
+    # for now display the resource category with its resources as well
+    if qry.type == "ResourceCategory":
+        for resource in qry.Resources:
+            childrenlist.insert(len(childrenlist), {
+                "Name":resource.Name,
+                "Description":resource.Description,
+                "Subitem":[],
+                "ID":resource.ID,
+                "Path": "/" + str(resource.ID)+"/"})
+    else:
+        for value in qry.Children:
+            print "\n\n"
+            if contains_unicode(value.Name):
+                if u"\u02c6" in value.Name:
+                    value.Name = value.Name.replace(u"\u02c6", "e")
+                if u"\u2030" in value.Name:
+                    value.Name = value.Name.replace(u"\u2030", "e")
+            childrenlist.insert(len(childrenlist), {
+                "Name":value.Name,
+                "Description":value.Description,
+                "Subitem":[],
+                "ID":value.ID,
+                "Path": "/" + str(value.ID)+"/"})
 
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'])
-    try:
-        start = int(start)
-        end = int(end)
-    except Exception:
-        return sorted_childrenlist
-
-    if start >= 0 and end >= 0 and start <= end:
-        return sorted_childrenlist[int(start):int(end)]
     return sorted_childrenlist
 
 
@@ -151,8 +149,7 @@ def additemview(request):
 
         return HTTPOk()
 
-
-@view_config(route_name="deleteview", renderer='json')
+@view_config(route_name = "deleteview",renderer='json')
 def deleteitemview(request):
     """
     The deleteitemview is called using the address from the node to be deleted.
@@ -183,8 +180,7 @@ def deleteitemview(request):
 
         return HTTPOk()
 
-
-@view_config(route_name="pasteview", renderer='json')
+@view_config(route_name = "pasteview", renderer='json')
 def pasteitemview(request):
     """
     The pasteitemview is sent the path of the node that is to be copied.
@@ -218,7 +214,7 @@ def pasteitemview(request):
         return HTTPOk()
 
 
-@view_config(route_name="costview", renderer='json')
+@view_config(route_name = "costview",renderer='json')
 def costview(request):
     """
     The costview is called using the address from the node to be costed.
@@ -240,7 +236,6 @@ def costview(request):
         transaction.commit()
 
         return {'Cost': totalcost}
-
 
 @view_config(route_name="testchangeview", renderer="json")
 def testchangeview(request):
