@@ -1,9 +1,9 @@
 server README
 for setting up the server side of the Optimate project
-==================
+======================================================
 
 Getting Started in development mode
----------------
+-----------------------------------
 - Ensure you have python and sqlite installed in you system
 	If not you can follow the installation steps here: http://docs.pylonsproject.org/projects/pyramid/en/latest/tutorials/wiki2/installation.html
 
@@ -25,7 +25,18 @@ Getting Started in development mode
 - Going to http://127.0.0.1:8100/ will show the default home page which is all the items with the root
   as their parent.
 
-===================
+- To run server tests
+	(in this directory and with the virtualenv set up)
+	./bin/python src/optimate.app/setup.py test -q
+
+- To run populatedb.py
+	Note: this will replace the current server.sqlite file in this directory
+		Also, it is assumed a folder named 'exceldata' is in this directory
+		containing the excel spreadsheets
+	./bin/python src/optimate.app/optimate/app/scripts/populatedb.py
+	
+
+=================================================================================
 
 client README
 for setting up the client in the Optimate Project
@@ -50,6 +61,6 @@ for setting up the client in the Optimate Project
 - Clicking on the "+" will display a dialog menus of options
 	- Add
 	- Copy
-  - Paste
+  	- Paste
 	- Delete
 	- Calculate cost
