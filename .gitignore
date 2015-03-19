@@ -22,6 +22,9 @@ theme/bower_components
 theme/node_modules
 server.sqlite
 
+# Excel data files
+exceldata
+
 *.log
 
 # Installer logs
