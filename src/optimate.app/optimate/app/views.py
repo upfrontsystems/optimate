@@ -37,7 +37,7 @@ def contains_unicode(mystring):
         return False
 
 
-@view_config(route_name='rootview', renderer='json')
+@view_config(route_name="rootview", renderer='json')
 @view_config(route_name="childview", renderer='json')
 def childview(request):
     """
@@ -149,7 +149,8 @@ def additemview(request):
 
         return HTTPOk()
 
-@view_config(route_name = "deleteview",renderer='json')
+
+@view_config(route_name="deleteview", renderer='json')
 def deleteitemview(request):
     """
     The deleteitemview is called using the address from the node to be deleted.
@@ -180,7 +181,8 @@ def deleteitemview(request):
 
         return HTTPOk()
 
-@view_config(route_name = "pasteview", renderer='json')
+
+@view_config(route_name="pasteview", renderer='json')
 def pasteitemview(request):
     """
     The pasteitemview is sent the path of the node that is to be copied.
@@ -214,7 +216,7 @@ def pasteitemview(request):
         return HTTPOk()
 
 
-@view_config(route_name = "costview",renderer='json')
+@view_config(route_name="costview", renderer='json')
 def costview(request):
     """
     The costview is called using the address from the node to be costed.
@@ -236,6 +238,7 @@ def costview(request):
         transaction.commit()
 
         return {'Cost': totalcost}
+
 
 @view_config(route_name="testchangeview", renderer="json")
 def testchangeview(request):
