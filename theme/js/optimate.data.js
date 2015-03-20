@@ -1,7 +1,7 @@
 var grid;
 var data = [];
 var columns = [
-        {id: "name", name: "Name", field: "name", width: 120, cssClass: "cell-title",
+        {id: "name", name: "Name", field: "name", width: 100, cssClass: "cell-title",
          editor: Slick.Editors.Text},
         {id: "budg_cost", name: "Budg Cost", field: "budg_cost", width: 100,
          editor: Slick.Editors.Text},
@@ -11,7 +11,7 @@ var columns = [
          editor: Slick.Editors.Text},
         {id: "claim_cost", name: "Claim Cost", field: "claim_cost", width: 100,
          editor: Slick.Editors.Text},
-        {id: "income_rec", name: "Income Rec", field: "income_rec", width: 120,
+        {id: "income_rec", name: "Income Rec", field: "income_rec", width: 100,
          editor: Slick.Editors.Text},
         {id: "client_cost", name: "Client Cost", field: "client_cost", width: 100,
          editor: Slick.Editors.Text},
