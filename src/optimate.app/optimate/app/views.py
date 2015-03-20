@@ -55,6 +55,9 @@ def childview(request):
     if 'parentid' in request.matchdict:
         parentid = request.matchdict['parentid']
 
+    start = request.params.get('start')
+    end = request.params.get('end')
+
     childrenlist = []
 
     # Execute the sql query on the Node table to find the parent
@@ -86,6 +89,15 @@ def childview(request):
                     "Path": "/" + str(value.ID) + "/"})
 
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'])
+
+    try:
+        start = int(start)
+        end = int(end)
+    except Exception:
+        return sorted_childrenlist
+
+    if start >= 0 and end >= 0 and start <= end:
+        return sorted_childrenlist[int(start):int(end)]
     return sorted_childrenlist
 
 
