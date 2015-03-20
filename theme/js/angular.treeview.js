@@ -284,10 +284,10 @@
 
 
                     //check tree id, tree model
-                    if( treeId && treeModel ) {
+                    if ( treeId && treeModel ) {
 
                         //root node
-                        if( attrs.angularTreeview ) {
+                        if ( attrs.angularTreeview ) {
                             //create tree object if not exists
                             scope[treeId] = scope[treeId] || {};
 
@@ -310,7 +310,7 @@
                                 console.log(rate)
 
                                 console.log("Adding a " + nodetype + " " + name +
-                                    ", " + description + " to: " +path);
+                                    ", " + description + " to: " + path);
                                 $http({
                                     method: 'POST',
                                     url: 'http://localhost:8100' + path + 'add',
@@ -347,7 +347,7 @@
                             // function to POST data to server to paste item
                             scope[treeId].paste = function(path) {
                                 console.log("Node to be pasted: " + scope.copiednode);
-                                $http({
+                                $http({ 
                                     method: 'POST',
                                     url: 'http://localhost:8100' + path + 'paste',
                                     data:{'Path': scope.copiednode}
@@ -375,8 +375,7 @@
                             //if node label clicks,
                             scope[treeId].selectNodeLabel = scope[treeId].selectNodeLabel || function( selectedNode ) {
                                 //remove highlight from previous node
-                                if( scope[treeId].currentNode &&
-                                    scope[treeId].currentNode.selected ) {
+                                if( scope[treeId].currentNode && scope[treeId].currentNode.selected ) {
                                     scope[treeId].currentNode.selected = undefined;
                                 }
 
