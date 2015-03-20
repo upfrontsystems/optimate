@@ -15,21 +15,23 @@ from sqlalchemy import (
     Text,
     ForeignKey,
     ForeignKeyConstraint,
-    )
+)
 
 from sqlalchemy.orm import (
     scoped_session,
     sessionmaker,
     relationship,
     backref,
-    )
+)
 
 # Build the session and base used for the project
 DBSession = scoped_session(
     sessionmaker(extension=ZopeTransactionExtension('changed')))
 Base = declarative_base()
 
+
 class Node(Base):
+
     """
     The Node class is an extrapolation of the objects used in this hierarchy.
     It has ID and ParentID attributes, the ParentID refers back to the ID
@@ -44,20 +46,22 @@ class Node(Base):
     type = Column(Text(50))
 
     Children = relationship('Node',
-                        cascade="all",
-                        # backref=backref("Parent", remote_side='Node.ID'),
-                    )
+                            cascade="all",
+                            # backref=backref("Parent", remote_side='Node.ID'),
+                            )
 
     __mapper_args__ = {
-        'polymorphic_identity':'Node',
-        'polymorphic_on':type
-        }
+        'polymorphic_identity': 'Node',
+        'polymorphic_on': type
+    }
 
     def __repr__(self):
         return "<Node(ID='%s', ParentID='%s')>" % (
-                self.ID, self.ParentID)
+            self.ID, self.ParentID)
+
 
 class Project(Node):
+
     """
     A table representing a Project in Optimate, it has an ID, Name, Description
     and ParentID that is the ID of its parent.
@@ -76,7 +80,7 @@ class Project(Node):
     _Claimed = Column("Claimed", Float)
 
     __mapper_args__ = {
-        'polymorphic_identity':'Project',
+        'polymorphic_identity': 'Project',
     }
 
     def recalculateTotal(self):
@@ -88,7 +92,7 @@ class Project(Node):
         childr = DBSession.query(Node).filter_by(ParentID=self.ID).all()
 
         for child in childr:
-            total+=child.recalculateTotal()
+            total += child.recalculateTotal()
 
         return total
 
@@ -100,7 +104,7 @@ class Project(Node):
         total = 0
 
         for item in self.Children:
-            total+=item.Total
+            total += item.Total
 
         self._Total = total
 
@@ -116,6 +120,7 @@ class Project(Node):
             self.resetTotal()
 
         return self._Total
+
     @Total.setter
     def Total(self, total):
         """
@@ -132,6 +137,7 @@ class Project(Node):
         if self._Ordered == None:
             self._Ordered = 0.0
         return self._Ordered
+
     @Ordered.setter
     def Ordered(self, ordered):
         self._Ordered = ordered
@@ -144,6 +150,7 @@ class Project(Node):
         if self._Claimed == None:
             self._Claimed = 0.0
         return self._Claimed
+
     @Claimed.setter
     def Claimed(self, claimed):
         self._Claimed = claimed
@@ -155,12 +162,12 @@ class Project(Node):
         """
 
         copied = Project(Name=self.Name,
-                        Description=self.Description,
-                        ParentID=parentid)
+                         Description=self.Description,
+                         ParentID=parentid)
 
-        copied._Total=self.Total
-        copied._Ordered=self.Ordered
-        copied._Claimed=self.Claimed
+        copied._Total = self.Total
+        copied._Ordered = self.Ordered
+        copied._Claimed = self.Claimed
 
         return copied
 
@@ -174,7 +181,9 @@ class Project(Node):
         self.Children.append(source)
 
         for child in sourcechildren:
-            source.paste(child.copy(source.ID), child.Children)
+            # The resource category is not pasted
+            if child.type != "ResourceCategory":
+                source.paste(child.copy(source.ID), child.Children)
 
         self.resetTotal()
 
@@ -197,9 +206,11 @@ class Project(Node):
         """
 
         return "<Project(Name='%s', ID='%s', ParentID='%s')>" % (
-                            self.Name, self.ID, self.ParentID)
+            self.Name, self.ID, self.ParentID)
+
 
 class BudgetGroup(Node):
+
     """
     A table representing a BudgetGroup in Optimate, it has an ID, Name,
     Description and ParentID that is the ID of its parent.
@@ -217,7 +228,7 @@ class BudgetGroup(Node):
     _Claimed = Column("Claimed", Float)
 
     __mapper_args__ = {
-        'polymorphic_identity':'BudgetGroup',
+        'polymorphic_identity': 'BudgetGroup',
     }
 
     def recalculateTotal(self):
@@ -229,7 +240,7 @@ class BudgetGroup(Node):
         childr = DBSession.query(Node).filter_by(ParentID=self.ID).all()
 
         for child in childr:
-            total+=child.recalculateTotal()
+            total += child.recalculateTotal()
 
         return total
 
@@ -241,7 +252,7 @@ class BudgetGroup(Node):
         total = 0
 
         for item in self.Children:
-            total+=item.Total
+            total += item.Total
 
         self._Total = total
 
@@ -254,6 +265,7 @@ class BudgetGroup(Node):
             self._Total = 0.0
             self.resetTotal()
         return self._Total
+
     @Total.setter
     def Total(self, total):
         """
@@ -272,7 +284,7 @@ class BudgetGroup(Node):
             if qry._Total == None:
                 qry.resetTotal()
             else:
-                qry.Total = qry.Total+difference
+                qry.Total = qry.Total + difference
 
     """
     Get and set for the ordered property
@@ -282,6 +294,7 @@ class BudgetGroup(Node):
         if self._Ordered == None:
             self._Ordered = 0.0
         return self._Ordered
+
     @Ordered.setter
     def Ordered(self, ordered):
         self._Ordered = ordered
@@ -294,6 +307,7 @@ class BudgetGroup(Node):
         if self._Claimed == None:
             self._Claimed = 0.0
         return self._Claimed
+
     @Claimed.setter
     def Claimed(self, claimed):
         self._Claimed = claimed
@@ -304,12 +318,12 @@ class BudgetGroup(Node):
         but with the ParentID specified.
         """
         copied = BudgetGroup(Name=self.Name,
-                            Description=self.Description,
-                            ParentID=parentid)
+                             Description=self.Description,
+                             ParentID=parentid)
 
-        copied._Total=self.Total
-        copied._Ordered=self.Ordered
-        copied._Claimed=self.Claimed
+        copied._Total = self.Total
+        copied._Ordered = self.Ordered
+        copied._Claimed = self.Claimed
 
         return copied
 
@@ -323,7 +337,9 @@ class BudgetGroup(Node):
         self.Children.append(source)
 
         for child in sourcechildren:
-            source.paste(child.copy(source.ID), child.Children)
+            # The resource category is not pasted
+            if child.type != "ResourceCategory":
+                source.paste(child.copy(source.ID), child.Children)
 
         self.resetTotal()
 
@@ -347,10 +363,11 @@ class BudgetGroup(Node):
         """
 
         return "<BudgetGroup(Name='%s', ID='%s', ParentID='%s')>" % (
-                         self.Name, self.ID, self.ParentID)
+            self.Name, self.ID, self.ParentID)
 
 
 class BudgetItem(Node):
+
     """
     A table representing a BudgetItem in Optimate, it has an ID, Name,
     Description, Quantity, Rate and ParentID that is the ID of its parent.
@@ -361,7 +378,7 @@ class BudgetItem(Node):
                 ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
     Name = Column(Text)
     Description = Column(Text)
-    Unit=Column(Text)
+    Unit = Column(Text)
     _Quantity = Column("Quantity", Float)
     _Rate = Column("Rate", Float)
     _Total = Column("Total", Float)
@@ -369,7 +386,7 @@ class BudgetItem(Node):
     _Claimed = Column("Claimed", Float)
 
     __mapper_args__ = {
-        'polymorphic_identity':'BudgetItem',
+        'polymorphic_identity': 'BudgetItem',
     }
 
     def recalculateTotal(self):
@@ -381,9 +398,9 @@ class BudgetItem(Node):
         childr = DBSession.query(Node).filter_by(ParentID=self.ID).all()
 
         for child in childr:
-            rate+=child.recalculateTotal()
+            rate += child.recalculateTotal()
 
-        return rate*self.Quantity
+        return rate * self.Quantity
 
     def resetTotal(self):
         """
@@ -394,7 +411,7 @@ class BudgetItem(Node):
 
         rate = 0
         for item in self.Children:
-            rate+=item.Total
+            rate += item.Total
 
         self._Rate = rate
         self._Total = rate * self.Quantity
@@ -410,6 +427,7 @@ class BudgetItem(Node):
             self._Total = 0.0
             self.resetTotal()
         return self._Total
+
     @Total.setter
     def Total(self, total):
         if self._Total == None:
@@ -425,13 +443,13 @@ class BudgetItem(Node):
         nodeqry = DBSession.query(Node).filter_by(ID=p_ID).first()
         if nodeqry != None:
             qry = DBSession.query(BudgetItem).filter_by(ID=p_ID).first()
-            if qry!=None:
+            if qry != None:
                 qry.Rate = qry.Rate + difference
             else:
                 if nodeqry._Total == None:
                     nodeqry.resetTotal()
                 else:
-                    nodeqry.Total = nodeqry.Total+difference
+                    nodeqry.Total = nodeqry.Total + difference
 
     """
     Get and set for the ordered property
@@ -441,6 +459,7 @@ class BudgetItem(Node):
         if self._Ordered == None:
             self._Ordered = 0.0
         return self._Ordered
+
     @Ordered.setter
     def Ordered(self, ordered):
         self._Ordered = ordered
@@ -453,6 +472,7 @@ class BudgetItem(Node):
         if self._Claimed == None:
             self._Claimed = 0.0
         return self._Claimed
+
     @Claimed.setter
     def Claimed(self, claimed):
         self._Claimed = claimed
@@ -465,6 +485,7 @@ class BudgetItem(Node):
         if self._Rate == None:
             self._Rate = 0.0
         return self._Rate
+
     @Rate.setter
     def Rate(self, rate):
         self._Rate = rate
@@ -480,6 +501,7 @@ class BudgetItem(Node):
         if self._Quantity == None:
             self._Quantity = 0.0
         return self._Quantity
+
     @Quantity.setter
     def Quantity(self, quantity):
         self._Quantity = quantity
@@ -498,11 +520,11 @@ class BudgetItem(Node):
                             Unit=self.Unit,
                             ParentID=parentid)
 
-        copied._Quantity=self.Quantity
-        copied._Rate=self.Rate
-        copied._Total=self.Total
-        copied._Ordered=self.Ordered
-        copied._Claimed=self.Claimed
+        copied._Quantity = self.Quantity
+        copied._Rate = self.Rate
+        copied._Total = self.Total
+        copied._Ordered = self.Ordered
+        copied._Claimed = self.Claimed
 
         return copied
 
@@ -516,7 +538,9 @@ class BudgetItem(Node):
         self.Children.append(source)
 
         for child in sourcechildren:
-            source.paste(child.copy(source.ID), child.Children)
+            # The resource category is not pasted
+            if child.type != "ResourceCategory":
+                source.paste(child.copy(source.ID), child.Children)
 
         self.resetTotal()
 
@@ -540,9 +564,11 @@ class BudgetItem(Node):
         """
 
         return "<BudgetItem(Name='%s', ID='%s', ParentID='%s')>" % (
-                            self.Name, self.ID, self.ParentID)
+            self.Name, self.ID, self.ParentID)
+
 
 class Component(Node):
+
     """
     A component represents a unique component in the project.
     It can be the child of a budgetitem or another component
@@ -564,12 +590,12 @@ class Component(Node):
     _Ordered = Column("Ordered", Float)
     _Claimed = Column("Claimed", Float)
     __table_args__ = (ForeignKeyConstraint(
-                ['Name', 'Description', 'Rate'],
-                ['Resource.Name', 'Resource.Description', 'Resource.Rate']),
-            {})
+        ['Name', 'Description', 'Rate'],
+        ['Resource.Name', 'Resource.Description', 'Resource.Rate']),
+        {})
 
     __mapper_args__ = {
-        'polymorphic_identity':'Component',
+        'polymorphic_identity': 'Component',
     }
 
     def recalculateTotal(self):
@@ -581,10 +607,9 @@ class Component(Node):
         childr = DBSession.query(Node).filter_by(ParentID=self.ID).all()
 
         for child in childr:
-            rate+=child.recalculateTotal()
+            rate += child.recalculateTotal()
 
-        return rate*self.Quantity
-
+        return rate * self.Quantity
 
     def resetTotal(self):
         """
@@ -596,7 +621,7 @@ class Component(Node):
         rate = 0
 
         for item in self.Children:
-            rate+=item.Total
+            rate += item.Total
 
         self._Rate = rate
         self._Total = rate * self.Quantity
@@ -612,6 +637,7 @@ class Component(Node):
             self._Total = 0.0
             self.resetTotal()
         return self._Total
+
     @Total.setter
     def Total(self, total):
         if self._Total == None:
@@ -626,7 +652,7 @@ class Component(Node):
         nodeqry = DBSession.query(Node).filter_by(ID=p_ID).first()
         if nodeqry != None:
             qry = DBSession.query(BudgetItem).filter_by(ID=p_ID).first()
-            if qry!=None:
+            if qry != None:
                 qry.Rate = qry.Rate + difference
             else:
                 qry = DBSession.query(Component).filter_by(ID=p_ID).first()
@@ -636,7 +662,7 @@ class Component(Node):
                     if nodeqry._Total == None:
                         nodeqry.resetTotal()
                     else:
-                        nodeqry.Total = nodeqry.Total+difference
+                        nodeqry.Total = nodeqry.Total + difference
 
     """
     Get and set for the ordered property
@@ -646,6 +672,7 @@ class Component(Node):
         if self._Ordered == None:
             self._Ordered = 0.0
         return self._Ordered
+
     @Ordered.setter
     def Ordered(self, ordered):
         self._Ordered = ordered
@@ -658,6 +685,7 @@ class Component(Node):
         if self._Claimed == None:
             self._Claimed = 0.0
         return self._Claimed
+
     @Claimed.setter
     def Claimed(self, claimed):
         self._Claimed = claimed
@@ -670,6 +698,7 @@ class Component(Node):
         if self._Rate == None:
             self._Rate = 0.0
         return self._Rate
+
     @Rate.setter
     def Rate(self, rate):
         self._Rate = rate
@@ -685,6 +714,7 @@ class Component(Node):
         if self._Quantity == None:
             self._Quantity = 0
         return self._Quantity
+
     @Quantity.setter
     def Quantity(self, quantity):
         self._Quantity = quantity
@@ -698,16 +728,16 @@ class Component(Node):
         but with the ParentID specified.
         """
         copied = Component(Name=self.Name,
-                            Description=self.Description,
-                            Type=self.Type,
-                            Unit=self.Unit,
-                            ParentID=parentid)
+                           Description=self.Description,
+                           Type=self.Type,
+                           Unit=self.Unit,
+                           ParentID=parentid)
 
-        copied._Quantity=self.Quantity
-        copied._Rate=self.Rate
-        copied._Total=self.Total
-        copied._Ordered=self.Ordered
-        copied._Claimed=self.Claimed
+        copied._Quantity = self.Quantity
+        copied._Rate = self.Rate
+        copied._Total = self.Total
+        copied._Ordered = self.Ordered
+        copied._Claimed = self.Claimed
 
         return copied
 
@@ -720,7 +750,9 @@ class Component(Node):
 
         self.Children.append(source)
         for child in sourcechildren:
-            source.paste(child.copy(source.ID), child.Children)
+            # The resource category is not pasted
+            if child.type != "ResourceCategory":
+                source.paste(child.copy(source.ID), child.Children)
 
         self.resetTotal()
 
@@ -744,11 +776,12 @@ class Component(Node):
         return a representation of this component
         """
 
-        return "<Component(Name='%s', Rate='%s', Quantity='%s', ID='%s', ParentID='%s')>" % (
-                            self.Name, self._Rate, self._Quantity, self.ID, self.ParentID)
+        return "<Component(Name='%s', ID='%s', ParentID='%s')>" % (
+            self.Name, self.ID, self.ParentID)
 
 
 class ComponentType(Base):
+
     """
     ComponentType defines the different type of component
     It only has a unique ID and a name, it does not inherit from Node
@@ -760,22 +793,28 @@ class ComponentType(Base):
     Name = Column(Text)
 
     Components = relationship('Component',
-                            backref=backref('TypeOf'))
+                              backref=backref('TypeOf'))
 
     def __repr__(self):
         return "<ComponentType(Name='%s', ID='%s')>" % (
-                            self.Name, self.ID)
+            self.Name, self.ID)
 
 """
 resourcelist is the association table 'ResourceList' used to map the many to
 many relationship between ResourceCategory and Resource
 """
 resourcelist = Table('ResourceList', Base.metadata,
-    Column('ResourceCategory', Integer, ForeignKey('ResourceCategory.ID')),
-    Column('Resource', Integer, ForeignKey('Resource.ID'))
-)
+                     Column('ResourceCategory',
+                         Integer,
+                         ForeignKey('ResourceCategory.ID')),
+                     Column('Resource',
+                        Integer,
+                        ForeignKey('Resource.ID'))
+                     )
+
 
 class ResourceCategory(Node):
+
     """
     ResourceCategory represents a unique set of resources used in a project
     """
@@ -791,19 +830,20 @@ class ResourceCategory(Node):
     # the relationship between resourcecategory and resource is defined using
     # the association table resourcelist
     Resources = relationship("Resource",
-                    secondary=resourcelist,
-                    backref="Categories")
+                             secondary=resourcelist,
+                             backref="Categories")
 
     __mapper_args__ = {
-        'polymorphic_identity':'ResourceCategory',
-        }
+        'polymorphic_identity': 'ResourceCategory',
+    }
 
     @hybrid_property
     def Total(self):
         return self._Total
+
     @Total.setter
     def Total(self, total):
-        self._Total  =total
+        self._Total = total
 
     def addResource(self, resource):
         """
@@ -819,10 +859,11 @@ class ResourceCategory(Node):
         """
 
         return "<ResourceCategory(Name='%s', ID='%s')>" % (
-                            self.Name, self.ID)
+            self.Name, self.ID)
 
 
 class Resource(Base):
+
     """
     Resource represents a specific resource used in Optimate
     Each resource is unique and can be referenced by multiple Components
@@ -845,8 +886,10 @@ class Resource(Base):
         Test for equality, for now testing based on the name
         """
 
-        if other == None: return False
-        else: return self.Name == other.Name
+        if other == None:
+            return False
+        else:
+            return self.Name == other.Name
 
     def __repr__(self):
         """
@@ -854,5 +897,4 @@ class Resource(Base):
         """
 
         return "<Resource(Name='%s', Rate='%s', ID='%s')>" % (
-                            self.Name,self.Rate, self.ID)
-
+            self.Name, self.Rate, self.ID)

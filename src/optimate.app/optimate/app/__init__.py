@@ -12,7 +12,8 @@ from sqlalchemy import engine_from_config
 from .models import (
     DBSession,
     Base,
-    )
+)
+
 
 @subscriber(NewResponse)
 def handleResponse(event):
@@ -21,12 +22,12 @@ def handleResponse(event):
 
     def cors_headers(request, response):
         response.headers.update({
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST,GET,DELETE,PUT,OPTIONS',
-        'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept, \
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST,GET,DELETE,PUT,OPTIONS',
+            'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept, \
                                          Authorization',
-        'Access-Control-Allow-Credentials': 'true',
-        'Access-Control-Max-Age': '1728000',
+            'Access-Control-Allow-Credentials': 'true',
+            'Access-Control-Max-Age': '1728000',
         })
     event.request.add_response_callback(cors_headers)
 

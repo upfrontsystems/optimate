@@ -12,7 +12,7 @@ from pyramid.httpexceptions import (
     HTTPFound,
     HTTPNotFound,
     HTTPInternalServerError,
-    )
+)
 
 from .models import (
     DBSession,
@@ -22,7 +22,10 @@ from .models import (
     BudgetItem,
     Component,
     ComponentType,
-    )
+    ResourceCategory,
+    Resource
+)
+
 
 def contains_unicode(mystring):
     """ auxilary method to determine if a string contains a unicode character
@@ -59,28 +62,28 @@ def childview(request):
 
     # Format the result into a json readable list and respond with that
     # for now display the resource category with its resources as well
-    if qry.type == "ResourceCategory":
-        for resource in qry.Resources:
-            childrenlist.insert(len(childrenlist), {
-                "Name":resource.Name,
-                "Description":resource.Description,
-                "Subitem":[],
-                "ID":resource.ID,
-                "Path": "/" + str(resource.ID)+"/"})
-    else:
-        for value in qry.Children:
-            print "\n\n"
-            if contains_unicode(value.Name):
-                if u"\u02c6" in value.Name:
-                    value.Name = value.Name.replace(u"\u02c6", "e")
-                if u"\u2030" in value.Name:
-                    value.Name = value.Name.replace(u"\u2030", "e")
-            childrenlist.insert(len(childrenlist), {
-                "Name":value.Name,
-                "Description":value.Description,
-                "Subitem":[],
-                "ID":value.ID,
-                "Path": "/" + str(value.ID)+"/"})
+    if qry != None:
+        if qry.type == "ResourceCategory":
+            for resource in qry.Resources:
+                childrenlist.insert(len(childrenlist), {
+                    "Name": resource.Name,
+                    "Description": resource.Description,
+                    "Subitem": [],
+                    "ID": resource.ID,
+                    "Path": "/" + str(resource.ID) + "/"})
+        else:
+            for value in qry.Children:
+                if contains_unicode(value.Name):
+                    if u"\u02c6" in value.Name:
+                        value.Name = value.Name.replace(u"\u02c6", "e")
+                    if u"\u2030" in value.Name:
+                        value.Name = value.Name.replace(u"\u2030", "e")
+                childrenlist.insert(len(childrenlist), {
+                    "Name": value.Name,
+                    "Description": value.Description,
+                    "Subitem": [],
+                    "ID": value.ID,
+                    "Path": "/" + str(value.ID) + "/"})
 
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'])
     return sorted_childrenlist
@@ -95,7 +98,7 @@ def additemview(request):
     """
 
     if request.method == 'OPTIONS':
-        return {"success" : True}
+        return {"success": True}
     else:
         # Get the parent to add the object to from the path
         parentid = int(request.matchdict['id'])
@@ -109,30 +112,30 @@ def additemview(request):
         # Determine the type of object to be added and build it
         if objecttype == 'project':
             newnode = Project(Name=name,
-                                    Description=desc,
-                                    ParentID=parentid)
+                              Description=desc,
+                              ParentID=parentid)
         elif objecttype == 'budgetgroup':
             newnode = BudgetGroup(Name=name,
-                                    Description=desc,
-                                    ParentID=parentid)
+                                  Description=desc,
+                                  ParentID=parentid)
         elif objecttype == 'budgetitem':
             quantity = float(request.json_body['Quantity'])
             rate = float(request.json_body['Rate'])
             newnode = BudgetItem(Name=name,
-                                    Description=desc,
-                                    ParentID=parentid)
-            newnode.Quantity=quantity
-            newnode.Rate=rate
+                                 Description=desc,
+                                 ParentID=parentid)
+            newnode.Quantity = quantity
+            newnode.Rate = rate
         elif objecttype == 'component':
             componenttype = int(request.json_body['ComponentType'])
             quantity = float(request.json_body['Quantity'])
             rate = float(request.json_body['Rate'])
             newnode = Component(Name=name,
-                                    Description=desc,
-                                    Type=componenttype,
-                                    ParentID=parentid)
-            newnode.Quantity=quantity
-            newnode.Rate=rate
+                                Description=desc,
+                                Type=componenttype,
+                                ParentID=parentid)
+            newnode.Quantity = quantity
+            newnode.Rate = rate
 
         else:
             return HTTPInternalServerError()
@@ -141,7 +144,7 @@ def additemview(request):
         transaction.commit()
 
         # reset the total of the parent
-        if parentid!=0:
+        if parentid != 0:
             recalculate = DBSession.query(Node).filter_by(ID=parentid).first()
             recalculate.resetTotal()
 
@@ -158,7 +161,7 @@ def deleteitemview(request):
     """
 
     if request.method == 'OPTIONS':
-        return {"success" : True}
+        return {"success": True}
     else:
         # Get the id of the node to be deleted from the path
         deleteid = request.matchdict['id']
@@ -191,7 +194,7 @@ def pasteitemview(request):
     """
 
     if request.method == 'OPTIONS':
-        return {"success" : True}
+        return {"success": True}
     else:
         # Find the source object to be copied from the path in the request body
         sourceid = request.json_body["Path"][1:-1]
@@ -201,12 +204,33 @@ def pasteitemview(request):
         source = DBSession.query(Node).filter_by(ID=sourceid).first()
         dest = DBSession.query(Node).filter_by(ID=destinationid).first()
 
+        # Get a list of the components in the source
+        componentlist = source.getComponents()
+
         # Paste the source into the destination
         parentid = dest.ID
         dest.paste(source.copy(dest.ID), source.Children)
         transaction.commit()
 
-        # print "resetting total"
+        # Add the new resources to the destinations resource category
+        projectid = parentid
+        while parentid != 0:
+            projectid = parentid
+            parentid = DBSession.query(
+                        Node).filter_by(ID=parentid).first().ParentID
+
+        resourcecategory = DBSession.query(
+                        ResourceCategory).filter_by(ParentID=parentid).first()
+        for component in componentlist:
+            name = component.Name
+            resource = DBSession.query(
+                Resource).filter_by(Name=name).first()
+
+            # add the resource to the category
+            if resource not in resourcecategory.Resources:
+                resourcecategory.Resources.append(resource)
+
+
         if parentid != 0:
             recalculate = DBSession.query(Node).filter_by(ID=parentid).first()
             recalculate.resetTotal()
@@ -225,7 +249,7 @@ def costview(request):
     """
 
     if request.method == 'OPTIONS':
-        return {"success" : True}
+        return {"success": True}
     else:
         # Get the id of the node to be costed
         costid = request.matchdict['id']

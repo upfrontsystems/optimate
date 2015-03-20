@@ -12,6 +12,7 @@ import transaction
 from pyramid import testing
 from .models import DBSession
 
+
 def _initTestingDB():
     """
     Build a database with default data
@@ -29,64 +30,63 @@ def _initTestingDB():
         ResourceCategory,
         Resource,
         Base
-        )
+    )
     engine = create_engine('sqlite://')
     Base.metadata.create_all(engine)
     DBSession.configure(bind=engine)
     with transaction.manager:
         root = Node(ID=0)
         project = Project(Name="TestPName",
-                            ID=1,
-                            Description="TestPDesc",
-                            ParentID=0)
+                          ID=1,
+                          Description="TestPDesc",
+                          ParentID=0)
         budgetgroup = BudgetGroup(Name="TestBGName",
-                            ID=2,
-                            Description="TestBGDesc",
-                            ParentID=project.ID)
+                                  ID=2,
+                                  Description="TestBGDesc",
+                                  ParentID=project.ID)
         budgetitem = BudgetItem(Name="TestBIName",
-                            ID=3,
-                            Description="TestBIDesc",
-                            ParentID=budgetgroup.ID)
-        comp = Component (ID=7,
-                            Name="TestCName",
-                            Description="TestCDesc",
-                            Type=1,
-                            ParentID=budgetitem.ID)
-        compa = Component (ID=11,
-                            Name="TestACName",
-                            Description="TestACDesc",
-                            Type=1,
-                            ParentID=budgetitem.ID)
+                                ID=3,
+                                Description="TestBIDesc",
+                                ParentID=budgetgroup.ID)
+        comp = Component(ID=7,
+                         Name="TestCName",
+                         Description="TestCDesc",
+                         Type=1,
+                         ParentID=budgetitem.ID)
+        compa = Component(ID=11,
+                          Name="TestACName",
+                          Description="TestACDesc",
+                          Type=1,
+                          ParentID=budgetitem.ID)
         comptype = ComponentType(ID=1,
-                            Name="type")
+                                 Name="type")
         projectb = Project(Name="TestBPName",
-                            ID=4,
-                            Description="TestBPDesc",
-                            ParentID=0)
+                           ID=4,
+                           Description="TestBPDesc",
+                           ParentID=0)
         budgetgroupb = BudgetGroup(Name="TestBBGName",
-                            ID=5,
-                            Description="BBGDesc",
-                            ParentID=projectb.ID)
+                                   ID=5,
+                                   Description="BBGDesc",
+                                   ParentID=projectb.ID)
         budgetitemb = BudgetItem(Name="TestBBIName",
-                            ID=6,
-                            Description="TestBBIDesc",
-                            ParentID=budgetgroupb.ID)
-        compb = Component (ID=8,
-                            Name="TestBCName",
-                            Description="TestBCDesc",
-                            Type=1,
-                            ParentID=budgetitemb.ID)
+                                 ID=6,
+                                 Description="TestBBIDesc",
+                                 ParentID=budgetgroupb.ID)
+        compb = Component(ID=8,
+                          Name="TestBCName",
+                          Description="TestBCDesc",
+                          Type=1,
+                          ParentID=budgetitemb.ID)
 
         rescat = ResourceCategory(ID=9,
-                                    Name="TestCategory",
-                                    Description="Test Category",
-                                    ParentID=projectb.ID)
+                                  Name="TestCategory",
+                                  Description="Test Category",
+                                  ParentID=projectb.ID)
         res = Resource(ID=10,
-                        Code="A000",
-                        Name="Testresource",
-                        Description="Test resource",
-                        Rate=10.0,
-                        ParentID=rescat.ID)
+                       Code="A000",
+                       Name="Testresource",
+                       Description="Test resource",
+                       Rate=10.0)
 
         DBSession.add(root)
         DBSession.add(project)
@@ -120,7 +120,6 @@ def _initTestingDB():
                                           compb
         """
 
-
         # DBSession.add(rescat)
         # DBSession.add(res)
 
@@ -131,7 +130,6 @@ def _initTestingDB():
         comp.Quantity = 5.0
         compa.Rate = 5.0
         compa.Quantity = 7.0
-
 
         # project total should be 500
         budgetitemb.Quantity = 10.0
@@ -149,7 +147,9 @@ def _registerRoutes(config):
     config.add_route('deleteview', '/{id}/delete')
     config.add_route('pasteview', '/{id}/paste')
 
+
 class TestRootviewSuccessCondition(unittest.TestCase):
+
     """
     Test if the Root view functions correctly.
     It also calls the childview but without a url path,
@@ -177,7 +177,9 @@ class TestRootviewSuccessCondition(unittest.TestCase):
         # Name 'TestBName'
         self.assertEqual(response[0]['Name'], 'TestBPName')
 
+
 class TestChildviewSuccessCondition(unittest.TestCase):
+
     """
     Test if the childview functions correctly with any other id.
     """
@@ -203,7 +205,9 @@ class TestChildviewSuccessCondition(unittest.TestCase):
         # true if the child object of parent id '1' has Name 'TestBGName'
         self.assertEqual(response[0]['Name'], 'TestBGName')
 
+
 class TestAddviewSuccessCondition(unittest.TestCase):
+
     """
     Test if the additemview functions correctly.
     Using default data and adding it as the child of one of the objects.
@@ -226,15 +230,15 @@ class TestAddviewSuccessCondition(unittest.TestCase):
 
         # Add the default data using json in the request
         request = testing.DummyRequest(json_body={
-                                            'Name':'AddingName',
-                                            'Description':'Adding test item',
-                                            'NodeType':'component',
-                                            'ComponentType':1,
-                                            'Quantity': 10.0,
-                                            'Rate': 2.0}
-                                        )
+            'Name': 'AddingName',
+            'Description': 'Adding test item',
+            'NodeType': 'component',
+            'ComponentType': 1,
+            'Quantity': 10.0,
+            'Rate': 2.0}
+        )
         # add it to id:6 the budgetitemb
-        request.matchdict= {'id':6}
+        request.matchdict = {'id': 6}
         response = self._callFUT(request)
 
         # assert if the response from the add view is OK
@@ -242,7 +246,7 @@ class TestAddviewSuccessCondition(unittest.TestCase):
 
         # Create another request for the child of the node added to
         request = testing.DummyRequest()
-        request.matchdict= {'parentid': 6}
+        request.matchdict = {'parentid': 6}
         from .views import childview
         response = childview(request)
 
@@ -251,12 +255,14 @@ class TestAddviewSuccessCondition(unittest.TestCase):
 
         # do another test to see if the cost is correct
         request = testing.DummyRequest()
-        request.matchdict= {'id': 4}
+        request.matchdict = {'id': 4}
         from .views import costview
         response = costview(request)
         self.assertEqual(response["Cost"], 700.0)
 
+
 class TestDeleteviewSuccessCondition(unittest.TestCase):
+
     """
     Test if the delete view functions correctly and deletes the node
     specified by the request.
@@ -278,14 +284,14 @@ class TestDeleteviewSuccessCondition(unittest.TestCase):
         # delete the budgetgroup with id 2
         _registerRoutes(self.config)
         request = testing.DummyRequest()
-        request.matchdict= {'id':2}
+        request.matchdict = {'id': 2}
         response = self._callFUT(request)
         # true if the response from deleteview is OK
         self.assertEqual(response.code, 200)
 
         # check now that no nodes have that budgetgroup as a parent
         request = testing.DummyRequest()
-        request.matchdict= {'parentid': 2}
+        request.matchdict = {'parentid': 2}
         from .views import childview
         response = childview(request)
         self.assertEqual(len(response), 0)
@@ -293,12 +299,14 @@ class TestDeleteviewSuccessCondition(unittest.TestCase):
         # do another test to see if the cost is correct on the project id 1
         # since it has no children it's cost should be 0
         request = testing.DummyRequest()
-        request.matchdict= {'id': 1}
+        request.matchdict = {'id': 1}
         from .views import costview
         response = costview(request)
         self.assertEqual(response["Cost"], 0.0)
 
+
 class TestPasteviewSuccessCondition(unittest.TestCase):
+
     """
     Test that the paste functions correctly with pasting from a
     default node to another one.
@@ -321,11 +329,11 @@ class TestPasteviewSuccessCondition(unittest.TestCase):
         # set the default node to be copied
         # which is budgetgroup with id 2
         request = testing.DummyRequest(json_body={
-                                                'Path': '/2/'}
-                                        )
+            'Path': '/2/'}
+        )
         # set the node to be pasted into
         # which is projectb with id 4
-        request.matchdict= {'id':4}
+        request.matchdict = {'id': 4}
         response = self._callFUT(request)
 
         # true if the response from paste view is OK
@@ -333,19 +341,21 @@ class TestPasteviewSuccessCondition(unittest.TestCase):
 
         # do another test to see if the children of the parent is now two
         request = testing.DummyRequest()
-        request.matchdict= {'parentid': 4}
+        request.matchdict = {'parentid': 4}
         from .views import childview
         response = childview(request)
         self.assertEqual(len(response), 2)
 
         # do another test to see if the cost is correct
         request = testing.DummyRequest()
-        request.matchdict= {'id': 4}
+        request.matchdict = {'id': 4}
         from .views import costview
         response = costview(request)
         self.assertEqual(response["Cost"], 925.0)
 
+
 class TestCostviewSuccessCondition(unittest.TestCase):
+
     """
     Test that the paste functions correctly with getting the
     total  cost of a node
@@ -367,13 +377,15 @@ class TestCostviewSuccessCondition(unittest.TestCase):
         _registerRoutes(self.config)
         # get the cost of projectb at id 4
         request = testing.DummyRequest()
-        request.matchdict= {'id': 4}
+        request.matchdict = {'id': 4}
         response = self._callFUT(request)
 
         # true if the cost is correct
         self.assertEqual(response["Cost"], 500.0)
 
+
 class TestSetComponentRateSuccessCondition(unittest.TestCase):
+
     """
     Test that the paste functions correctly with getting the
     total  cost of a node
@@ -395,7 +407,7 @@ class TestSetComponentRateSuccessCondition(unittest.TestCase):
         _registerRoutes(self.config)
         # get the cost of the node as is
         request = testing.DummyRequest()
-        request.matchdict= {'id': 4}
+        request.matchdict = {'id': 4}
         response = self._callFUT(request)
 
         # true if the cost is correct
@@ -403,13 +415,12 @@ class TestSetComponentRateSuccessCondition(unittest.TestCase):
 
         # now change the rate of the component by calling the test view
         request = testing.DummyRequest()
-        request.matchdict= {'id': 8}
+        request.matchdict = {'id': 8}
         from .views import testchangeview
         testchangeview(request)
 
         # now the project cost should be 50
         request = testing.DummyRequest()
-        request.matchdict= {'id': 4}
+        request.matchdict = {'id': 4}
         response = self._callFUT(request)
         self.assertEqual(response["Cost"], 50.0)
-

@@ -15,7 +15,7 @@ from sqlalchemy import engine_from_config
 from pyramid.paster import (
     get_appsettings,
     setup_logging,
-    )
+)
 
 from ..models import (
     DBSession,
@@ -28,7 +28,7 @@ from ..models import (
     ResourceCategory,
     Resource,
     Base,
-    )
+)
 
 
 def usage(argv):
@@ -36,6 +36,7 @@ def usage(argv):
     print('usage: %s <config_uri> [var=value]\n'
           '(example: "%s development.ini")' % (cmd, cmd))
     sys.exit(1)
+
 
 def main(argv=sys.argv):
     if len(argv) < 2:
@@ -51,9 +52,9 @@ def main(argv=sys.argv):
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
     # with transaction.manager:
-    #     # Build the object models
-        # root = Node(ID=0)
-        # DBSession.add(root)
+    # Build the object models
+    # root = Node(ID=0)
+    # DBSession.add(root)
     #     project = Project(Name="PName",
     #                         ID=1,
     #                         Description="PDesc",
@@ -83,14 +84,13 @@ def main(argv=sys.argv):
     #                         Rate=10,
     #                         ParentID=budgetgroup.ID)
 
-    #     # Append the children nodes to their parents
-    #     # budgetgroup.Children.append(budgetitem)
-    #     # project.Children.append(budgetgroup)
+    # Append the children nodes to their parents
+    # budgetgroup.Children.append(budgetitem)
+    # project.Children.append(budgetgroup)
     #     DBSession.add(project)
     #     DBSession.add(budgetgroup)
     #     DBSession.add(budgetitem)
     #     DBSession.add(comp)
-
 
     #     projectb = Project(Name="BPName",
     #                         ID=4,
@@ -117,8 +117,8 @@ def main(argv=sys.argv):
     #                         Rate=10,
     #                         ParentID=budgetitemb.ID)
 
-    #     # budgetgroupb.Children.append(budgetitemb)
-    #     # projectb.Children.append(budgetgroupb)
+    # budgetgroupb.Children.append(budgetitemb)
+    # projectb.Children.append(budgetgroupb)
     #     DBSession.add(projectb)
     #     DBSession.add(budgetgroupb)
     #     DBSession.add(budgetitemb)
