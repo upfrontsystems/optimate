@@ -18,100 +18,100 @@
         data-node-children="children" >
     </div>
 */
+
 // Modal dialog module
 (function() {
-  var app;
+    var app;
+    app = angular.module("ngModal", []);
+    app.provider("ngModalDefaults", function() {
+        return {
+            options: {
+                closeButtonHtml: "<span class='ng-modal-close-x'>X</span>"
+            },
+            $get: function() {
+                return this.options;
+            },
+            set: function(keyOrHash, value) {
+                var k, v, _results;
+                if (typeof keyOrHash === 'object') {
+                    _results = [];
+                    for (k in keyOrHash) {
+                        v = keyOrHash[k];
+                        _results.push(this.options[k] = v);
+                    }
+                    return _results;
+                }
+                else {
+                    return this.options[keyOrHash] = value;
+                }
+            }
+        };
+    });
 
-  app = angular.module("ngModal", []);
-
-  app.provider("ngModalDefaults", function() {
-    return {
-      options: {
-        closeButtonHtml: "<span class='ng-modal-close-x'>X</span>"
-      },
-      $get: function() {
-        return this.options;
-      },
-      set: function(keyOrHash, value) {
-        var k, v, _results;
-        if (typeof keyOrHash === 'object') {
-          _results = [];
-          for (k in keyOrHash) {
-            v = keyOrHash[k];
-            _results.push(this.options[k] = v);
-          }
-          return _results;
-        } else {
-          return this.options[keyOrHash] = value;
+    app.directive('modalDialog', [
+        'ngModalDefaults', '$sce', function(ngModalDefaults, $sce) {
+            return {
+                restrict: 'E',
+                scope: {
+                    show: '=',
+                    dialogTitle: '@',
+                    onClose: '&?'
+                },
+                replace: true,
+                transclude: true,
+                link: function(scope, element, attrs) {
+                    var setupCloseButton, setupStyle;
+                    setupCloseButton = function() {
+                        return scope.closeButtonHtml = $sce.trustAsHtml(ngModalDefaults.closeButtonHtml);
+                    };
+                    setupStyle = function() {
+                        scope.dialogStyle = {};
+                        if (attrs.width) {
+                            scope.dialogStyle['width'] = attrs.width;
+                        }
+                        if (attrs.height) {
+                            return scope.dialogStyle['height'] = attrs.height;
+                        }
+                    };
+                    scope.hideModal = function() {
+                        return scope.show = false;
+                    };
+                    scope.$watch('show', function(newVal, oldVal) {
+                        if (newVal && !oldVal) {
+                            document.getElementsByTagName("body")[0].style.overflow = "hidden";
+                        } 
+                        else {
+                            document.getElementsByTagName("body")[0].style.overflow = "";
+                        }
+                        if ((!newVal && oldVal) && (scope.onClose != null)) {
+                            return scope.onClose();
+                        }
+                    });
+                    setupCloseButton();
+                    return setupStyle();
+                },
+                template: "<div class='ng-modal' ng-show='show'>\n  "+
+                                "<div class='ng-modal-overlay' "+
+                                    "ng-click='hideModal()'>"+
+                                "</div>\n  "+
+                                "<div class='ng-modal-dialog' "+
+                                    "ng-style='dialogStyle'>\n"+
+                                    "<span class='ng-modal-title' "+
+                                        "ng-show='dialogTitle && dialogTitle.length' "+
+                                        "ng-bind='dialogTitle'>"+
+                                    "</span>\n"+
+                                    "<div class='ng-modal-close' "+
+                                        "ng-click='hideModal()'>\n"+
+                                        "<div ng-bind-html='closeButtonHtml'></div>\n"+
+                                    "</div>\n"+
+                                    "<div class='ng-modal-dialog-content'"+
+                                        "ng-transclude>"+
+                                    "</div>\n"+
+                                "</div>\n"+
+                            "</div>"
+            };
         }
-      }
-    };
-  });
-
-  app.directive('modalDialog', [
-    'ngModalDefaults', '$sce', function(ngModalDefaults, $sce) {
-      return {
-        restrict: 'E',
-        scope: {
-          show: '=',
-          dialogTitle: '@',
-          onClose: '&?'
-        },
-        replace: true,
-        transclude: true,
-        link: function(scope, element, attrs) {
-          var setupCloseButton, setupStyle;
-          setupCloseButton = function() {
-            return scope.closeButtonHtml =
-                        $sce.trustAsHtml(ngModalDefaults.closeButtonHtml);
-          };
-          setupStyle = function() {
-            scope.dialogStyle = {};
-            if (attrs.width) {
-              scope.dialogStyle['width'] = attrs.width;
-            }
-            if (attrs.height) {
-              return scope.dialogStyle['height'] = attrs.height;
-            }
-          };
-          scope.hideModal = function() {
-            return scope.show = false;
-          };
-          scope.$watch('show', function(newVal, oldVal) {
-            if (newVal && !oldVal) {
-              document.getElementsByTagName("body")[0].style.overflow = "hidden";
-            } else {
-              document.getElementsByTagName("body")[0].style.overflow = "";
-            }
-            if ((!newVal && oldVal) && (scope.onClose != null)) {
-              return scope.onClose();
-            }
-          });
-          setupCloseButton();
-          return setupStyle();
-        },
-        template: "<div class='ng-modal' ng-show='show'>\n  "+
-                        "<div class='ng-modal-overlay' "+
-                            "ng-click='hideModal()'>"+
-                        "</div>\n  "+
-                        "<div class='ng-modal-dialog' "+
-                            "ng-style='dialogStyle'>\n"+
-                            "<span class='ng-modal-title' "+
-                                "ng-show='dialogTitle && dialogTitle.length' "+
-                                "ng-bind='dialogTitle'>"+
-                            "</span>\n"+
-                            "<div class='ng-modal-close' "+
-                                "ng-click='hideModal()'>\n"+
-                                "<div ng-bind-html='closeButtonHtml'></div>\n"+
-                            "</div>\n"+
-                            "<div class='ng-modal-dialog-content'"+
-                                "ng-transclude>"+
-                            "</div>\n"+
-                        "</div>\n"+
-                    "</div>"
-      };
-    }
-  ]);
+    ]);
 
 }).call(this);
 
@@ -285,6 +285,7 @@
 
                     //check tree id, tree model
                     if( treeId && treeModel ) {
+
                         //root node
                         if( attrs.angularTreeview ) {
                             //create tree object if not exists
@@ -299,11 +300,11 @@
                                 scope.formData.inputDescription = "";
                                 var nodetype = scope.formData.inputNodeType;
                                 var quantity = scope.formData.inputQuantity;
-                                scope.formData.inputQuantity=0
+                                scope.formData.inputQuantity = 0
                                 var rate = scope.formData.inputRate;
-                                scope.formData.inputRate=0
+                                scope.formData.inputRate = 0
                                 var componenttype = scope.formData.inputComponentType;
-                                scope.formData.inputComponentType=0
+                                scope.formData.inputComponentType = 0
 
                                 console.log(quantity)
                                 console.log(rate)
@@ -313,18 +314,16 @@
                                 $http({
                                     method: 'POST',
                                     url: 'http://localhost:8100' + path + 'add',
-                                    data:{  'Name': name,
-                                            'Description':description,
-                                            'NodeType': nodetype,
-                                            'Quantity': quantity,
-                                            'Rate': rate,
-                                            'ComponentType': componenttype}
-                                }).success(
-                                    function () {
-                                        alert('Success: Child added');
-                                        console.log("added");
-                                    }
-                                );
+                                    data:{'Name': name,
+                                          'Description': description,
+                                          'NodeType': nodetype,
+                                          'Quantity': quantity,
+                                          'Rate': rate,
+                                          'ComponentType': componenttype}
+                                }).success(function () {
+                                    alert('Success: Child added');
+                                    console.log("added");
+                                });
                             }
 
                             // Function to delete data in server
@@ -332,63 +331,49 @@
                                 console.log("Deleting "+ path);
                                 $http({
                                     method: 'POST',
-                                    url:'http://localhost:8100'+path+'delete'
-                                }).success(
-                                        function () {
-                                            alert('Success: Item deleted');
-                                        }
-                                    );
+                                    url:'http://localhost:8100' + path + 'delete'
+                                }).success(function () {
+                                    alert('Success: Item deleted');
+                                });
                             }
 
                             // Function to copy a node
                             scope[treeId].copy = function(cnode) {
                                 scope.copiednode = cnode;
-                                console.log("Path that is copied: " +
-                                            scope.copiednode);
+                                console.log("Path that is copied: " + scope.copiednode);
                                 alert('Node address copied')
                             }
 
                             // function to POST data to server to paste item
                             scope[treeId].paste = function(path) {
-                                console.log("Node to be pasted: " +
-                                            scope.copiednode);
+                                console.log("Node to be pasted: " + scope.copiednode);
                                 $http({
                                     method: 'POST',
                                     url: 'http://localhost:8100' + path + 'paste',
                                     data:{'Path': scope.copiednode}
-                                }).success(
-                                    function () {
-                                        alert('Success: Node pasted');
-                                    }
-                                );
+                                }).success(function () {
+                                    alert('Success: Node pasted');
+                                });
                             }
 
                             // Function to get the cost of the node
                             scope[treeId].costItem = function(path) {
                                 console.log("Costing "+ path);
-                                $http.get('http://127.0.0.1:8100'+path+'cost').success
-                                    (
-                                    function(data)
-                                        {
-                                            console.log("Htpp request success: "+ data);
-                                             // get the cost of the node and post alert
-                                            alert(data['Cost']);
-                                        }
-                                    );
+                                $http.get('http://127.0.0.1:8100' + path + 'cost').success(function(data) {
+                                    console.log("Http request success: " + data);
+                                     // get the cost of the node and post alert
+                                    alert(data['Cost']);
+                                });
                             }
 
                             //if node head clicks,
-                            scope[treeId].selectNodeHead =
-                            scope[treeId].selectNodeHead ||
-                            function( selectedNode ){
+                            scope[treeId].selectNodeHead = scope[treeId].selectNodeHead || function( selectedNode ) {
                                 //Collapse or Expand
                                 selectedNode.collapsed = !selectedNode.collapsed;
                             };
 
                             //if node label clicks,
-                            scope[treeId].selectNodeLabel =
-                            scope[treeId].selectNodeLabel ||
-                            function( selectedNode ){
+                            scope[treeId].selectNodeLabel = scope[treeId].selectNodeLabel || function( selectedNode ) {
                                 //remove highlight from previous node
                                 if( scope[treeId].currentNode &&
                                     scope[treeId].currentNode.selected ) {
@@ -405,17 +390,13 @@
                                 // and go to that path with http
                                 var path = scope[treeId].currentNode.Path;
                                 console.log(path);
-                                $http.get('http://127.0.0.1:8100'+path).success
-                                    (
-                                    function(data)
-                                        {
-                                            console.log("Htpp request success: "+ data);
-                                             // Append the response data to the
-                                             // subitem (children) of the
-                                             // current node
-                                            scope[treeId].currentNode.Subitem =  data;
-                                        }
-                                    );
+                                $http.get('http://127.0.0.1:8100' + path).success(function(data) {
+                                    console.log("Http request success: " + data);
+                                     // Append the response data to the
+                                     // subitem (children) of the
+                                     // current node
+                                    scope[treeId].currentNode.Subitem = data;
+                                });
                             };
                         }
                         //Rendering template.
