@@ -55,6 +55,13 @@ class Node(Base):
         'polymorphic_on': type
     }
 
+    def getProjectID(self):
+        parent = DBSession.query(Node).filter_by(ID=self.ParentID).first()
+        if parent.ID == 0:
+            return self.ID
+        else:
+            return parent.getProjectID()
+
     def __repr__(self):
         return "<Node(ID='%s', ParentID='%s')>" % (
             self.ID, self.ParentID)
@@ -92,7 +99,8 @@ class Project(Node):
         childr = DBSession.query(Node).filter_by(ParentID=self.ID).all()
 
         for child in childr:
-            total += child.recalculateTotal()
+            if child.type != "ResourceCategory":
+                total += child.recalculateTotal()
 
         return total
 
@@ -844,6 +852,15 @@ class ResourceCategory(Node):
     @Total.setter
     def Total(self, total):
         self._Total = total
+
+    def addResources(self, namelist):
+        for name in namelist:
+            resource = DBSession.query(
+                Resource).filter_by(Name=name).first()
+
+            # add the resource to the category
+            if resource not in self.Resources:
+                self.Resources.append(resource)
 
     def addResource(self, resource):
         """

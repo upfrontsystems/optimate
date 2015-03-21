@@ -213,11 +213,20 @@ def pasteitemview(request):
         # Find the object to be copied to from the path
         destinationid = request.matchdict['id']
 
+        # Set expire to false so that the list does not expire
+        # DBSession.expire_on_commit = False
+
         source = DBSession.query(Node).filter_by(ID=sourceid).first()
         dest = DBSession.query(Node).filter_by(ID=destinationid).first()
 
         # Get a list of the components in the source
         componentlist = source.getComponents()
+        # get the names of the components
+        namelist = []
+        for component in componentlist:
+            namelist.insert(len(namelist), component.Name)
+        # Get the ID of the project the destination is in
+        projectid = dest.getProjectID()
 
         # Paste the source into the destination
         parentid = dest.ID
@@ -225,24 +234,12 @@ def pasteitemview(request):
         transaction.commit()
 
         # Add the new resources to the destinations resource category
-        projectid = parentid
-        while parentid != 0:
-            projectid = parentid
-            parentid = DBSession.query(
-                        Node).filter_by(ID=parentid).first().ParentID
-
         resourcecategory = DBSession.query(
-                        ResourceCategory).filter_by(ParentID=parentid).first()
-        for component in componentlist:
-            name = component.Name
-            resource = DBSession.query(
-                Resource).filter_by(Name=name).first()
+                        ResourceCategory).filter_by(ParentID=projectid).first()
 
-            # add the resource to the category
-            if resource not in resourcecategory.Resources:
-                resourcecategory.Resources.append(resource)
+        resourcecategory.addResources(namelist)
 
-
+        # DBSession.expire_on_commit = True
         if parentid != 0:
             recalculate = DBSession.query(Node).filter_by(ID=parentid).first()
             recalculate.resetTotal()

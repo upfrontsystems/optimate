@@ -47,15 +47,20 @@ def _initTestingDB():
         budgetitem = BudgetItem(Name="TestBIName",
                                 ID=3,
                                 Description="TestBIDesc",
+                                _Quantity=5.0,
                                 ParentID=budgetgroup.ID)
         comp = Component(ID=7,
-                         Name="TestCName",
+                         Name="TestResource",
                          Description="TestCDesc",
+                         _Rate=10.0,
+                         _Quantity=5.0,
                          Type=1,
                          ParentID=budgetitem.ID)
         compa = Component(ID=11,
-                          Name="TestACName",
+                          Name="TestResourceA",
                           Description="TestACDesc",
+                          _Rate=5.0,
+                          _Quantity=7.0,
                           Type=1,
                           ParentID=budgetitem.ID)
         comptype = ComponentType(ID=1,
@@ -70,11 +75,14 @@ def _initTestingDB():
                                    ParentID=projectb.ID)
         budgetitemb = BudgetItem(Name="TestBBIName",
                                  ID=6,
+                                 _Quantity=10.0,
                                  Description="TestBBIDesc",
                                  ParentID=budgetgroupb.ID)
         compb = Component(ID=8,
-                          Name="TestBCName",
+                          Name="TestResourceB",
                           Description="TestBCDesc",
+                          _Rate=10.0,
+                          _Quantity=5.0,
                           Type=1,
                           ParentID=budgetitemb.ID)
 
@@ -82,9 +90,19 @@ def _initTestingDB():
                                   Name="TestCategory",
                                   Description="Test Category",
                                   ParentID=projectb.ID)
-        res = Resource(ID=10,
+        res = Resource(ID=1,
                        Code="A000",
-                       Name="Testresource",
+                       Name="TestResource",
+                       Description="Test resource",
+                       Rate=10.0)
+        resa = Resource(ID=2,
+                       Code="A001",
+                       Name="TestResourceA",
+                       Description="Test resource",
+                       Rate=10.0)
+        resb = Resource(ID=3,
+                       Code="A002",
+                       Name="TestResourceB",
                        Description="Test resource",
                        Rate=10.0)
 
@@ -99,7 +117,11 @@ def _initTestingDB():
         DBSession.add(budgetgroupb)
         DBSession.add(budgetitemb)
         DBSession.add(compb)
-
+        DBSession.add(rescat)
+        DBSession.add(res)
+        DBSession.add(resa)
+        DBSession.add(resb)
+        transaction.commit()
         """The hierarchy
         project -
                 |
@@ -120,22 +142,23 @@ def _initTestingDB():
                                           compb
         """
 
-        # DBSession.add(rescat)
-        # DBSession.add(res)
-
         # project total should be 425
         # budgetitem.Rate = 10.0
-        budgetitem.Quantity = 5.0
-        comp.Rate = 10.0
-        comp.Quantity = 5.0
-        compa.Rate = 5.0
-        compa.Quantity = 7.0
+        # budgetitem.Quantity = 5.0
+        # comp.Rate = 10.0
+        # comp.Quantity = 5.0
+        # compa.Rate = 5.0
+        # compa.Quantity = 7.0
 
         # project total should be 500
-        budgetitemb.Quantity = 10.0
+        # budgetitemb.Quantity = 10.0
         # budgetitemb.Rate = 50.0
-        compb.Rate = 10.0
-        compb.Quantity = 5.0
+        # compb.Rate = 10.0
+        # compb.Quantity = 5.0
+
+        projectlist = DBSession.query(Project).all()
+        for project in projectlist:
+            project.recalculateTotal()
 
     return DBSession
 
