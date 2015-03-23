@@ -129,15 +129,15 @@
             return {
                 restrict: 'A',
                 link: function ( scope, element, attrs ) {
-                    //tree id
+                    // tree id
                     var treeId = attrs.treeId;
-                    //tree model
+                    // tree model
                     var treeModel = attrs.treeModel;
                     //node id
                     var nodeId = attrs.nodeId || 'id';
-                    //node label
+                    // node label
                     var nodeLabel = attrs.nodeLabel || 'label';
-                    //children
+                    // children
                     var nodeChildren = attrs.nodeChildren || 'children';
                     // path
                     var nodePath = attrs.nodePath || 'path'
@@ -149,10 +149,10 @@
                     scope.showcosts = false
                     scope.showtype = false;
 
-                    //tree template
+                    // tree template
                     var template =
                         // Build a list of the nodes in the tree
-                        // Diplay depends on the state of the node
+                        // Display depends on the state of the node 
                         '<ul>' +
                             '<li data-ng-repeat="node in ' + treeModel + '">' +
                                 '<i class="collapsed" ' +
@@ -178,7 +178,7 @@
                                     '{{node.' + nodeLabel + '}}'+
                                 '</span>' +
 
-                                // Modal dialogue with functions
+                                // Modal dialog with functions
                                 '<span class="additem" data-ng-show="node.selected">'+
                                     '<button data-ng-click="showoptions = true;">+</button>'+
                                     '<modal-dialog  show=showoptions '+
@@ -283,12 +283,12 @@
                         '</ul>';
 
 
-                    //check tree id, tree model
+                    // check tree id, tree model
                     if ( treeId && treeModel ) {
 
-                        //root node
+                        // root node
                         if ( attrs.angularTreeview ) {
-                            //create tree object if not exists
+                            // create tree object if not exists
                             scope[treeId] = scope[treeId] || {};
 
                             // function to POST data to server to add item
@@ -366,23 +366,23 @@
                                 });
                             }
 
-                            //if node head clicks,
+                            // if node head clicks,
                             scope[treeId].selectNodeHead = scope[treeId].selectNodeHead || function( selectedNode ) {
-                                //Collapse or Expand
+                                // Collapse or Expand
                                 selectedNode.collapsed = !selectedNode.collapsed;
                             };
 
-                            //if node label clicks,
+                            // if node label clicks,
                             scope[treeId].selectNodeLabel = scope[treeId].selectNodeLabel || function( selectedNode ) {
-                                //remove highlight from previous node
-                                if( scope[treeId].currentNode && scope[treeId].currentNode.selected ) {
+                                // remove highlight from previous node
+                                if ( scope[treeId].currentNode && scope[treeId].currentNode.selected ) {
                                     scope[treeId].currentNode.selected = undefined;
                                 }
 
-                                //set highlight to selected node
+                                // set highlight to selected node
                                 selectedNode.selected = 'selected';
 
-                                //set currentNode
+                                // set currentNode
                                 scope[treeId].currentNode = selectedNode;
 
                                 // get path from the node
@@ -398,7 +398,7 @@
                                 });
                             };
                         }
-                        //Rendering template.
+                        // Rendering template.
                         element.html('').append( $compile( template )( scope ) );
                     }
                 }
