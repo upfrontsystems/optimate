@@ -133,7 +133,7 @@
                     var treeId = attrs.treeId;
                     // tree model
                     var treeModel = attrs.treeModel;
-                    //node id
+                    // node id
                     var nodeId = attrs.nodeId || 'id';
                     // node label
                     var nodeLabel = attrs.nodeLabel || 'label';
@@ -207,6 +207,7 @@
                                                                 'data-ng-model="formData.inputDescription" '+
                                                                 'required '+
                                                                 'autofocus>'+
+                                                        '<br>'+
                                                         // radio buttons to select type
                                                         '<br>Type:<br>'+
                                                         '<input type="radio" '+
@@ -243,12 +244,12 @@
                                                                     'data-ng-model="formData.inputRate">'+
                                                         '</div>'+
                                                         '<div data-ng-show="showtype">'+
-                                                                '<br>Type:<br>'+
+                                                                'Type:<br>'+
                                                                     '<input type="integer" '+
                                                                     'name="inputComponentType" '+
                                                                     'data-ng-model="formData.inputComponentType">'+
                                                         '</div>'+
-                                                        '<input type="submit" '+
+                                                        '<br><input type="submit" '+
                                                             'value="Add"/>'+
                                                     '</form>'+
                                                 '</modal-dialog>'+

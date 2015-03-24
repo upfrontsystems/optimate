@@ -13,6 +13,7 @@ body {
 /* angular treeview background */
 .ng-scope {
     background: #FFF;
+    padding: 5px 5px 0px 5px;
 }
 
 /* angular treeview info box */
@@ -34,7 +35,8 @@ body {
 }
 
 #optimate-data-grid-outer {
-    width: 1000px;
+    width: 720px;
+    padding: 5px;
 }
 
 #optimate-data-grid {
@@ -43,9 +45,9 @@ body {
 }
 
 .editor-text {
-    width: 85px;
+    width: 65px;
 }
 
 .slick-header-columns {
-    font-size: 0.9em;
+    font-size: 0.7em;
 }
