@@ -27,19 +27,6 @@ from .models import (
 )
 
 
-def contains_unicode(mystring):
-    """ auxilary method to determine if a string contains a unicode character
-    """
-    try:
-        mystring.decode('ascii')
-    except Exception:
-        # not an ascii-encoded unicode string
-        return True
-    else:
-        # an ascii-encoded unicode string
-        return False
-
-
 @view_config(route_name="rootview", renderer='json')
 @view_config(route_name="childview", renderer='json')
 def childview(request):
@@ -68,25 +55,10 @@ def childview(request):
     if qry != None:
         if qry.type == "ResourceCategory":
             for resource in qry.Resources:
-                childrenlist.insert(len(childrenlist), {
-                    "Name": resource.Name,
-                    "Description": resource.Description,
-                    "Subitem": [],
-                    "ID": resource.ID,
-                    "Path": "/" + str(resource.ID) + "/"})
+                childrenlist.append(resource.toDict())
         else:
             for value in qry.Children:
-                if contains_unicode(value.Name):
-                    if u"\u02c6" in value.Name:
-                        value.Name = value.Name.replace(u"\u02c6", "e")
-                    if u"\u2030" in value.Name:
-                        value.Name = value.Name.replace(u"\u2030", "e")
-                childrenlist.insert(len(childrenlist), {
-                    "Name": value.Name,
-                    "Description": value.Description,
-                    "Subitem": [],
-                    "ID": value.ID,
-                    "Path": "/" + str(value.ID) + "/"})
+                childrenlist.append(value.toDict())
 
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'])
 

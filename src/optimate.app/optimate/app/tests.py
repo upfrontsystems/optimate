@@ -36,21 +36,7 @@ def _initTestingDB():
     Base.metadata.create_all(engine)
     DBSession.configure(bind=engine)
     with transaction.manager:
-        res = Resource(ID=1,
-                       Code="A000",
-                       Name="TestResource",
-                       Description="Test resource",
-                       Rate=5.0)
-        resa = Resource(ID=2,
-                       Code="A001",
-                       Name="TestResourceA",
-                       Description="Test resource",
-                       Rate=10.0)
-        resb = Resource(ID=3,
-                       Code="A002",
-                       Name="TestResourceB",
-                       Description="Test resource",
-                       Rate=7.0)
+
 
         root = Node(ID=0)
         project = Project(Name="TestPName",
@@ -66,6 +52,22 @@ def _initTestingDB():
                         Description="TestBIDesc",
                         _Quantity=5.0,
                         ParentID=budgetgroup.ID)
+        rescat = ResourceCategory(ID=9,
+                        Name="TestCategory",
+                        Description="Test Category",
+                        ParentID=project.ID)
+        res = Resource(ID=15,
+                       Code="A000",
+                       Name="TestResource",
+                       Description="Test resource",
+                       Rate=5.0,
+                       ParentID=rescat.ID)
+        resa = Resource(ID=16,
+                       Code="A001",
+                       Name="TestResourceA",
+                       Description="Test resource",
+                       Rate=10.0,
+                       ParentID=rescat.ID)
         comp = Component(ID=7,
                         Name=res.Name,
                         # Description=res.Description,
@@ -81,10 +83,7 @@ def _initTestingDB():
                         Type=1,
                         ParentID=budgetitem.ID)
         comptype = ComponentType(ID=1, Name="type")
-        rescat = ResourceCategory(ID=9,
-                        Name="TestCategory",
-                        Description="Test Category",
-                        ParentID=project.ID)
+
 
         projectb = Project(Name="TestBPName",
                         ID=4,
@@ -111,6 +110,22 @@ def _initTestingDB():
                         _Quantity=6.0,
                         Description="TestCBIDesc",
                         ParentID=budgetgroupb.ID)
+        rescatb = ResourceCategory(ID=12,
+                        Name="TestCategory",
+                        Description="Test Category",
+                        ParentID=projectb.ID)
+        resb = Resource(ID=17,
+                       Code="A002",
+                       Name="TestResourceB",
+                       Description="Test resource",
+                       Rate=7.0,
+                       ParentID=rescatb.ID)
+        resduplicate = Resource(ID=18,
+                       Code="A003",
+                       Name="TestResource",
+                       Description="Test resource",
+                       Rate=5.0,
+                       ParentID=rescatb.ID)
         compc = Component(ID=14,
                         Name=res.Name,
                         # Description="TestBCDesc",
@@ -118,10 +133,7 @@ def _initTestingDB():
                         _Quantity=8.0,
                         Type=1,
                         ParentID=budgetitemc.ID)
-        rescatb = ResourceCategory(ID=12,
-                        Name="TestCategory",
-                        Description="Test Category",
-                        ParentID=projectb.ID)
+
 
         # DBSession.add(res)
         # DBSession.add(resa)
@@ -145,17 +157,18 @@ def _initTestingDB():
         DBSession.add(rescatb)
 
         res.Components.append(comp)
-        res.Components.append(compc)
+
+        resduplicate.Components.append(compc)
 
         resa.Components.append(compa)
 
         resb.Components.append(compb)
 
-        rescat.Resources.append(res)
-        rescat.Resources.append(resa)
+        # rescat.Children.append(res)
+        # rescat.Children.append(resa)
 
-        rescatb.Resources.append(res)
-        rescatb.Resources.append(resb)
+        # rescatb.Children.append(resduplicate)
+        # rescatb.Children.append(resb)
 
         transaction.commit()
 
@@ -185,13 +198,13 @@ def _initTestingDB():
                               |
                               budgetitemc - (40*6=240)
                                           |
-                                          compc - res (8*5=40)
+                                          compc - resduplicate (8*5=40)
                  |
                  rescatb -
                          |
                          resb
                          |
-                         res
+                         resduplicate
         """
 
         projectlist = DBSession.query(Project).all()

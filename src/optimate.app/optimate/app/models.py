@@ -208,6 +208,21 @@ class Project(Node):
 
         return componentlist
 
+    def toDict(self):
+        if len(self.Children) == 0:
+            subitem = []
+        else:
+            subitem = [{"Name":""}]
+        return {"Name": self.Name,
+                "Description": self.Description,
+                "Subitem": subitem,
+                "ID": self.ID,
+                "Path": "/" + str(self.ID) + "/",
+                "Total": self._Total,
+                "Ordered": self._Ordered,
+                "Claimed": self._Claimed,
+                "NodeType": self.type}
+
     def __repr__(self):
         """
         Return a representation of this project
@@ -364,6 +379,21 @@ class BudgetGroup(Node):
             componentlist += child.getComponents()
 
         return componentlist
+
+    def toDict(self):
+        if len(self.Children) == 0:
+            subitem = []
+        else:
+            subitem = [{"Name":""}]
+        return {"Name": self.Name,
+                "Description": self.Description,
+                "Subitem": subitem,
+                "ID": self.ID,
+                "Path": "/" + str(self.ID) + "/",
+                "Total": self._Total,
+                "Ordered": self._Ordered,
+                "Claimed": self._Claimed,
+                "NodeType": self.type}
 
     def __repr__(self):
         """
@@ -565,6 +595,24 @@ class BudgetItem(Node):
             componentlist += child.getComponents()
 
         return componentlist
+
+    def toDict(self):
+        if len(self.Children) == 0:
+            subitem = []
+        else:
+            subitem = [{"Name":""}]
+        return {"Name": self.Name,
+                "Description": self.Description,
+                "Subitem": subitem,
+                "ID": self.ID,
+                "Path": "/" + str(self.ID) + "/",
+                "Unit": self.Unit,
+                "Rate": self._Rate,
+                "Quantity": self._Quantity,
+                "Total": self._Total,
+                "Ordered": self._Ordered,
+                "Claimed": self._Claimed,
+                "NodeType": self.type}
 
     def __repr__(self):
         """
@@ -780,6 +828,25 @@ class Component(Node):
 
         return componentlist
 
+    def toDict(self):
+        if len(self.Children) == 0:
+            subitem = []
+        else:
+            subitem = [{"Name":""}]
+        return {"Name": self.Name,
+                "Description": self.Description,
+                "Subitem": subitem,
+                "ID": self.ID,
+                "Path": "/" + str(self.ID) + "/",
+                "Type": self.Type,
+                "Unit": self.Unit,
+                "Rate": self._Rate,
+                "Quantity": self._Quantity,
+                "Total": self._Total,
+                "Ordered": self._Ordered,
+                "Claimed": self._Claimed,
+                "NodeType": self.type}
+
     def __repr__(self):
         """
         return a representation of this component
@@ -860,16 +927,28 @@ class ResourceCategory(Node):
                 Resource).filter_by(Name=name).first()
 
             # add the resource to the category
-            if resource not in self.Resources:
-                self.Resources.append(resource)
+            if resource not in self.Children:
+                self.Children.append(resource)
 
     def addResource(self, resource):
         """
         check if the resource is already in this category and add it if not
         """
 
-        if resource not in self.Resources:
-            self.Resources.append(resource)
+        if resource not in self.Children:
+            self.Children.append(resource)
+
+    def toDict(self):
+        if len(self.Resources) == 0:
+            subitem = []
+        else:
+            subitem = [{"Name":""}]
+        return {"Name": self.Name,
+                "Description": self.Description,
+                "Subitem": subitem,
+                "ID": self.ID,
+                "Path": "/" + str(self.ID) + "/",
+                "NodeType": self.type}
 
     def __repr__(self):
         """
@@ -903,13 +982,23 @@ class Resource(Base):
 
     def __eq__(self, other):
         """
-        Test for equality, for now testing based on the name
+        Test for equality, for now testing based on the code
         """
 
         if other == None:
             return False
         else:
-            return self.Name == other.Name
+            return self.Code == other.Code
+
+    def toDict(self):
+        return {"Name": self.Name,
+                "Description": self.Description,
+                "Subitem": [],
+                "ID": self.ID,
+                "Path": "/" + str(self.ID) + "/",
+                "Code": self.Code,
+                "Rate": self.Rate,
+                "NodeType": "resource"}
 
     def __repr__(self):
         """
