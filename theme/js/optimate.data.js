@@ -26,14 +26,17 @@ var options = {
         editable: true,
         enableAddRow: true,
         enableCellNavigation: true,
-        asyncEditorLoading: false,
-        autoEdit: true
+        asyncEditorLoading: true,
+        autoEdit: true,
+        syncColumnCellResize: true,
     };
 
 $(function () {
+
+    // generate sample data
     for (var i = 0; i < 10; i++) {
         var d = (data[i] = {});
-        d["name"] = "Name " + i;
+        d["name"] = "Project Name " + i;
         d["budg_cost"] = "x";
         d["order_cost"] = "x";
         d["run_cost"] = "x";
@@ -46,6 +49,9 @@ $(function () {
 
     grid = new Slick.Grid("#optimate-data-grid", data, columns, options);
     grid.setSelectionModel(new Slick.CellSelectionModel());
+    // show tooltips on hover if the cellsize is so small, that an ellipsis '...' is being shown.
+    autotooltips_plugin = new Slick.AutoTooltips({enableForHeaderCells: true})
+    grid.registerPlugin(autotooltips_plugin);
 
     grid.onAddNewRow.subscribe(function (e, args) {
         var item = args.item;
@@ -54,4 +60,25 @@ $(function () {
         grid.updateRowCount();
         grid.render();
     });
+
+    $.ajax({
+        url: 'http://127.0.0.1:8100/nodegridview',
+        dataType: "json",
+        success: function(data) {
+            var existingdata = grid.getData();
+            console.log(existingdata)
+            console.log(data)
+            existingdata = data
+            console.log(existingdata)
+            grid.invalidate();
+            grid.invalidateAllRows()
+            grid.updateRowCount();
+            grid.render();
+        }
+    });
+
 })
+
+//$(document).ready(function() {
+
+// });
