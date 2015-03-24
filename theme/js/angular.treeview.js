@@ -133,7 +133,7 @@
                     var treeId = attrs.treeId;
                     // tree model
                     var treeModel = attrs.treeModel;
-                    //node id
+                    // node id
                     var nodeId = attrs.nodeId || 'id';
                     // node label
                     var nodeLabel = attrs.nodeLabel || 'label';

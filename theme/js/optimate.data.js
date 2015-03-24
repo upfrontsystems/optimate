@@ -1,23 +1,24 @@
 var grid;
 var data = [];
+var cellwidth = 80;
 var columns = [
-        {id: "name", name: "Name", field: "name", width: 100, cssClass: "cell-title",
+        {id: "name", name: "Name", field: "name", width: cellwidth, cssClass: "cell-title",
          editor: Slick.Editors.Text},
-        {id: "budg_cost", name: "Budg Cost", field: "budg_cost", width: 100,
+        {id: "budg_cost", name: "Budg Cost", field: "budg_cost", width: cellwidth,
          editor: Slick.Editors.Text},
-        {id: "order_cost", name: "Order Cost", field: "order_cost", width: 100,
+        {id: "order_cost", name: "Order Cost", field: "order_cost", width: cellwidth,
          editor: Slick.Editors.Text},
-        {id: "run_cost", name: "Run Cost", field: "run_cost", width: 100,
+        {id: "run_cost", name: "Run Cost", field: "run_cost", width: cellwidth,
          editor: Slick.Editors.Text},
-        {id: "claim_cost", name: "Claim Cost", field: "claim_cost", width: 100,
+        {id: "claim_cost", name: "Claim Cost", field: "claim_cost", width: cellwidth,
          editor: Slick.Editors.Text},
-        {id: "income_rec", name: "Income Rec", field: "income_rec", width: 100,
+        {id: "income_rec", name: "Income Rec", field: "income_rec", width: cellwidth,
          editor: Slick.Editors.Text},
-        {id: "client_cost", name: "Client Cost", field: "client_cost", width: 100,
+        {id: "client_cost", name: "Client Cost", field: "client_cost", width: cellwidth,
          editor: Slick.Editors.Text},
-        {id: "proj_profit", name: "Proj. Profit", field: "proj_profit", width: 100,
+        {id: "proj_profit", name: "Proj. Profit", field: "proj_profit", width: cellwidth,
          editor: Slick.Editors.Text},
-        {id: "act_profit", name: "Act. Profit", field: "act_profit", width: 100,
+        {id: "act_profit", name: "Act. Profit", field: "act_profit", width: cellwidth,
          editor: Slick.Editors.Text},
     ];
 
