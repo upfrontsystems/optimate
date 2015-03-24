@@ -73,6 +73,48 @@ def childview(request):
     return sorted_childrenlist
 
 
+@view_config(route_name="nodegridview", renderer='json')
+def nodegridview(request):
+    """
+    This view is for when the user requests the children of an item.
+    The parent's id is derived from the path of the request,
+    or if there is no id in the path the root id '0' is assumed.
+    It extracts the children from the object,
+    adds it to a list and returns it to the JSON renderer
+    in a format that is acceptable to Slickgrid.
+    """
+
+    parentid = 155908 # XXX make this a parameter
+    if 'parentid' in request.matchdict:
+        parentid = request.matchdict['parentid']
+
+    childrenlist = []
+    # Execute the sql query on the Node table to find the parent
+    qry = DBSession.query(Node).filter_by(ID=parentid).first()
+
+    # Format the result into a json readable list and respond with that
+    # for now display the resource category with its resources as well
+    if qry != None:
+        if qry.type == "ResourceCategory":
+            for resource in qry.Resources:
+                childrenlist.append(resource.toDict())
+        else:
+            for value in qry.Children:
+                childrenlist.insert(len(childrenlist), {
+                'name': value.toDict()['Name'],
+                'budg_cost': 'x',
+                'order_cost': value.toDict()['Ordered'],
+                'run_cost': 'x',
+                'claim_cost': value.toDict()['Claimed'],
+                'income_rec': 'x',
+                'client_cost': 'x',
+                'proj_profit': 'x',
+                'act_profit': 'x'})
+    
+    sorted_childrenlist = sorted(childrenlist, key=lambda k: k['name'])
+    return sorted_childrenlist
+
+
 @view_config(route_name="addview", renderer='json')
 def additemview(request):
     """

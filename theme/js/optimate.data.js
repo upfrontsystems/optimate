@@ -1,8 +1,8 @@
 var grid;
 var data = [];
-var cellwidth = 80;
+var cellwidth = 75;
 var columns = [
-        {id: "name", name: "Name", field: "name", width: cellwidth, cssClass: "cell-title",
+        {id: "name", name: "Name", field: "name", width: 120, cssClass: "cell-title",
          editor: Slick.Editors.Text},
         {id: "budg_cost", name: "Budg Cost", field: "budg_cost", width: cellwidth,
          editor: Slick.Editors.Text},
@@ -65,14 +65,7 @@ $(function () {
         url: 'http://127.0.0.1:8100/nodegridview',
         dataType: "json",
         success: function(data) {
-            var existingdata = grid.getData();
-            console.log(existingdata)
-            console.log(data)
-            existingdata = data
-            console.log(existingdata)
-            grid.invalidate();
-            grid.invalidateAllRows()
-            grid.updateRowCount();
+            grid.setData(data)
             grid.render();
         }
     });
