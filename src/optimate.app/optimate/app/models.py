@@ -905,9 +905,9 @@ class ResourceCategory(Node):
 
     # the relationship between resourcecategory and resource is defined using
     # the association table resourcelist
-    Resources = relationship("Resource",
-                             secondary=resourcelist,
-                             backref="Categories")
+    # Resources = relationship("Resource",
+    #                          secondary=resourcelist,
+    #                          backref="Categories")
 
     __mapper_args__ = {
         'polymorphic_identity': 'ResourceCategory',
@@ -939,7 +939,7 @@ class ResourceCategory(Node):
             self.Children.append(resource)
 
     def toDict(self):
-        if len(self.Resources) == 0:
+        if len(self.Children) == 0:
             subitem = []
         else:
             subitem = [{"Name":""}]
@@ -959,7 +959,7 @@ class ResourceCategory(Node):
             self.Name, self.ID)
 
 
-class Resource(Base):
+class Resource(Node):
 
     """
     Resource represents a specific resource used in Optimate
@@ -972,8 +972,9 @@ class Resource(Base):
     """
 
     __tablename__ = 'Resource'
-    ID = Column(Integer, primary_key=True,)
-    Code = Column(Text, primary_key=True)
+    ID = Column(Integer,
+                ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
+    Code = Column(Text)
     Name = Column(Text, primary_key=True)
     Description = Column(Text, primary_key=True)
     Rate = Column(Float, primary_key=True)

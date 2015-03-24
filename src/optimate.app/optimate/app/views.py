@@ -52,12 +52,15 @@ def childview(request):
 
     # Format the result into a json readable list and respond with that
     # for now display the resource category with its resources as well
+    # if qry != None:
+    #     if qry.type == "ResourceCategory":
+    #         for resource in qry.Resources:
+    #             childrenlist.append(resource.toDict())
+    #     else:
+    #         for value in qry.Children:
+    #             childrenlist.append(value.toDict())
     if qry != None:
-        if qry.type == "ResourceCategory":
-            for resource in qry.Resources:
-                childrenlist.append(resource.toDict())
-        else:
-            for value in qry.Children:
+        for value in qry.Children:
                 childrenlist.append(value.toDict())
 
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'])
