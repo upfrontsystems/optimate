@@ -137,17 +137,24 @@ def additemview(request):
                                  Description=desc,
                                  ParentID=parentid)
             newnode.Quantity = quantity
-            newnode.Rate = rate
+            # newnode.Rate = rate
         elif objecttype == 'component':
-            componenttype = int(request.json_body['ComponentType'])
-            quantity = float(request.json_body['Quantity'])
-            rate = float(request.json_body['Rate'])
-            newnode = Component(Name=name,
-                                Description=desc,
-                                Type=componenttype,
-                                ParentID=parentid)
-            newnode.Quantity = quantity
-            newnode.Rate = rate
+            # Components need to reference a Resource that already exists
+            # in the system
+            resource = DBSession.query(Resource).filter_by(Name=name).first()
+            if resource == None:
+                return HTTPNotFound('The resource does not exist')
+            else:
+                componenttype = int(request.json_body['ComponentType'])
+                quantity = float(request.json_body['Quantity'])
+                # rate = float(request.json_body['Rate'])
+                newnode = Component(Name=name,
+                                    Description=desc,
+                                    Type=componenttype,
+                                    ParentID=parentid)
+                resource.Components.append(newnode)
+                newnode.Quantity = quantity
+                # newnode.Rate = rate
 
         else:
             return HTTPInternalServerError()
@@ -283,7 +290,7 @@ def testchangeview(request):
     coid = request.matchdict['id']
     qry = DBSession.query(Component).filter_by(ID=coid).first()
 
-    qry.Rate = 1
+    qry.Quantity = 10.0
     transaction.commit()
 
     return HTTPOk()

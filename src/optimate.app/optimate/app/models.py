@@ -262,7 +262,7 @@ class BudgetGroup(Node):
         for item in self.Children:
             total += item.Total
 
-        self._Total = total
+        self.Total = total
 
     """
     Get and set for the total property
@@ -422,7 +422,7 @@ class BudgetItem(Node):
             rate += item.Total
 
         self._Rate = rate
-        self._Total = rate * self.Quantity
+        self.Total = rate * self.Quantity
 
         return self._Total
 
@@ -599,7 +599,8 @@ class Component(Node):
     _Claimed = Column("Claimed", Float)
     __table_args__ = (ForeignKeyConstraint(
         ['Name', 'Description', 'Rate'],
-        ['Resource.Name', 'Resource.Description', 'Resource.Rate']),
+        ['Resource.Name', 'Resource.Description', 'Resource.Rate'],
+        onupdate="CASCADE"),
         {})
 
     __mapper_args__ = {
@@ -627,12 +628,12 @@ class Component(Node):
         """
 
         rate = 0
-
+        rate = self.ThisResource.Rate
         for item in self.Children:
             rate += item.Total
 
         self._Rate = rate
-        self._Total = rate * self.Quantity
+        self.Total = rate * self.Quantity
 
         return self._Total
 
@@ -704,7 +705,7 @@ class Component(Node):
     @hybrid_property
     def Rate(self):
         if self._Rate == None:
-            self._Rate = 0.0
+            self._Rate = self.ThisResource.Rate
         return self._Rate
 
     @Rate.setter
@@ -784,8 +785,8 @@ class Component(Node):
         return a representation of this component
         """
 
-        return "<Component(Name='%s', ID='%s', ParentID='%s')>" % (
-            self.Name, self.ID, self.ParentID)
+        return "<Co(Name='%s', ID='%s', Rate='%d', Quantity='%d', ParentID='%s')>" % (
+            self.Name, self.ID, self._Rate, self._Quantity, self.ParentID)
 
 
 class ComponentType(Base):
@@ -897,6 +898,8 @@ class Resource(Base):
     Name = Column(Text, primary_key=True)
     Description = Column(Text, primary_key=True)
     Rate = Column(Float, primary_key=True)
+
+    Components = relationship('Component', backref='ThisResource')
 
     def __eq__(self, other):
         """

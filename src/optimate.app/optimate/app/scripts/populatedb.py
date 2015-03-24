@@ -142,21 +142,6 @@ if __name__ == "__main__":
 
         transaction.commit()
 
-        # add the resource category for each project
-        # for now each category just has default values
-        print "Adding resource categories"
-        projectlist = DBSession.query(Project).all()
-        for project in projectlist:
-            parentid = project.ID
-            newcode += 1
-            categoryid = newcode
-            resourcecategory = ResourceCategory(ID=categoryid,
-                                            Name=str(project.Name) +
-                                            " Resource Category",
-                                            Description="Category Description",
-                                            ParentID=parentid)
-            DBSession.add(resourcecategory)
-
         print "Converting BudgetGroups table"
         # build the budgetgroups
         budgetgroupbook = xlrd.open_workbook(
@@ -530,9 +515,16 @@ if __name__ == "__main__":
                 endindex = len(name) - 1
 
             checkname = name[beginindex:endindex].strip()
-            resourcequery = DBSession.query(
+
+            co = Component(ID=code, Name=checkname,
+                           # Description=description,
+                           Type=cotype,
+                           Unit=measureunit,
+                           ParentID=parentcode)
+
+            resource = DBSession.query(
                 Resource).filter_by(Name=checkname).first()
-            if resourcequery == None:
+            if resource == None:
                 # get the next code to be used in the resourcecategory children
                 # for now its just a random number
                 resourcecode = randint(100000, 200000)
@@ -549,20 +541,21 @@ if __name__ == "__main__":
                                     # ParentID=resourcecategory.ID)
                                     )
 
+                co._Total = budgetcost
+                co.Ordered = ordercost
+                co.Claimed = claimedcost
+                co._Quantity = quantity
+                # co._Rate = rate
+                resource.Components.append(co)
                 DBSession.add(resource)
-
-            co = Component(ID=code, Name=checkname,
-                           Description=description,
-                           Type=cotype,
-                           Unit=measureunit,
-                           ParentID=parentcode)
-
-            DBSession.add(co)
-            co._Total = budgetcost
-            co.Ordered = ordercost
-            co.Claimed = claimedcost
-            co._Quantity = quantity
-            co._Rate = rate
+            else:
+                # DBSession.add(co)
+                co._Total = budgetcost
+                co.Ordered = ordercost
+                co.Claimed = claimedcost
+                co._Quantity = quantity
+                # co._Rate = rate
+                resource.Components.append(co)
 
         transaction.commit()
         stdout.write("\n")
@@ -595,6 +588,9 @@ if __name__ == "__main__":
         DBSession.delete(deletethis)
         transaction.commit()
 
+        # add the resource category for each project
+        # for now each category just has default values
+        print "Adding resource categories"            
         print "Adding resources to the resource categories"
         # get the projects
         projectlist = DBSession.query(Project).all()
@@ -613,20 +609,25 @@ if __name__ == "__main__":
                 sleep(1)
             # get the id that that component is in
             projectid = project.ID
-            # get the resource category of that project
-            resourcecategory = DBSession.query(
-                ResourceCategory).filter_by(ParentID=projectid).first()
+            parentid = project.ID
+            newcode += 1
+            categoryid = newcode
+            resourcecategory = ResourceCategory(ID=categoryid,
+                                            Name=str(project.Name) +
+                                            " Resource Category",
+                                            Description="Category Description",
+                                            ParentID=parentid)
 
             # get the components in the project
             componentlist = project.getComponents()
             for component in componentlist:
-                name = component.Name
-                resource = DBSession.query(
-                    Resource).filter_by(Name=name).first()
+                resource = component.ThisResource
 
                 # add the resource to the category
                 if resource not in resourcecategory.Resources:
                     resourcecategory.Resources.append(resource)
+
+            DBSession.add(resourcecategory)
             x += 1
         stdout.write("\n")
 

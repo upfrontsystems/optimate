@@ -19,6 +19,7 @@ def _initTestingDB():
     """
 
     from sqlalchemy import create_engine
+    import transaction
     from .models import (
         DBSession,
         Node,
@@ -35,66 +36,11 @@ def _initTestingDB():
     Base.metadata.create_all(engine)
     DBSession.configure(bind=engine)
     with transaction.manager:
-        root = Node(ID=0)
-        project = Project(Name="TestPName",
-                          ID=1,
-                          Description="TestPDesc",
-                          ParentID=0)
-        budgetgroup = BudgetGroup(Name="TestBGName",
-                                  ID=2,
-                                  Description="TestBGDesc",
-                                  ParentID=project.ID)
-        budgetitem = BudgetItem(Name="TestBIName",
-                                ID=3,
-                                Description="TestBIDesc",
-                                _Quantity=5.0,
-                                ParentID=budgetgroup.ID)
-        comp = Component(ID=7,
-                         Name="TestResource",
-                         Description="TestCDesc",
-                         _Rate=10.0,
-                         _Quantity=5.0,
-                         Type=1,
-                         ParentID=budgetitem.ID)
-        compa = Component(ID=11,
-                          Name="TestResourceA",
-                          Description="TestACDesc",
-                          _Rate=5.0,
-                          _Quantity=7.0,
-                          Type=1,
-                          ParentID=budgetitem.ID)
-        comptype = ComponentType(ID=1,
-                                 Name="type")
-        projectb = Project(Name="TestBPName",
-                           ID=4,
-                           Description="TestBPDesc",
-                           ParentID=0)
-        budgetgroupb = BudgetGroup(Name="TestBBGName",
-                                   ID=5,
-                                   Description="BBGDesc",
-                                   ParentID=projectb.ID)
-        budgetitemb = BudgetItem(Name="TestBBIName",
-                                 ID=6,
-                                 _Quantity=10.0,
-                                 Description="TestBBIDesc",
-                                 ParentID=budgetgroupb.ID)
-        compb = Component(ID=8,
-                          Name="TestResourceB",
-                          Description="TestBCDesc",
-                          _Rate=10.0,
-                          _Quantity=5.0,
-                          Type=1,
-                          ParentID=budgetitemb.ID)
-
-        rescat = ResourceCategory(ID=9,
-                                  Name="TestCategory",
-                                  Description="Test Category",
-                                  ParentID=projectb.ID)
         res = Resource(ID=1,
                        Code="A000",
                        Name="TestResource",
                        Description="Test resource",
-                       Rate=10.0)
+                       Rate=5.0)
         resa = Resource(ID=2,
                        Code="A001",
                        Name="TestResourceA",
@@ -104,61 +50,171 @@ def _initTestingDB():
                        Code="A002",
                        Name="TestResourceB",
                        Description="Test resource",
-                       Rate=10.0)
+                       Rate=7.0)
+
+        root = Node(ID=0)
+        project = Project(Name="TestPName",
+                        ID=1,
+                        Description="TestPDesc",
+                        ParentID=0)
+        budgetgroup = BudgetGroup(Name="TestBGName",
+                        ID=2,
+                        Description="TestBGDesc",
+                        ParentID=project.ID)
+        budgetitem = BudgetItem(Name="TestBIName",
+                        ID=3,
+                        Description="TestBIDesc",
+                        _Quantity=5.0,
+                        ParentID=budgetgroup.ID)
+        comp = Component(ID=7,
+                        Name=res.Name,
+                        # Description=res.Description,
+                        # _Rate=res.Rate,
+                        _Quantity=5.0,
+                        Type=1,
+                        ParentID=budgetitem.ID)
+        compa = Component(ID=11,
+                        Name=resa.Name,
+                        # Description="TestACDesc",
+                        # _Rate=5.0,
+                        _Quantity=7.0,
+                        Type=1,
+                        ParentID=budgetitem.ID)
+        comptype = ComponentType(ID=1, Name="type")
+        rescat = ResourceCategory(ID=9,
+                        Name="TestCategory",
+                        Description="Test Category",
+                        ParentID=project.ID)
+
+        projectb = Project(Name="TestBPName",
+                        ID=4,
+                        Description="TestBPDesc",
+                        ParentID=0)
+        budgetgroupb = BudgetGroup(Name="TestBBGName",
+                        ID=5,
+                        Description="BBGDesc",
+                        ParentID=projectb.ID)
+        budgetitemb = BudgetItem(Name="TestBBIName",
+                        ID=6,
+                        _Quantity=10.0,
+                        Description="TestBBIDesc",
+                        ParentID=budgetgroupb.ID)
+        compb = Component(ID=8,
+                        Name=resb.Name,
+                        # Description="TestBCDesc",
+                        # _Rate=10.0,
+                        _Quantity=5.0,
+                        Type=1,
+                        ParentID=budgetitemb.ID)
+        budgetitemc = BudgetItem(Name="TestCBIName",
+                        ID=13,
+                        _Quantity=6.0,
+                        Description="TestCBIDesc",
+                        ParentID=budgetgroupb.ID)
+        compc = Component(ID=14,
+                        Name=res.Name,
+                        # Description="TestBCDesc",
+                        # _Rate=10.0,
+                        _Quantity=8.0,
+                        Type=1,
+                        ParentID=budgetitemc.ID)
+        rescatb = ResourceCategory(ID=12,
+                        Name="TestCategory",
+                        Description="Test Category",
+                        ParentID=projectb.ID)
+
+        # DBSession.add(res)
+        # DBSession.add(resa)
+        # DBSession.add(resb)
 
         DBSession.add(root)
         DBSession.add(project)
         DBSession.add(budgetgroup)
         DBSession.add(budgetitem)
+        # DBSession.add(comp)
+        # DBSession.add(compa)
         DBSession.add(comptype)
-        DBSession.add(comp)
-        DBSession.add(compa)
+        DBSession.add(rescat)
+
         DBSession.add(projectb)
         DBSession.add(budgetgroupb)
         DBSession.add(budgetitemb)
-        DBSession.add(compb)
-        DBSession.add(rescat)
-        DBSession.add(res)
-        DBSession.add(resa)
-        DBSession.add(resb)
+        # DBSession.add(compb)
+        DBSession.add(budgetitemc)
+        # DBSession.add(compc)
+        DBSession.add(rescatb)
+
+        res.Components.append(comp)
+        res.Components.append(compc)
+
+        resa.Components.append(compa)
+
+        resb.Components.append(compb)
+
+        rescat.Resources.append(res)
+        rescat.Resources.append(resa)
+
+        rescatb.Resources.append(res)
+        rescatb.Resources.append(resb)
+
         transaction.commit()
+
         """The hierarchy
-        project -
+        project -(475)
                 |
-                budgetgroup -
+                budgetgroup -(475)
                             |
-                            budgetitem -
+                            budgetitem -((25+70)*5=475)
                                        |
-                                       comp
+                                       comp - res (5*5=25)
                                        |
-                                       compa
-
-        projectb -
+                                       compa - resa (7*10=70)
+                |
+                rescat -
+                        |
+                        res
+                        |
+                        resa
+        projectb -(590)
                  |
-                 budgetgroupb -
+                 budgetgroupb -(350+240=590)
                               |
-                              budgetitemb -
+                              budgetitemb - (35*10=350)
                                           |
-                                          compb
+                                          compb - resb (5*7=35)
+                              |
+                              budgetitemc - (40*6=240)
+                                          |
+                                          compc - res (8*5=40)
+                 |
+                 rescatb -
+                         |
+                         resb
+                         |
+                         res
         """
-
-        # project total should be 425
-        # budgetitem.Rate = 10.0
-        # budgetitem.Quantity = 5.0
-        # comp.Rate = 10.0
-        # comp.Quantity = 5.0
-        # compa.Rate = 5.0
-        # compa.Quantity = 7.0
-
-        # project total should be 500
-        # budgetitemb.Quantity = 10.0
-        # budgetitemb.Rate = 50.0
-        # compb.Rate = 10.0
-        # compb.Quantity = 5.0
 
         projectlist = DBSession.query(Project).all()
         for project in projectlist:
             project.recalculateTotal()
+
+        # print "print children"
+        # for child in DBSession.query(Node).filter_by(ID=2).first().Children:
+        #     print child
+        # print "printing components"
+        # for bi in DBSession.query(Component).all():
+        #     print bi.ThisResource
+        # rescatlist = DBSession.query(ResourceCategory).all()
+        # for rescate in rescatlist:
+        #     print rescate.Resources
+        # reslist = DBSession.query(Resource).all()
+        # for res in reslist:
+        #     for co in res.Components:
+        #         print co
+
+        # comlist = DBSession.query(Component).all()
+        # for com in comlist:
+        #     print com
 
     return DBSession
 
@@ -229,10 +285,10 @@ class TestChildviewSuccessCondition(unittest.TestCase):
         self.assertEqual(response[0]['Name'], 'TestBGName')
 
 
-class TestAddviewSuccessCondition(unittest.TestCase):
+class TestAddBudgetGroupSuccessCondition(unittest.TestCase):
 
     """
-    Test if the additemview functions correctly.
+    Test if the additemview functions correctly when adding a budgetgroup
     Using default data and adding it as the child of one of the objects.
     """
 
@@ -255,11 +311,52 @@ class TestAddviewSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest(json_body={
             'Name': 'AddingName',
             'Description': 'Adding test item',
+            'NodeType': 'budgetgroup'
+        })
+        # add it to id:1 the project
+        request.matchdict = {'id': 1}
+        response = self._callFUT(request)
+        # assert if the response from the add view is OK
+        self.assertEqual(response.code, 200)
+
+        # Create another request for the child of the node added to
+        request = testing.DummyRequest()
+        request.matchdict = {'parentid': 1}
+        from .views import childview
+        response = childview(request)
+        # true if the name of the child added to the node is 'AddingName'
+        self.assertEqual(response[0]['Name'], 'AddingName')
+
+class TestAddComponentSuccessCondition(unittest.TestCase):
+
+    """
+    Test if the additemview functions correctly when adding a component
+    Using default data and adding it as the child of one of the objects.
+    """
+
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        self.session.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from .views import additemview
+        return additemview(request)
+
+    def test_it(self):
+        _registerRoutes(self.config)
+
+        # Add the default data using json in the request
+        request = testing.DummyRequest(json_body={
+            'Name': 'TestResourceA',
+            'Description': 'Test resource',
+            'Quantity': 4,
             'NodeType': 'component',
-            'ComponentType': 1,
-            'Quantity': 10.0,
-            'Rate': 2.0}
-        )
+            'ComponentType': 1
+        })
         # add it to id:6 the budgetitemb
         request.matchdict = {'id': 6}
         response = self._callFUT(request)
@@ -267,21 +364,12 @@ class TestAddviewSuccessCondition(unittest.TestCase):
         # assert if the response from the add view is OK
         self.assertEqual(response.code, 200)
 
-        # Create another request for the child of the node added to
-        request = testing.DummyRequest()
-        request.matchdict = {'parentid': 6}
-        from .views import childview
-        response = childview(request)
-
-        # true if the name of the child added to the node is 'AddingName'
-        self.assertEqual(response[0]['Name'], 'AddingName')
-
         # do another test to see if the cost is correct
         request = testing.DummyRequest()
         request.matchdict = {'id': 4}
         from .views import costview
         response = costview(request)
-        self.assertEqual(response["Cost"], 700.0)
+        self.assertEqual(response["Cost"], 990.0)
 
 
 class TestDeleteviewSuccessCondition(unittest.TestCase):
@@ -362,19 +450,20 @@ class TestPasteviewSuccessCondition(unittest.TestCase):
         # true if the response from paste view is OK
         self.assertEqual(response.code, 200)
 
-        # do another test to see if the children of the parent is now two
+        # do another test to see if the children of the parent is now three
+        # (two budgetgroups and the resourcecategory)
         request = testing.DummyRequest()
         request.matchdict = {'parentid': 4}
         from .views import childview
         response = childview(request)
-        self.assertEqual(len(response), 2)
+        self.assertEqual(len(response), 3)
 
         # do another test to see if the cost is correct
         request = testing.DummyRequest()
         request.matchdict = {'id': 4}
         from .views import costview
         response = costview(request)
-        self.assertEqual(response["Cost"], 925.0)
+        self.assertEqual(response["Cost"], 1065.0)
 
 
 class TestCostviewSuccessCondition(unittest.TestCase):
@@ -400,14 +489,14 @@ class TestCostviewSuccessCondition(unittest.TestCase):
         _registerRoutes(self.config)
         # get the cost of projectb at id 4
         request = testing.DummyRequest()
-        request.matchdict = {'id': 4}
+        request.matchdict = {'id': 1}
         response = self._callFUT(request)
 
         # true if the cost is correct
-        self.assertEqual(response["Cost"], 500.0)
+        self.assertEqual(response["Cost"], 475.0)
 
 
-class TestSetComponentRateSuccessCondition(unittest.TestCase):
+class TestSetComponentQuantitySuccessCondition(unittest.TestCase):
 
     """
     Test that the paste functions correctly with getting the
@@ -434,16 +523,17 @@ class TestSetComponentRateSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
 
         # true if the cost is correct
-        self.assertEqual(response["Cost"], 500.0)
+        self.assertEqual(response["Cost"], 590.0)
 
         # now change the rate of the component by calling the test view
+        # in the views its quantity is set to 10
         request = testing.DummyRequest()
         request.matchdict = {'id': 8}
         from .views import testchangeview
         testchangeview(request)
 
-        # now the project cost should be 50
+        # now the project cost should be 940
         request = testing.DummyRequest()
         request.matchdict = {'id': 4}
         response = self._callFUT(request)
-        self.assertEqual(response["Cost"], 50.0)
+        self.assertEqual(response["Cost"], 940.0)
