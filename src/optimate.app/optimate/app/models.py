@@ -209,10 +209,10 @@ class Project(Node):
         return componentlist
 
     def toDict(self):
-        if len(self.Children) == 0:
-            subitem = []
-        else:
-            subitem = [{"Name":""}]
+        #if len(self.Children) == 0:
+        subitem = []
+        #else:
+        #    subitem = [{"Name":""}]
         return {"Name": self.Name,
                 "Description": self.Description,
                 "Subitem": subitem,
@@ -381,10 +381,10 @@ class BudgetGroup(Node):
         return componentlist
 
     def toDict(self):
-        if len(self.Children) == 0:
-            subitem = []
-        else:
-            subitem = [{"Name":""}]
+        #if len(self.Children) == 0:
+        subitem = []
+        #else:
+        #    subitem = [{"Name":""}]
         return {"Name": self.Name,
                 "Description": self.Description,
                 "Subitem": subitem,
@@ -597,10 +597,10 @@ class BudgetItem(Node):
         return componentlist
 
     def toDict(self):
-        if len(self.Children) == 0:
-            subitem = []
-        else:
-            subitem = [{"Name":""}]
+        #if len(self.Children) == 0:
+        subitem = []
+        #else:
+        #    subitem = [{"Name":""}]
         return {"Name": self.Name,
                 "Description": self.Description,
                 "Subitem": subitem,
@@ -829,10 +829,10 @@ class Component(Node):
         return componentlist
 
     def toDict(self):
-        if len(self.Children) == 0:
-            subitem = []
-        else:
-            subitem = [{"Name":""}]
+        #if len(self.Children) == 0:
+        subitem = []
+        #else:
+        #    subitem = [{"Name":""}]
         return {"Name": self.Name,
                 "Description": self.Description,
                 "Subitem": subitem,
@@ -939,10 +939,10 @@ class ResourceCategory(Node):
             self.Children.append(resource)
 
     def toDict(self):
-        if len(self.Resources) == 0:
-            subitem = []
-        else:
-            subitem = [{"Name":""}]
+        #if len(self.Resources) == 0:
+        subitem = []
+        #else:
+        #    subitem = [{"Name":""}]
         return {"Name": self.Name,
                 "Description": self.Description,
                 "Subitem": subitem,
