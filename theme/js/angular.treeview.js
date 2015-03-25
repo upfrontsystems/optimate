@@ -172,7 +172,9 @@
                                     '.length">'+
                                 '</i> ' +
                                 // Call this funcion when the node label is clicked
-                                '<span data-ng-class="node.selected" '+
+                                '<span class="treenode" '+
+                                    'path="{{node.' + nodePath + '}}"'+
+                                    'data-ng-class="node.selected" '+
                                     'data-ng-click="' + treeId +
                                     '.selectNodeLabel(node)">'+
                                     '{{node.' + nodeLabel + '}}'+

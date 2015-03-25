@@ -2,24 +2,24 @@ var grid;
 var data = [];
 var cellwidth = 75;
 var columns = [
-        {id: "name", name: "Name", field: "name", width: 120, cssClass: "cell-title",
-         editor: Slick.Editors.Text},
-        {id: "budg_cost", name: "Budg Cost", field: "budg_cost", width: cellwidth,
-         editor: Slick.Editors.Text},
-        {id: "order_cost", name: "Order Cost", field: "order_cost", width: cellwidth,
-         editor: Slick.Editors.Text},
-        {id: "run_cost", name: "Run Cost", field: "run_cost", width: cellwidth,
-         editor: Slick.Editors.Text},
-        {id: "claim_cost", name: "Claim Cost", field: "claim_cost", width: cellwidth,
-         editor: Slick.Editors.Text},
-        {id: "income_rec", name: "Income Rec", field: "income_rec", width: cellwidth,
-         editor: Slick.Editors.Text},
-        {id: "client_cost", name: "Client Cost", field: "client_cost", width: cellwidth,
-         editor: Slick.Editors.Text},
-        {id: "proj_profit", name: "Proj. Profit", field: "proj_profit", width: cellwidth,
-         editor: Slick.Editors.Text},
-        {id: "act_profit", name: "Act. Profit", field: "act_profit", width: cellwidth,
-         editor: Slick.Editors.Text},
+        {id: "name", name: "Name", field: "name", 
+         width: 120, cssClass: "cell-title", editor: Slick.Editors.Text},
+        {id: "budg_cost", name: "Budg Cost", field: "budg_cost", 
+         width: cellwidth, editor: Slick.Editors.Text},
+        {id: "order_cost", name: "Order Cost", field: "order_cost",
+         width: cellwidth, editor: Slick.Editors.Text},
+        {id: "run_cost", name: "Run Cost", field: "run_cost",
+         width: cellwidth, editor: Slick.Editors.Text},
+        {id: "claim_cost", name: "Claim Cost", field: "claim_cost",
+         width: cellwidth, editor: Slick.Editors.Text},
+        {id: "income_rec", name: "Income Rec", field: "income_rec",
+         width: cellwidth, editor: Slick.Editors.Text},
+        {id: "client_cost", name: "Client Cost", field: "client_cost",
+         width: cellwidth, editor: Slick.Editors.Text},
+        {id: "proj_profit", name: "Proj. Profit", field: "proj_profit",
+         width: cellwidth, editor: Slick.Editors.Text},
+        {id: "act_profit", name: "Act. Profit", field: "act_profit",
+         width: cellwidth, editor: Slick.Editors.Text},
     ];
 
 var options = {
@@ -49,7 +49,8 @@ $(function () {
 
     grid = new Slick.Grid("#optimate-data-grid", data, columns, options);
     grid.setSelectionModel(new Slick.CellSelectionModel());
-    // show tooltips on hover if the cellsize is so small, that an ellipsis '...' is being shown.
+    // show tooltips on hover if the cellsize is so small, that an ellipsis 
+    // '...' is being shown.
     autotooltips_plugin = new Slick.AutoTooltips({enableForHeaderCells: true})
     grid.registerPlugin(autotooltips_plugin);
 
@@ -60,21 +61,33 @@ $(function () {
         grid.updateRowCount();
         grid.render();
     });
+    
+    // eventhandler to update grid data when a tree node is clicked
+    $( document ).on( "click", ".treenode", function( e ) {
+        var path = $(this).attr('path')
+        var url = 'http://127.0.0.1:8100/nodegridview' + path
+        $.ajax({
+            url: url,
+            dataType: "json",
+            success: function(data) {
+                grid.setData(data)
+                grid.render();
+            }
+        });
+    });
 
+})
+
+// on load, load up slickgrid with data from first project in the list
+// hardwired for now as 155908 as the real 1st project parentid=306
+// has some data missing
+$(document).ready(function() {
     $.ajax({
-        url: 'http://127.0.0.1:8100/nodegridview',
-        data: {
-            'parentid': 155908,
-        },
+        url: 'http://127.0.0.1:8100/nodegridview/155908/',
         dataType: "json",
         success: function(data) {
             grid.setData(data)
             grid.render();
         }
     });
-
-})
-
-//$(document).ready(function() {
-
-// });
+});

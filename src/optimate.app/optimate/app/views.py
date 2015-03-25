@@ -85,11 +85,11 @@ def nodegridview(request):
     in a format that is acceptable to Slickgrid.
     """
 
-    parentid = request.params.get('parentid')
-    try:
-        parentid = int(parentid)
-    except Exception:
-        parentid = 0
+    parentid = 0
+    if 'parentid' in request.matchdict:
+        parentid = request.matchdict['parentid']
+
+    # parentid = '155908'
 
     childrenlist = []
     # Execute the sql query on the Node table to find the parent
