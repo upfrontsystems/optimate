@@ -36,6 +36,7 @@ def childview(request):
     or if there is no id in the path the root id '0' is assumed.
     It extracts the children from the object,
     adds it to a list and returns it to the JSON renderer
+    in a format that is acceptable to angular.treeview
     """
 
     parentid = 0
@@ -84,9 +85,11 @@ def nodegridview(request):
     in a format that is acceptable to Slickgrid.
     """
 
-    parentid = 155908 # XXX make this a parameter
-    if 'parentid' in request.matchdict:
-        parentid = request.matchdict['parentid']
+    parentid = request.params.get('parentid')
+    try:
+        parentid = int(parentid)
+    except Exception:
+        parentid = 0
 
     childrenlist = []
     # Execute the sql query on the Node table to find the parent

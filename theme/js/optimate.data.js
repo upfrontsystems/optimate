@@ -63,6 +63,9 @@ $(function () {
 
     $.ajax({
         url: 'http://127.0.0.1:8100/nodegridview',
+        data: {
+            'parentid': 155908,
+        },
         dataType: "json",
         success: function(data) {
             grid.setData(data)
