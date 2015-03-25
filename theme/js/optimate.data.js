@@ -79,11 +79,10 @@ $(function () {
 })
 
 // on load, load up slickgrid with data from first project in the list
-// hardwired for now as 155908 as the real 1st project parentid=306
-// has some data missing
+// hardwired for now as 306 at the moment
 $(document).ready(function() {
     $.ajax({
-        url: 'http://127.0.0.1:8100/nodegridview/155908/',
+        url: 'http://127.0.0.1:8100/nodegridview/306/',
         dataType: "json",
         success: function(data) {
             grid.setData(data)

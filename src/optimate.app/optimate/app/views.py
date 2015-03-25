@@ -89,8 +89,6 @@ def nodegridview(request):
     if 'parentid' in request.matchdict:
         parentid = request.matchdict['parentid']
 
-    # parentid = '155908'
-
     childrenlist = []
     # Execute the sql query on the Node table to find the parent
     qry = DBSession.query(Node).filter_by(ID=parentid).first()
@@ -103,16 +101,28 @@ def nodegridview(request):
                 childrenlist.append(resource.toDict())
         else:
             for value in qry.Children:
-                childrenlist.insert(len(childrenlist), {
-                'name': value.toDict()['Name'],
-                'budg_cost': 'x',
-                'order_cost': value.toDict()['Ordered'],
-                'run_cost': 'x',
-                'claim_cost': value.toDict()['Claimed'],
-                'income_rec': 'x',
-                'client_cost': 'x',
-                'proj_profit': 'x',
-                'act_profit': 'x'})
+                if value.toDict()['NodeType'] != "ResourceCategory":
+                    childrenlist.insert(len(childrenlist), {
+                    'name': value.toDict()['Name'],
+                    'budg_cost': 'x',
+                    'order_cost': value.toDict()['Ordered'],
+                    'run_cost': 'x',
+                    'claim_cost': value.toDict()['Claimed'],
+                    'income_rec': 'x',
+                    'client_cost': 'x',
+                    'proj_profit': 'x',
+                    'act_profit': 'x'})
+                else:
+                    childrenlist.insert(len(childrenlist), {
+                    'name': value.toDict()['Name'],
+                    'budg_cost': 'x',
+                    'order_cost': 'x',
+                    'run_cost': 'x',
+                    'claim_cost': 'x',
+                    'income_rec': 'x',
+                    'client_cost': 'x',
+                    'proj_profit': 'x',
+                    'act_profit': 'x'})
     
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['name'])
     return sorted_childrenlist
