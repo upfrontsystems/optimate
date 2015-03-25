@@ -88,6 +88,7 @@ class Project(Node):
 
     __mapper_args__ = {
         'polymorphic_identity': 'Project',
+        'inherit_condition': (ID == Node.ID),
     }
 
     def recalculateTotal(self):
@@ -252,6 +253,7 @@ class BudgetGroup(Node):
 
     __mapper_args__ = {
         'polymorphic_identity': 'BudgetGroup',
+        'inherit_condition': (ID == Node.ID),
     }
 
     def recalculateTotal(self):
@@ -425,6 +427,7 @@ class BudgetItem(Node):
 
     __mapper_args__ = {
         'polymorphic_identity': 'BudgetItem',
+        'inherit_condition': (ID == Node.ID),
     }
 
     def recalculateTotal(self):
@@ -636,12 +639,15 @@ class Component(Node):
     __tablename__ = 'Component'
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
+    # Name = Column(Text, ForeignKey('Resource.Name'))
+    # Description = Column(Text, ForeignKey('Resource.Description'))
+    # _Rate = Column("Rate", Float, ForeignKey('Resource.Rate'))
     Name = Column(Text)
     Description = Column(Text)
+    _Rate = Column("Rate", Float)
     Type = Column(Integer, ForeignKey('ComponentType.ID'))
     Unit = Column(Text)
     _Quantity = Column("Quantity", Float)
-    _Rate = Column("Rate", Float)
     _Total = Column("Total", Float)
     _Ordered = Column("Ordered", Float)
     _Claimed = Column("Claimed", Float)
@@ -651,8 +657,12 @@ class Component(Node):
         onupdate="CASCADE"),
         {})
 
+    # ThisResource = relationship('Resource')#, foreign_keys='[Component.Name, Component.Description, Component._Rate]', backref='Components')
+    # ThisResource = relationship('Resource', foreign_keys='Component._Rate', backref='Components')
+
     __mapper_args__ = {
         'polymorphic_identity': 'Component',
+        'inherit_condition': (ID == Node.ID),
     }
 
     def recalculateTotal(self):
@@ -911,6 +921,7 @@ class ResourceCategory(Node):
 
     __mapper_args__ = {
         'polymorphic_identity': 'ResourceCategory',
+        'inherit_condition': (ID == Node.ID),
     }
 
     @hybrid_property
@@ -974,12 +985,17 @@ class Resource(Node):
     __tablename__ = 'Resource'
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
-    Code = Column(Text)
+    Code = Column(Text, primary_key=True)
     Name = Column(Text, primary_key=True)
     Description = Column(Text, primary_key=True)
     Rate = Column(Float, primary_key=True)
 
-    Components = relationship('Component', backref='ThisResource')
+    Components = relationship('Component', foreign_keys='[Component.Name, Component.Description, Component._Rate]', backref='ThisResource')
+
+    __mapper_args__ = {
+            'polymorphic_identity': 'Resource',
+            'inherit_condition': (ID == Node.ID),
+        }
 
     def __eq__(self, other):
         """
@@ -1008,3 +1024,7 @@ class Resource(Node):
 
         return "<Resource(Name='%s', Rate='%s', ID='%s')>" % (
             self.Name, self.Rate, self.ID)
+
+# Resource.Components = relationship(Component,
+#     backref=backref('ThisResource', uselist=True, viewonly=True,
+#         foreign_keys=[Component.Name, Component.Description, Component._Rate]), viewonly=True)

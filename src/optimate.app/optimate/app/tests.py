@@ -77,8 +77,8 @@ def _initTestingDB():
                         ParentID=budgetitem.ID)
         compa = Component(ID=11,
                         Name=resa.Name,
-                        # Description="TestACDesc",
-                        # _Rate=5.0,
+                        # Description=resa.Description,
+                        # _Rate=resa.Rate,
                         _Quantity=7.0,
                         Type=1,
                         ParentID=budgetitem.ID)
@@ -98,18 +98,6 @@ def _initTestingDB():
                         _Quantity=10.0,
                         Description="TestBBIDesc",
                         ParentID=budgetgroupb.ID)
-        compb = Component(ID=8,
-                        Name=resb.Name,
-                        # Description="TestBCDesc",
-                        # _Rate=10.0,
-                        _Quantity=5.0,
-                        Type=1,
-                        ParentID=budgetitemb.ID)
-        budgetitemc = BudgetItem(Name="TestCBIName",
-                        ID=13,
-                        _Quantity=6.0,
-                        Description="TestCBIDesc",
-                        ParentID=budgetgroupb.ID)
         rescatb = ResourceCategory(ID=12,
                         Name="TestCategory",
                         Description="Test Category",
@@ -126,10 +114,22 @@ def _initTestingDB():
                        Description="Test resource",
                        Rate=5.0,
                        ParentID=rescatb.ID)
+        compb = Component(ID=8,
+                        Name=resb.Name,
+                        # Description=resb.Description,
+                        # _Rate=resb.Rate,
+                        _Quantity=5.0,
+                        Type=1,
+                        ParentID=budgetitemb.ID)
+        budgetitemc = BudgetItem(Name="TestCBIName",
+                        ID=13,
+                        _Quantity=6.0,
+                        Description="TestCBIDesc",
+                        ParentID=budgetgroupb.ID)
         compc = Component(ID=14,
-                        Name=res.Name,
-                        # Description="TestBCDesc",
-                        # _Rate=10.0,
+                        Name=resduplicate.Name,
+                        # Description=resduplicate.Description,
+                        # _Rate=resduplicate.Rate,
                         _Quantity=8.0,
                         Type=1,
                         ParentID=budgetitemc.ID)
@@ -164,11 +164,11 @@ def _initTestingDB():
 
         resb.Components.append(compb)
 
-        # rescat.Children.append(res)
-        # rescat.Children.append(resa)
+        rescat.Children.append(res)
+        rescat.Children.append(resa)
 
-        # rescatb.Children.append(resduplicate)
-        # rescatb.Children.append(resb)
+        rescatb.Children.append(resduplicate)
+        rescatb.Children.append(resb)
 
         transaction.commit()
 
@@ -216,7 +216,7 @@ def _initTestingDB():
         #     print child
         # print "printing components"
         # for bi in DBSession.query(Component).all():
-        #     print bi.ThisResource
+        #     print bi
         # rescatlist = DBSession.query(ResourceCategory).all()
         # for rescate in rescatlist:
         #     print rescate.Resources
@@ -367,6 +367,7 @@ class TestAddComponentSuccessCondition(unittest.TestCase):
             'Name': 'TestResourceA',
             'Description': 'Test resource',
             'Quantity': 4,
+
             'NodeType': 'component',
             'ComponentType': 1
         })

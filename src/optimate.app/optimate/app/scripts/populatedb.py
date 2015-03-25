@@ -590,7 +590,7 @@ if __name__ == "__main__":
 
         # add the resource category for each project
         # for now each category just has default values
-        print "Adding resource categories"            
+        print "Adding resource categories"
         print "Adding resources to the resource categories"
         # get the projects
         projectlist = DBSession.query(Project).all()
@@ -630,5 +630,18 @@ if __name__ == "__main__":
             DBSession.add(resourcecategory)
             x += 1
         stdout.write("\n")
+
+        print "Recalculating the totals of the projects"
+        projectlist = DBSession.query(Project).all()
+        print "Percentage done: "
+        counter = 2
+        x = 0
+        for project in projectlist:
+            if x == int(percentile * counter):
+                counter += 1
+                stdout.write("\r%d" % counter + "%")
+                stdout.flush()
+                sleep(1)
+            project.recalculateTotal()
 
     print "done"

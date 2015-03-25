@@ -206,7 +206,7 @@ def pasteitemview(request):
         # get the names of the components
         namelist = []
         for component in componentlist:
-            namelist.insert(len(namelist), component.Name)
+            namelist.append(component.Name)
         # Get the ID of the project the destination is in
         projectid = dest.getProjectID()
 
