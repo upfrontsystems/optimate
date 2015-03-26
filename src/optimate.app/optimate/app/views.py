@@ -117,16 +117,17 @@ def additemview(request):
             # Components need to reference a Resource that already exists
             # in the system
             resource = DBSession.query(Resource).filter_by(Name=name).first()
+            parent = DBSession.query(Node).filter_by(ID=parentid).first()
             if resource == None:
                 return HTTPNotFound('The resource does not exist')
             else:
                 componenttype = int(request.json_body['ComponentType'])
                 quantity = float(request.json_body['Quantity'])
                 # rate = float(request.json_body['Rate'])
-                newnode = Component(Name=name,
-                                    Description=desc,
+                newnode = Component(ResourceID=resource.ID,
                                     Type=componenttype,
                                     ParentID=parentid)
+                parent.Children.append(newnode)
                 resource.Components.append(newnode)
                 newnode.Quantity = quantity
                 # newnode.Rate = rate
@@ -203,23 +204,20 @@ def pasteitemview(request):
 
         # Get a list of the components in the source
         componentlist = source.getComponents()
-        # get the names of the components
-        namelist = []
-        for component in componentlist:
-            namelist.append(component.Name)
+
         # Get the ID of the project the destination is in
         projectid = dest.getProjectID()
 
         # Paste the source into the destination
         parentid = dest.ID
         dest.paste(source.copy(dest.ID), source.Children)
-        transaction.commit()
+        # transaction.commit()
 
         # Add the new resources to the destinations resource category
         resourcecategory = DBSession.query(
                         ResourceCategory).filter_by(ParentID=projectid).first()
 
-        resourcecategory.addResources(namelist)
+        resourcecategory.addResources(componentlist)
 
         # DBSession.expire_on_commit = True
         if parentid != 0:
@@ -255,10 +253,10 @@ def costview(request):
         return {'Cost': totalcost}
 
 
-@view_config(route_name="testchangeview", renderer="json")
-def testchangeview(request):
+@view_config(route_name="testchangequantityview", renderer="json")
+def testchangequantityview(request):
     """
-    This is for testing purposes only. The rate of a component is changed
+    This is for testing purposes only. The quantity of a component is changed
     so that its effect can be tested.
     """
 
@@ -266,6 +264,29 @@ def testchangeview(request):
     qry = DBSession.query(Component).filter_by(ID=coid).first()
 
     qry.Quantity = 10.0
+    transaction.commit()
+
+    return HTTPOk()
+
+@view_config(route_name="testchangerateview", renderer="json")
+def testchangerateview(request):
+    """
+    This is for testing purposes only. The rate of a resource is changed
+    so that its effect can be tested.
+    """
+
+    projectid = request.matchdict['id']
+    resourcecode = request.matchdict['resourcecode']
+    # qry = DBSession.query(ResourceCategory).filter_by(ParentID=projectid).first()
+    resource = DBSession.query(Resource).filter_by(Code=resourcecode).first()
+
+    # try:
+    #     resource = qry[qry.Children.index(resourcename)]
+    # except ValueError:
+    #     return HTTPNotFound('Resource not found')
+
+    resource.Rate = 15.0
+    resource.Name = "newname"
     transaction.commit()
 
     return HTTPOk()

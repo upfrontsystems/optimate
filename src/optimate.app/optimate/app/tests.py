@@ -69,16 +69,18 @@ def _initTestingDB():
                        Rate=10.0,
                        ParentID=rescat.ID)
         comp = Component(ID=7,
-                        Name=res.Name,
+                        # Name=res.Name,
                         # Description=res.Description,
                         # _Rate=res.Rate,
+                        ResourceID = res.ID,
                         _Quantity=5.0,
                         Type=1,
                         ParentID=budgetitem.ID)
         compa = Component(ID=11,
-                        Name=resa.Name,
+                        # Name=resa.Name,
                         # Description=resa.Description,
                         # _Rate=resa.Rate,
+                        ResourceID=resa.ID,
                         _Quantity=7.0,
                         Type=1,
                         ParentID=budgetitem.ID)
@@ -109,15 +111,16 @@ def _initTestingDB():
                        Rate=7.0,
                        ParentID=rescatb.ID)
         resduplicate = Resource(ID=18,
-                       Code="A003",
+                       Code="A000",
                        Name="TestResource",
                        Description="Test resource",
                        Rate=5.0,
                        ParentID=rescatb.ID)
         compb = Component(ID=8,
-                        Name=resb.Name,
+                        # Name=resb.Name,
                         # Description=resb.Description,
                         # _Rate=resb.Rate,
+                        ResourceID=resb.ID,
                         _Quantity=5.0,
                         Type=1,
                         ParentID=budgetitemb.ID)
@@ -127,9 +130,10 @@ def _initTestingDB():
                         Description="TestCBIDesc",
                         ParentID=budgetgroupb.ID)
         compc = Component(ID=14,
-                        Name=resduplicate.Name,
+                        # Name=resduplicate.Name,
                         # Description=resduplicate.Description,
                         # _Rate=resduplicate.Rate,
+                        ResourceID=resduplicate.ID,
                         _Quantity=8.0,
                         Type=1,
                         ParentID=budgetitemc.ID)
@@ -138,37 +142,41 @@ def _initTestingDB():
         # DBSession.add(res)
         # DBSession.add(resa)
         # DBSession.add(resb)
-
+        DBSession.add(comptype)
         DBSession.add(root)
         DBSession.add(project)
+        DBSession.add(rescat)
         DBSession.add(budgetgroup)
         DBSession.add(budgetitem)
-        # DBSession.add(comp)
-        # DBSession.add(compa)
-        DBSession.add(comptype)
-        DBSession.add(rescat)
+        DBSession.add(res)
+        DBSession.add(resa)
+        DBSession.add(comp)
+        DBSession.add(compa)
 
         DBSession.add(projectb)
+        DBSession.add(rescatb)
+        DBSession.add(resb)
+        DBSession.add(resduplicate)
         DBSession.add(budgetgroupb)
         DBSession.add(budgetitemb)
-        # DBSession.add(compb)
+        DBSession.add(compb)
         DBSession.add(budgetitemc)
-        # DBSession.add(compc)
+        DBSession.add(compc)
         DBSession.add(rescatb)
 
-        res.Components.append(comp)
+        # res.Components.append(comp)
 
-        resduplicate.Components.append(compc)
+        # resduplicate.Components.append(compc)
 
-        resa.Components.append(compa)
+        # resa.Components.append(compa)
 
-        resb.Components.append(compb)
+        # resb.Components.append(compb)
 
-        rescat.Children.append(res)
-        rescat.Children.append(resa)
+        # rescat.Children.append(res)
+        # rescat.Children.append(resa)
 
-        rescatb.Children.append(resduplicate)
-        rescatb.Children.append(resb)
+        # rescatb.Children.append(resduplicate)
+        # rescatb.Children.append(resb)
 
         transaction.commit()
 
@@ -207,9 +215,9 @@ def _initTestingDB():
                          resduplicate
         """
 
-        projectlist = DBSession.query(Project).all()
-        for project in projectlist:
-            project.recalculateTotal()
+        # projectlist = DBSession.query(Project).all()
+        # for project in projectlist:
+        #     project.recalculateTotal()
 
         # print "print children"
         # for child in DBSession.query(Node).filter_by(ID=2).first().Children:
@@ -535,7 +543,6 @@ class TestSetComponentQuantitySuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.matchdict = {'id': 4}
         response = self._callFUT(request)
-
         # true if the cost is correct
         self.assertEqual(response["Cost"], 590.0)
 
@@ -543,11 +550,53 @@ class TestSetComponentQuantitySuccessCondition(unittest.TestCase):
         # in the views its quantity is set to 10
         request = testing.DummyRequest()
         request.matchdict = {'id': 8}
-        from .views import testchangeview
-        testchangeview(request)
+        from .views import testchangequantityview
+        testchangequantityview(request)
 
         # now the project cost should be 940
         request = testing.DummyRequest()
         request.matchdict = {'id': 4}
         response = self._callFUT(request)
         self.assertEqual(response["Cost"], 940.0)
+
+class TestSetResourceRateSuccessCondition(unittest.TestCase):
+
+    """
+    Test that the paste functions correctly with getting the
+    total  cost of a node
+    """
+
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        self.session.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from .views import costview
+        return costview(request)
+
+    def test_it(self):
+        _registerRoutes(self.config)
+        # get the cost of the node as is
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 1}
+        response = self._callFUT(request)
+
+        # true if the cost is correct
+        self.assertEqual(response["Cost"], 475.0)
+
+        # now change the rate of the resource by calling the test view
+        # in the views its rate is set to 10
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 1, 'resourcecode': 'A000'}
+        from .views import testchangerateview
+        testchangerateview(request)
+
+        # now the project cost should be 940
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 1}
+        response = self._callFUT(request)
+        self.assertEqual(response["Cost"], 725.0)

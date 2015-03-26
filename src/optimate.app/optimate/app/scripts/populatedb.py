@@ -83,7 +83,6 @@ if __name__ == "__main__":
         # the children of this node will be deleted
         errornode = Project(Name="ErrorNode", ID=149999, ParentID=0)
         DBSession.add(errornode)
-        transaction.commit()
 
         # open the excel projects spreadsheet
         projectbook = xlrd.open_workbook(exceldatapath + 'Projects.xls')
@@ -94,12 +93,18 @@ if __name__ == "__main__":
         budgetcostindex = 12
         ordercostindex = 13
         claimedcostindex = 15
+        runningindex = 14
+        incomeindex = 16
+        clientindex = 17
+        projprofitindex = 18
+        actprofitindex = 19
 
         # start the new code for items at 150000
         newcode = 150000
 
         print "Converting Project table"
-        # build the projects ==================================================
+        # build the projects
+        # =====================================================================
         for x in range(1, sheet.nrows):
             code = int(sheet.cell(x, codeindex).value)
             # check for unicode issues in the name and description
@@ -130,20 +135,48 @@ if __name__ == "__main__":
                 claimedcost = float(sheet.cell(x, claimedcostindex).value)
             except ValueError, e:
                 claimedcost = 0
+            try:
+                running = float(sheet.cell(x, runningindex).value)
+            except ValueError, e:
+                running = 0
+            try:
+                income = float(sheet.cell(x, incomeindex).value)
+            except ValueError, e:
+                income = 0
+            try:
+                client = float(sheet.cell(x, clientindex).value)
+            except ValueError, e:
+                client = 0
+            try:
+                projprofit = float(sheet.cell(x, projprofitindex).value)
+            except ValueError, e:
+                projprofit = 0
+            try:
+                actprofit = float(sheet.cell(x, actprofitindex).value)
+            except ValueError, e:
+                actprofit = 0
 
             # build the project and add it to the database
             project = Project(ID=code, Name=name,
                               Description=description,
-                              ParentID=0)
+                              ParentID=0,
+                              OrderCost=ordercost,
+                              RunningCost=running,
+                              ClaimedCost=claimedcost,
+                              IncomeRecieved=income,
+                              ClientCost=client,
+                              ProjectedProfit=projprofit,
+                              ActualProfit=actprofit)
 
             DBSession.add(project)
-            project.Ordered = ordercost
-            project.Claimed = claimedcost
+            # project.Ordered = ordercost
+            # project.Claimed = claimedcost
 
         transaction.commit()
 
         print "Converting BudgetGroups table"
         # build the budgetgroups
+        # =====================================================================
         budgetgroupbook = xlrd.open_workbook(
             exceldatapath + 'BudgetGroups.xls')
         sheet = budgetgroupbook.sheet_by_index(0)
@@ -154,6 +187,11 @@ if __name__ == "__main__":
         budgetcostindex = 4
         ordercostindex = 5
         claimedcostindex = 7
+        runningindex = 6
+        incomeindex = 8
+        clientindex = 9
+        projprofitindex = 10
+        actprofitindex = 11
         changedbgcodes = {}
 
         # correct negative codes and circular dependancies
@@ -216,6 +254,26 @@ if __name__ == "__main__":
                 parentcode = int(sheet.cell(x, parentindex).value)
             except ValueError, e:
                 parentcode = 149999
+            try:
+                running = float(sheet.cell(x, runningindex).value)
+            except ValueError, e:
+                running = 0
+            try:
+                income = float(sheet.cell(x, incomeindex).value)
+            except ValueError, e:
+                income = 0
+            try:
+                client = float(sheet.cell(x, clientindex).value)
+            except ValueError, e:
+                client = 0
+            try:
+                projprofit = float(sheet.cell(x, projprofitindex).value)
+            except ValueError, e:
+                projprofit = 0
+            try:
+                actprofit = float(sheet.cell(x, actprofitindex).value)
+            except ValueError, e:
+                actprofit = 0
 
             # if the code has been changed assign it here
             if code in changedbgcodes.keys():
@@ -233,13 +291,18 @@ if __name__ == "__main__":
 
             # build the budgetgroup and add it
             bg = BudgetGroup(ID=code,
-                             Name=name,
-                             Description=description,
-                             ParentID=parentcode)
+                            Name=name,
+                            Description=description,
+                            ParentID=parentcode,
+                            OrderCost=ordercost,
+                            RunningCost=running,
+                            ClaimedCost=claimedcost,
+                            IncomeRecieved=income,
+                            ClientCost=client,
+                            ProjectedProfit=projprofit,
+                            ActualProfit=actprofit)
 
             DBSession.add(bg)
-            bg.Ordered = ordercost
-            bg.Claimed = claimedcost
 
         transaction.commit()
         stdout.write("\n")
@@ -257,6 +320,11 @@ if __name__ == "__main__":
         budgetcostindex = 5
         ordercostindex = 6
         claimedcostindex = 9
+        runningindex = 7
+        incomeindex = 8
+        clientindex = 10
+        projprofitindex = 11
+        actprofitindex = 12
         changedbicodes = {}
 
         # correct negative codes and circular dependancies
@@ -291,7 +359,8 @@ if __name__ == "__main__":
         percentile = length / 100.0
         print "Percentage done: "
         counter = 2
-        # build the budgetitems -----------------------------------------------
+        # build the budgetitems
+        #======================================================================
         for x in range(1, sheet.nrows):
             if x == int(percentile * counter):
                 counter += 1
@@ -343,6 +412,26 @@ if __name__ == "__main__":
                 rate = float(sheet.cell(x, rateindex).value)
             except ValueError, e:
                 rate = 0
+            try:
+                running = float(sheet.cell(x, runningindex).value)
+            except ValueError, e:
+                running = 0
+            try:
+                income = float(sheet.cell(x, incomeindex).value)
+            except ValueError, e:
+                income = 0
+            try:
+                client = float(sheet.cell(x, clientindex).value)
+            except ValueError, e:
+                client = 0
+            try:
+                projprofit = float(sheet.cell(x, projprofitindex).value)
+            except ValueError, e:
+                projprofit = 0
+            try:
+                actprofit = float(sheet.cell(x, actprofitindex).value)
+            except ValueError, e:
+                actprofit = 0
 
             # if the code has been changed assign it here
             if code in changedbicodes.keys():
@@ -364,13 +453,20 @@ if __name__ == "__main__":
             bi = BudgetItem(ID=code, Name=name,
                             Description=description,
                             ParentID=parentcode,
-                            Unit=measureunit)
+                            Unit=measureunit,
+                            OrderCost=ordercost,
+                            RunningCost=running,
+                            ClaimedCost=claimedcost,
+                            IncomeRecieved=income,
+                            ClientCost=client,
+                            ProjectedProfit=projprofit,
+                            ActualProfit=actprofit)
             DBSession.add(bi)
 
             # set the costs
             bi._Total = budgetcost
-            bi.Ordered = ordercost
-            bi.Claimed = claimedcost
+            # bi.Ordered = ordercost
+            # bi.Claimed = claimedcost
             bi._Quantity = quantity
             bi._Rate = rate
 
@@ -391,6 +487,11 @@ if __name__ == "__main__":
         budgetcostindex = 5
         ordercostindex = 6
         claimedcostindex = 8
+        runningindex = 7
+        incomeindex = 9
+        clientindex = 10
+        projprofitindex = 11
+        actprofitindex = 12
         changedcocodes = {}
 
         # correct negative codes and circular dependancies
@@ -426,7 +527,8 @@ if __name__ == "__main__":
                 changedcocodes[code] = newcode
 
         print "Converting Components table"
-        # build the components ------------------------------------------------
+        # build the components
+        # =====================================================================
         length = float(sheet.nrows)
         percentile = length / 100.0
         print "Percentage done: "
@@ -485,6 +587,26 @@ if __name__ == "__main__":
                 rate = float(sheet.cell(x, rateindex).value)
             except ValueError, e:
                 rate = 0
+            try:
+                running = float(sheet.cell(x, runningindex).value)
+            except ValueError, e:
+                running = 0
+            try:
+                income = float(sheet.cell(x, incomeindex).value)
+            except ValueError, e:
+                income = 0
+            try:
+                client = float(sheet.cell(x, clientindex).value)
+            except ValueError, e:
+                client = 0
+            try:
+                projprofit = float(sheet.cell(x, projprofitindex).value)
+            except ValueError, e:
+                projprofit = 0
+            try:
+                actprofit = float(sheet.cell(x, actprofitindex).value)
+            except ValueError, e:
+                actprofit = 0
 
             # if the code has been changed assign it here
             if code in changedcocodes.keys():
@@ -516,12 +638,6 @@ if __name__ == "__main__":
 
             checkname = name[beginindex:endindex].strip()
 
-            co = Component(ID=code, Name=checkname,
-                           # Description=description,
-                           Type=cotype,
-                           Unit=measureunit,
-                           ParentID=parentcode)
-
             resource = DBSession.query(
                 Resource).filter_by(Name=checkname).first()
             if resource == None:
@@ -541,21 +657,47 @@ if __name__ == "__main__":
                                     # ParentID=resourcecategory.ID)
                                     )
 
+                co = Component(ID=code,
+                            ResourceID=resource.ID,
+                           Type=cotype,
+                           Unit=measureunit,
+                           ParentID=parentcode,
+                            OrderCost=ordercost,
+                            RunningCost=running,
+                            ClaimedCost=claimedcost,
+                            IncomeRecieved=income,
+                            ClientCost=client,
+                            ProjectedProfit=projprofit,
+                            ActualProfit=actprofit)
                 co._Total = budgetcost
-                co.Ordered = ordercost
-                co.Claimed = claimedcost
+                # co.Ordered = ordercost
+                # co.Claimed = claimedcost
                 co._Quantity = quantity
                 # co._Rate = rate
-                resource.Components.append(co)
+                # resource.Components.append(co)
                 DBSession.add(resource)
+                DBSession.add(co)
             else:
                 # DBSession.add(co)
+                co = Component(ID=code,
+                            ResourceID=resource.ID,
+                           Type=cotype,
+                           Unit=measureunit,
+                           ParentID=parentcode,
+                            OrderCost=ordercost,
+                            RunningCost=running,
+                            ClaimedCost=claimedcost,
+                            IncomeRecieved=income,
+                            ClientCost=client,
+                            ProjectedProfit=projprofit,
+                            ActualProfit=actprofit)
                 co._Total = budgetcost
-                co.Ordered = ordercost
-                co.Claimed = claimedcost
+                # co.Ordered = ordercost
+                # co.Claimed = claimedcost
                 co._Quantity = quantity
+                DBSession.add(co)
                 # co._Rate = rate
-                resource.Components.append(co)
+                # resource.Components.append(co)
 
         transaction.commit()
         stdout.write("\n")
@@ -620,12 +762,7 @@ if __name__ == "__main__":
 
             # get the components in the project
             componentlist = project.getComponents()
-            for component in componentlist:
-                resource = component.ThisResource
-
-                # add the resource to the category
-                if resource not in resourcecategory.Resources:
-                    resourcecategory.Resources.append(resource)
+            resourcecategory.addResources(componentlist)
 
             DBSession.add(resourcecategory)
             x += 1
