@@ -110,6 +110,7 @@ class Project(Node):
             if child.type != 'ResourceCategory':
                 total += child.recalculateTotal()
 
+        self._Total = total
         return total
 
     def resetTotal(self):
@@ -286,6 +287,7 @@ class BudgetGroup(Node):
         for child in childr:
             total += child.recalculateTotal()
 
+        self._Total = total
         return total
 
     def resetTotal(self):
@@ -471,7 +473,9 @@ class BudgetItem(Node):
         for child in childr:
             rate += child.recalculateTotal()
 
-        return rate * self.Quantity
+        self._Rate = rate
+        self._Total = self.Rate * self.Quantity
+        return self.Total
 
     def resetTotal(self):
         """
@@ -711,14 +715,15 @@ class Component(Node):
         """
         Recursively recalculate the total of this hierarchy
         """
-
+        rate = 0
         childr = DBSession.query(Node).filter_by(ParentID=self.ID).all()
         # if len(childr)>0:
         #     raise Exception('Component should not have children')
         for child in childr:
             rate += child.recalculateTotal()
 
-        return self.Rate * self.Quantity
+        self._Total = rate * self.Quantity
+        return self._Total
 
     def resetTotal(self):
         """
@@ -992,6 +997,9 @@ class ResourceCategory(Node):
         'polymorphic_identity': 'ResourceCategory',
         'inherit_condition': (ID == Node.ID),
     }
+
+    def recalculateTotal(self):
+        return 0
 
     @hybrid_property
     def Total(self):
