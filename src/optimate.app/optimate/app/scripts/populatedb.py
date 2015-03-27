@@ -28,16 +28,30 @@ from random import randint
 import sys
 import transaction
 from sqlalchemy import exc
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import exists
 from pyramid.scripts.common import parse_vars
 from sqlalchemy import engine_from_config
 from sqlalchemy.orm import sessionmaker
 import xlrd
-import uuid
 import os
-from sqlalchemy import exc
 from sys import stdout
 from time import sleep
+
+resourcecodeno = 0
+
+def generateResourceCode(resname):
+    global resourcecodeno
+    if len(resname) < 3:
+        resname = resname.upper() + (3-len(resname))*'X'
+    else:
+        resnmae = resname[:3].upper()
+
+    numerseq = '0'*(4-len(str(resourcecodeno))) + str(resourcecodeno)
+    finalcode = resname+numerseq
+    resourcecodeno+=1
+    return finalcode
+
 
 if __name__ == "__main__":
     # get the current directory
@@ -84,25 +98,31 @@ if __name__ == "__main__":
         # errornode = Project(Name="ErrorNode", ID=149999, ParentID=0)
         # DBSession.add(errornode)
 
-        # # open the excel projects spreadsheet
-        # projectbook = xlrd.open_workbook(exceldatapath + 'Projects.xls')
-        # sheet = projectbook.sheet_by_index(0)
-        # codeindex = 0
-        # nameindex = 1
-        # descriptionindex = 2
-        # budgetcostindex = 12
-        # ordercostindex = 13
-        # claimedcostindex = 15
-        # runningindex = 14
-        # incomeindex = 16
-        # clientindex = 17
-        # projprofitindex = 18
-        # actprofitindex = 19
+        DBSession.query(ResourceCategory).delete()
+        transaction.commit()
+        DBSession.query(Resource).delete()
+        transaction.commit()
+        DBSession.query(Component).delete()
+        transaction.commit()
+        # open the excel projects spreadsheet
+        projectbook = xlrd.open_workbook(exceldatapath + 'Projects.xls')
+        sheet = projectbook.sheet_by_index(0)
+        codeindex = 0
+        nameindex = 1
+        descriptionindex = 2
+        budgetcostindex = 12
+        ordercostindex = 13
+        claimedcostindex = 15
+        runningindex = 14
+        incomeindex = 16
+        clientindex = 17
+        projprofitindex = 18
+        actprofitindex = 19
 
-        # # start the new code for items at 150000
-        # newcode = 150000
+        # start the new code for items at 150000
+        newcode = 150000
 
-        # print "Converting Project table"
+        print "Converting Project table"
         # # build the projects
         # # =====================================================================
         # for x in range(1, sheet.nrows):
@@ -127,6 +147,10 @@ if __name__ == "__main__":
         #         description = description.encode('ascii')
 
         #     # convert the costs to float and if there are issues set it to 0
+        #     try:
+        #         budgetcost = float(sheet.cell(x, budgetcostindex).value)
+        #     except ValueError, e:
+        #         budgetcost = 0
         #     try:
         #         ordercost = float(sheet.cell(x, ordercostindex).value)
         #     except ValueError, e:
@@ -168,46 +192,62 @@ if __name__ == "__main__":
         #                       ProjectedProfit=projprofit,
         #                       ActualProfit=actprofit)
 
+        #     project._Total = budgetcost
         #     DBSession.add(project)
         #     # project.Ordered = ordercost
         #     # project.Claimed = claimedcost
 
         # transaction.commit()
 
-        # print "Converting BudgetGroups table"
-        # # build the budgetgroups
-        # # =====================================================================
-        # budgetgroupbook = xlrd.open_workbook(
-        #     exceldatapath + 'BudgetGroups.xls')
-        # sheet = budgetgroupbook.sheet_by_index(0)
-        # codeindex = 0
-        # nameindex = 1
-        # parentindex = 2
-        # descriptionindex = 3
-        # budgetcostindex = 4
-        # ordercostindex = 5
-        # claimedcostindex = 7
-        # runningindex = 6
-        # incomeindex = 8
-        # clientindex = 9
-        # projprofitindex = 10
-        # actprofitindex = 11
-        # changedbgcodes = {}
+        print "Adding resource categories"
+        projectlist = DBSession.query(Project).all()
+        # add a resourcecategory to each resource, using default values
+        for project in projectlist:
+            parentid = project.ID
+            newcode += 1
+            resourcecategory = ResourceCategory(ID=newcode,
+                                            Name='Resource Category: '+
+                                                str(project.Name),
+                                            Description="Category Description",
+                                            ParentID=parentid)
 
-        # # correct negative codes and circular dependancies
-        # for x in range(1, sheet.nrows):
-        #     code = int(sheet.cell(x, codeindex).value)
-        #     try:
-        #         pid = int(sheet.cell(x, parentindex).value)
-        #     except ValueError, e:
-        #         pid = 149999
-        #     if pid < 0:
-        #         pid = -pid
-        #         if code == pid:
-        #             changedbgcodes[pid] = 149999
-        #         elif pid not in changedbgcodes:
-        #             newcode += 1
-        #             changedbgcodes[pid] = newcode
+            DBSession.add(resourcecategory)
+            transaction.commit()
+
+        print "Converting BudgetGroups table"
+        # build the budgetgroups
+        # =====================================================================
+        budgetgroupbook = xlrd.open_workbook(
+            exceldatapath + 'BudgetGroups.xls')
+        sheet = budgetgroupbook.sheet_by_index(0)
+        codeindex = 0
+        nameindex = 1
+        parentindex = 2
+        descriptionindex = 3
+        budgetcostindex = 4
+        ordercostindex = 5
+        claimedcostindex = 7
+        runningindex = 6
+        incomeindex = 8
+        clientindex = 9
+        projprofitindex = 10
+        actprofitindex = 11
+        changedbgcodes = {}
+
+        # correct negative codes and circular dependancies
+        for x in range(1, sheet.nrows):
+            code = int(sheet.cell(x, codeindex).value)
+            try:
+                pid = int(sheet.cell(x, parentindex).value)
+            except ValueError, e:
+                pid = 149999
+            if pid < 0:
+                pid = -pid
+                if code == pid:
+                    changedbgcodes[pid] = 149999
+                elif pid not in changedbgcodes:
+                    newcode += 1
+                    changedbgcodes[pid] = newcode
 
         # # show the percentage of progress
         # length = float(sheet.nrows)
@@ -241,7 +281,11 @@ if __name__ == "__main__":
         #         if u"\u2030" in description:
         #             description = description.replace(u"\u2030", "e")
         #         description = description.encode('ascii')
-        #     # set the costs to 0 is theres a problem
+        #     # set the costs to 0 if theres a problem
+        #     try:
+        #         budgetcost = float(sheet.cell(x, budgetcostindex).value)
+        #     except ValueError, e:
+        #         budgetcost = 0
         #     try:
         #         ordercost = float(sheet.cell(x, ordercostindex).value)
         #     except ValueError, e:
@@ -301,59 +345,58 @@ if __name__ == "__main__":
         #                     ClientCost=client,
         #                     ProjectedProfit=projprofit,
         #                     ActualProfit=actprofit)
-
+        #     bg._Total = budgetcost
         #     DBSession.add(bg)
 
         # transaction.commit()
         # stdout.write("\n")
 
-        # # build the budgetitems
-        # budgetitembook = xlrd.open_workbook(exceldatapath + 'BudgetItems.xls')
-        # sheet = budgetitembook.sheet_by_index(0)
-        # codeindex = 0
-        # nameindex = 1
-        # parentindex = 2
-        # descriptionindex = 3
-        # quantityindex = 13
-        # rateindex = 14
-        # unitindex = 17
-        # budgetcostindex = 5
-        # ordercostindex = 6
-        # claimedcostindex = 9
-        # runningindex = 7
-        # incomeindex = 8
-        # clientindex = 10
-        # projprofitindex = 11
-        # actprofitindex = 12
-        # changedbicodes = {}
+        # build the budgetitems
+        budgetitembook = xlrd.open_workbook(exceldatapath + 'BudgetItems.xls')
+        sheet = budgetitembook.sheet_by_index(0)
+        codeindex = 0
+        nameindex = 1
+        parentindex = 2
+        descriptionindex = 3
+        quantityindex = 13
+        rateindex = 14
+        unitindex = 17
+        budgetcostindex = 5
+        ordercostindex = 6
+        claimedcostindex = 9
+        runningindex = 7
+        incomeindex = 8
+        clientindex = 10
+        projprofitindex = 11
+        actprofitindex = 12
+        changedbicodes = {}
 
-        # # correct negative codes and circular dependancies
-        # for x in range(1, sheet.nrows):
-        #     code = int(sheet.cell(x, codeindex).value)
-        #     try:
-        #         pid = int(sheet.cell(x, parentindex).value)
-        #     except ValueError, e:
-        #         pid = 149999
-        #     if pid < 0:
-        #         pid = -pid
-        #         if pid not in changedbicodes:
-        #             pid = int(pid)
-        #             newcode += 1
-        #             changedbicodes[pid] = newcode
-        #             if code == pid:
-        #                 changedbicodes[pid] = 149999
+        # correct negative codes and circular dependancies
+        for x in range(1, sheet.nrows):
+            code = int(sheet.cell(x, codeindex).value)
+            try:
+                pid = int(sheet.cell(x, parentindex).value)
+            except ValueError, e:
+                pid = 149999
+            if pid < 0:
+                pid = -pid
+                if pid not in changedbicodes:
+                    pid = int(pid)
+                    newcode += 1
+                    changedbicodes[pid] = newcode
+                    if code == pid:
+                        changedbicodes[pid] = 149999
 
-        #     if code in changedbgcodes.keys():
-        #         newcode += 1
-        #         changedbicodes[code] = newcode
-        #         if code == pid:
-        #             changedbicodes[pid] = 149999
+            if code in changedbgcodes.keys():
+                newcode += 1
+                changedbicodes[code] = newcode
+                if code == pid:
+                    changedbicodes[pid] = 149999
+            if DBSession.query(Node).filter_by(ID=code).first():
+                newcode += 1
+                changedbicodes[code] = newcode
 
-        #     if DBSession.query(Node).filter_by(ID=code).first():
-        #         newcode += 1
-        #         changedbicodes[code] = newcode
-
-        # print "Converting Budgetitems table"
+        print "Converting Budgetitems table"
         # # display the precentage progress
         # length = float(sheet.nrows)
         # percentile = length / 100.0
@@ -388,6 +431,7 @@ if __name__ == "__main__":
         #             description = description.replace(u"\u2030", "e")
         #         description = description.encode('ascii')
         #     measureunit = sheet.cell(x, unitindex).value
+        #     # set the costs to 0 if theres a problem
         #     try:
         #         budgetcost = float(sheet.cell(x, budgetcostindex).value)
         #     except ValueError, e:
@@ -465,282 +509,330 @@ if __name__ == "__main__":
 
         #     # set the costs
         #     bi._Total = budgetcost
-        #     # bi.Ordered = ordercost
-        #     # bi.Claimed = claimedcost
         #     bi._Quantity = quantity
         #     bi._Rate = rate
 
         # transaction.commit()
         # stdout.write("\n")
 
-        # # build the components
-        # componentbook = xlrd.open_workbook(exceldatapath + 'Components.xls')
-        # sheet = componentbook.sheet_by_index(0)
-        # codeindex = 0
-        # nameindex = 1
-        # parentindex = 2
-        # descriptionindex = 3
-        # typeindex = 4
-        # rateindex = 14
-        # quantityindex = 13
-        # unitindex = 19
-        # budgetcostindex = 5
-        # ordercostindex = 6
-        # claimedcostindex = 8
-        # runningindex = 7
-        # incomeindex = 9
-        # clientindex = 10
-        # projprofitindex = 11
-        # actprofitindex = 12
-        # changedcocodes = {}
+        # build the components
+        componentbook = xlrd.open_workbook(exceldatapath + 'Components.xls')
+        sheet = componentbook.sheet_by_index(0)
+        codeindex = 0
+        nameindex = 1
+        parentindex = 2
+        descriptionindex = 3
+        typeindex = 4
+        rateindex = 14
+        quantityindex = 13
+        unitindex = 19
+        budgetcostindex = 5
+        ordercostindex = 6
+        claimedcostindex = 8
+        runningindex = 7
+        incomeindex = 9
+        clientindex = 10
+        projprofitindex = 11
+        actprofitindex = 12
+        changedcocodes = {}
 
-        # # correct negative codes and circular dependancies
-        # for x in range(1, sheet.nrows):
-        #     code = int(sheet.cell(x, codeindex).value)
-        #     try:
-        #         pid = int(sheet.cell(x, parentindex).value)
-        #     except ValueError, e:
-        #         pid = 149999
-        #     if pid < 0:
-        #         pid = -pid
-        #         if pid not in changedcocodes:
-        #             pid = int(pid)
-        #             newcode += 1
-        #             changedcocodes[pid] = newcode
 
-        #             if code == pid:
-        #                 changedcocodes[pid] = 149999
+        # correct negative codes and circular dependancies
+        # negative codes refer to a parent that is a budgetitem
+        for x in range(1, sheet.nrows):
+            code = int(sheet.cell(x, codeindex).value)
+            # if code == 4876:
+            #     import pdb
+            #     pdb.set_trace()
+            try:
+                pid = int(sheet.cell(x, parentindex).value)
+            except ValueError, e:
+                pid = 149999
+            if pid < 0:
+                pid = -pid
+                if pid in changedbicodes:
+                    changedcocodes[pid] = changedbicodes[pid]
 
-        #         if code in changedbgcodes.keys():
-        #             newcode += 1
-        #             changedcocodes[code] = newcode
-        #             if code == pid:
-        #                 changedcocodes[pid] = 149999
-        #         elif code in changedbicodes.keys():
-        #             newcode += 1
-        #             changedcocodes[code] = newcode
-        #             if code == pid:
-        #                 changedcocodes[pid] = 149999
+                    if code == pid:
+                        changedcocodes[pid] = 149999
 
-        #     if DBSession.query(Node).filter_by(ID=code).first():
-        #         newcode += 1
-        #         changedcocodes[code] = newcode
+                if code in changedbgcodes.keys():
+                    newcode += 1
+                    changedcocodes[code] = newcode
+                    if code == pid:
+                        changedcocodes[pid] = 149999
+                elif code in changedbicodes.keys():
+                    newcode += 1
+                    changedcocodes[code] = newcode
+                    if code == pid:
+                        changedcocodes[pid] = 149999
+            if DBSession.query(Node).filter_by(ID=code).first():
+                newcode += 1
+                changedcocodes[code] = newcode
 
-        # print "Converting Components table"
-        # # build the components
-        # # =====================================================================
-        # length = float(sheet.nrows)
-        # percentile = length / 100.0
-        # print "Percentage done: "
-        # counter = 2
-        # for x in range(1, sheet.nrows):
-        #     if x == int(percentile * counter):
-        #         counter += 1
-        #         stdout.write("\r%d" % counter + "%")
-        #         stdout.flush()
-        #         sleep(1)
-
-        #     code = int(sheet.cell(x, codeindex).value)
-        #     try:
-        #         name = sheet.cell(x, nameindex).value.encode('ascii')
-        #     except UnicodeEncodeError, u:
-        #         if u"\u02c6" in name:
-        #             name = name.replace(u"\u02c6", "e")
-        #         if u"\u2030" in name:
-        #             name = name.replace(u"\u2030", "e")
-        #         name = name.encode('ascii')
-        #     try:
-        #         description = sheet.cell(x,
-        #                                  descriptionindex).value.encode('ascii')
-        #     except UnicodeEncodeError, u:
-        #         if u"\u02c6" in description:
-        #             description = description.replace(u"\u02c6", "e")
-        #         if u"\u2030" in description:
-        #             description = description.replace(u"\u2030", "e")
-        #         description = description.encode('ascii')
-        #     try:
-        #         cotype = int(sheet.cell(x, typeindex).value)
-        #     except ValueError, v:
-        #         cotype = 1
-        #     measureunit = sheet.cell(x, unitindex).value
-        #     try:
-        #         budgetcost = float(sheet.cell(x, budgetcostindex).value)
-        #     except ValueError, e:
-        #         budgetcost = 0
-        #     try:
-        #         ordercost = float(sheet.cell(x, ordercostindex).value)
-        #     except ValueError, e:
-        #         ordercost = 0
-        #     try:
-        #         claimedcost = float(sheet.cell(x, claimedcostindex).value)
-        #     except ValueError, e:
-        #         claimedcost = 0
-        #     try:
-        #         parentcode = int(sheet.cell(x, parentindex).value)
-        #     except ValueError, e:
-        #         parentcode = 149999
-        #     try:
-        #         quantity = float(sheet.cell(x, quantityindex).value)
-        #     except ValueError, e:
-        #         quantity = 0
-        #     try:
-        #         rate = float(sheet.cell(x, rateindex).value)
-        #     except ValueError, e:
-        #         rate = 0
-        #     try:
-        #         running = float(sheet.cell(x, runningindex).value)
-        #     except ValueError, e:
-        #         running = 0
-        #     try:
-        #         income = float(sheet.cell(x, incomeindex).value)
-        #     except ValueError, e:
-        #         income = 0
-        #     try:
-        #         client = float(sheet.cell(x, clientindex).value)
-        #     except ValueError, e:
-        #         client = 0
-        #     try:
-        #         projprofit = float(sheet.cell(x, projprofitindex).value)
-        #     except ValueError, e:
-        #         projprofit = 0
-        #     try:
-        #         actprofit = float(sheet.cell(x, actprofitindex).value)
-        #     except ValueError, e:
-        #         actprofit = 0
-
-        #     # if the code has been changed assign it here
-        #     if code in changedcocodes.keys():
-        #         if changedcocodes[code] != 149999:
-        #             code = changedcocodes[code]
-        #     # if it is negative it refers to a parent in the same table
-        #     if parentcode <= 0:
-        #         if parentcode == 0:
-        #             parentcode = 149999
-        #         else:
-        #             parentcode = -parentcode
-        #             if parentcode in changedcocodes.keys():
-        #                 parentcode = changedcocodes[parentcode]
-        #     # otherwise check if the parent code has changed
-        #     elif parentcode in changedbicodes:
-        #         parentcode = changedbicodes[parentcode]
-        #     elif parentcode in changedbgcodes:
-        #         parentcode = changedbgcodes[parentcode]
-
-        #     # build the resource this component uses
-        #     # check if the component references a new resource
-        #     # format the name of the component
-        #     beginindex = name.find(".") + 1
-        #     if beginindex < 0:
-        #         beginindex = 0
-        #     endindex = name.find("=") - 1
-        #     if endindex < 0:
-        #         endindex = len(name) - 1
-
-        #     checkname = name[beginindex:endindex].strip()
-
-        #     resource = DBSession.query(
-        #         Resource).filter_by(Name=checkname).first()
-        #     if resource == None:
-        #         # get the next code to be used in the resourcecategory children
-        #         # for now its just a random number
-        #         resourcecode = randint(100000, 200000)
-        #         newcode += 1
-        #         resourceid = newcode
-
-        #         # build the resource
-        #         resource = Resource(ID=resourceid,
-        #                             Code=resourcecode,
-        #                             Name=checkname,
-        #                             Description=description,
-        #                             Rate=rate,
-        #                             # ParentID=categoryid)
-        #                             # ParentID=resourcecategory.ID)
-        #                             )
-
-        #         co = Component(ID=code,
-        #                     ResourceID=resource.ID,
-        #                    Type=cotype,
-        #                    Unit=measureunit,
-        #                    ParentID=parentcode,
-        #                     OrderCost=ordercost,
-        #                     RunningCost=running,
-        #                     ClaimedCost=claimedcost,
-        #                     IncomeRecieved=income,
-        #                     ClientCost=client,
-        #                     ProjectedProfit=projprofit,
-        #                     ActualProfit=actprofit)
-        #         co._Total = budgetcost
-        #         # co.Ordered = ordercost
-        #         # co.Claimed = claimedcost
-        #         co._Quantity = quantity
-        #         # co._Rate = rate
-        #         # resource.Components.append(co)
-        #         DBSession.add(resource)
-        #         DBSession.add(co)
-        #     else:
-        #         # DBSession.add(co)
-        #         co = Component(ID=code,
-        #                     ResourceID=resource.ID,
-        #                    Type=cotype,
-        #                    Unit=measureunit,
-        #                    ParentID=parentcode,
-        #                     OrderCost=ordercost,
-        #                     RunningCost=running,
-        #                     ClaimedCost=claimedcost,
-        #                     IncomeRecieved=income,
-        #                     ClientCost=client,
-        #                     ProjectedProfit=projprofit,
-        #                     ActualProfit=actprofit)
-        #         co._Total = budgetcost
-        #         # co.Ordered = ordercost
-        #         # co.Claimed = claimedcost
-        #         co._Quantity = quantity
-        #         DBSession.add(co)
-        #         # co._Rate = rate
-        #         # resource.Components.append(co)
-
-        # transaction.commit()
-        # stdout.write("\n")
-
-        # cotypebook = xlrd.open_workbook(exceldatapath + 'CompTypes.xls')
-        # sheet = cotypebook.sheet_by_index(0)
-        # codeindex = 0
-        # nameindex = 1
-
-        # print "Converting Component Type table"
-        # # build the componenttypes
-        # for x in range(1, sheet.nrows):
-        #     code = int(sheet.cell(x, codeindex).value)
-        #     try:
-        #         name = sheet.cell(x, nameindex).value.encode('ascii')
-        #     except UnicodeEncodeError, u:
-        #         if u"\u02c6" in name:
-        #             name = name.replace(u"\u02c6", "e")
-        #         if u"\u2030" in name:
-        #             name = name.replace(u"\u2030", "e")
-        #         name = name.encode('ascii')
-
-        #     cotype = ComponentType(ID=code, Name=name)
-        #     DBSession.add(cotype)
-
-        # transaction.commit()
-
-        # print "Deleting error node"
-        # deletethis = DBSession.query(Node).filter_by(ID=149999).first()
-        # DBSession.delete(deletethis)
-        # transaction.commit()
-
-        # # add the resource category for each project
-        # # for now each category just has default values
-        # print "Adding resource categories"
-        # print "Adding resources to the resource categories"
-        # # get the projects
-        projectlist = DBSession.query(Project).all()
-        length = float(len(projectlist))
+        print "Converting Components table"
+        # build the components
+        # =====================================================================
+        length = float(sheet.nrows)
         percentile = length / 100.0
         print "Percentage done: "
         counter = 2
-        x = 0
+        for x in range(1, sheet.nrows):
+            if x == int(percentile * counter):
+                counter += 1
+                stdout.write("\r%d" % counter + "%")
+                stdout.flush()
+                sleep(1)
+
+            code = int(sheet.cell(x, codeindex).value)
+            if code == 4876:
+                import pdb
+                pdb.set_trace()
+            try:
+                name = sheet.cell(x, nameindex).value.encode('ascii')
+            except UnicodeEncodeError, u:
+                if u"\u02c6" in name:
+                    name = name.replace(u"\u02c6", "e")
+                if u"\u2030" in name:
+                    name = name.replace(u"\u2030", "e")
+                name = name.encode('ascii')
+            try:
+                description = sheet.cell(x,
+                                         descriptionindex).value.encode('ascii')
+            except UnicodeEncodeError, u:
+                if u"\u02c6" in description:
+                    description = description.replace(u"\u02c6", "e")
+                if u"\u2030" in description:
+                    description = description.replace(u"\u2030", "e")
+                description = description.encode('ascii')
+            try:
+                cotype = int(sheet.cell(x, typeindex).value)
+            except ValueError, v:
+                cotype = 1
+            measureunit = sheet.cell(x, unitindex).value
+            try:
+                budgetcost = float(sheet.cell(x, budgetcostindex).value)
+            except ValueError, e:
+                budgetcost = 0
+            try:
+                ordercost = float(sheet.cell(x, ordercostindex).value)
+            except ValueError, e:
+                ordercost = 0
+            try:
+                claimedcost = float(sheet.cell(x, claimedcostindex).value)
+            except ValueError, e:
+                claimedcost = 0
+            try:
+                parentcode = int(sheet.cell(x, parentindex).value)
+            except ValueError, e:
+                parentcode = 149999
+            try:
+                quantity = float(sheet.cell(x, quantityindex).value)
+            except ValueError, e:
+                quantity = 0
+            try:
+                rate = float(sheet.cell(x, rateindex).value)
+            except ValueError, e:
+                rate = 0
+            try:
+                running = float(sheet.cell(x, runningindex).value)
+            except ValueError, e:
+                running = 0
+            try:
+                income = float(sheet.cell(x, incomeindex).value)
+            except ValueError, e:
+                income = 0
+            try:
+                client = float(sheet.cell(x, clientindex).value)
+            except ValueError, e:
+                client = 0
+            try:
+                projprofit = float(sheet.cell(x, projprofitindex).value)
+            except ValueError, e:
+                projprofit = 0
+            try:
+                actprofit = float(sheet.cell(x, actprofitindex).value)
+            except ValueError, e:
+                actprofit = 0
+
+            # if the code has been changed assign it here
+            if code in changedcocodes.keys():
+                if changedcocodes[code] != 149999:
+                    code = changedcocodes[code]
+            # if it is negative it refers to a parent that is a budgetitem
+            if parentcode <= 0:
+                if parentcode == 0:
+                    parentcode = 149999
+                else:
+                    parentcode = -parentcode
+                    if parentcode in changedcocodes.keys():
+                        parentcode = changedcocodes[parentcode]
+            # otherwise check if the parent code has changed
+            elif parentcode in changedbgcodes:
+                parentcode = changedbgcodes[parentcode]
+
+            # build the resource this component uses
+            # check if the component references a new resource
+            # format the name of the component
+            beginindex = name.find(".") + 1
+
+            checkname = name[beginindex:].strip()
+
+            parent = DBSession.query(Node).filter_by(ID=parentcode).first()
+            if parent == None:
+                print "parent none"
+                import pdb
+                pdb.set_trace()
+            else:
+                projectid = parent.getProjectID()
+                resourcecategory = DBSession.query(ResourceCategory).filter_by(ParentID=projectid).first()
+                if resourcecategory == None:
+                    print "resourcecat none"
+                    import pdb
+                    pdb.set_trace()
+                else:
+                    resource = DBSession.query(Resource).filter_by(Name=checkname).first()
+                    if resource == None:
+                        # resource does not exist yet
+                        # build the resource
+                        newcode += 1
+                        resourceid = newcode
+                        resourcecode = generateResourceCode(checkname)
+                        resource = Resource(ID=resourceid,
+                                        Code=resourcecode,
+                                        Name=checkname,
+                                        Description=description,
+                                        Rate=rate,
+                                        ParentID=resourcecategory.ID)
+
+                        DBSession.add(resource)
+                        co = Component(ID=code,
+                                        ResourceID=resourceid,
+                                        Type=cotype,
+                                        Unit=measureunit,
+                                        ParentID=parentcode,
+                                        OrderCost=ordercost,
+                                        RunningCost=running,
+                                        ClaimedCost=claimedcost,
+                                        IncomeRecieved=income,
+                                        ClientCost=client,
+                                        ProjectedProfit=projprofit,
+                                        ActualProfit=actprofit)
+                        co._Total = budgetcost
+                        co._Quantity = quantity
+                        DBSession.add(co)
+                        try:
+                            transaction.commit()
+                        except IntegrityError:
+                            print "print error building resource and component"
+                            import pdb
+                            pdb.set_trace()
+                    else:
+                        if resource in resourcecategory.Children:
+                            # the resource exists and it is already in
+                            # the resource category
+                            co = Component(ID=code,
+                                        ResourceID=resource.ID,
+                                        Type=cotype,
+                                        Unit=measureunit,
+                                        ParentID=parentcode,
+                                        OrderCost=ordercost,
+                                        RunningCost=running,
+                                        ClaimedCost=claimedcost,
+                                        IncomeRecieved=income,
+                                        ClientCost=client,
+                                        ProjectedProfit=projprofit,
+                                        ActualProfit=actprofit)
+                            co._Total = budgetcost
+                            co._Quantity = quantity
+                            DBSession.add(co)
+                            try:
+                                transaction.commit()
+                            except IntegrityError:
+                                print "error cuilding compn"
+                                import pdb
+                                pdb.set_trace()
+                        else:
+                            # the resource exists but it is not in the
+                            # resource category
+                            # so a resource is made that is similar to the
+                            # existing one, but with a different id
+                            newcode += 1
+                            resourceid = newcode
+                            resourcecode = resource.Code
+                            newresource = Resource(ID=resourceid,
+                                            Code=resourcecode,
+                                            Name=checkname,
+                                            Description=description,
+                                            Rate=rate,
+                                            ParentID=resourcecategory.ID)
+                            newcode += 1
+                            resourceid = newcode
+                            DBSession.add(newresource)
+                            co = Component(ID=code,
+                                        ResourceID=resourceid,
+                                        Type=cotype,
+                                        Unit=measureunit,
+                                        ParentID=parentcode,
+                                        OrderCost=ordercost,
+                                        RunningCost=running,
+                                        ClaimedCost=claimedcost,
+                                        IncomeRecieved=income,
+                                        ClientCost=client,
+                                        ProjectedProfit=projprofit,
+                                        ActualProfit=actprofit)
+                            co._Total = budgetcost
+                            co._Quantity = quantity
+                            DBSession.add(co)
+                            try:
+                                transaction.commit()
+                            except IntegrityError:
+                                print "error copying and building comp"
+                                import pdb
+                                pdb.set_trace()
+
+
+        stdout.write("\n")
+
+        cotypebook = xlrd.open_workbook(exceldatapath + 'CompTypes.xls')
+        sheet = cotypebook.sheet_by_index(0)
+        codeindex = 0
+        nameindex = 1
+
+        print "Converting Component Type table"
+        # build the componenttypes
+        for x in range(1, sheet.nrows):
+            code = int(sheet.cell(x, codeindex).value)
+            try:
+                name = sheet.cell(x, nameindex).value.encode('ascii')
+            except UnicodeEncodeError, u:
+                if u"\u02c6" in name:
+                    name = name.replace(u"\u02c6", "e")
+                if u"\u2030" in name:
+                    name = name.replace(u"\u2030", "e")
+                name = name.encode('ascii')
+
+            cotype = ComponentType(ID=code, Name=name)
+            DBSession.add(cotype)
+
+        transaction.commit()
+
+        print "Deleting error node"
+        deletethis = DBSession.query(Node).filter_by(ID=149999).first()
+        DBSession.delete(deletethis)
+        transaction.commit()
+
+        # add the resource category for each project
+        # for now each category just has default values
+        # print "Adding resource categories"
+        # print "Adding resources to the resource categories"
+        # get the projects
+        projectlist = DBSession.query(Project).all()
+        length = float(len(projectlist))
+        percentile = length / 100.0
+        # print "Percentage done: "
+        # counter = 2
+        # x = 0
         # # iterate over all the projects, get the components in them, and if
         # # a resource that is in a component is not in the category, add it
         # for project in projectlist:
@@ -779,14 +871,24 @@ if __name__ == "__main__":
                 stdout.write("\r%d" % counter + "%")
                 stdout.flush()
                 sleep(1)
-            project.recalculateTotal()
+            # project.recalculateTotal()
             # comlist = project.getComponents()
             # for co in comlist:
             #     if len(co.Children) >0:
             #         print co
             #         print co.Children
-
             x+=1
             print "Project " + str(x) + " total: " +str(project.Total)
 
     print "done"
+
+
+
+
+
+
+
+
+
+
+

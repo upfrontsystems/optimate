@@ -1082,13 +1082,13 @@ class Resource(Node):
 
     def __eq__(self, other):
         """
-        Test for equality, for now testing based on the code
+        Test for equality, for now testing based on the name
         """
 
         if other == None:
             return False
         else:
-            return self.Code == other.Code
+            return self.Name == other.Name
 
     def toDict(self):
         return {'Name': self.Name,
@@ -1105,8 +1105,8 @@ class Resource(Node):
         Return a representation of this resource
         """
 
-        return '<Resource(Name="%s", Rate="%s", ID="%s")>' % (
-            self.Name, self.Rate, self.ID)
+        return '<Resource(Name="%s", Code="%s%", Rate="%s", ID="%s")>' % (
+            self.Name, self.Code, self.Rate, self.ID)
 
 # Resource.Components = relationship(Component,
 #     backref=backref('ThisResource', uselist=True, viewonly=True,
