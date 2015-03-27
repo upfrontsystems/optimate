@@ -225,21 +225,6 @@ class Project(Node):
         return componentlist
 
     def toDict(self):
-<<<<<<< HEAD
-        #if len(self.Children) == 0:
-        subitem = []
-        #else:
-        #    subitem = [{"Name":""}]
-        return {"Name": self.Name,
-                "Description": self.Description,
-                "Subitem": subitem,
-                "ID": self.ID,
-                "Path": "/" + str(self.ID) + "/",
-                "Total": self._Total,
-                "Ordered": self._Ordered,
-                "Claimed": self._Claimed,
-                "NodeType": self.type}
-=======
         if len(self.Children) == 0:
             subitem = []
         else:
@@ -258,7 +243,6 @@ class Project(Node):
                 'ClientCost':self.ClientCost,
                 'ProjectedProfit':self.ProjectedProfit,
                 'ActualProfit':self.ActualProfit}
->>>>>>> testingbranch
 
     def __repr__(self):
         """

@@ -52,6 +52,7 @@ def main(global_config, **settings):
     config.add_route('pasteview', '/{id}/paste')
     config.add_route('costview', '/{id}/cost')
 
-    config.add_route('testchangeview', '/{id}/testchange')
+    config.add_route('testchangequantityview', '/{id}/testchangequantity')
+    config.add_route('testchangerateview', '/{id}/testchangerate')
     config.scan()
     return config.make_wsgi_app()
