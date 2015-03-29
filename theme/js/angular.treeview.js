@@ -79,7 +79,7 @@
                     scope.$watch('show', function(newVal, oldVal) {
                         if (newVal && !oldVal) {
                             document.getElementsByTagName("body")[0].style.overflow = "hidden";
-                        } 
+                        }
                         else {
                             document.getElementsByTagName("body")[0].style.overflow = "";
                         }
@@ -115,14 +115,9 @@
 
 }).call(this);
 
-
 // Treeview module
 (function ( angular ) {
     'use strict';
-    // var optimateApp = angular.module( 'angularTreeview', [] );
-
-    // Add the right click directive
-    // optimateApp.directive(
     angular.module( 'angularTreeview', ['ngModal'] )
     .directive(
         'treeModel', ['$compile', '$http', function( $compile, $http) {
@@ -139,8 +134,6 @@
                     var nodeLabel = attrs.nodeLabel || 'label';
                     // children
                     var nodeChildren = attrs.nodeChildren || 'children';
-                    // path
-                    var nodePath = attrs.nodePath || 'path'
                     // Copied node to be pasted
                     scope.copiednode;
                     // show modal and other input options
@@ -152,7 +145,7 @@
                     // tree template
                     var template =
                         // Build a list of the nodes in the tree
-                        // Display depends on the state of the node 
+                        // Display depends on the state of the node
                         '<ul>' +
                             '<li data-ng-repeat="node in ' + treeModel + '">' +
                                 '<i class="collapsed" ' +
@@ -171,9 +164,10 @@
                                     'data-ng-hide="node.' + nodeChildren +
                                     '.length">'+
                                 '</i> ' +
-                                // Call this funcion when the node label is clicked
+                                // Call this funcion when
+                                // the node label is clicked
                                 '<span class="treenode" '+
-                                    'path="{{node.' + nodePath + '}}"'+
+                                    'id="{{node.' + nodeId + '}}"'+
                                     'data-ng-class="node.selected" '+
                                     'data-ng-click="' + treeId +
                                     '.selectNodeLabel(node)">'+
@@ -182,7 +176,7 @@
 
                                 // Modal dialog with functions
                                 '<span class="additem" data-ng-show="node.selected">'+
-                                    '<button data-ng-click="showoptions = true;">+</button>'+
+                                    '<img data-ng-src="../img/menu.png" data-ng-click="showoptions = true;"/>'+
                                     '<modal-dialog  show=showoptions '+
                                                     'dialog-title="Options" '+
                                                     'width="150px">'+
@@ -194,7 +188,7 @@
                                                                 'width="300px">'+
                                                     // a form in the add modal dialog
                                                     '<form data-ng-submit="'+
-                                                                treeId + '.addItem(node.Path)">'+
+                                                                treeId + '.addItem(node.ID)">'+
                                                         // Name input
                                                         'Name:<br>'+
                                                         '<input type="text" '+
@@ -240,10 +234,11 @@
                                                                     '<input type="integer" '+
                                                                     'name="inputQuantity" '+
                                                                     'data-ng-model="formData.inputQuantity">'+
-                                                                '<br>Rate:<br>'+
-                                                                    '<input type="integer" '+
-                                                                    'name="inputRate" '+
-                                                                    'data-ng-model="formData.inputRate">'+
+                                                                // The rate should not be set by the user
+                                                                // '<br>Rate:<br>'+
+                                                                //     '<input type="integer" '+
+                                                                //     'name="inputRate" '+
+                                                                //     'data-ng-model="formData.inputRate">'+
                                                         '</div>'+
                                                         '<div data-ng-show="showtype">'+
                                                                 'Type:<br>'+
@@ -256,31 +251,30 @@
                                                     '</form>'+
                                                 '</modal-dialog>'+
                                             '<button data-ng-click='+
-                                                        '"' + treeId + '.deleteItem(node.Path, node.ID)">'+
+                                                        '"' + treeId + '.deleteItem(node.ID)">'+
                                                         'Delete'+
                                             '</button>'+
                                             '<button data-ng-click='+
-                                                        '"' + treeId + '.copy(node.Path)">'+
+                                                        '"' + treeId + '.copy(node.ID)">'+
                                                         'Copy'+
                                             '</button>'+
                                             '<button data-ng-click='+
-                                                        '"' + treeId + '.paste(node.Path)">'+
+                                                        '"' + treeId + '.paste(node.ID)">'+
                                                         'Paste'+
                                             '</button>'+
                                             '<button data-ng-click='+
-                                                        '"' + treeId + '.costItem(node.Path)">'+
+                                                        '"' + treeId + '.costItem(node.ID)">'+
                                                         'Get total cost'+
                                             '</button>'+
                                     '</modal-dialog>'+
                                 '</span>'+
 
-                                '<div data-ng-hide="node.collapsed" '+
+                                '<div data-ng-hide="!node.collapsed" '+
                                     'data-tree-id="' + treeId +
                                     '" data-tree-model="node.' + nodeChildren +
                                     '" data-node-id=' + nodeId +
                                     ' data-node-label=' + nodeLabel +
                                     ' data-node-children=' + nodeChildren + '>'+
-                                    ' data-node-path=' + nodePath + '>'+
                                 '</div>' +
                             '</li>' +
                         '</ul>';
@@ -288,7 +282,6 @@
 
                     // check tree id, tree model
                     if ( treeId && treeModel ) {
-
                         // root node
                         if ( attrs.angularTreeview ) {
                             // create tree object if not exists
@@ -296,7 +289,7 @@
 
                             // function to POST data to server to add item
                             // Get values from the user input
-                            scope[treeId].addItem = function(path) {
+                            scope[treeId].addItem = function(nodeid) {
                                 var name = scope.formData.inputName;
                                 scope.formData.inputName = "";
                                 var description = scope.formData.inputDescription;
@@ -304,37 +297,35 @@
                                 var nodetype = scope.formData.inputNodeType;
                                 var quantity = scope.formData.inputQuantity;
                                 scope.formData.inputQuantity = 0
-                                var rate = scope.formData.inputRate;
-                                scope.formData.inputRate = 0
+                                // var rate = scope.formData.inputRate;
+                                // scope.formData.inputRate = 0
                                 var componenttype = scope.formData.inputComponentType;
                                 scope.formData.inputComponentType = 0
 
-                                console.log(quantity)
-                                console.log(rate)
-
                                 console.log("Adding a " + nodetype + " " + name +
-                                    ", " + description + " to: " + path);
+                                    ", " + description + " to: " + nodeid);
                                 $http({
                                     method: 'POST',
-                                    url: 'http://localhost:8100' + path + 'add',
+                                    url: 'http://localhost:8100/' + nodeid + '/add',
                                     data:{'Name': name,
                                           'Description': description,
                                           'NodeType': nodetype,
                                           'Quantity': quantity,
-                                          'Rate': rate,
+                                          // 'Rate': rate,
                                           'ComponentType': componenttype}
                                 }).success(function () {
                                     alert('Success: Child added');
                                     console.log("added");
+                                    scope[treeId].currentNode.Subitem = [{'Name': '...'}];
                                 });
                             }
 
                             // Function to delete data in server
-                            scope[treeId].deleteItem = function(path) {
-                                console.log("Deleting "+ path);
+                            scope[treeId].deleteItem = function(nodeid) {
+                                console.log("Deleting "+ nodeid);
                                 $http({
                                     method: 'POST',
-                                    url:'http://localhost:8100' + path + 'delete'
+                                    url:'http://localhost:8100/' + nodeid + '/delete'
                                 }).success(function () {
                                     alert('Success: Item deleted');
                                 });
@@ -348,21 +339,22 @@
                             }
 
                             // function to POST data to server to paste item
-                            scope[treeId].paste = function(path) {
+                            scope[treeId].paste = function(nodeid) {
                                 console.log("Node to be pasted: " + scope.copiednode);
-                                $http({ 
+                                $http({
                                     method: 'POST',
-                                    url: 'http://localhost:8100' + path + 'paste',
-                                    data:{'Path': scope.copiednode}
+                                    url: 'http://localhost:8100/' + nodeid + '/paste',
+                                    data:{'ID': scope.copiednode}
                                 }).success(function () {
                                     alert('Success: Node pasted');
+                                    scope[treeId].currentNode.Subitem = [{'Name': '...'}];
                                 });
                             }
 
                             // Function to get the cost of the node
-                            scope[treeId].costItem = function(path) {
-                                console.log("Costing "+ path);
-                                $http.get('http://127.0.0.1:8100' + path + 'cost').success(function(data) {
+                            scope[treeId].costItem = function(nodeid) {
+                                console.log("Costing "+ nodeid);
+                                $http.get('http://127.0.0.1:8100/' + nodeid + '/cost').success(function(data) {
                                     console.log("Http request success: " + data);
                                      // get the cost of the node and post alert
                                     alert(data['Cost']);
@@ -370,9 +362,33 @@
                             }
 
                             // if node head clicks,
+                            // get the children of the node
+                            // and collapse or expand the node
                             scope[treeId].selectNodeHead = scope[treeId].selectNodeHead || function( selectedNode ) {
-                                // Collapse or Expand
-                                selectedNode.collapsed = !selectedNode.collapsed;
+                                scope[treeId].currentNode = selectedNode;
+                                // if the node is collapsed, get the data and
+                                // expand the node
+                                if (!selectedNode.collapsed){
+                                    // get path from the node
+                                    // and go to that path with http
+                                    console.log(selectedNode)
+
+                                    var nodeid = selectedNode.ID;
+                                    console.log(nodeid);
+                                    $http.get('http://127.0.0.1:8100/' + nodeid + '/').success(function(data) {
+                                        console.log("Http request success: " + data);
+                                         // Append the response data to the
+                                         // subitem (children) of the
+                                         // current node
+                                        scope[treeId].currentNode.Subitem = data;
+                                    });
+
+                                    selectedNode.collapsed = true;
+                                }
+                                else{
+                                // collapse the node if it is expanded
+                                    selectedNode.collapsed = false;
+                                }
                             };
 
                             // if node label clicks,
@@ -387,18 +403,6 @@
 
                                 // set currentNode
                                 scope[treeId].currentNode = selectedNode;
-
-                                // get path from the node
-                                // and go to that path with http
-                                var path = scope[treeId].currentNode.Path;
-                                console.log(path);
-                                $http.get('http://127.0.0.1:8100' + path).success(function(data) {
-                                    console.log("Http request success: " + data);
-                                     // Append the response data to the
-                                     // subitem (children) of the
-                                     // current node
-                                    scope[treeId].currentNode.Subitem = data;
-                                });
                             };
                         }
                         // Rendering template.

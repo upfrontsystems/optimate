@@ -56,9 +56,15 @@ for setting up the client in the Optimate Project
 - The client server will start and the Optimate root view can be accessed via
 	http://127.0.0.1:8000
 
-- Clicking on a node label will load it's children and display a "+" next to it
+- Clicking on a node label will display the costs of the children of this 
+	node in the Slickgrid, as well as display the menu button to the 
+	right of the label
 
-- Clicking on the "+" will display a dialog menus of options
+- Clicking on the node '+' icon will load the children of that node, clicking
+	the '-' icon will collapse the tree. An empty box indicates the node 
+	has no children.
+
+- Clicking on the "" will display a dialog menus of options
 	- Add
 	- Copy
   	- Paste

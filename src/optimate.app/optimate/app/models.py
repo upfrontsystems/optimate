@@ -90,8 +90,6 @@ class Project(Node):
     Name = Column(Text)
     Description = Column(Text)
     _Total = Column('Total', Float)
-    # _Ordered = Column('Ordered', Float)
-    # _Claimed = Column('Claimed', Float)
 
     __mapper_args__ = {
         'polymorphic_identity': 'Project',
@@ -146,32 +144,6 @@ class Project(Node):
 
         self._Total = total
 
-    # """
-    # Get and set for the ordered property
-    # """
-    # @hybrid_property
-    # def Ordered(self):
-    #     if self._Ordered == None:
-    #         self._Ordered = 0.0
-    #     return self._Ordered
-
-    # @Ordered.setter
-    # def Ordered(self, ordered):
-    #     self._Ordered = ordered
-
-    # """
-    # Get and set for the claimed property
-    # """
-    # @hybrid_property
-    # def Claimed(self):
-    #     if self._Claimed == None:
-    #         self._Claimed = 0.0
-    #     return self._Claimed
-
-    # @Claimed.setter
-    # def Claimed(self, claimed):
-    #     self._Claimed = claimed
-
     def copy(self, parentid):
         """
         copy returns an exact duplicate of this object,
@@ -188,10 +160,7 @@ class Project(Node):
                          ClientCost=self.ClientCost,
                          ProjectedProfit=self.ProjectedProfit,
                          ActualProfit=self.ActualProfit)
-
         copied._Total = self.Total
-        # copied._Ordered = self.Ordered
-        # copied._Claimed = self.Claimed
 
         return copied
 
@@ -229,20 +198,15 @@ class Project(Node):
             subitem = []
         else:
             subitem = [{'Name':''}]
-        return {'Name': self.Name,
-                'Description': self.Description,
-                'Subitem': subitem,
-                'ID': self.ID,
-                'Path': '/' + str(self.ID) + '/',
-                'Total': self._Total,
-                'NodeType': self.type,
-                'OrderCost':self.OrderCost,
-                'ClaimedCost':self.ClaimedCost,
-                'RunningCost':self.RunningCost,
-                'IncomeRecieved':self.IncomeRecieved,
-                'ClientCost':self.ClientCost,
-                'ProjectedProfit':self.ProjectedProfit,
-                'ActualProfit':self.ActualProfit}
+        return {'name': self.Name,
+                'budg_cost': self.Total,
+                'order_cost': self.OrderCost,
+                'run_cost': self.RunningCost,
+                'claim_cost': self.ClaimedCost,
+                'income_rec': self.IncomeRecieved,
+                'client_cost': self.ClientCost,
+                'proj_profit': self.ProjectedProfit,
+                'act_profit': self.ActualProfit}
 
     def __repr__(self):
         """
@@ -268,8 +232,6 @@ class BudgetGroup(Node):
     Name = Column(Text)
     Description = Column(Text)
     _Total = Column('Total', Float)
-    # _Ordered = Column('Ordered', Float)
-    # _Claimed = Column('Claimed', Float)
 
     __mapper_args__ = {
         'polymorphic_identity': 'BudgetGroup',
@@ -331,32 +293,6 @@ class BudgetGroup(Node):
         else:
             parent.Total = parent.Total + difference
 
-    # """
-    # Get and set for the ordered property
-    # """
-    # @hybrid_property
-    # def Ordered(self):
-    #     if self._Ordered == None:
-    #         self._Ordered = 0.0
-    #     return self._Ordered
-
-    # @Ordered.setter
-    # def Ordered(self, ordered):
-    #     self._Ordered = ordered
-
-    # """
-    # Get and set for the claimed property
-    # """
-    # @hybrid_property
-    # def Claimed(self):
-    #     if self._Claimed == None:
-    #         self._Claimed = 0.0
-    #     return self._Claimed
-
-    # @Claimed.setter
-    # def Claimed(self, claimed):
-    #     self._Claimed = claimed
-
     def copy(self, parentid):
         """
         copy returns an exact duplicate of this object,
@@ -414,20 +350,15 @@ class BudgetGroup(Node):
             subitem = []
         else:
             subitem = [{'Name':''}]
-        return {'Name': self.Name,
-                'Description': self.Description,
-                'Subitem': subitem,
-                'ID': self.ID,
-                'Path': '/' + str(self.ID) + '/',
-                'Total': self._Total,
-                'NodeType': self.type,
-                'OrderCost':self.OrderCost,
-                'ClaimedCost':self.ClaimedCost,
-                'RunningCost':self.RunningCost,
-                'IncomeRecieved':self.IncomeRecieved,
-                'ClientCost':self.ClientCost,
-                'ProjectedProfit':self.ProjectedProfit,
-                'ActualProfit':self.ActualProfit}
+        return {'name': self.Name,
+                'budg_cost': self.Total,
+                'order_cost': self.OrderCost,
+                'run_cost': self.RunningCost,
+                'claim_cost': self.ClaimedCost,
+                'income_rec': self.IncomeRecieved,
+                'client_cost': self.ClientCost,
+                'proj_profit': self.ProjectedProfit,
+                'act_profit': self.ActualProfit}
 
     def __repr__(self):
         """
@@ -454,8 +385,6 @@ class BudgetItem(Node):
     _Quantity = Column('Quantity', Float)
     _Rate = Column('Rate', Float)
     _Total = Column('Total', Float)
-    # _Ordered = Column('Ordered', Float)
-    # _Claimed = Column('Claimed', Float)
 
     __mapper_args__ = {
         'polymorphic_identity': 'BudgetItem',
@@ -514,8 +443,6 @@ class BudgetItem(Node):
         # update the parent with the new total
         # since the total has changed, change the rate of any parent
         # budgetitems, and then others
-        # p_ID = self.ParentID
-        # nodeqry = DBSession.query(Node).filter_by(ID=p_ID).first()
         parent = self.Parent
         if parent.type == 'BudgetItem':
             parent.Rate = parent.Rate + difference
@@ -524,32 +451,6 @@ class BudgetItem(Node):
                 parent.resetTotal()
             else:
                 parent.Total = parent.Total + difference
-
-    # """
-    # Get and set for the ordered property
-    # """
-    # @hybrid_property
-    # def Ordered(self):
-    #     if self._Ordered == None:
-    #         self._Ordered = 0.0
-    #     return self._Ordered
-
-    # @Ordered.setter
-    # def Ordered(self, ordered):
-    #     self._Ordered = ordered
-
-    # """
-    # Get and set for the claimed property
-    # """
-    # @hybrid_property
-    # def Claimed(self):
-    #     if self._Claimed == None:
-    #         self._Claimed = 0.0
-    #     return self._Claimed
-
-    # @Claimed.setter
-    # def Claimed(self, claimed):
-    #     self._Claimed = claimed
 
     """
     Get and set for the rate property
@@ -604,8 +505,6 @@ class BudgetItem(Node):
         copied._Quantity = self.Quantity
         copied._Rate = self.Rate
         copied._Total = self.Total
-        # copied._Ordered = self.Ordered
-        # copied._Claimed = self.Claimed
 
         return copied
 
@@ -644,23 +543,15 @@ class BudgetItem(Node):
             subitem = []
         else:
             subitem = [{'Name':''}]
-        return {'Name': self.Name,
-                'Description': self.Description,
-                'Subitem': subitem,
-                'ID': self.ID,
-                'Path': '/' + str(self.ID) + '/',
-                'Unit': self.Unit,
-                'Rate': self._Rate,
-                'Ordered': self._Ordered,
-                'Claimed': self._Claimed,
-                'NodeType': self.type,
-                'OrderCost':self.OrderCost,
-                'ClaimedCost':self.ClaimedCost,
-                'RunningCost':self.RunningCost,
-                'IncomeRecieved':self.IncomeRecieved,
-                'ClientCost':self.ClientCost,
-                'ProjectedProfit':self.ProjectedProfit,
-                'ActualProfit':self.ActualProfit}
+        return {'name': self.Name,
+                'budg_cost': self.Total,
+                'order_cost': self.OrderCost,
+                'run_cost': self.RunningCost,
+                'claim_cost': self.ClaimedCost,
+                'income_rec': self.IncomeRecieved,
+                'client_cost': self.ClientCost,
+                'proj_profit': self.ProjectedProfit,
+                'act_profit': self.ActualProfit}
 
     def __repr__(self):
         """
@@ -684,26 +575,12 @@ class Component(Node):
     __tablename__ = 'Component'
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
-    # Name = Column(Text, ForeignKey('Resource.Name'))
-    # Description = Column(Text, ForeignKey('Resource.Description'))
-    # _Rate = Column('Rate', Float, ForeignKey('Resource.Rate'))
-    # Name = Column(Text)
-    # Description = Column(Text)
-    # _Rate = Column('Rate', Float)
     ResourceID = Column(Integer, ForeignKey('Resource.ID'))
     Type = Column(Integer, ForeignKey('ComponentType.ID'))
     Unit = Column(Text)
     _Quantity = Column('Quantity', Float)
     _Total = Column('Total', Float)
-    # _Ordered = Column('Ordered', Float)
-    # _Claimed = Column('Claimed', Float)
-    # __table_args__ = (ForeignKeyConstraint(
-    #     ['Name', 'Description', 'Rate'],
-    #     ['Resource.Name', 'Resource.Description', 'Resource.Rate'],
-    #     onupdate='CASCADE'),
-    #     {})
 
-    # ThisResource = relationship('Resource')#, foreign_keys='[Component.Name, Component.Description, Component._Rate]', backref='Components')
     ThisResource = relationship('Resource', foreign_keys='Component.ResourceID', backref='Components')
 
     __mapper_args__ = {
@@ -727,19 +604,9 @@ class Component(Node):
 
     def resetTotal(self):
         """
-        The rate of the component is based on the total of all its children
-        So the rate is recalculated and then the total recalculated and
-        returned
+        The total of a component is based on its rate and quantity
         """
 
-        # rate = 0
-        # rate = self.ThisResource.Rate
-        # if len(self.Children)>0:
-        #     raise Exception('Component should not have  children')
-        # for item in self.Children:
-        #     rate += item.Total
-
-        # self.Rate = rate
         self.Total = self.Rate * self.Quantity
 
         return self._Total
@@ -764,8 +631,6 @@ class Component(Node):
 
         # since the total has changed, change the rate of any parent
         # components, budgetitems or others
-        # p_ID = self.ParentID
-        # nodeqry = DBSession.query(Node).filter_by(ID=p_ID).first()
         parent = self.Parent
         if parent.type == 'BudgetItem':
             parent.Rate = parent.Rate + difference
@@ -795,43 +660,14 @@ class Component(Node):
     def Description(self, description):
         self.ThisResource.Description = description
 
-    # """
-    # Get and set for the ordered property
-    # """
-    # @hybrid_property
-    # def Ordered(self):
-    #     if self._Ordered == None:
-    #         self._Ordered = 0.0
-    #     return self._Ordered
-    # @Ordered.setter
-    # def Ordered(self, ordered):
-    #     self._Ordered = ordered
-
-    # """
-    # Get and set for the claimed property
-    # """
-    # @hybrid_property
-    # def Claimed(self):
-    #     if self._Claimed == None:
-    #         self._Claimed = 0.0
-    #     return self._Claimed
-
-    # @Claimed.setter
-    # def Claimed(self, claimed):
-    #     self._Claimed = claimed
-
     """
     Get and set for the rate property
     """
     @hybrid_property
     def Rate(self):
-        # if self._Rate == None:
-        #     self._Rate = self.ThisResource.Rate
         return self.ThisResource.Rate
-
     @Rate.setter
     def Rate(self, rate):
-        # self._Rate = rate
         if self.ThisResource.Rate != rate:
             self.ThisResource.Rate = rate
 
@@ -872,10 +708,7 @@ class Component(Node):
                             ActualProfit=self.ActualProfit)
 
         copied._Quantity = self.Quantity
-        # copied._Rate = self.Rate
         copied._Total = self.Total
-        # copied._Ordered = self.Ordered
-        # copied._Claimed = self.Claimed
 
         return copied
 
@@ -907,29 +740,18 @@ class Component(Node):
                 componentlist += [child]
             componentlist += child.getComponents()
 
-        # if len(componentlist)>0:
-        #     raise Exception('Component should not have children')
         return componentlist
 
     def toDict(self):
-        return {'Name': self.Name,
-                'Description': self.Description,
-                'Subitem': [],
-                'ID': self.ID,
-                'Path': '/' + str(self.ID) + '/',
-                'Type': self.Type,
-                'Unit': self.Unit,
-                'Rate': self.Rate,
-                'Quantity': self._Quantity,
-                'Total': self._Total,
-                'NodeType': self.type,
-                'OrderCost':self.OrderCost,
-                'ClaimedCost':self.ClaimedCost,
-                'RunningCost':self.RunningCost,
-                'IncomeRecieved':self.IncomeRecieved,
-                'ClientCost':self.ClientCost,
-                'ProjectedProfit':self.ProjectedProfit,
-                'ActualProfit':self.ActualProfit}
+        return {'name': self.Name,
+                'budg_cost': self.Total,
+                'order_cost': self.OrderCost,
+                'run_cost': self.RunningCost,
+                'claim_cost': self.ClaimedCost,
+                'income_rec': self.IncomeRecieved,
+                'client_cost': self.ClientCost,
+                'proj_profit': self.ProjectedProfit,
+                'act_profit': self.ActualProfit}
 
     def __repr__(self):
         """
@@ -959,20 +781,6 @@ class ComponentType(Base):
         return '<ComponentType(Name="%s", ID="%s")>' % (
             self.Name, self.ID)
 
-# """
-# resourcelist is the association table 'ResourceList' used to map the many to
-# many relationship between ResourceCategory and Resource
-# """
-# resourcelist = Table('ResourceList', Base.metadata,
-#                      Column('ResourceCategory',
-#                          Integer,
-#                          ForeignKey('ResourceCategory.ID')),
-#                      Column('Resource',
-#                         Integer,
-#                         ForeignKey('Resource.ID'))
-#                      )
-
-
 class ResourceCategory(Node):
 
     """
@@ -986,12 +794,6 @@ class ResourceCategory(Node):
     Description = Column(Text)
     # Total is just a dummy column for when a project is calculating its total
     _Total = Column('Total', Float, default=0.0)
-
-    # the relationship between resourcecategory and resource is defined using
-    # the association table resourcelist
-    # Resources = relationship('Resource',
-    #                          secondary=resourcelist,
-    #                          backref='Categories')
 
     __mapper_args__ = {
         'polymorphic_identity': 'ResourceCategory',
@@ -1029,12 +831,15 @@ class ResourceCategory(Node):
             subitem = []
         else:
             subitem = [{'Name':''}]
-        return {'Name': self.Name,
-                'Description': self.Description,
-                'Subitem': subitem,
-                'ID': self.ID,
-                'Path': '/' + str(self.ID) + '/',
-                'NodeType': self.type}
+        return {'name': self.Name,
+                'budg_cost': 'x',
+                'order_cost': 'x',
+                'run_cost': 'x',
+                'claim_cost': 'x',
+                'income_rec': 'x',
+                'client_cost': 'x',
+                'proj_profit': 'x',
+                'act_profit': 'x'}
 
     def __repr__(self):
         """
@@ -1050,7 +855,6 @@ class Resource(Node):
     """
     Resource represents a specific resource used in Optimate
     Each resource is unique and can be referenced by multiple Components
-    All it's columns are primary keys and forms a composite primary key
     A list of resources has a resource category as its parent
     Therefore Resource follows the Association object model and has
     foreign keys pointing to ResourceCategory as it's parent and
@@ -1091,14 +895,15 @@ class Resource(Node):
             return self.Name == other.Name
 
     def toDict(self):
-        return {'Name': self.Name,
-                'Description': self.Description,
-                'Subitem': [],
-                'ID': self.ID,
-                'Path': '/' + str(self.ID) + '/',
-                'Code': self.Code,
-                'Rate': self.Rate,
-                'NodeType': 'resource'}
+        return {'name': self.Name,
+                'budg_cost': 'x',
+                'order_cost': 'x',
+                'run_cost': 'x',
+                'claim_cost': 'x',
+                'income_rec': 'x',
+                'client_cost': 'x',
+                'proj_profit': 'x',
+                'act_profit': 'x'}
 
     def __repr__(self):
         """
@@ -1107,7 +912,3 @@ class Resource(Node):
 
         return '<Resource(Name="%s", Code="%s%", Rate="%s", ID="%s")>' % (
             self.Name, self.Code, self.Rate, self.ID)
-
-# Resource.Components = relationship(Component,
-#     backref=backref('ThisResource', uselist=True, viewonly=True,
-#         foreign_keys=[Component.Name, Component.Description, Component._Rate]), viewonly=True)

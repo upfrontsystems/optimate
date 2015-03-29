@@ -2,9 +2,9 @@ var grid;
 var data = [];
 var cellwidth = 75;
 var columns = [
-        {id: "name", name: "Name", field: "name", 
+        {id: "name", name: "Name", field: "name",
          width: 120, cssClass: "cell-title", editor: Slick.Editors.Text},
-        {id: "budg_cost", name: "Budg Cost", field: "budg_cost", 
+        {id: "budg_cost", name: "Budg Cost", field: "budg_cost",
          width: cellwidth, editor: Slick.Editors.Text},
         {id: "order_cost", name: "Order Cost", field: "order_cost",
          width: cellwidth, editor: Slick.Editors.Text},
@@ -49,7 +49,7 @@ $(function () {
 
     grid = new Slick.Grid("#optimate-data-grid", data, columns, options);
     grid.setSelectionModel(new Slick.CellSelectionModel());
-    // show tooltips on hover if the cellsize is so small, that an ellipsis 
+    // show tooltips on hover if the cellsize is so small, that an ellipsis
     // '...' is being shown.
     autotooltips_plugin = new Slick.AutoTooltips({enableForHeaderCells: true})
     grid.registerPlugin(autotooltips_plugin);
@@ -61,11 +61,11 @@ $(function () {
         grid.updateRowCount();
         grid.render();
     });
-    
+
     // eventhandler to update grid data when a tree node is clicked
     $( document ).on( "click", ".treenode", function( e ) {
-        var path = $(this).attr('path')
-        var url = 'http://127.0.0.1:8100/nodegridview' + path
+        var nodeid = $(this).attr('ID')
+        var url = 'http://127.0.0.1:8100/nodegridview/' + nodeid + '/'
         $.ajax({
             url: url,
             dataType: "json",
@@ -79,10 +79,10 @@ $(function () {
 })
 
 // on load, load up slickgrid with data from first project in the list
-// hardwired for now as 306 at the moment
+// hardwired for now as the root at the moment
 $(document).ready(function() {
     $.ajax({
-        url: 'http://127.0.0.1:8100/nodegridview/306/',
+        url: 'http://127.0.0.1:8100/nodegridview/0/',
         dataType: "json",
         success: function(data) {
             grid.setData(data)

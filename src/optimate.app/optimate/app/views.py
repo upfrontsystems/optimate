@@ -38,34 +38,33 @@ def childview(request):
     adds it to a list and returns it to the JSON renderer
     in a format that is acceptable to angular.treeview
     """
-
+    print "Getting children: ",
     parentid = 0
     if 'parentid' in request.matchdict:
         parentid = request.matchdict['parentid']
-
-    start = request.params.get('start')
-    end = request.params.get('end')
 
     childrenlist = []
 
     # Execute the sql query on the Node table to find the parent
     qry = DBSession.query(Node).filter_by(ID=parentid).first()
 
-    # Format the result into a json readable list and respond with that
-    # for now display the resource category with its resources as well
-    # if qry != None:
-    #     if qry.type == "ResourceCategory":
-    #         for resource in qry.Resources:
-    #             childrenlist.append(resource.toDict())
-    #     else:
-    #         for value in qry.Children:
-    #             childrenlist.append(value.toDict())
-    if qry != None:
+    # build the list and only get the neccesary values
+    if qry !=None:
+
         for value in qry.Children:
-                childrenlist.append(value.toDict())
+            if value.Children:
+                subitem = [{'Name': '...'}]
+            else:
+                subitem = []
+            childrenlist.append({'Name': value.Name,
+                                    'Description': value.Description,
+                                    'ID': value.ID,
+                                    'Subitem': subitem,
+                                    'NodeType': value.type})
 
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'])
 
+    print "done"
     try:
         start = int(start)
         end = int(end)
@@ -74,6 +73,7 @@ def childview(request):
 
     if start >= 0 and end >= 0 and start <= end:
         return sorted_childrenlist[int(start):int(end)]
+
     return sorted_childrenlist
 
 
@@ -88,6 +88,7 @@ def nodegridview(request):
     in a format that is acceptable to Slickgrid.
     """
 
+    print "Getting grid data: ",
     parentid = 0
     if 'parentid' in request.matchdict:
         parentid = request.matchdict['parentid']
@@ -96,38 +97,25 @@ def nodegridview(request):
     # Execute the sql query on the Node table to find the parent
     qry = DBSession.query(Node).filter_by(ID=parentid).first()
 
-    # Format the result into a json readable list and respond with that
-    # for now display the resource category with its resources as well
+    # Add the todict version of each item to the list
+    # the resource category is not shown in the grid
     if qry != None:
-        if qry.type == "ResourceCategory":
-            for resource in qry.Resources:
-                childrenlist.append(resource.toDict())
-        else:
-            for value in qry.Children:
-                if value.toDict()['NodeType'] != "ResourceCategory":
-                    childrenlist.insert(len(childrenlist), {
-                    'name': value.toDict()['Name'],
-                    'budg_cost': 'x',
-                    'order_cost': value.toDict()['Ordered'],
-                    'run_cost': 'x',
-                    'claim_cost': value.toDict()['Claimed'],
-                    'income_rec': 'x',
-                    'client_cost': 'x',
-                    'proj_profit': 'x',
-                    'act_profit': 'x'})
-                else:
-                    childrenlist.insert(len(childrenlist), {
-                    'name': value.toDict()['Name'],
-                    'budg_cost': 'x',
-                    'order_cost': 'x',
-                    'run_cost': 'x',
-                    'claim_cost': 'x',
-                    'income_rec': 'x',
-                    'client_cost': 'x',
-                    'proj_profit': 'x',
-                    'act_profit': 'x'})
-    
+        for value in qry.Children:
+            if value.type != "ResourceCategory":
+                childrenlist.append({
+                'name': value.Name,
+                'budg_cost': value.Total,
+                'order_cost': value.OrderCost,
+                'run_cost': value.RunningCost,
+                'claim_cost': value.ClaimedCost,
+                'income_rec': value.IncomeRecieved,
+                'client_cost': value.ClientCost,
+                'proj_profit': value.ProjectedProfit,
+                'act_profit': value.ActualProfit})
+
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['name'])
+
+    print "done"
     return sorted_childrenlist
 
 
@@ -142,6 +130,7 @@ def additemview(request):
     if request.method == 'OPTIONS':
         return {"success": True}
     else:
+        print "Adding node: ",
         # Get the parent to add the object to from the path
         parentid = int(request.matchdict['id'])
 
@@ -150,7 +139,6 @@ def additemview(request):
         desc = request.json_body['Description']
         objecttype = request.json_body['NodeType']
 
-        newnode = None
         # Determine the type of object to be added and build it
         if objecttype == 'project':
             newnode = Project(Name=name,
@@ -162,12 +150,10 @@ def additemview(request):
                                   ParentID=parentid)
         elif objecttype == 'budgetitem':
             quantity = float(request.json_body['Quantity'])
-            rate = float(request.json_body['Rate'])
             newnode = BudgetItem(Name=name,
                                  Description=desc,
                                  ParentID=parentid)
-            newnode.Quantity = quantity
-            # newnode.Rate = rate
+            newnode._Quantity = quantity
         elif objecttype == 'component':
             # Components need to reference a Resource that already exists
             # in the system
@@ -178,15 +164,12 @@ def additemview(request):
             else:
                 componenttype = int(request.json_body['ComponentType'])
                 quantity = float(request.json_body['Quantity'])
-                # rate = float(request.json_body['Rate'])
                 newnode = Component(ResourceID=resource.ID,
                                     Type=componenttype,
                                     ParentID=parentid)
                 parent.Children.append(newnode)
                 resource.Components.append(newnode)
-                newnode.Quantity = quantity
-                # newnode.Rate = rate
-
+                newnode._Quantity = quantity
         else:
             return HTTPInternalServerError()
 
@@ -199,7 +182,7 @@ def additemview(request):
             recalculate.resetTotal()
 
         transaction.commit()
-
+        print "done"
         return HTTPOk()
 
 
@@ -213,6 +196,7 @@ def deleteitemview(request):
     if request.method == 'OPTIONS':
         return {"success": True}
     else:
+        print "Deleting node: ",
         # Get the id of the node to be deleted from the path
         deleteid = request.matchdict['id']
 
@@ -231,7 +215,7 @@ def deleteitemview(request):
             recalculate.resetTotal()
 
         transaction.commit()
-
+        print "done"
         return HTTPOk()
 
 
@@ -246,8 +230,9 @@ def pasteitemview(request):
     if request.method == 'OPTIONS':
         return {"success": True}
     else:
+        print "Pasting node: ",
         # Find the source object to be copied from the path in the request body
-        sourceid = request.json_body["Path"][1:-1]
+        sourceid = request.json_body["ID"]
         # Find the object to be copied to from the path
         destinationid = request.matchdict['id']
 
@@ -280,7 +265,7 @@ def pasteitemview(request):
             recalculate.resetTotal()
 
         transaction.commit()
-
+        print "done"
         return HTTPOk()
 
 
@@ -295,6 +280,7 @@ def costview(request):
     if request.method == 'OPTIONS':
         return {"success": True}
     else:
+        print "Getting cost: ",
         # Get the id of the node to be costed
         costid = request.matchdict['id']
         qry = DBSession.query(Node).filter_by(ID=costid).first()
@@ -305,6 +291,7 @@ def costview(request):
         totalcost = qry.Total
         transaction.commit()
 
+        print "done"
         return {'Cost': totalcost}
 
 
@@ -334,11 +321,6 @@ def testchangerateview(request):
     resourcecode = request.matchdict['resourcecode']
     # qry = DBSession.query(ResourceCategory).filter_by(ParentID=projectid).first()
     resource = DBSession.query(Resource).filter_by(Code=resourcecode).first()
-
-    # try:
-    #     resource = qry[qry.Children.index(resourcename)]
-    # except ValueError:
-    #     return HTTPNotFound('Resource not found')
 
     resource.Rate = 15.0
     resource.Name = "newname"
