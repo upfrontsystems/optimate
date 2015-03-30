@@ -1,6 +1,5 @@
-"""
-setyp.py contains the set of modules required by this package
-and sets up the development enviroment for pyramid
+""" setup.py contains the set of modules required by this package
+    and sets up the development enviroment for pyramid
 """
 
 import os
