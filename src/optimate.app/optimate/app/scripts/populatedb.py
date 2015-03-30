@@ -44,7 +44,7 @@ def generateResourceCode(resname):
     if len(resname) < 3:
         resname = resname.upper() + (3-len(resname))*'X'
     else:
-        resnmae = resname[:3].upper()
+        resname = resname[:3].upper()
 
     numerseq = '0'*(4-len(str(resourcecodeno))) + str(resourcecodeno)
     finalcode = resname+numerseq

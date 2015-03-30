@@ -103,17 +103,7 @@ def nodegridview(request):
     # the resource category is not shown in the grid
     if qry != None:
         for value in qry.Children:
-            if value.type != "ResourceCategory":
-                childrenlist.append({
-                'name': value.Name,
-                'budg_cost': value.Total,
-                'order_cost': value.OrderCost,
-                'run_cost': value.RunningCost,
-                'claim_cost': value.ClaimedCost,
-                'income_rec': value.IncomeRecieved,
-                'client_cost': value.ClientCost,
-                'proj_profit': value.ProjectedProfit,
-                'act_profit': value.ActualProfit})
+            childrenlist.append(value.getGridData())
 
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['name'])
 

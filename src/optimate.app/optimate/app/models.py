@@ -208,6 +208,18 @@ class Project(Node):
                 'proj_profit': self.ProjectedProfit,
                 'act_profit': self.ActualProfit}
 
+    def getGridData(self):
+        return {'name': self.Name,
+                'node_type': self.type,
+                'budg_cost': self.Total,
+                'order_cost': self.OrderCost,
+                'run_cost': self.RunningCost,
+                'claim_cost': self.ClaimedCost,
+                'income_rec': self.IncomeRecieved,
+                'client_cost': self.ClientCost,
+                'proj_profit': self.ProjectedProfit,
+                'act_profit': self.ActualProfit}
+
     def __repr__(self):
         """
         Return a representation of this project
@@ -351,6 +363,18 @@ class BudgetGroup(Node):
         else:
             subitem = [{'Name':''}]
         return {'name': self.Name,
+                'budg_cost': self.Total,
+                'order_cost': self.OrderCost,
+                'run_cost': self.RunningCost,
+                'claim_cost': self.ClaimedCost,
+                'income_rec': self.IncomeRecieved,
+                'client_cost': self.ClientCost,
+                'proj_profit': self.ProjectedProfit,
+                'act_profit': self.ActualProfit}
+
+    def getGridData(self):
+        return {'name': self.Name,
+                'node_type': self.type,
                 'budg_cost': self.Total,
                 'order_cost': self.OrderCost,
                 'run_cost': self.RunningCost,
@@ -544,6 +568,19 @@ class BudgetItem(Node):
         else:
             subitem = [{'Name':''}]
         return {'name': self.Name,
+                'budg_cost': self.Total,
+                'order_cost': self.OrderCost,
+                'run_cost': self.RunningCost,
+                'claim_cost': self.ClaimedCost,
+                'income_rec': self.IncomeRecieved,
+                'client_cost': self.ClientCost,
+                'proj_profit': self.ProjectedProfit,
+                'act_profit': self.ActualProfit}
+
+    def getGridData(self):
+        return {'name': self.Name,
+                'node_type': self.type,
+                'quantity': self.Quantity,
                 'budg_cost': self.Total,
                 'order_cost': self.OrderCost,
                 'run_cost': self.RunningCost,
@@ -753,6 +790,19 @@ class Component(Node):
                 'proj_profit': self.ProjectedProfit,
                 'act_profit': self.ActualProfit}
 
+    def getGridData(self):
+        return {'name': self.Name,
+                'node_type': self.type,
+                'quantity': self.Quantity,
+                'budg_cost': self.Total,
+                'order_cost': self.OrderCost,
+                'run_cost': self.RunningCost,
+                'claim_cost': self.ClaimedCost,
+                'income_rec': self.IncomeRecieved,
+                'client_cost': self.ClientCost,
+                'proj_profit': self.ProjectedProfit,
+                'act_profit': self.ActualProfit}
+
     def __repr__(self):
         """
         return a representation of this component
@@ -841,6 +891,18 @@ class ResourceCategory(Node):
                 'proj_profit': 'x',
                 'act_profit': 'x'}
 
+    def getGridData(self):
+        return {'name': self.Name,
+                'node_type': self.type,
+                'budg_cost': 'x',
+                'order_cost': 'x',
+                'run_cost': 'x',
+                'claim_cost': 'x',
+                'income_rec': 'x',
+                'client_cost': 'x',
+                'proj_profit': 'x',
+                'act_profit': 'x'}
+
     def __repr__(self):
         """
         Return a representation of this ResourceCategory
@@ -896,6 +958,19 @@ class Resource(Node):
 
     def toDict(self):
         return {'name': self.Name,
+                'budg_cost': 'x',
+                'order_cost': 'x',
+                'run_cost': 'x',
+                'claim_cost': 'x',
+                'income_rec': 'x',
+                'client_cost': 'x',
+                'proj_profit': 'x',
+                'act_profit': 'x'}
+
+    def getGridData(self):
+        return {'name': self.Name,
+                'node_type': self.type,
+                'rate': self.Rate,
                 'budg_cost': 'x',
                 'order_cost': 'x',
                 'run_cost': 'x',
