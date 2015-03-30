@@ -44,6 +44,8 @@ def childview(request):
         parentid = request.matchdict['parentid']
 
     childrenlist = []
+    start = request.params.get('start')
+    end = request.params.get('end')
 
     # Execute the sql query on the Node table to find the parent
     qry = DBSession.query(Node).filter_by(ID=parentid).first()
