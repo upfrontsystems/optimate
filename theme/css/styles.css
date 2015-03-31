@@ -5,13 +5,13 @@ body {
 /* treeview div */
 .left {
     float: left;
-    width: 43%;
+    width: 40%;
 }
 
 /* slickgrid div */
 .right {
     float: right;
-    width: 55%;
+    width: 58%;
 }
 
 /* angular treeview background */
@@ -39,7 +39,7 @@ body {
 }
 
 #optimate-data-grid-outer {
-    width: 720px;
+    width: 840px;
     padding: 5px;
 }
 

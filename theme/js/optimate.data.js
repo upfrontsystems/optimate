@@ -1,51 +1,32 @@
 var grid;
 var data = [];
-var title_cellwidth = 120;
-var cellwidth = 75;
+var cell_large = 120;
+var cell_medium = 75;
+var cell_small = 50;
 var columns = [
         {id: "name", name: "Name", field: "name",
-         width: title_cellwidth, cssClass: "cell-title", 
+         width: cell_large, cssClass: "cell-title", 
          editor: Slick.Editors.Text},
         {id: "budg_cost", name: "Budg Cost", field: "budg_cost",
-         width: cellwidth, editor: Slick.Editors.Text},
+         width: cell_medium, editor: Slick.Editors.Text},
         {id: "order_cost", name: "Order Cost", field: "order_cost",
-         width: cellwidth, editor: Slick.Editors.Text},
+         width: cell_medium, editor: Slick.Editors.Text},
         {id: "run_cost", name: "Run Cost", field: "run_cost",
-         width: cellwidth, editor: Slick.Editors.Text},
+         width: cell_medium, editor: Slick.Editors.Text},
         {id: "claim_cost", name: "Claim Cost", field: "claim_cost",
-         width: cellwidth, editor: Slick.Editors.Text},
+         width: cell_medium, editor: Slick.Editors.Text},
         {id: "income_rec", name: "Income Rec", field: "income_rec",
-         width: cellwidth, editor: Slick.Editors.Text},
+         width: cell_medium, editor: Slick.Editors.Text},
         {id: "client_cost", name: "Client Cost", field: "client_cost",
-         width: cellwidth, editor: Slick.Editors.Text},
+         width: cell_medium, editor: Slick.Editors.Text},
         {id: "proj_profit", name: "Proj. Profit", field: "proj_profit",
-         width: cellwidth, editor: Slick.Editors.Text},
+         width: cell_medium, editor: Slick.Editors.Text},
         {id: "act_profit", name: "Act. Profit", field: "act_profit",
-         width: cellwidth, editor: Slick.Editors.Text},
-    ];
-
-var columns_resource_category = [
-        {id: "name", name: "Name", field: "name",
-         width: title_cellwidth, cssClass: "cell-title", 
-         editor: Slick.Editors.Text},
-    ];
-
-var columns_resource = [
-        {id: "name", name: "Name", field: "name",
-         width: title_cellwidth, cssClass: "cell-title", 
-         editor: Slick.Editors.Text},
+         width: cell_medium, editor: Slick.Editors.Text},
         {id: "rate", name: "Rate", field: "rate",
-         width: cellwidth, editor: Slick.Editors.Text},
-    ];
-
-var columns_component = [
-        {id: "name", name: "Name", field: "name",
-         width: title_cellwidth, cssClass: "cell-title", 
-         editor: Slick.Editors.Text},
-        {id: "rate", name: "Rate", field: "rate",
-         width: cellwidth, editor: Slick.Editors.Text},
+         width: cell_small, editor: Slick.Editors.Text},
         {id: "quantity", name: "Quantity", field: "quantity",
-         width: cellwidth, editor: Slick.Editors.Text},
+         width: cell_medium, editor: Slick.Editors.Text},
     ];
 
 var options = {
