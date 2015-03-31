@@ -115,7 +115,7 @@ def update_value(request):
         new value of that entry and stored the updated value in the database.
     """
     nodeid = request.params.get('id')
-    entry_to_update = request.params.get('entry_to_update') # Rate/Quantity etc
+    entry_type = request.params.get('entry_type') # Rate/Quantity etc
     new_value = request.params.get('new_value')
 
     # TODO update the entry in the database

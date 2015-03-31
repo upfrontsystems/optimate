@@ -78,6 +78,26 @@ $(function () {
         });
     });
 
+    grid.onCellChange.subscribe(function (e, args) {
+        var $active = $(grid.getActiveCellNode())
+        var cell = args.cell
+        var row = args.row;
+        var current_data = grid.getData(data);
+        var value = current_data[args.row][grid.getColumns()[args.cell].field]
+        var id = current_data[args.row][grid.getColumns()[11].field]
+        $.ajax({
+            url: 'http://127.0.0.1:8100/update_value',
+            data: {
+                'id' : id,
+                'entry_type': 'Component',
+                'new_value' : value
+            },
+            dataType: "json",
+            success: function(data) {
+                console.log('id_'+ id + ' updated')
+            },
+        });
+      });
 })
 
 // on load, load up slickgrid with data from first project in the list
