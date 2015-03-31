@@ -7,7 +7,7 @@ var columns = [
         {id: "name", name: "Name", field: "name",
          width: cell_large, cssClass: "cell-title", 
          editor: Slick.Editors.Text},
-        {id: "budg_cost", name: "Budg Cost", field: "budg_cost",
+        {id: "budg_cost", name: "Total", field: "budg_cost",
          width: cell_medium, editor: Slick.Editors.Text},
         {id: "order_cost", name: "Order Cost", field: "order_cost",
          width: cell_medium, editor: Slick.Editors.Text},
@@ -87,7 +87,6 @@ $(document).ready(function() {
         dataType: "json",
         success: function(data) {
             grid.setData(data)
-            console.log(data)
             grid.render();
         }
     });
