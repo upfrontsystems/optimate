@@ -1,5 +1,6 @@
-""" views uses pyramid and sqlalchemy to recieve requests from a user
-    and send responses with appropriate data
+"""
+views uses pyramid and sqlalchemy to recieve requests from a user
+and send responses with appropriate data
 """
 
 import uuid
@@ -29,14 +30,14 @@ from .models import (
 @view_config(route_name="rootview", renderer='json')
 @view_config(route_name="childview", renderer='json')
 def childview(request):
-    """ This view is for when the user requests the children of an item.
-        The parent's id is derived from the path of the request,
-        or if there is no id in the path the root id '0' is assumed.
-        It extracts the children from the object,
-        adds it to a list and returns it to the JSON renderer
-        in a format that is acceptable to angular.treeview
     """
-
+    This view is for when the user requests the children of an item.
+    The parent's id is derived from the path of the request,
+    or if there is no id in the path the root id '0' is assumed.
+    It extracts the children from the object,
+    adds it to a list and returns it to the JSON renderer
+    in a format that is acceptable to angular.treeview
+    """
     print "Getting children: ",
     parentid = 0
     if 'parentid' in request.matchdict:
@@ -57,11 +58,15 @@ def childview(request):
                 subitem = [{'Name': '...'}]
             else:
                 subitem = []
-            childrenlist.append({'Name': value.Name,
+            try:
+                childrenlist.append({'Name': value.Name,
                                     'Description': value.Description,
                                     'ID': value.ID,
                                     'Subitem': subitem,
                                     'NodeType': value.type})
+            except AttributeError, a:
+                import pdb
+                pdb.set_trace()
 
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'])
 
@@ -80,12 +85,13 @@ def childview(request):
 
 @view_config(route_name="nodegridview", renderer='json')
 def nodegridview(request):
-    """ This view is for when the user requests the children of an item.
-        The parent's id is derived from the path of the request,
-        or if there is no id in the path the root id '0' is assumed.
-        It extracts the children from the object,
-        adds it to a list and returns it to the JSON renderer
-        in a format that is acceptable to Slickgrid.
+    """
+    This view is for when the user requests the children of an item.
+    The parent's id is derived from the path of the request,
+    or if there is no id in the path the root id '0' is assumed.
+    It extracts the children from the object,
+    adds it to a list and returns it to the JSON renderer
+    in a format that is acceptable to Slickgrid.
     """
 
     print "Getting grid data: ",
@@ -108,7 +114,6 @@ def nodegridview(request):
     print "done"
     return sorted_childrenlist
 
-
 @view_config(route_name="update_value", renderer='json')
 def update_value(request):
     """ Takes an ID of the node, entry that needs to be updated, as well as the
@@ -121,12 +126,12 @@ def update_value(request):
     # TODO update the entry in the database
 
 
-
 @view_config(route_name="addview", renderer='json')
 def additemview(request):
-    """ The additemview is called when an http POST request is sent from the 
-        client. The method adds a new node with attributes as specified by the 
-        user to the current node.
+    """
+    The additemview is called when an http POST request is sent from the client.
+    The method adds a new node with attributes as specified by the user
+    to the current node.
     """
 
     if request.method == 'OPTIONS':
@@ -159,19 +164,37 @@ def additemview(request):
         elif objecttype == 'component':
             # Components need to reference a Resource that already exists
             # in the system
-            resource = DBSession.query(Resource).filter_by(Name=name).first()
             parent = DBSession.query(Node).filter_by(ID=parentid).first()
+            rootparentid = parent.getProjectID()
+            resourcecategory = DBSession.query(
+                    ResourceCategory).filter_by(ParentID=rootparentid).first()
+            rescatid = resourcecategory.ID
+            resource = DBSession.query(
+                                Resource).filter_by(
+                                ParentID=rescatid, Name=name).first()
+            # the resource does not exists in the resourcecategory
             if resource == None:
-                return HTTPNotFound('The resource does not exist')
-            else:
-                componenttype = int(request.json_body['ComponentType'])
-                quantity = float(request.json_body['Quantity'])
-                newnode = Component(ResourceID=resource.ID,
-                                    Type=componenttype,
-                                    ParentID=parentid)
-                parent.Children.append(newnode)
-                resource.Components.append(newnode)
-                newnode._Quantity = quantity
+                resource = DBSession.query(
+                                    Resource).filter_by(Name=name).first()
+                if resource == None:
+                    return HTTPNotFound("The resource does not exist")
+                else:
+                    newresource = Resource(Name=resource.Name,
+                                            Code=resource.Code,
+                                            Description=resource.Description)
+                    newresource._Rate = resource.Rate
+                    resourcecategory.Children.append(newresource)
+                    transaction.commit()
+                    resource = DBSession.query(
+                                Resource).filter_by(
+                                ParentID=rescatid, Name=name).first()
+
+            componenttype = int(request.json_body['ComponentType'])
+            quantity = float(request.json_body['Quantity'])
+            newnode = Component(ResourceID=resource.ID,
+                                Type=componenttype,
+                                ParentID=parentid)
+            newnode._Quantity = quantity
         else:
             return HTTPInternalServerError()
 
@@ -190,9 +213,9 @@ def additemview(request):
 
 @view_config(route_name="deleteview", renderer='json')
 def deleteitemview(request):
-    """ The deleteitemview is called using the address from the node to be 
-        deleted. The node ID is sent in the request, and it is deleted from the 
-        tables.
+    """
+    The deleteitemview is called using the address from the node to be deleted.
+    The node ID is sent in the request, and it is deleted from the tables.
     """
 
     if request.method == 'OPTIONS':
@@ -223,9 +246,10 @@ def deleteitemview(request):
 
 @view_config(route_name="pasteview", renderer='json')
 def pasteitemview(request):
-    """ The pasteitemview is sent the path of the node that is to be copied.
-        That node is then found in the db, copied with the new parent's id,
-        and added to the current node.
+    """
+    The pasteitemview is sent the path of the node that is to be copied.
+    That node is then found in the db, copied with the new parent's id,
+    and added to the current node.
     """
 
     if request.method == 'OPTIONS':
@@ -272,9 +296,10 @@ def pasteitemview(request):
 
 @view_config(route_name="costview", renderer='json')
 def costview(request):
-    """ The costview is called using the address from the node to be costed.
-        The node ID is sent in the request, and the total cost of that node
-        is calculated recursively from it's children.
+    """
+    The costview is called using the address from the node to be costed.
+    The node ID is sent in the request, and the total cost of that node
+    is calculated recursively from it's children.
     """
 
     if request.method == 'OPTIONS':
@@ -297,8 +322,9 @@ def costview(request):
 
 @view_config(route_name="testchangequantityview", renderer="json")
 def testchangequantityview(request):
-    """ This is for testing purposes only. The quantity of a component is 
-        changed so that its effect can be tested.
+    """
+    This is for testing purposes only. The quantity of a component is changed
+    so that its effect can be tested.
     """
 
     coid = request.matchdict['id']
@@ -309,11 +335,11 @@ def testchangequantityview(request):
 
     return HTTPOk()
 
-
 @view_config(route_name="testchangerateview", renderer="json")
 def testchangerateview(request):
-    """ This is for testing purposes only. The rate of a resource is changed
-        so that its effect can be tested.
+    """
+    This is for testing purposes only. The rate of a resource is changed
+    so that its effect can be tested.
     """
 
     projectid = request.matchdict['id']
