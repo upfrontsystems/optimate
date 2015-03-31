@@ -181,38 +181,38 @@ def _initTestingDB():
         transaction.commit()
 
         """The hierarchy
-        project -(475)
+        project -(475) id:1
                 |
-                budgetgroup -(475)
+                budgetgroup -(475) id:2
                             |
-                            budgetitem -((25+70)*5=475)
+                            budgetitem -((25+70)*5=475) id:3 
                                        |
-                                       comp - res (5*5=25)
+                                       comp - res (5*5=25) id:7
                                        |
-                                       compa - resa (7*10=70)
+                                       compa - resa (7*10=70) id:11
                 |
-                rescat -
+                rescat - id:9
                         |
-                        res
+                        res id:15
                         |
-                        resa
-        projectb -(590)
+                        resa id:16
+        projectb -(590) id:4
                  |
-                 budgetgroupb -(350+240=590)
+                 budgetgroupb -(350+240=590) id:5
                               |
-                              budgetitemb - (35*10=350)
+                              budgetitemb - (35*10=350) id:6
                                           |
-                                          compb - resb (5*7=35)
+                                          compb - resb (5*7=35) id:8
                               |
-                              budgetitemc - (40*6=240)
+                              budgetitemc - (40*6=240) id:13
                                           |
-                                          compc - resduplicate (8*5=40)
+                                          compc - resduplicate (8*5=40) id:14
                  |
-                 rescatb -
+                 rescatb - id:12
                          |
-                         resb
+                         resb id:17
                          |
-                         resduplicate
+                         resduplicate id:18
         """
 
         # projectlist = DBSession.query(Project).all()
@@ -509,13 +509,73 @@ class TestCostviewSuccessCondition(unittest.TestCase):
 
     def test_it(self):
         _registerRoutes(self.config)
-        # get the cost of projectb at id 4
+        # get the cost of project at id 1
         request = testing.DummyRequest()
         request.matchdict = {'id': 1}
         response = self._callFUT(request)
-
         # true if the cost is correct
         self.assertEqual(response["Cost"], 475.0)
+
+        # get the cost of budgetgroup at id 2
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 2}
+        response = self._callFUT(request)
+        self.assertEqual(response["Cost"], 475.0)
+
+        # get the cost of budgetitem at id 3
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 3}
+        response = self._callFUT(request)
+        self.assertEqual(response["Cost"], 475.0)
+
+        # get the cost of comp at id 7
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 7}
+        response = self._callFUT(request)
+        self.assertEqual(response["Cost"], 25.0)
+
+        # get the cost of compa at id 11
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 11}
+        response = self._callFUT(request)
+        self.assertEqual(response["Cost"], 70.0)
+
+        # get the cost of projectb at id 4
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 4}
+        response = self._callFUT(request)
+        self.assertEqual(response["Cost"], 590.0)
+
+        # get the cost of budgetgroupb at id 5
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 5}
+        response = self._callFUT(request)
+        # true if the cost is correct
+        self.assertEqual(response["Cost"], 590.0)
+
+        # get the cost of budgetitemb at id 6
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 6}
+        response = self._callFUT(request)
+        self.assertEqual(response["Cost"], 350.0)
+
+        # get the cost of compb at id 8
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 8}
+        response = self._callFUT(request)
+        self.assertEqual(response["Cost"], 35.0)
+
+        # get the cost of budgetitemc at id 13
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 13}
+        response = self._callFUT(request)
+        self.assertEqual(response["Cost"], 240.0)
+
+        # get the cost of compc at id 14
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 14}
+        response = self._callFUT(request)
+        self.assertEqual(response["Cost"], 40.0)
 
 
 class TestSetComponentQuantitySuccessCondition(unittest.TestCase):
