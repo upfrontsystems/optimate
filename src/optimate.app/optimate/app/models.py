@@ -670,7 +670,6 @@ class Component(Node):
             object.
             Reset the total of this component when its done
         """
-
         self.Children.append(source)
         for child in sourcechildren:
             # The resource category is not pasted
