@@ -1,6 +1,5 @@
-"""
-views uses pyramid and sqlalchemy to recieve requests from a user
-and send responses with appropriate data
+""" views uses pyramid and sqlalchemy to recieve requests from a user
+    and send responses with appropriate data
 """
 
 import uuid
@@ -30,14 +29,14 @@ from .models import (
 @view_config(route_name="rootview", renderer='json')
 @view_config(route_name="childview", renderer='json')
 def childview(request):
+    """ This view is for when the user requests the children of an item.
+        The parent's id is derived from the path of the request,
+        or if there is no id in the path the root id '0' is assumed.
+        It extracts the children from the object,
+        adds it to a list and returns it to the JSON renderer
+        in a format that is acceptable to angular.treeview
     """
-    This view is for when the user requests the children of an item.
-    The parent's id is derived from the path of the request,
-    or if there is no id in the path the root id '0' is assumed.
-    It extracts the children from the object,
-    adds it to a list and returns it to the JSON renderer
-    in a format that is acceptable to angular.treeview
-    """
+
     print "Getting children: ",
     parentid = 0
     if 'parentid' in request.matchdict:
@@ -81,13 +80,12 @@ def childview(request):
 
 @view_config(route_name="nodegridview", renderer='json')
 def nodegridview(request):
-    """
-    This view is for when the user requests the children of an item.
-    The parent's id is derived from the path of the request,
-    or if there is no id in the path the root id '0' is assumed.
-    It extracts the children from the object,
-    adds it to a list and returns it to the JSON renderer
-    in a format that is acceptable to Slickgrid.
+    """ This view is for when the user requests the children of an item.
+        The parent's id is derived from the path of the request,
+        or if there is no id in the path the root id '0' is assumed.
+        It extracts the children from the object,
+        adds it to a list and returns it to the JSON renderer
+        in a format that is acceptable to Slickgrid.
     """
 
     print "Getting grid data: ",
@@ -113,10 +111,9 @@ def nodegridview(request):
 
 @view_config(route_name="addview", renderer='json')
 def additemview(request):
-    """
-    The additemview is called when an http POST request is sent from the client.
-    The method adds a new node with attributes as specified by the user
-    to the current node.
+    """ The additemview is called when an http POST request is sent from the 
+        client. The method adds a new node with attributes as specified by the 
+        user to the current node.
     """
 
     if request.method == 'OPTIONS':
@@ -180,9 +177,9 @@ def additemview(request):
 
 @view_config(route_name="deleteview", renderer='json')
 def deleteitemview(request):
-    """
-    The deleteitemview is called using the address from the node to be deleted.
-    The node ID is sent in the request, and it is deleted from the tables.
+    """ The deleteitemview is called using the address from the node to be 
+        deleted. The node ID is sent in the request, and it is deleted from the 
+        tables.
     """
 
     if request.method == 'OPTIONS':
@@ -213,10 +210,9 @@ def deleteitemview(request):
 
 @view_config(route_name="pasteview", renderer='json')
 def pasteitemview(request):
-    """
-    The pasteitemview is sent the path of the node that is to be copied.
-    That node is then found in the db, copied with the new parent's id,
-    and added to the current node.
+    """ The pasteitemview is sent the path of the node that is to be copied.
+        That node is then found in the db, copied with the new parent's id,
+        and added to the current node.
     """
 
     if request.method == 'OPTIONS':
@@ -263,10 +259,9 @@ def pasteitemview(request):
 
 @view_config(route_name="costview", renderer='json')
 def costview(request):
-    """
-    The costview is called using the address from the node to be costed.
-    The node ID is sent in the request, and the total cost of that node
-    is calculated recursively from it's children.
+    """ The costview is called using the address from the node to be costed.
+        The node ID is sent in the request, and the total cost of that node
+        is calculated recursively from it's children.
     """
 
     if request.method == 'OPTIONS':
@@ -289,9 +284,8 @@ def costview(request):
 
 @view_config(route_name="testchangequantityview", renderer="json")
 def testchangequantityview(request):
-    """
-    This is for testing purposes only. The quantity of a component is changed
-    so that its effect can be tested.
+    """ This is for testing purposes only. The quantity of a component is 
+        changed so that its effect can be tested.
     """
 
     coid = request.matchdict['id']
@@ -302,11 +296,11 @@ def testchangequantityview(request):
 
     return HTTPOk()
 
+
 @view_config(route_name="testchangerateview", renderer="json")
 def testchangerateview(request):
-    """
-    This is for testing purposes only. The rate of a resource is changed
-    so that its effect can be tested.
+    """ This is for testing purposes only. The rate of a resource is changed
+        so that its effect can be tested.
     """
 
     projectid = request.matchdict['id']

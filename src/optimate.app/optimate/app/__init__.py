@@ -1,7 +1,7 @@
+""" __init__.py turns the directory into a package
+    and set the configuration for the server
 """
-__init__.py turns the directory into a package
-and set the configuration for the server
-"""
+
 from pyramid.events import NewResponse
 from pyramid.events import subscriber
 from pyramid.events import NewRequest
@@ -17,8 +17,9 @@ from .models import (
 
 @subscriber(NewResponse)
 def handleResponse(event):
-    """Create a new request factory,
-    ensuring CORS headers on all json responses."""
+    """ Create a new request factory,
+        ensuring CORS headers on all json responses.
+    """
 
     def cors_headers(request, response):
         response.headers.update({
