@@ -28,8 +28,8 @@ var columns = [
         {id: "quantity", name: "Quantity", field: "quantity",
          width: cell_medium, editor: Slick.Editors.Text},
         { id: "id", name: "Id", field: "id",
-         width: 0, minWidth: 0, maxWidth: 0}, 
-//         cssClass: "hide", headerCssClass: "hide_row_id"},
+         width: 0, minWidth: 0, maxWidth: 0},
+         cssClass: "hide", headerCssClass: "hide_row_id"},
     ];
 
 var options = {
@@ -72,8 +72,6 @@ $(function () {
             url: url,
             dataType: "json",
             success: function(data) {
-                // XXX here need to control which columns are displayed
-                // eg: grid.setColumns(columns_component);
                 grid.setData(data)
                 grid.render();
             }
@@ -90,7 +88,6 @@ $(document).ready(function() {
         dataType: "json",
         success: function(data) {
             grid.setData(data)
-            console.log(data)
             grid.render();
         }
     });
