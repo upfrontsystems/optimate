@@ -1,9 +1,11 @@
 var grid;
 var data = [];
+var title_cellwidth = 120;
 var cellwidth = 75;
 var columns = [
         {id: "name", name: "Name", field: "name",
-         width: 120, cssClass: "cell-title", editor: Slick.Editors.Text},
+         width: title_cellwidth, cssClass: "cell-title", 
+         editor: Slick.Editors.Text},
         {id: "budg_cost", name: "Budg Cost", field: "budg_cost",
          width: cellwidth, editor: Slick.Editors.Text},
         {id: "order_cost", name: "Order Cost", field: "order_cost",
@@ -22,6 +24,30 @@ var columns = [
          width: cellwidth, editor: Slick.Editors.Text},
     ];
 
+var columns_resource_category = [
+        {id: "name", name: "Name", field: "name",
+         width: title_cellwidth, cssClass: "cell-title", 
+         editor: Slick.Editors.Text},
+    ];
+
+var columns_resource = [
+        {id: "name", name: "Name", field: "name",
+         width: title_cellwidth, cssClass: "cell-title", 
+         editor: Slick.Editors.Text},
+        {id: "rate", name: "Rate", field: "rate",
+         width: cellwidth, editor: Slick.Editors.Text},
+    ];
+
+var columns_component = [
+        {id: "name", name: "Name", field: "name",
+         width: title_cellwidth, cssClass: "cell-title", 
+         editor: Slick.Editors.Text},
+        {id: "rate", name: "Rate", field: "rate",
+         width: cellwidth, editor: Slick.Editors.Text},
+        {id: "quantity", name: "Quantity", field: "quantity",
+         width: cellwidth, editor: Slick.Editors.Text},
+    ];
+
 var options = {
         editable: true,
         enableAddRow: true,
@@ -33,18 +59,10 @@ var options = {
 
 $(function () {
 
-    // generate sample data
-    for (var i = 0; i < 10; i++) {
+    // initial loading message
+    for (var i = 0; i < 1; i++) {
         var d = (data[i] = {});
-        d["name"] = "Project Name " + i;
-        d["budg_cost"] = "x";
-        d["order_cost"] = "x";
-        d["run_cost"] = "x";
-        d["claim_cost"] = "x";
-        d["income_rec"] = "x";
-        d["client_cost"] = "x";
-        d["proj_profit"] = "x";
-        d["act_profit"] = "x";
+        d["name"] = "Loading data...";
     }
 
     grid = new Slick.Grid("#optimate-data-grid", data, columns, options);
@@ -70,6 +88,8 @@ $(function () {
             url: url,
             dataType: "json",
             success: function(data) {
+                // XXX here need to control which columns are displayed
+                // eg: grid.setColumns(columns_component);
                 grid.setData(data)
                 grid.render();
             }
@@ -86,6 +106,7 @@ $(document).ready(function() {
         dataType: "json",
         success: function(data) {
             grid.setData(data)
+            console.log(data)
             grid.render();
         }
     });
