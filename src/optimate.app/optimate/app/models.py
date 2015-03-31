@@ -717,7 +717,8 @@ class Component(Node):
     def __repr__(self):
         """ return a representation of this component
         """
-        return '<Co(Name="%s", ID="%s", Rate="%d", Quantity="%d", ParentID="%s")>' % (
+        return '<Co(Name="%s", ID="%s", Rate="%d", ' + \
+               'Quantity="%d", ParentID="%s")>' % (
             self.Name, self.ID, self.Rate, self._Quantity, self.ParentID)
 
 
