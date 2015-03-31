@@ -1,10 +1,9 @@
-"""
-So far only the pyramid views and their functions are being tested.
-That is: Child view
-        Add view
-        Delete view
-        Paste view
-    Cost view
+""" So far only the pyramid views and their functions are being tested.
+    That is: Child view
+             Add view
+             Delete view
+             Paste view
+             Cost view
 """
 
 import unittest
@@ -12,10 +11,8 @@ import transaction
 from pyramid import testing
 from .models import DBSession
 
-
 def _initTestingDB():
-    """
-    Build a database with default data
+    """ Build a database with default data
     """
 
     from sqlalchemy import create_engine
@@ -249,11 +246,9 @@ def _registerRoutes(config):
 
 
 class TestRootviewSuccessCondition(unittest.TestCase):
-
-    """
-    Test if the Root view functions correctly.
-    It also calls the childview but without a url path,
-    the default root id '0' is then used in the view
+    """ Test if the Root view functions correctly.
+        It also calls the childview but without a url path,
+        the default root id '0' is then used in the view
     """
 
     def setUp(self):
@@ -279,9 +274,7 @@ class TestRootviewSuccessCondition(unittest.TestCase):
 
 
 class TestChildviewSuccessCondition(unittest.TestCase):
-
-    """
-    Test if the childview functions correctly with any other id.
+    """ Test if the childview functions correctly with any other id.
     """
 
     def setUp(self):
@@ -307,10 +300,8 @@ class TestChildviewSuccessCondition(unittest.TestCase):
 
 
 class TestAddBudgetGroupSuccessCondition(unittest.TestCase):
-
-    """
-    Test if the additemview functions correctly when adding a budgetgroup
-    Using default data and adding it as the child of one of the objects.
+    """ Test if the additemview functions correctly when adding a budgetgroup
+        Using default data and adding it as the child of one of the objects.
     """
 
     def setUp(self):
@@ -348,11 +339,10 @@ class TestAddBudgetGroupSuccessCondition(unittest.TestCase):
         # true if the name of the child added to the node is 'AddingName'
         self.assertEqual(response[0]['Name'], 'AddingName')
 
-class TestAddComponentSuccessCondition(unittest.TestCase):
 
-    """
-    Test if the additemview functions correctly when adding a component
-    Using default data and adding it as the child of one of the objects.
+class TestAddComponentSuccessCondition(unittest.TestCase):
+    """ Test if the additemview functions correctly when adding a component
+        Using default data and adding it as the child of one of the objects.
     """
 
     def setUp(self):
@@ -375,7 +365,6 @@ class TestAddComponentSuccessCondition(unittest.TestCase):
             'Name': 'TestResourceA',
             'Description': 'Test resource',
             'Quantity': 4,
-
             'NodeType': 'component',
             'ComponentType': 1
         })
@@ -395,10 +384,8 @@ class TestAddComponentSuccessCondition(unittest.TestCase):
 
 
 class TestDeleteviewSuccessCondition(unittest.TestCase):
-
-    """
-    Test if the delete view functions correctly and deletes the node
-    specified by the request.
+    """ Test if the delete view functions correctly and deletes the node
+        specified by the request.
     """
 
     def setUp(self):
@@ -439,10 +426,8 @@ class TestDeleteviewSuccessCondition(unittest.TestCase):
 
 
 class TestPasteviewSuccessCondition(unittest.TestCase):
-
-    """
-    Test that the paste functions correctly with pasting from a
-    default node to another one.
+    """ Test that the paste functions correctly with pasting from a
+        default node to another one.
     """
 
     def setUp(self):
@@ -489,10 +474,8 @@ class TestPasteviewSuccessCondition(unittest.TestCase):
 
 
 class TestCostviewSuccessCondition(unittest.TestCase):
-
-    """
-    Test that the paste functions correctly with getting the
-    total  cost of a node
+    """ Test that the paste functions correctly with getting the
+        total  cost of a node
     """
 
     def setUp(self):
@@ -579,10 +562,8 @@ class TestCostviewSuccessCondition(unittest.TestCase):
 
 
 class TestSetComponentQuantitySuccessCondition(unittest.TestCase):
-
-    """
-    Test that the paste functions correctly with getting the
-    total  cost of a node
+    """ Test that the paste functions correctly with getting the
+        total  cost of a node
     """
 
     def setUp(self):
@@ -619,11 +600,10 @@ class TestSetComponentQuantitySuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
         self.assertEqual(response["Cost"], 940.0)
 
-class TestSetResourceRateSuccessCondition(unittest.TestCase):
 
-    """
-    Test that the paste functions correctly with getting the
-    total  cost of a node
+class TestSetResourceRateSuccessCondition(unittest.TestCase):
+    """ Test that the paste functions correctly with getting the
+        total  cost of a node
     """
 
     def setUp(self):
