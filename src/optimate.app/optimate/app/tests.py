@@ -462,7 +462,7 @@ class TestPasteviewSuccessCondition(unittest.TestCase):
         # set the default node to be copied
         # which is budgetgroup with id 2
         request = testing.DummyRequest(json_body={
-            'Path': '/2/'}
+            'ID': '/2/'}
         )
         # set the node to be pasted into
         # which is projectb with id 4
