@@ -737,6 +737,7 @@ class ComponentType(Base):
         return '<ComponentType(Name="%s", ID="%s")>' % (
             self.Name, self.ID)
 
+
 class ResourceCategory(Node):
     """ ResourceCategory represents a unique set of resources used in a project
     """
