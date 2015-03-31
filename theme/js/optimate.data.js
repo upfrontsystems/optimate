@@ -27,6 +27,9 @@ var columns = [
          width: cell_small, editor: Slick.Editors.Text},
         {id: "quantity", name: "Quantity", field: "quantity",
          width: cell_medium, editor: Slick.Editors.Text},
+        { id: "id", name: "Id", field: "id",
+         width: 0, minWidth: 0, maxWidth: 0}, 
+//         cssClass: "hide", headerCssClass: "hide_row_id"},
     ];
 
 var options = {
@@ -87,6 +90,7 @@ $(document).ready(function() {
         dataType: "json",
         success: function(data) {
             grid.setData(data)
+            console.log(data)
             grid.render();
         }
     });

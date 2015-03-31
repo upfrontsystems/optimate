@@ -185,6 +185,7 @@ class Project(Node):
 
     def getGridData(self):
         return {'name': self.Name,
+                'id': self.ID,
                 'node_type': self.type,
                 'budg_cost': self.Total,
                 'order_cost': self.OrderCost,
@@ -327,6 +328,7 @@ class BudgetGroup(Node):
 
     def getGridData(self):
         return {'name': self.Name,
+                'id': self.ID,
                 'node_type': self.type,
                 'budg_cost': self.Total,
                 'order_cost': self.OrderCost,
@@ -508,6 +510,7 @@ class BudgetItem(Node):
 
     def getGridData(self):
         return {'name': self.Name,
+                'id': self.ID,
                 'node_type': self.type,
                 'quantity': self.Quantity,
                 'budg_cost': self.Total,
@@ -702,6 +705,7 @@ class Component(Node):
 
     def getGridData(self):
         return {'name': self.Name,
+                'id': self.ID,
                 'node_type': self.type,
                 'quantity': self.Quantity,
                 'budg_cost': self.Total,
@@ -796,6 +800,7 @@ class ResourceCategory(Node):
 
     def getGridData(self):
         return {'name': self.Name,
+                'id': self.ID,
                 'node_type': self.type,
                 'budg_cost': 'x',
                 'order_cost': 'x',
@@ -865,6 +870,7 @@ class Resource(Node):
 
     def getGridData(self):
         return {'name': self.Name,
+                'id': self.ID,
                 'node_type': self.type,
                 'rate': self.Rate,
                 'budg_cost': 'x',
