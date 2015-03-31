@@ -50,7 +50,7 @@ def childview(request):
     qry = DBSession.query(Node).filter_by(ID=parentid).first()
 
     # build the list and only get the neccesary values
-    if qry !=None:
+    if qry != None:
 
         for value in qry.Children:
             if value.Children:
@@ -107,6 +107,19 @@ def nodegridview(request):
 
     print "done"
     return sorted_childrenlist
+
+
+@view_config(route_name="update_value", renderer='json')
+def update_value(request):
+    """ Takes an ID of the node, entry that needs to be updated, as well as the
+        new value of that entry and stored the updated value in the database.
+    """
+    nodeid = request.params.get('id')
+    entry_to_update = request.params.get('entry_to_update') # Rate/Quantity etc
+    new_value = request.params.get('new_value')
+
+    # TODO update the entry in the database
+
 
 
 @view_config(route_name="addview", renderer='json')
