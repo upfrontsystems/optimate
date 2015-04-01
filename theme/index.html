@@ -25,28 +25,60 @@
     <link rel="stylesheet" type="text/css" href="gridthemes/slick-default-theme.css">
     <!-- Optimate slickgrid implementation -->
     <script type="text/javascript" src="js/optimate.data.js"></script>
+
+    <!-- CSS and JS for tabs -->
+    <script type="text/javascript" src="js/tabs.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/tabs.css">
 </head>
 <body>
     <div class="main-container">
-        <div ng-app="myApp" class="left">
-            <div ng-controller="myController">
-                 <div
-                    data-angular-treeview="true"
-                    data-tree-id="mytree"
-                    data-tree-model="roleList"
-                    data-node-id="ID"
-                    data-node-label="Name"
-                    data-node-description="Description"
-                    data-node-children="Subitem" >
+        <div class="left">
+        <div class="tabs">
+            <ul class="tab-links">
+                <li class="active"><a href="#tab1">Costs</a></li>
+                <li><a href="#tab2">Clients</a></li>
+                <li><a href="#tab3">Suppliers</a></li>
+            </ul>
+
+            <div class="tab-content">
+                <div ng-app="myApp" id="tab1" class="tab active">
+                    <div ng-controller="myController">
+                         <div
+                            data-angular-treeview="true"
+                            data-tree-id="mytree"
+                            data-tree-model="roleList"
+                            data-node-id="ID"
+                            data-node-label="Name"
+                            data-node-description="Description"
+                            data-node-children="Subitem" >
+                        </div>
+                        <div class="info-box">
+                            <span>
+                                <b>Selected Node ID: </b>{{mytree.currentNode.ID}}<br>
+                                <b>Selected Node description: </b>{{mytree.currentNode.Description}}<br>
+                                <b>Selected Node type: </b>{{mytree.currentNode.NodeType}}<br>
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div class="info-box">
-                    <span>
-                        <b>Selected Node ID: </b>{{mytree.currentNode.ID}}<br>
-                        <b>Selected Node description: </b>{{mytree.currentNode.Description}}<br>
-                        <b>Selected Node type: </b>{{mytree.currentNode.NodeType}}<br>
-                    </span>
+
+                <div ng-app="clientsApp" id="tab2" class="tab">
+                    <div ng-controller="clientsController">
+                        <ul>
+                            <li ng-repeat-start="obj in json">{{obj.Name}}</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div ng-app="suppliersApp" id="tab3" class="tab">
+                    <div ng-controller="clientsController">
+                        <ul>
+                            <li ng-repeat-start="obj in json">{{obj.Name}}</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
+        </div>
         </div>
         <div class="right">
             <div id="optimate-data-grid-outer">

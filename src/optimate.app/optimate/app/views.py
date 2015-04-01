@@ -119,8 +119,8 @@ def nodegridview(request):
 
 @view_config(route_name="update_value", renderer='json')
 def update_value(request):
-    """ This view recieves a node ID along with other data parameters on the 
-        request. It uses the node ID to select and update the node's 
+    """ This view recieves a node ID along with other data parameters on the
+        request. It uses the node ID to select and update the node's
         corresponding data in the database. This new data is provided through
         request parameters.
         Only Resources, BudgetItems and Component type nodes can have their
