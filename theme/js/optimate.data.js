@@ -5,30 +5,29 @@ var cell_medium = 75;
 var cell_small = 50;
 var columns = [
         {id: "name", name: "Name", field: "name",
-         width: cell_large, cssClass: "cell-title", 
-         editor: Slick.Editors.Text},
+         width: cell_large, cssClass: "cell-title"},
         {id: "budg_cost", name: "Total", field: "budg_cost",
-         width: cell_medium, editor: Slick.Editors.Text},
+         width: cell_medium},
         {id: "order_cost", name: "Order Cost", field: "order_cost",
-         width: cell_medium, editor: Slick.Editors.Text},
+         width: cell_medium},
         {id: "run_cost", name: "Run Cost", field: "run_cost",
-         width: cell_medium, editor: Slick.Editors.Text},
+         width: cell_medium},
         {id: "claim_cost", name: "Claim Cost", field: "claim_cost",
-         width: cell_medium, editor: Slick.Editors.Text},
+         width: cell_medium},
         {id: "income_rec", name: "Income Rec", field: "income_rec",
-         width: cell_medium, editor: Slick.Editors.Text},
+         width: cell_medium},
         {id: "client_cost", name: "Client Cost", field: "client_cost",
-         width: cell_medium, editor: Slick.Editors.Text},
+         width: cell_medium},
         {id: "proj_profit", name: "Proj. Profit", field: "proj_profit",
-         width: cell_medium, editor: Slick.Editors.Text},
+         width: cell_medium},
         {id: "act_profit", name: "Act. Profit", field: "act_profit",
-         width: cell_medium, editor: Slick.Editors.Text},
+         width: cell_medium},
         {id: "rate", name: "Rate", field: "rate",
          width: cell_small, editor: Slick.Editors.Text},
         {id: "quantity", name: "Quantity", field: "quantity",
          width: cell_medium, editor: Slick.Editors.Text},
         { id: "id", name: "Id", field: "id",
-         width: 0, minWidth: 0, maxWidth: 0,
+         width: 40, minWidth: 0, maxWidth: 0,
          cssClass: "hide", headerCssClass: "hide"},
     ];
 
@@ -78,26 +77,18 @@ $(function () {
         });
     });
 
-    grid.onCellChange.subscribe(function (e, args) {
-        var $active = $(grid.getActiveCellNode())
-        var cell = args.cell
-        var row = args.row;
-        var current_data = grid.getData(data);
-        var value = current_data[args.row][grid.getColumns()[args.cell].field]
-        var id = current_data[args.row][grid.getColumns()[11].field]
+    grid.onCellChange.subscribe(function (e, ctx) {
+        var item = ctx.item
+        console.log(item.id)
         $.ajax({
             url: 'http://127.0.0.1:8100/update_value',
-            data: {
-                'id' : id,
-                'entry_type': 'Component',
-                'new_value' : value
-            },
+            data: item,
             dataType: "json",
             success: function(data) {
-                console.log('id_'+ id + ' updated')
+                console.log('id_'+ item.id + ' updated')
             },
         });
-      });
+    });
 })
 
 // on load, load up slickgrid with data from first project in the list
