@@ -79,12 +79,13 @@ $(function () {
 
     grid.onCellChange.subscribe(function (e, ctx) {
         var item = ctx.item
+        console.log(item.id)
         $.ajax({
             url: 'http://127.0.0.1:8100/update_value',
             data: item,
             dataType: "json",
             success: function(data) {
-                console.log('id_'+ id + ' updated')
+                console.log('id_'+ item.id + ' updated')
             },
         });
     });
