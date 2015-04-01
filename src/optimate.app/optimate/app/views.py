@@ -23,20 +23,21 @@ from .models import (
     Component,
     ComponentType,
     ResourceCategory,
-    Resource
+    Resource,
+    Client,
+    Supplier,
 )
 
 
 @view_config(route_name="rootview", renderer='json')
 @view_config(route_name="childview", renderer='json')
 def childview(request):
-    """
-    This view is for when the user requests the children of an item.
-    The parent's id is derived from the path of the request,
-    or if there is no id in the path the root id '0' is assumed.
-    It extracts the children from the object,
-    adds it to a list and returns it to the JSON renderer
-    in a format that is acceptable to angular.treeview
+    """ This view is for when the user requests the children of an item.
+        The parent's id is derived from the path of the request,
+        or if there is no id in the path the root id '0' is assumed.
+        It extracts the children from the object,
+        adds it to a list and returns it to the JSON renderer
+        in a format that is acceptable to angular.treeview
     """
     print "Getting children: ",
     parentid = 0
@@ -49,11 +50,12 @@ def childview(request):
 
     # Execute the sql query on the Node table to find the parent
     qry = DBSession.query(Node).filter_by(ID=parentid).first()
+    # qry = DBSession.query(Node).filter_by(ParentID=parentid).order_by(Node.Name).all()
 
     # build the list and only get the neccesary values
     if qry != None:
-
         for value in qry.Children:
+        # for value in qry:
             if value.Children:
                 subitem = [{'Name': '...'}]
             else:
@@ -68,6 +70,7 @@ def childview(request):
                 import pdb
                 pdb.set_trace()
 
+    # return childrenlist
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'])
 
     print "done"
@@ -85,13 +88,12 @@ def childview(request):
 
 @view_config(route_name="nodegridview", renderer='json')
 def nodegridview(request):
-    """
-    This view is for when the user requests the children of an item.
-    The parent's id is derived from the path of the request,
-    or if there is no id in the path the root id '0' is assumed.
-    It extracts the children from the object,
-    adds it to a list and returns it to the JSON renderer
-    in a format that is acceptable to Slickgrid.
+    """ This view is for when the user requests the children of an item.
+        The parent's id is derived from the path of the request,
+        or if there is no id in the path the root id '0' is assumed.
+        It extracts the children from the object,
+        adds it to a list and returns it to the JSON renderer
+        in a format that is acceptable to Slickgrid.
     """
 
     print "Getting grid data: ",
@@ -128,10 +130,9 @@ def update_value(request):
 
 @view_config(route_name="addview", renderer='json')
 def additemview(request):
-    """
-    The additemview is called when an http POST request is sent from the client.
-    The method adds a new node with attributes as specified by the user
-    to the current node.
+    """ The additemview is called when a POST request is sent from the client.
+        The method adds a new node with attributes as specified by the user
+        to the current node.
     """
 
     if request.method == 'OPTIONS':
@@ -213,9 +214,8 @@ def additemview(request):
 
 @view_config(route_name="deleteview", renderer='json')
 def deleteitemview(request):
-    """
-    The deleteitemview is called using the address from the node to be deleted.
-    The node ID is sent in the request, and it is deleted from the tables.
+    """ The deleteitemview is called using the address from the node to be deleted.
+        The node ID is sent in the request, and it is deleted from the tables.
     """
 
     if request.method == 'OPTIONS':
@@ -246,10 +246,9 @@ def deleteitemview(request):
 
 @view_config(route_name="pasteview", renderer='json')
 def pasteitemview(request):
-    """
-    The pasteitemview is sent the path of the node that is to be copied.
-    That node is then found in the db, copied with the new parent's id,
-    and added to the current node.
+    """ The pasteitemview is sent the path of the node that is to be copied.
+        That node is then found in the db, copied with the new parent's id,
+        and added to the current node.
     """
 
     if request.method == 'OPTIONS':
@@ -296,10 +295,9 @@ def pasteitemview(request):
 
 @view_config(route_name="costview", renderer='json')
 def costview(request):
-    """
-    The costview is called using the address from the node to be costed.
-    The node ID is sent in the request, and the total cost of that node
-    is calculated recursively from it's children.
+    """ The costview is called using the address from the node to be costed.
+        The node ID is sent in the request, and the total cost of that node
+        is calculated recursively from it's children.
     """
 
     if request.method == 'OPTIONS':
@@ -319,12 +317,68 @@ def costview(request):
         print "done"
         return {'Cost': totalcost}
 
+@view_config(route_name='clientview', renderer='json')
+def clientview(request):
+    """ The clientview returns a list in json format of all the clients
+        in the server database
+    """
+
+    if request.method == 'OPTIONS':
+        return {"success": True}
+    else:
+        print "Get clients"
+        qry = DBSession.query(Client).all()
+        clientlist = []
+
+        for client in qry:
+            clientlist.append({'Name': client.Name,
+                                'ID': client.ID,
+                                'Address': client.Address,
+                                'City': client.City,
+                                'StateProvince': client.StateProvince,
+                                'Country': client.Country,
+                                'Zipcode': client.Zipcode,
+                                'Phone': client.Phone,
+                                'Fax': client.Fax,
+                                'Cellular': client.Cellular,
+                                'Contact': client.Contact})
+        print "done"
+        return clientlist
+
+
+@view_config(route_name='supplierview', renderer='json')
+def supplierview(request):
+    """ The supplierview returns a list in json format of all the suppliers
+        in the server database
+    """
+
+    if request.method == 'OPTIONS':
+        return {"success": True}
+    else:
+        print "Get suppliers"
+        qry = DBSession.query(Supplier).all()
+        supplierlist = []
+
+        for supplier in qry:
+            supplierlist.append({'Name': supplier.Name,
+                                'ID': supplier.ID,
+                                'Address': supplier.Address,
+                                'City': supplier.City,
+                                'StateProvince': supplier.StateProvince,
+                                'Country': supplier.Country,
+                                'Zipcode': supplier.Zipcode,
+                                'Phone': supplier.Phone,
+                                'Fax': supplier.Fax,
+                                'Cellular': supplier.Cellular,
+                                'Contact': supplier.Contact})
+        print "done"
+        return supplierlist
+
 
 @view_config(route_name="testchangequantityview", renderer="json")
 def testchangequantityview(request):
-    """
-    This is for testing purposes only. The quantity of a component is changed
-    so that its effect can be tested.
+    """ This is for testing purposes only. The quantity of a component is changed
+        so that its effect can be tested.
     """
 
     coid = request.matchdict['id']
@@ -337,14 +391,12 @@ def testchangequantityview(request):
 
 @view_config(route_name="testchangerateview", renderer="json")
 def testchangerateview(request):
-    """
-    This is for testing purposes only. The rate of a resource is changed
-    so that its effect can be tested.
+    """ This is for testing purposes only. The rate of a resource is changed
+        so that its effect can be tested.
     """
 
     projectid = request.matchdict['id']
     resourcecode = request.matchdict['resourcecode']
-    # qry = DBSession.query(ResourceCategory).filter_by(ParentID=projectid).first()
     resource = DBSession.query(Resource).filter_by(Code=resourcecode).first()
 
     resource.Rate = 15.0

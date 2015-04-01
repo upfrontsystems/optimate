@@ -45,6 +45,7 @@ def main(global_config, **settings):
     config.add_subscriber(handleResponse, NewRequest)
     config.add_static_view('static', 'static', cache_max_age=3600)
 
+    # the optimate data views
     config.add_route('rootview', '/')
     config.add_route('childview', '/{parentid}/')
     config.add_route('nodegridview', '/nodegridview/{parentid}/')
@@ -54,6 +55,11 @@ def main(global_config, **settings):
     config.add_route('pasteview', '/{id}/paste')
     config.add_route('costview', '/{id}/cost')
 
+    # the client and supplier views
+    config.add_route('clientview', '/clients')
+    config.add_route('supplierview', '/suppliers')
+
+    # views used for tests
     config.add_route('testchangequantityview', '/{id}/testchangequantity')
     config.add_route('testchangerateview', '/{id}/testchangerate')
     config.scan()

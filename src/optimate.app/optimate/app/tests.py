@@ -27,6 +27,8 @@ def _initTestingDB():
         ComponentType,
         ResourceCategory,
         Resource,
+        Client,
+        Supplier,
         Base
     )
     engine = create_engine('sqlite://')
@@ -135,10 +137,9 @@ def _initTestingDB():
                         Type=1,
                         ParentID=budgetitemc.ID)
 
+        client = Client (Name='TestClientName')
+        supplier = Supplier(Name='TestSupplierName')
 
-        # DBSession.add(res)
-        # DBSession.add(resa)
-        # DBSession.add(resb)
         DBSession.add(comptype)
         DBSession.add(root)
         DBSession.add(project)
@@ -161,6 +162,9 @@ def _initTestingDB():
         DBSession.add(compc)
         DBSession.add(rescatb)
 
+        DBSession.add(client)
+        DBSession.add(supplier)
+
         # res.Components.append(comp)
 
         # resduplicate.Components.append(compc)
@@ -182,7 +186,7 @@ def _initTestingDB():
                 |
                 budgetgroup -(475) id:2
                             |
-                            budgetitem -((25+70)*5=475) id:3 
+                            budgetitem -((25+70)*5=475) id:3
                                        |
                                        comp - res (5*5=25) id:7
                                        |
@@ -243,6 +247,8 @@ def _registerRoutes(config):
     config.add_route('addview', '/{id}/add')
     config.add_route('deleteview', '/{id}/delete')
     config.add_route('pasteview', '/{id}/paste')
+    config.add_route('clientview', '/clients')
+    config.add_route('supplierview', '/suppliers')
 
 
 class TestRootviewSuccessCondition(unittest.TestCase):
@@ -640,3 +646,51 @@ class TestSetResourceRateSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 1}
         response = self._callFUT(request)
         self.assertEqual(response["Cost"], 725.0)
+
+
+class TestClientviewSuccessCondition(unittest.TestCase):
+    """ Test if the Client view returns a list with the correct client
+    """
+
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from .views import clientview
+        return clientview(request)
+
+    def test_it(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        response = self._callFUT(request)
+        # test if the correct name is returned
+        self.assertEqual(response[0]['Name'], 'TestClientName')
+
+
+class TestSupplierviewSuccessCondition(unittest.TestCase):
+    """ Test if the Supplier view returns a list with the correct supplier
+    """
+
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from .views import supplierview
+        return supplierview(request)
+
+    def test_it(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        response = self._callFUT(request)
+        # test if the correct name is returned
+        self.assertEqual(response[0]['Name'], 'TestSupplierName')

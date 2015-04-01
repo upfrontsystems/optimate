@@ -41,6 +41,7 @@ class Node(Base):
     __tablename__ = 'Node'
     ID = Column(Integer, primary_key=True)
     ParentID = Column(Integer, ForeignKey('Node.ID', ondelete='CASCADE'))
+    # Name = Column(Text)
     OrderCost = Column(Float)
     ClaimedCost = Column(Float)
     RunningCost=Column(Float)
@@ -212,8 +213,8 @@ class BudgetGroup(Node):
     __tablename__ = 'BudgetGroup'
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
-    Name = Column(Text)
     Description = Column(Text)
+    Name = Column(Text)
     _Total = Column('Total', Float)
 
     __mapper_args__ = {
@@ -350,8 +351,8 @@ class BudgetItem(Node):
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'),
                 primary_key=True)
-    Name = Column(Text)
     Description = Column(Text)
+    Name = Column(Text)
     Unit = Column(Text)
     _Quantity = Column('Quantity', Float)
     _Rate = Column('Rate', Float)
@@ -550,6 +551,7 @@ class Component(Node):
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'),
                 primary_key=True)
+    # Name = Column(Text)
     ResourceID = Column(Integer, ForeignKey('Resource.ID'))
     Type = Column(Integer, ForeignKey('ComponentType.ID'))
     Unit = Column(Text)
@@ -609,13 +611,15 @@ class Component(Node):
             else:
                 parent.Total = parent.Total + difference
 
-    """ Get and set for the Name property
-    """
     @hybrid_property
     def Name(self):
+        """ Get this Components Name, which returns the Resource's Name
+        """
         return self.ThisResource.Name
     @Name.setter
     def Name(self, name):
+        """ Set this Components Name, which sets the Resource's Name
+        """
         self.ThisResource.Name = name
 
     """ Get and set for the Description property
@@ -756,8 +760,8 @@ class ResourceCategory(Node):
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'),
                 primary_key=True)
-    Name = Column(Text)
     Description = Column(Text)
+    Name = Column(Text)
     # Total is just a dummy column for when a project is calculating its total
     _Total = Column('Total', Float, default=0.0)
 
