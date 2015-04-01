@@ -116,16 +116,27 @@ def nodegridview(request):
     print "done"
     return sorted_childrenlist
 
+
 @view_config(route_name="update_value", renderer='json')
 def update_value(request):
-    """ Takes an ID of the node, entry that needs to be updated, as well as the
-        new value of that entry and stored the updated value in the database.
+    """ This view recieves a node ID along with other data parameters on the 
+        request. It uses the node ID to select and update the node's 
+        corresponding data in the database. This new data is provided through
+        request parameters.
+        Only Resources, BudgetItems and Component type nodes can have their
+        fields modified through this view, and only rate and quantity parameters
+        can be updated this way.
     """
     nodeid = request.params.get('id')
-    entry_type = request.params.get('entry_type') # Rate/Quantity etc
-    new_value = request.params.get('new_value')
-
-    # TODO update the entry in the database
+    result = DBSession.query(Node).filter_by(ID=nodeid).first()
+    if result.type in ['Resource', 'BudgetItem', 'Component']:
+        # update the data - at the moment only rate and quantity can be modified
+        if hasattr(result, 'rate'):
+            result.rate = request.params.get('rate')
+            transaction.commit()
+        if hasattr(result, 'quantity'):
+            result.rate = request.params.get('quantity')
+            transaction.commit()
 
 
 @view_config(route_name="addview", renderer='json')
