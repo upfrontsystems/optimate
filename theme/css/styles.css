@@ -4,13 +4,17 @@ body {
 
 /* treeview div */
 .left {
-    float: left;
     width: 40%;
+    display: inline-block;
+    vertical-align: top;
 }
 
 /* slickgrid div */
 .right {
-    float: right;
+    width: 58%;
+    max-width: 855px;
+    display: inline-block;
+    vertical-align: top;    
 }
 
 /* angular treeview background */
@@ -37,19 +41,21 @@ body {
   text-align: center;
 }
 
+#main-container {
+    width: 100%;
+    display: inline-block;
+}
+
 #optimate-data-grid-outer {
-    width: 840px;
     padding: 5px;
 }
 
 #optimate-data-grid {
-    width: 100%;
-    /*height: 500px;*/
     height: 95vh;
 }
 
 .editor-text {
-    width: 65px;
+    width: 45px;
 }
 
 .slick-header-columns {

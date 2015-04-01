@@ -27,30 +27,32 @@
     <script type="text/javascript" src="js/optimate.data.js"></script>
 </head>
 <body>
-    <div ng-app="myApp" class="left">
-        <div ng-controller="myController">
-             <div
-                data-angular-treeview="true"
-                data-tree-id="mytree"
-                data-tree-model="roleList"
-                data-node-id="ID"
-                data-node-label="Name"
-                data-node-description="Description"
-                data-node-children="Subitem" >
-            </div>
-            <div class="info-box">
-                <span>
-                    <b>Selected Node ID: </b>{{mytree.currentNode.ID}}<br>
-                    <b>Selected Node description: </b>{{mytree.currentNode.Description}}<br>
-                    <b>Selected Node type: </b>{{mytree.currentNode.NodeType}}<br>
-                </span>
+    <div class="main-container">
+        <div ng-app="myApp" class="left">
+            <div ng-controller="myController">
+                 <div
+                    data-angular-treeview="true"
+                    data-tree-id="mytree"
+                    data-tree-model="roleList"
+                    data-node-id="ID"
+                    data-node-label="Name"
+                    data-node-description="Description"
+                    data-node-children="Subitem" >
+                </div>
+                <div class="info-box">
+                    <span>
+                        <b>Selected Node ID: </b>{{mytree.currentNode.ID}}<br>
+                        <b>Selected Node description: </b>{{mytree.currentNode.Description}}<br>
+                        <b>Selected Node type: </b>{{mytree.currentNode.NodeType}}<br>
+                    </span>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="right">
-      <div id="optimate-data-grid-outer">
-        <div id="optimate-data-grid"></div>
-      </div>
+        <div class="right">
+            <div id="optimate-data-grid-outer">
+                <div id="optimate-data-grid"></div>
+            </div>
+        </div>
     </div>
 </body>
 </html>
