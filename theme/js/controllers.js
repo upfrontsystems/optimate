@@ -22,28 +22,26 @@
         }
     ]);
     // Angular function that retrieves the Client data from the server
-    var clientsApp = angular.module('clientsApp', []);
-    clientsApp.controller('clientsController', ['$scope', '$http',
+    myApp.controller('clientsController', ['$scope', '$http',
         function($scope, $http) {
             var req = {
                 method: 'GET',
                 url: 'http://127.0.0.1:8100/clients',
             }
             $http(req).success(function(data){
-                $scope.json = data
+                $scope.jsonclients = data
             })
         }
     ]);
     // Angular function that retrieves the Supplier data from the server
-    var suppliersApp = angular.module('suppliersApp', []);
-    suppliersApp.controller('suppliersController', ['$scope', '$http',
+    myApp.controller('suppliersController', ['$scope', '$http',
         function($scope, $http) {
             var req = {
                 method: 'GET',
                 url: 'http://127.0.0.1:8100/suppliers',
             }
             $http(req).success(function(data){
-                $scope.json = data
+                $scope.jsonsuppliers = data
             })
         }
     ]);

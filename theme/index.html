@@ -31,7 +31,7 @@
     <link rel="stylesheet" type="text/css" href="css/tabs.css">
 </head>
 <body>
-    <div class="main-container">
+    <div ng-app="myApp" class="main-container">
         <div class="left">
         <div class="tabs">
             <ul class="tab-links">
@@ -41,7 +41,7 @@
             </ul>
 
             <div class="tab-content">
-                <div ng-app="myApp" id="tab1" class="tab active">
+                <div id="tab1" class="tab active">
                     <div ng-controller="myController">
                          <div
                             data-angular-treeview="true"
@@ -62,18 +62,18 @@
                     </div>
                 </div>
 
-                <div ng-app="clientsApp" id="tab2" class="tab">
+                <div id="tab2" class="tab">
                     <div ng-controller="clientsController">
                         <ul>
-                            <li ng-repeat-start="obj in json">{{obj.Name}}</li>
+                            <li ng-repeat="obj in jsonclients">{{obj.Name}}</li>
                         </ul>
                     </div>
                 </div>
 
-                <div ng-app="suppliersApp" id="tab3" class="tab">
-                    <div ng-controller="clientsController">
+                <div id="tab3" class="tab">
+                    <div ng-controller="suppliersController">
                         <ul>
-                            <li ng-repeat-start="obj in json">{{obj.Name}}</li>
+                            <li ng-repeat="obj in jsonsuppliers">{{obj.Name}}</li>
                         </ul>
                     </div>
                 </div>
