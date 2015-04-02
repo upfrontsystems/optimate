@@ -125,7 +125,8 @@ def update_value(request):
         request parameters.
         Only Resources, BudgetItems and Component type nodes can have their
         fields modified through this view, and only rate and quantity parameters
-        can be updated this way.
+        can be updated this way. The rate parameters can only be updated on 
+        Resource type nodes.
     """
     nodeid = request.params.get('id')
     result = DBSession.query(Node).filter_by(ID=nodeid).first()
