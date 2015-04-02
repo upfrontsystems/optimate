@@ -131,12 +131,18 @@ def update_value(request):
     result = DBSession.query(Node).filter_by(ID=nodeid).first()
     if result.type in ['Resource', 'BudgetItem', 'Component']:
         # update the data - at the moment only rate and quantity can be modified
-        if hasattr(result, 'rate'):
-            result.rate = request.params.get('rate')
-            transaction.commit()
-        if hasattr(result, 'quantity'):
-            result.rate = request.params.get('quantity')
-            transaction.commit()
+        if hasattr(result, 'Rate'):
+            if request.params.get('rate') != None:
+                try:
+                    result.Rate = float(request.params.get('rate'))
+                except ValueError:
+                    pass # do not do anything
+        if hasattr(result, 'Quantity'):
+            if request.params.get('quantity') != None:
+                try:
+                    result.Quantity = float(request.params.get('quantity'))
+                except ValueError:
+                    pass # do not do anything
 
 
 @view_config(route_name="addview", renderer='json')
