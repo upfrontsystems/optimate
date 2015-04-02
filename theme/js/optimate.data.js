@@ -23,9 +23,9 @@ var columns = [
         {id: "act_profit", name: "Act. Profit", field: "act_profit",
          width: cell_medium},
         {id: "rate", name: "Rate", field: "rate",
-         width: cell_small, editor: Slick.Editors.Text},
+         width: cell_small, editor: Slick.Editors.Float},
         {id: "quantity", name: "Quantity", field: "quantity",
-         width: cell_medium, editor: Slick.Editors.Text},
+         width: cell_medium, editor: Slick.Editors.Float},
     ];
 
 var options = {
