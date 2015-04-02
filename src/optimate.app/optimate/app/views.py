@@ -129,8 +129,8 @@ def update_value(request):
     """
     nodeid = request.params.get('id')
     result = DBSession.query(Node).filter_by(ID=nodeid).first()
-    if result.type in ['Resource', 'BudgetItem', 'Component']:
-        # update the data - at the moment only rate and quantity can be modified
+    if result.type in ['Resource']:
+        # update the data - only rate & quantity can be modified
         if hasattr(result, 'Rate'):
             if request.params.get('rate') != None:
                 try:
@@ -138,6 +138,15 @@ def update_value(request):
                     transaction.commit()
                 except ValueError:
                     pass # do not do anything
+        if hasattr(result, 'Quantity'):
+            if request.params.get('quantity') != None:
+                try:
+                    result.Quantity = float(request.params.get('quantity'))
+                    transaction.commit()
+                except ValueError:
+                    pass # do not do anything
+    elif result.type in ['BudgetItem', 'Component']:
+        # update the data - only rate can be modified
         if hasattr(result, 'Quantity'):
             if request.params.get('quantity') != None:
                 try:
