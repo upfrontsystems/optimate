@@ -135,12 +135,14 @@ def update_value(request):
             if request.params.get('rate') != None:
                 try:
                     result.Rate = float(request.params.get('rate'))
+                    transaction.commit()
                 except ValueError:
                     pass # do not do anything
         if hasattr(result, 'Quantity'):
             if request.params.get('quantity') != None:
                 try:
                     result.Quantity = float(request.params.get('quantity'))
+                    transaction.commit()
                 except ValueError:
                     pass # do not do anything
 
