@@ -21,11 +21,11 @@ body {
     height: 400px;
     display: inline-block;
     overflow: auto;
+    background: #FFF;
 }
 
 /* angular treeview background */
 .ng-scope {
-    background: #FFF;
     padding: 5px 5px 0px 5px;
 }
 
