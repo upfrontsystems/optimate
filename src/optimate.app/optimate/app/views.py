@@ -86,6 +86,45 @@ def childview(request):
     return sorted_childrenlist
 
 
+@view_config(route_name="project_listing", renderer='json')
+def project_listing(request):
+    """
+    """
+    if request.method == 'OPTIONS':
+        return {"success": True}
+    else:
+        projects = []
+        # Execute the sql query on the Node table to find the parent
+        qry = DBSession.query(Node).filter_by(ID=0).first()
+        # build the list and only get the neccesary values
+        if qry != None:
+            for value in qry.Children:
+                projects.append({'Name': value.Name,
+                                 'ID': value.ID})
+        return sorted(projects, key=lambda k: k['Name'])
+
+
+@view_config(route_name="projectview", renderer='json')
+def projectview(request):
+    """
+    """
+    parentid = 0
+    if 'parentid' in request.matchdict:
+        parentid = request.matchdict['parentid']
+
+    project = []
+    # Execute the sql query on the Node table to find the parent
+    qry = DBSession.query(Node).filter_by(ID=parentid).first()
+    # build the list and only get the neccesary values
+    if qry != None:
+        project.append({'Name': qry.Name,
+                        'Description': qry.Description,
+                        'ID': qry.ID,
+                        'Subitem': [{'Name': '...'}],
+                        'NodeType': qry.type})
+    return project
+
+
 @view_config(route_name="nodegridview", renderer='json')
 def nodegridview(request):
     """ This view is for when the user requests the children of an item.
