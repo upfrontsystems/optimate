@@ -40,11 +40,16 @@ body {
 
 /* Slickgrid table styles */
 .cell-title {
-  font-weight: bold;
+    font-weight: bold;
+}
+
+.cell {
+    text-align: right;
+    font: 0.8em;
 }
 
 .cell-effort-driven {
-  text-align: center;
+    text-align: center;
 }
 
 #main-container {
