@@ -7,8 +7,8 @@
     <script type="text/javascript" src="bower_components/angular/angular.js"></script>
     <script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
     <script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
-    <script type="text/javascript" src="js/controllers.js"></script>
     <script type="text/javascript" src="js/jquery.tools.js"></script>
+    <script type="text/javascript" src="js/controllers.js"></script>
     <link rel="stylesheet" type="text/css" href="css/styles.css">
      <!-- Angular treeview script and css -->
     <script type="text/javascript" src="js/angular.treeview.js"></script>
@@ -30,6 +30,7 @@
     <!-- CSS and JS for tabs -->
     <script type="text/javascript" src="js/tabs.js"></script>
     <link rel="stylesheet" type="text/css" href="css/tabs.css">
+
 </head>
 <body>
     <div ng-app="myApp" class="main-container">
@@ -43,7 +44,27 @@
 
             <div class="tab-content">
                 <div id="tab1" class="tab active">
-                    <div ng-controller="myController">
+
+                    <button #id="open-projects-overlay" rel="#project-select-overlay" type="button">Open a Project</button>
+
+                    <div ng-controller="projectlistController">
+                        <!-- project select will only be shown when the overlay is active -->
+                        <div class="overlay" id="project-select-overlay" style="display:none;">
+                            <a class="close"></a>
+                            <div>&nbsp;</div>
+                            <span> Select project to open: </span>
+                            <span>
+                                <select id="project-select">
+                                    <option ng-repeat="obj in projectsList" value="{{obj.ID}}">{{obj.Name}}</option>
+                                </select>
+                            </span>
+                            <div>&nbsp;</div>
+                            <button id="select-project-submit" type="submit" class="close"> Select </button>
+                            <button type="button" class="close"> Cancel </button>
+                        </div>
+                    </div>
+
+                    <div ng-controller="treeviewController">
                          <div
                             data-angular-treeview="true"
                             data-tree-id="mytree"

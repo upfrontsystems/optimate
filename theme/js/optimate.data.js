@@ -39,12 +39,7 @@ var options = {
 
 $(function () {
 
-    // initial loading message
-    for (var i = 0; i < 1; i++) {
-        var d = (data[i] = {});
-        d["name"] = "Loading data...";
-    }
-
+    data = []
     grid = new Slick.Grid("#optimate-data-grid", data, columns, options);
     grid.setSelectionModel(new Slick.CellSelectionModel());
     // show tooltips on hover if the cellsize is so small, that an ellipsis
@@ -91,12 +86,15 @@ $(function () {
 // on load, load up slickgrid with data from first project in the list
 // hardwired for now as the root at the moment
 $(document).ready(function() {
-    $.ajax({
-        url: 'http://127.0.0.1:8100/nodegridview/0/',
-        dataType: "json",
-        success: function(data) {
-            grid.setData(data)
-            grid.render();
-        }
-    });
+    $("button[rel]").overlay();
+
+//    $.ajax({
+//        url: 'http://127.0.0.1:8100/nodegridview/0/',
+//        dataType: "json",
+//        success: function(data) {
+//            grid.setData(data)
+//            grid.render();
+//        }
+//    });
 });
+
