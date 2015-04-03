@@ -26,13 +26,15 @@
                 url: url,
             }
             $http(req).success(function(data) {
-                $scope.roleList = data;
+                $scope.roleList.push(data[0]);
             });
-            $scope.formData = {};
-            $scope.closeModal = function() {
-                $scope.modalShown = false;
-            }
+
           };
+          $scope.roleList = [];
+          $scope.formData = {};
+          $scope.closeModal = function() {
+              $scope.modalShown = false;
+          }
           $( document ).on( "click", "#select-project-submit", function( e ) { 
               $scope.loadProject();
           });      
