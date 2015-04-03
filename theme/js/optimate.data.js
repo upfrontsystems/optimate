@@ -83,18 +83,7 @@ $(function () {
     });
 })
 
-// on load, load up slickgrid with data from first project in the list
-// hardwired for now as the root at the moment
+// on load, prepare "Open a Project" overlay functionality
 $(document).ready(function() {
     $("button[rel]").overlay();
-
-//    $.ajax({
-//        url: 'http://127.0.0.1:8100/nodegridview/0/',
-//        dataType: "json",
-//        success: function(data) {
-//            grid.setData(data)
-//            grid.render();
-//        }
-//    });
 });
-
