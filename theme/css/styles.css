@@ -65,8 +65,14 @@ body {
     height: 95vh;
 }
 
-.editor-text {
-    width: 45px;
+input.editor-text {
+    background: none repeat scroll 0 0 transparent;
+    border: 0 none;
+    height: 100%;
+    margin: 0;
+    outline: 0 none;
+    padding: 0;
+    width: 100%;
 }
 
 .slick-header-columns {
