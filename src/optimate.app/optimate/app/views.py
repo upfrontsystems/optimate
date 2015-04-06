@@ -164,7 +164,7 @@ def update_value(request):
         request parameters.
         Only Resources, BudgetItems and Component type nodes can have their
         fields modified through this view, and only rate and quantity parameters
-        can be updated this way. The rate parameters can only be updated on 
+        can be updated this way. The rate parameters can only be updated on
         Resource type nodes.
     """
     nodeid = request.params.get('id')
@@ -385,8 +385,8 @@ def costview(request):
         print "done"
         return {'Cost': totalcost}
 
-@view_config(route_name='clientview', renderer='json')
-def clientview(request):
+@view_config(route_name='clientsview', renderer='json')
+def clientsview(request):
     """ The clientview returns a list in json format of all the clients
         in the server database
     """
@@ -414,8 +414,36 @@ def clientview(request):
         return clientlist
 
 
-@view_config(route_name='supplierview', renderer='json')
-def supplierview(request):
+@view_config(route_name='clientview', renderer='json')
+def clientview(request):
+    """ The clientview returns a list with only the data
+        of the client specified
+    """
+
+    if request.method == 'OPTIONS':
+        return {"success": True}
+    else:
+        print "Get client"
+        clientid = request.matchdict['id']
+        client = DBSession.query(Client).filter_by(ID=clientid).first()
+
+        clientdict = {'Name': client.Name,
+                        'ID': client.ID,
+                        'Address': client.Address,
+                        'City': client.City,
+                        'StateProvince': client.StateProvince,
+                        'Country': client.Country,
+                        'Zipcode': client.Zipcode,
+                        'Phone': client.Phone,
+                        'Fax': client.Fax,
+                        'Cellular': client.Cellular,
+                        'Contact': client.Contact}
+        print "done"
+        return clientdict
+
+
+@view_config(route_name='suppliersview', renderer='json')
+def suppliersview(request):
     """ The supplierview returns a list in json format of all the suppliers
         in the server database
     """
@@ -441,6 +469,34 @@ def supplierview(request):
                                 'Contact': supplier.Contact})
         print "done"
         return supplierlist
+
+
+@view_config(route_name='supplierview', renderer='json')
+def supplierview(request):
+    """ The supplierview returns a list with only the data from
+        the supplier specified
+    """
+
+    if request.method == 'OPTIONS':
+        return {"success": True}
+    else:
+        print "Get supplier"
+        supplierid = request.matchdict['id']
+        supplier = DBSession.query(Supplier).filter_by(ID=supplierid).first()
+
+        supplierdict = {'Name': supplier.Name,
+                        'ID': supplier.ID,
+                        'Address': supplier.Address,
+                        'City': supplier.City,
+                        'StateProvince': supplier.StateProvince,
+                        'Country': supplier.Country,
+                        'Zipcode': supplier.Zipcode,
+                        'Phone': supplier.Phone,
+                        'Fax': supplier.Fax,
+                        'Cellular': supplier.Cellular,
+                        'Contact': supplier.Contact}
+        print "done"
+        return supplierdict
 
 
 @view_config(route_name="testchangequantityview", renderer="json")

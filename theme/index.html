@@ -28,25 +28,46 @@
     <script type="text/javascript" src="js/optimate.data.js"></script>
 
     <!-- CSS and JS for tabs -->
-    <script type="text/javascript" src="js/tabs.js"></script>
-    <link rel="stylesheet" type="text/css" href="css/tabs.css">
+    <link rel="stylesheet" type="text/css" href="css/custom-bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/custom-bootstrap-theme.min.css">
+    <script type="text/javascript" src="js/custom-bootstrap.min.js"></script>
+
+    <!-- reset the box-sizing -->
+    <style type="text/css">
+        *,
+        *:before,
+        *:after {
+          -webkit-box-sizing: content-box;
+             -moz-box-sizing: content-box;
+                  box-sizing: content-box;
+        }
+
+        .container .row *,
+        .container .row *:before,
+        .container .row *:after {
+          -webkit-box-sizing: border-box;
+             -moz-box-sizing: border-box;
+                  box-sizing: border-box;
+        }
+    </style>
 
 </head>
 <body>
     <div ng-app="myApp" class="main-container">
         <div class="left">
-        <div class="tabs">
-            <ul class="tab-links">
-                <li class="active"><a href="#tab1">Costs</a></li>
-                <li><a href="#tab2">Clients</a></li>
-                <li><a href="#tab3">Suppliers</a></li>
+            <!-- build the bootstrap tabs -->
+            <ul class="nav nav-pills">
+                <li class="active"><a data-toggle="tab" href="#costs">Costs</a></li>
+                <li><a data-toggle="tab" href="#clients">Clients</a></li>
+                <li><a data-toggle="tab" href="#suppliers">Suppliers</a></li>
             </ul>
 
+            <!-- this is the content displayed in each tab -->
             <div class="tab-content">
-                <div id="tab1" class="tab active">
+                <!-- content for the costs treeview -->
+                <div id="costs" class="tab-pane fade in active">
 
                     <button #id="open-projects-overlay" rel="#project-select-overlay" type="button">Open a Project</button>
-
                     <div ng-controller="projectlistController">
                         <!-- project select will only be shown when the overlay is active -->
                         <div class="overlay" id="project-select-overlay" style="display:none;">
@@ -83,24 +104,35 @@
                         </div>
                     </div>
                 </div>
-
-                <div id="tab2" class="tab">
+                <!-- content for the clients table -->
+                <div id="clients" class="tab-pane fade">
                     <div ng-controller="clientsController">
-                        <ul>
-                            <li ng-repeat="obj in jsonclients">{{obj.Name}}</li>
-                        </ul>
+                        <button ng-click="addNewClient()">Add</button>
+                        <table class="table">
+                             <tr ng-repeat="obj in jsonclients">
+                              <td>{{obj.Name}}</td>
+                              <td>{{obj.Address}}</td>
+                              <td>{{obj.Phone}}</td>
+                              <td><button ng-click="editClient(obj.ID)">Edit</button></td>
+                             </tr>
+                        </table>
                     </div>
                 </div>
-
-                <div id="tab3" class="tab">
+                <!-- content for the suppliers table -->
+                <div id="suppliers" class="tab-pane fade">
                     <div ng-controller="suppliersController">
-                        <ul>
-                            <li ng-repeat="obj in jsonsuppliers">{{obj.Name}}</li>
-                        </ul>
+                    <button ng-click="addNewSupplier()">Add</button>
+                        <table class="table">
+                             <tr ng-repeat="obj in jsonsuppliers">
+                              <td>{{obj.Name}}</td>
+                              <td>{{obj.Address}}</td>
+                              <td>{{obj.Phone}}</td>
+                              <td><button ng-click="editSupplier(obj.ID)">Edit</button></td>
+                             </tr>
+                        </table>
                     </div>
                 </div>
             </div>
-        </div>
         </div>
         <div class="right">
             <div id="optimate-data-grid-outer">

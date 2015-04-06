@@ -14,15 +14,9 @@ body {
     width: 58%;
     max-width: 855px;
     display: inline-block;
-    vertical-align: top;    
+    vertical-align: top;
 }
 
-.tab-content {
-    height: 400px;
-    display: inline-block;
-    overflow: auto;
-    background: #FFF;
-}
 
 /* angular treeview background */
 .ng-scope {

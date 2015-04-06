@@ -38,7 +38,7 @@
                 $http(req).success(function(data) {
                     if (!(containsObject(data[0], $scope.roleList))) {
                         // add latest select project, if not already in the list
-                        $scope.roleList.push(data[0]); 
+                        $scope.roleList.push(data[0]);
                         // sort alphabetically by project name
                         $scope.roleList.sort(function(a, b) {
                             var textA = a.Name.toUpperCase();
@@ -46,14 +46,14 @@
                             return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
                         });
                     }
-                });  
+                });
             };
             $scope.roleList = [];
             $scope.formData = {};
             $scope.closeModal = function() {
                 $scope.modalShown = false;
             }
-            $( document ).on( "click", "#select-project-submit", function( e ) { 
+            $( document ).on( "click", "#select-project-submit", function( e ) {
                 $scope.loadProject();
             });
         }
@@ -66,8 +66,25 @@
                 url: 'http://127.0.0.1:8100/clients',
             }
             $http(req).success(function(data){
-                $scope.jsonclients = data
+                $scope.jsonclients = data;
             })
+
+            $scope.addNewClient = function(){
+                alert("Add new client")
+            }
+
+            $scope.editClient = function(id){
+                var req = {
+                method: 'GET',
+                url: 'http://127.0.0.1:8100/' + id + '/client',
+                }
+                $http(req).success(function(data){
+                    alert("Edit client:\n" + data.Name + " | " +
+                                    data.Address + " | " +
+                                    data.Phone + " | " +
+                                    data.ID)
+                })
+            }
         }
     ]);
     // Angular function that retrieves the Supplier data from the server
@@ -80,6 +97,23 @@
             $http(req).success(function(data){
                 $scope.jsonsuppliers = data
             })
+
+            $scope.addNewSupplier = function(){
+                alert("Add new supplier")
+            }
+
+            $scope.editSupplier = function(id){
+                var req = {
+                method: 'GET',
+                url: 'http://127.0.0.1:8100/' + id + '/supplier',
+                }
+                $http(req).success(function(data){
+                    alert("Edit supplier:\n" + data.Name + " | " +
+                                    data.Address + " | " +
+                                    data.Phone + " | " +
+                                    data.ID)
+                })
+            }
         }
     ]);
 })();

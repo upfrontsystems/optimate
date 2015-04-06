@@ -936,7 +936,7 @@ class Client(Base):
     def __repr__(self):
         """Return a representation of this client
         """
-        return '<Client(Name="%s", ID="%s%")>' % (
+        return '<Client(Name="%s", ID="%s")>' % (
             self.Name, self.ID)
 
 

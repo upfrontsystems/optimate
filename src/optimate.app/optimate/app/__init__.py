@@ -58,8 +58,10 @@ def main(global_config, **settings):
     config.add_route('costview', '/{id}/cost')
 
     # the client and supplier views
-    config.add_route('clientview', '/clients')
-    config.add_route('supplierview', '/suppliers')
+    config.add_route('clientsview', '/clients')
+    config.add_route('suppliersview', '/suppliers')
+    config.add_route('clientview', '/{id}/client')
+    config.add_route('supplierview', '/{id}/supplier')
 
     # views used for tests
     config.add_route('testchangequantityview', '/{id}/testchangequantity')
