@@ -54,19 +54,18 @@
 </head>
 <body>
     <div ng-app="myApp" class="main-container">
-        <div class="left">
-            <!-- build the bootstrap tabs -->
-            <ul class="nav nav-pills">
-                <li class="active"><a data-toggle="tab" href="#costs">Costs</a></li>
-                <li><a data-toggle="tab" href="#clients">Clients</a></li>
-                <li><a data-toggle="tab" href="#suppliers">Suppliers</a></li>
-            </ul>
+        <!-- build the bootstrap tabs -->
+        <ul class="nav nav-pills">
+            <li class="active"><a data-toggle="tab" href="#costs">Costs</a></li>
+            <li><a data-toggle="tab" href="#clients">Clients</a></li>
+            <li><a data-toggle="tab" href="#suppliers">Suppliers</a></li>
+        </ul>
 
-            <!-- this is the content displayed in each tab -->
-            <div class="tab-content">
-                <!-- content for the costs treeview -->
-                <div id="costs" class="tab-pane fade in active">
-
+        <!-- this is the content displayed in each tab -->
+        <div class="tab-content">
+            <!-- content for the costs treeview -->
+            <div id="costs" class="tab-pane fade in active">
+                <div class="left">
                     <button #id="open-projects-overlay" rel="#project-select-overlay" type="button">Open a Project</button>
                     <div ng-controller="projectlistController">
                         <!-- project select will only be shown when the overlay is active -->
@@ -104,39 +103,237 @@
                         </div>
                     </div>
                 </div>
-                <!-- content for the clients table -->
-                <div id="clients" class="tab-pane fade">
-                    <div ng-controller="clientsController">
-                        <button ng-click="addNewClient()">Add</button>
-                        <table class="table">
-                             <tr ng-repeat="obj in jsonclients">
-                              <td>{{obj.Name}}</td>
-                              <td>{{obj.Address}}</td>
-                              <td>{{obj.Phone}}</td>
-                              <td><button ng-click="editClient(obj.ID)">Edit</button></td>
-                             </tr>
-                        </table>
-                    </div>
-                </div>
-                <!-- content for the suppliers table -->
-                <div id="suppliers" class="tab-pane fade">
-                    <div ng-controller="suppliersController">
-                    <button ng-click="addNewSupplier()">Add</button>
-                        <table class="table">
-                             <tr ng-repeat="obj in jsonsuppliers">
-                              <td>{{obj.Name}}</td>
-                              <td>{{obj.Address}}</td>
-                              <td>{{obj.Phone}}</td>
-                              <td><button ng-click="editSupplier(obj.ID)">Edit</button></td>
-                             </tr>
-                        </table>
+                <div class="right">
+                    <div id="optimate-data-grid-outer">
+                        <div id="optimate-data-grid"></div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="right">
-            <div id="optimate-data-grid-outer">
-                <div id="optimate-data-grid"></div>
+            <!-- content for the clients table -->
+            <div id="clients" class="tab-pane fade">
+                <div ng-controller="clientsController">
+                    <button ng-click="addDialogShown = !addDialogShown" style="vertical-align: top;">Add new Client</button>
+                    <table class="table-hover" style="width:60%;display: inline-block;vertical-align: top;">
+                         <tr ng-repeat="obj in jsonclients">
+                          <td>{{obj.Name}}</td>
+                          <td>{{obj.Address}}</td>
+                          <td>{{obj.Phone}}</td>
+                          <td><button ng-click="getEditClient(obj.ID)">Edit</button></td>
+                          <td><button ng-click="deleteClient(obj.ID)">Delete</button></td>
+                         </tr>
+                    </table>
+
+                    <div ng-show="addDialogShown" style="width:20%;display: inline-block;vertical-align: top;border:black;">
+                        <form ng-submit="addNewClient()">
+                            <br>Name:
+                            <input type="text"
+                                    name="inputName"
+                                    ng-model="formData.inputName"
+                                    required
+                                    autofocus>
+                            <br>Address:
+                            <input type="text"
+                                    name="inputAddress"
+                                    ng-model="formData.inputAddress">
+                            <br>City:
+                            <input type="text"
+                                    name="inputCity"
+                                    ng-model="formData.inputCity">
+                            <br>State/Province:
+                            <input type="text"
+                                    name="inputStateProvince"
+                                    ng-model="formData.inputStateProvince">
+                            <br>Country:
+                            <input type="text"
+                                    name="inputStateCountry"
+                                    ng-model="formData.inputCountry">
+                            <br>Zip Code:
+                            <input type="text"
+                                    name="inputZip"
+                                    ng-model="formData.inputZip">
+                            <br>Phone:
+                            <input type="text"
+                                    name="inputPhone"
+                                    ng-model="formData.inputPhone">
+                            <br>Fax:
+                            <input type="text"
+                                    name="inputFax"
+                                    ng-model="formData.inputFax">
+                            <br>Cellular:
+                            <input type="text"
+                                    name="inputCellular"
+                                    ng-model="formData.inputCellular">
+                            <br>Contact:
+                            <input type="text"
+                                    name="inputContact"
+                                    ng-model="formData.inputContact">
+                            <br><input type="submit"
+                                value="Add"/>
+                        </form>
+                    </div>
+
+                    <div ng-show="editDialogShown" style="width:20%;display: inline-block;vertical-align: top;border:black;">
+                        <form ng-submit="editClient()">
+                            <br>Name:
+                            <input type="text"
+                                    name="inputName"
+                                    ng-model="formData.inputName"
+                                    required
+                                    autofocus>
+                            <br>Address:
+                            <input type="text"
+                                    name="inputAddress"
+                                    ng-model="formData.inputAddress">
+                            <br>City:
+                            <input type="text"
+                                    name="inputCity"
+                                    ng-model="formData.inputCity">
+                            <br>State/Province:
+                            <input type="text"
+                                    name="inputStateProvince"
+                                    ng-model="formData.inputStateProvince">
+                            <br>Country:
+                            <input type="text"
+                                    name="inputStateCountry"
+                                    ng-model="formData.inputCountry">
+                            <br>Zip Code:
+                            <input type="text"
+                                    name="inputZip"
+                                    ng-model="formData.inputZip">
+                            <br>Phone:
+                            <input type="text"
+                                    name="inputPhone"
+                                    ng-model="formData.inputPhone">
+                            <br>Fax:
+                            <input type="text"
+                                    name="inputFax"
+                                    ng-model="formData.inputFax">
+                            <br>Cellular:
+                            <input type="text"
+                                    name="inputCellular"
+                                    ng-model="formData.inputCellular">
+                            <br>Contact:
+                            <input type="text"
+                                    name="inputContact"
+                                    ng-model="formData.inputContact">
+                            <br><input type="submit"
+                                value="Done"/>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- content for the suppliers table -->
+            <div id="suppliers" class="tab-pane fade">
+                <div ng-controller="suppliersController">
+                    <button ng-click="addADialogShown = !addDialogShown" style="vertical-align: top;">Add new Supplier</button>
+                    <table class="table-hover" style="width:60%;display: inline-block">
+                         <tr ng-repeat="obj in jsonsuppliers">
+                          <td>{{obj.Name}}</td>
+                          <td>{{obj.Address}}</td>
+                          <td>{{obj.Phone}}</td>
+                          <td><button ng-click="getEditSupplier(obj.ID)">Edit</button></td>
+                          <td><button ng-click="deleteSupplier(obj.ID)">Delete</button></td>
+                         </tr>
+                    </table>
+
+                    <div ng-show="addDialogShown" style="width:20%;display: inline-block;vertical-align: top;border:black;">
+                        <form ng-submit="addNewSupplier()">
+                            <br>Name:
+                            <input type="text"
+                                    name="inputName"
+                                    ng-model="formData.inputName"
+                                    required
+                                    autofocus>
+                            <br>Address:
+                            <input type="text"
+                                    name="inputAddress"
+                                    ng-model="formData.inputAddress">
+                            <br>City:
+                            <input type="text"
+                                    name="inputCity"
+                                    ng-model="formData.inputCity">
+                            <br>State/Province:
+                            <input type="text"
+                                    name="inputStateProvince"
+                                    ng-model="formData.inputStateProvince">
+                            <br>Country:
+                            <input type="text"
+                                    name="inputCountry"
+                                    ng-model="formData.inputCountry">
+                            <br>Zip Code:
+                            <input type="text"
+                                    name="inputZip"
+                                    ng-model="formData.inputZip">
+                            <br>Phone:
+                            <input type="text"
+                                    name="inputPhone"
+                                    ng-model="formData.inputPhone">
+                            <br>Fax:
+                            <input type="text"
+                                    name="inputFax"
+                                    ng-model="formData.inputFax">
+                            <br>Cellular:
+                            <input type="text"
+                                    name="inputCellular"
+                                    ng-model="formData.inputCellular">
+                            <br>Contact:
+                            <input type="text"
+                                    name="inputContact"
+                                    ng-model="formData.inputContact">
+                            <br><input type="submit"
+                                value="Add"/>
+                        </form>
+                    </div>
+
+                    <div ng-show="editDialogShown" style="width:20%;display: inline-block;vertical-align: top;border:black;">
+                        <form ng-submit="editSupplier()">
+                            <br>Name:
+                            <input type="text"
+                                    name="inputName"
+                                    ng-model="formData.inputName"
+                                    required
+                                    autofocus>
+                            <br>Address:
+                            <input type="text"
+                                    name="inputAddress"
+                                    ng-model="formData.inputAddress">
+                            <br>City:
+                            <input type="text"
+                                    name="inputCity"
+                                    ng-model="formData.inputCity">
+                            <br>State/Province:
+                            <input type="text"
+                                    name="inputStateProvince"
+                                    ng-model="formData.inputStateProvince">
+                            <br>Country:
+                            <input type="text"
+                                    name="inputStateCountry"
+                                    ng-model="formData.inputCountry">
+                            <br>Zip Code:
+                            <input type="text"
+                                    name="inputZip"
+                                    ng-model="formData.inputZip">
+                            <br>Phone:
+                            <input type="text"
+                                    name="inputPhone"
+                                    ng-model="formData.inputPhone">
+                            <br>Fax:
+                            <input type="text"
+                                    name="inputFax"
+                                    ng-model="formData.inputFax">
+                            <br>Cellular:
+                            <input type="text"
+                                    name="inputCellular"
+                                    ng-model="formData.inputCellular">
+                            <br>Contact:
+                            <input type="text"
+                                    name="inputContact"
+                                    ng-model="formData.inputContact">
+                            <br><input type="submit"
+                                value="Done"/>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

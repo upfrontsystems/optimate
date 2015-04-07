@@ -39,7 +39,6 @@ def childview(request):
         adds it to a list and returns it to the JSON renderer
         in a format that is acceptable to angular.treeview
     """
-    print "Getting children: ",
     parentid = 0
     if 'parentid' in request.matchdict:
         parentid = request.matchdict['parentid']
@@ -73,7 +72,6 @@ def childview(request):
     # return childrenlist
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'])
 
-    print "done"
     try:
         start = int(start)
         end = int(end)
@@ -135,7 +133,6 @@ def nodegridview(request):
         in a format that is acceptable to Slickgrid.
     """
 
-    print "Getting grid data: ",
     parentid = 0
     if 'parentid' in request.matchdict:
         parentid = request.matchdict['parentid']
@@ -152,7 +149,6 @@ def nodegridview(request):
 
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['name'])
 
-    print "done"
     return sorted_childrenlist
 
 
@@ -206,7 +202,6 @@ def additemview(request):
     if request.method == 'OPTIONS':
         return {"success": True}
     else:
-        print "Adding node: ",
         # Get the parent to add the object to from the path
         parentid = int(request.matchdict['id'])
 
@@ -276,7 +271,6 @@ def additemview(request):
             recalculate.resetTotal()
 
         transaction.commit()
-        print "done"
         return HTTPOk()
 
 
@@ -289,7 +283,6 @@ def deleteitemview(request):
     if request.method == 'OPTIONS':
         return {"success": True}
     else:
-        print "Deleting node: ",
         # Get the id of the node to be deleted from the path
         deleteid = request.matchdict['id']
 
@@ -308,7 +301,6 @@ def deleteitemview(request):
             recalculate.resetTotal()
 
         transaction.commit()
-        print "done"
         return HTTPOk()
 
 
@@ -322,7 +314,6 @@ def pasteitemview(request):
     if request.method == 'OPTIONS':
         return {"success": True}
     else:
-        print "Pasting node: ",
         # Find the source object to be copied from the path in the request body
         sourceid = request.json_body["ID"]
         # Find the object to be copied to from the path
@@ -357,7 +348,6 @@ def pasteitemview(request):
             recalculate.resetTotal()
 
         transaction.commit()
-        print "done"
         return HTTPOk()
 
 
@@ -371,7 +361,6 @@ def costview(request):
     if request.method == 'OPTIONS':
         return {"success": True}
     else:
-        print "Getting cost: ",
         # Get the id of the node to be costed
         costid = request.matchdict['id']
         qry = DBSession.query(Node).filter_by(ID=costid).first()
@@ -382,7 +371,6 @@ def costview(request):
         totalcost = qry.Total
         transaction.commit()
 
-        print "done"
         return {'Cost': totalcost}
 
 @view_config(route_name='clientsview', renderer='json')
@@ -394,8 +382,7 @@ def clientsview(request):
     if request.method == 'OPTIONS':
         return {"success": True}
     else:
-        print "Get clients"
-        qry = DBSession.query(Client).all()
+        qry = DBSession.query(Client).order_by(Client.Name).all()
         clientlist = []
 
         for client in qry:
@@ -410,7 +397,6 @@ def clientsview(request):
                                 'Fax': client.Fax,
                                 'Cellular': client.Cellular,
                                 'Contact': client.Contact})
-        print "done"
         return clientlist
 
 
@@ -422,8 +408,49 @@ def clientview(request):
 
     if request.method == 'OPTIONS':
         return {"success": True}
+    elif request.method == 'DELETE':
+        deleteid = request.matchdict['id']
+
+        # Deleting it from the node table deleted the object
+        deletethis = DBSession.query(Client).filter_by(ID=deleteid).first()
+        qry = DBSession.delete(deletethis)
+
+        if qry == 0:
+            return HTTPNotFound()
+        transaction.commit()
+
+        return HTTPOk()
+    elif request.method == 'POST':
+        newclient = Client(Name=request.json_body['Name'],
+            Address=request.json_body['Address'],
+            City=request.json_body['City'],
+            StateProvince=request.json_body['StateProvince'],
+            Country=request.json_body['Country'],
+            Zipcode=request.json_body['Zip'],
+            Fax=request.json_body['Fax'],
+            Phone=request.json_body['Phone'],
+            Cellular=request.json_body['Cellular'],
+            Contact=request.json_body['Contact'])
+
+        DBSession.add(newclient)
+        return HTTPOk()
+    elif request.method == 'PUT':
+        client = DBSession.query(
+                    Client).filter_by(ID=request.matchdict['id']).first()
+        client.Name=request.json_body['Name']
+        client.Address=request.json_body['Address']
+        client.City=request.json_body['City']
+        client.StateProvince=request.json_body['StateProvince']
+        client.Country=request.json_body['Country']
+        client.Zipcode=request.json_body['Zip']
+        client.Fax=request.json_body['Fax']
+        client.Phone=request.json_body['Phone']
+        client.Cellular=request.json_body['Cellular']
+        client.Contact=request.json_body['Contact']
+
+        transaction.commit()
+        return HTTPOk()
     else:
-        print "Get client"
         clientid = request.matchdict['id']
         client = DBSession.query(Client).filter_by(ID=clientid).first()
 
@@ -438,7 +465,6 @@ def clientview(request):
                         'Fax': client.Fax,
                         'Cellular': client.Cellular,
                         'Contact': client.Contact}
-        print "done"
         return clientdict
 
 
@@ -451,8 +477,7 @@ def suppliersview(request):
     if request.method == 'OPTIONS':
         return {"success": True}
     else:
-        print "Get suppliers"
-        qry = DBSession.query(Supplier).all()
+        qry = DBSession.query(Supplier).order_by(Supplier.Name).all()
         supplierlist = []
 
         for supplier in qry:
@@ -467,7 +492,6 @@ def suppliersview(request):
                                 'Fax': supplier.Fax,
                                 'Cellular': supplier.Cellular,
                                 'Contact': supplier.Contact})
-        print "done"
         return supplierlist
 
 
@@ -479,8 +503,49 @@ def supplierview(request):
 
     if request.method == 'OPTIONS':
         return {"success": True}
+    elif request.method == 'DELETE':
+        deleteid = request.matchdict['id']
+
+        # Deleting it from the node table deleted the object
+        deletethis = DBSession.query(Supplier).filter_by(ID=deleteid).first()
+        qry = DBSession.delete(deletethis)
+
+        if qry == 0:
+            return HTTPNotFound()
+        transaction.commit()
+
+        return HTTPOk()
+    elif request.method == 'POST':
+        newsupplier = Supplier(Name=request.json_body['Name'],
+            Address=request.json_body['Address'],
+            City=request.json_body['City'],
+            StateProvince=request.json_body['StateProvince'],
+            Country=request.json_body['Country'],
+            Zipcode=request.json_body['Zip'],
+            Fax=request.json_body['Fax'],
+            Phone=request.json_body['Phone'],
+            Cellular=request.json_body['Cellular'],
+            Contact=request.json_body['Contact'])
+
+        DBSession.add(newsupplier)
+        return HTTPOk()
+    elif request.method == 'PUT':
+        supplier = DBSession.query(
+                    Supplier).filter_by(ID=request.matchdict['id']).first()
+        supplier.Name=request.json_body['Name']
+        supplier.Address=request.json_body['Address']
+        supplier.City=request.json_body['City']
+        supplier.StateProvince=request.json_body['StateProvince']
+        supplier.Country=request.json_body['Country']
+        supplier.Zipcode=request.json_body['Zip']
+        supplier.Fax=request.json_body['Fax']
+        supplier.Phone=request.json_body['Phone']
+        supplier.Cellular=request.json_body['Cellular']
+        supplier.Contact=request.json_body['Contact']
+
+        transaction.commit()
+        return HTTPOk()
     else:
-        print "Get supplier"
         supplierid = request.matchdict['id']
         supplier = DBSession.query(Supplier).filter_by(ID=supplierid).first()
 
@@ -495,7 +560,6 @@ def supplierview(request):
                         'Fax': supplier.Fax,
                         'Cellular': supplier.Cellular,
                         'Contact': supplier.Contact}
-        print "done"
         return supplierdict
 
 

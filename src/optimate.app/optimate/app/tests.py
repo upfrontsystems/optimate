@@ -661,8 +661,8 @@ class TestClientviewSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def _callFUT(self, request):
-        from .views import clientview
-        return clientview(request)
+        from .views import clientsview
+        return clientsview(request)
 
     def test_it(self):
         _registerRoutes(self.config)
@@ -672,8 +672,99 @@ class TestClientviewSuccessCondition(unittest.TestCase):
         self.assertEqual(response[0]['Name'], 'TestClientName')
 
 
+class TestDeleteClientSuccessCondition(unittest.TestCase):
+    """ Test if the Client deletes successfully
+    """
+
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from .views import clientview
+        return clientview(request)
+
+    def test_it(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.method = 'DELETE'
+        request.matchdict = {'id': 1}
+        response = self._callFUT(request)
+        # test if the correct name is returned
+        self.assertEqual(response.code, 200)
+
+class TestAddClientSuccessCondition(unittest.TestCase):
+    """ Test if a Client is added successfully
+    """
+
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from .views import clientview
+        return clientview(request)
+
+    def test_it(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest(json_body={
+            'Name': 'AddingName',
+            'Address': 'address',
+            'City': 'city',
+            'StateProvince': 'sp',
+            'Country': 'country',
+            'Zip': 'zip',
+            'Fax': 'fax',
+            'Phone': 'phone',
+            'Cellular': 'cell',
+            'Contact': 'contact'
+        })
+        request.method = 'POST'
+        request.matchdict = {'id': 0}
+        response = self._callFUT(request)
+        # test if the correct name is returned
+        self.assertEqual(response.code, 200)
+
+        # check now that there are two clients
+        request = testing.DummyRequest()
+        from .views import clientsview
+        response = clientsview(request)
+        self.assertEqual(len(response), 2)
+
+
 class TestSupplierviewSuccessCondition(unittest.TestCase):
     """ Test if the Supplier view returns a list with the correct supplier
+    """
+
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from .views import suppliersview
+        return suppliersview(request)
+
+    def test_it(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        response = self._callFUT(request)
+        # test if the correct name is returned
+        self.assertEqual(response[0]['Name'], 'TestSupplierName')
+
+class TestDeleteSupplierSuccessCondition(unittest.TestCase):
+    """ Test if the Suppler deletes successfully
     """
 
     def setUp(self):
@@ -691,6 +782,50 @@ class TestSupplierviewSuccessCondition(unittest.TestCase):
     def test_it(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
+        request.method = 'DELETE'
+        request.matchdict = {'id': 1}
         response = self._callFUT(request)
         # test if the correct name is returned
-        self.assertEqual(response[0]['Name'], 'TestSupplierName')
+        self.assertEqual(response.code, 200)
+
+class TestAddSupplierSuccessCondition(unittest.TestCase):
+    """ Test if a Supplier is added successfully
+    """
+
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from .views import supplierview
+        return supplierview(request)
+
+    def test_it(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest(json_body={
+            'Name': 'AddingName',
+            'Address': 'address',
+            'City': 'city',
+            'StateProvince': 'sp',
+            'Country': 'country',
+            'Zip': 'zip',
+            'Fax': 'fax',
+            'Phone': 'phone',
+            'Cellular': 'cell',
+            'Contact': 'contact'
+        })
+        request.method = 'POST'
+        request.matchdict = {'id': 0}
+        response = self._callFUT(request)
+        # test if the correct name is returned
+        self.assertEqual(response.code, 200)
+
+        # check now that there are two suppliers
+        request = testing.DummyRequest()
+        from .views import suppliersview
+        response = suppliersview(request)
+        self.assertEqual(len(response), 2)

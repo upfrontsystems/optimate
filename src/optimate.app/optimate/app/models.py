@@ -918,7 +918,7 @@ class Resource(Node):
 
 
 class Client(Base):
-    """A table containing the data relevent to a client of Optimate
+    """A table containing the data relavent to a client of Optimate
     """
     __tablename__ = 'Client'
     ID = Column(Integer, primary_key=True)
@@ -941,7 +941,7 @@ class Client(Base):
 
 
 class Supplier(Base):
-    """A table containing the data relevent to a suppliet of Optimate
+    """A table containing the data relavent to a supplier of Optimate
     """
     __tablename__ = 'Supplier'
     ID = Column(Integer, primary_key=True)
