@@ -55,10 +55,10 @@ def childview(request):
     if qry != None:
         for value in qry.Children:
         # for value in qry:
-            if value.Children:
-                subitem = [{'Name': '...'}]
-            else:
-                subitem = []
+            # if value.Children:
+            subitem = [{'Name': '...'}]
+            # else:
+            #     subitem = []
             try:
                 childrenlist.append({'Name': value.Name,
                                     'Description': value.Description,
@@ -442,7 +442,7 @@ def clientview(request):
         client.City=request.json_body['City']
         client.StateProvince=request.json_body['StateProvince']
         client.Country=request.json_body['Country']
-        client.Zipcode=request.json_body['Zip']
+        client.Zipcode=request.json_body['Zipcode']
         client.Fax=request.json_body['Fax']
         client.Phone=request.json_body['Phone']
         client.Cellular=request.json_body['Cellular']
@@ -537,7 +537,7 @@ def supplierview(request):
         supplier.City=request.json_body['City']
         supplier.StateProvince=request.json_body['StateProvince']
         supplier.Country=request.json_body['Country']
-        supplier.Zipcode=request.json_body['Zip']
+        supplier.Zipcode=request.json_body['Zipcode']
         supplier.Fax=request.json_body['Fax']
         supplier.Phone=request.json_body['Phone']
         supplier.Cellular=request.json_body['Cellular']

@@ -1,7 +1,7 @@
 // Get all Optimate data with angular treeview using traversal
 (function(){
     "use strict";
-    var myApp = angular.module('myApp', ['angularTreeview', 'ngModal']);
+    var myApp = angular.module('myApp', ['angularTreeview', 'ngModal', 'ui.bootstrap']);
     // Angular function that retrieves the list of projects from the server
     myApp.controller('projectlistController',['$scope', '$http',
         function($scope, $http) {
@@ -59,42 +59,38 @@
         }
     ]);
     // Angular function that retrieves the Client data from the server
-    myApp.controller('clientsController', ['$scope', '$http',
-        function($scope, $http) {
+    myApp.controller('clientsController', ['$scope', '$http', '$modal', '$log',
+        function($scope, $http, $modal, $log) {
             var req = {
                 method: 'GET',
                 url: 'http://127.0.0.1:8100/clients',
-            }
+            };
             $http(req).success(function(data){
                 $scope.jsonclients = data;
-            })
-            var addDialogShown = false;
-            $scope.addNewClient = function(){
-                $scope.addDialogShown = false;
+            });
 
+            $scope.addNewClient = function(){
                 var name = $scope.formData.inputName;
                 $scope.formData.inputName = "";
                 var address = $scope.formData.inputAddress;
                 $scope.formData.inputAddress = "";
                 var city = $scope.formData.inputCity;
-                $scope.formData.inputCity = ""
+                $scope.formData.inputCity = "";
                 var sp = $scope.formData.inputStateProvince;
-                $scope.formData.inputStateProvince = ""
+                $scope.formData.inputStateProvince = "";
                 var country = $scope.formData.inputCountry;
-                $scope.formData.inputCountry = ""
+                $scope.formData.inputCountry = "";
                 var zip = $scope.formData.inputZip;
-                $scope.formData.inputZip = ""
+                $scope.formData.inputZip = "";
                 var fax = $scope.formData.inputFax;
-                $scope.formData.inputFax = ""
+                $scope.formData.inputFax = "";
                 var phone = $scope.formData.inputPhone;
-                $scope.formData.inputPhone = ""
+                $scope.formData.inputPhone = "";
                 var cell = $scope.formData.inputCellular;
-                $scope.formData.inputCellular = ""
+                $scope.formData.inputCellular = "";
                 var contact = $scope.formData.inputContact;
-                $scope.formData.inputContact = ""
+                $scope.formData.inputContact = "";
 
-                console.log("Adding " + name +
-                    ", " + address);
                 $http({
                     method: 'POST',
                     url: 'http://localhost:8100/0/client',
@@ -111,120 +107,101 @@
                 }).success(function () {
                     console.log("added");
                 });
-            }
+            };
 
-            var editDialogShown = false;
-            var selectedClient = 0;
-            $scope.getEditClient = function(id){
-                var req = {
-                method: 'GET',
-                url: 'http://127.0.0.1:8100/' + id + '/client',
-                }
-                $http(req).success(function(data){
-                    $scope.formData.inputName = data.Name;
-                    $scope.formData.inputAddress = data.Address;
-                    $scope.formData.inputCity = data.City;
-                    $scope.formData.inputStateProvince = data.StateProvince;
-                    $scope.formData.inputCountry = data.Country;
-                    $scope.formData.inputZip = data.Zipcode;
-                    $scope.formData.inputFax = data.Fax;
-                    $scope.formData.inputPhone = data.Phone;
-                    $scope.formData.inputCellular = data.Cellular;
-                    $scope.formData.inputContact = data.Contact;
-                })
-                $scope.selectedClient = id
-                $scope.editDialogShown = true;
-            }
+            var ModalInstanceCtrl = function ($scope, $modalInstance, editingClient, id) {
+              $scope.editingClient = editingClient;
 
-            $scope.editClient = function(){
-                $scope.editDialogShown = false;
-
-                var name = $scope.formData.inputName;
-                $scope.formData.inputName = "";
-                var address = $scope.formData.inputAddress;
-                $scope.formData.inputAddress = "";
-                var city = $scope.formData.inputCity;
-                $scope.formData.inputCity = ""
-                var sp = $scope.formData.inputStateProvince;
-                $scope.formData.inputStateProvince = ""
-                var country = $scope.formData.inputCountry;
-                $scope.formData.inputCountry = ""
-                var zip = $scope.formData.inputZip;
-                $scope.formData.inputZip = ""
-                var fax = $scope.formData.inputFax;
-                $scope.formData.inputFax = ""
-                var phone = $scope.formData.inputPhone;
-                $scope.formData.inputPhone = ""
-                var cell = $scope.formData.inputCellular;
-                $scope.formData.inputCellular = ""
-                var contact = $scope.formData.inputContact;
-                $scope.formData.inputContact = ""
-
-                console.log("Editing " + name +
-                    ", " + address);
+              $scope.editClient = function() {
                 $http({
                     method: 'PUT',
-                    url: 'http://localhost:8100/' + $scope.selectedClient + '/client',
-                    data:{'Name': name,
-                            'Address': address,
-                            'City': city,
-                            'StateProvince': sp,
-                            'Country': country,
-                            'Zip': zip,
-                            'Fax': fax,
-                            'Phone': phone,
-                            'Cellular': cell,
-                            'Contact': contact}
+                    url: 'http://localhost:8100/' + id + '/client',
+                    data:{'Name': $scope.editingClient['Name'],
+                            'Address': $scope.editingClient['Address'],
+                            'City': $scope.editingClient['City'],
+                            'StateProvince': $scope.editingClient['StateProvince'],
+                            'Country': $scope.editingClient['Country'],
+                            'Zipcode': $scope.editingClient['Zipcode'],
+                            'Fax': $scope.editingClient['Fax'],
+                            'Phone': $scope.editingClient['Phone'],
+                            'Cellular': $scope.editingClient['Cellular'],
+                            'Contact': $scope.editingClient['Contact']}
                 }).success(function () {
                     console.log("edited");
                 });
-            }
+                $modalInstance.close();
+              };
+
+              $scope.cancel = function () {
+                $modalInstance.dismiss('cancel');
+              };
+            };
+
+            $scope.getEditClient = function(id) {
+                var req = {
+                method: 'GET',
+                url: 'http://127.0.0.1:8100/' + id + '/client',
+                };
+                $http(req).success(function(data) {
+                    $scope.editingClient = data;
+                    var modalInstance = $modal.open({
+                        templateUrl: 'editClientModal.html',
+                        controller: ModalInstanceCtrl,
+                        resolve: {
+                            editingClient: function () {
+                                return $scope.editingClient;
+                            },
+                            id: function () {
+                                return id;
+                            }
+                        }
+                    });
+                });
+            };
 
             $scope.deleteClient = function(id){
                 var req = {
                 method: 'DELETE',
                 url: 'http://127.0.0.1:8100/' + id + '/client',
-                }
+                };
                 $http(req).success(function(data){
                     alert("Client deleted")
-                })
-            }
+                });
+            };
         }
     ]);
     // Angular function that retrieves the Supplier data from the server
-    myApp.controller('suppliersController', ['$scope', '$http',
-        function($scope, $http) {
+    myApp.controller('suppliersController', ['$scope', '$http', '$modal', '$log',
+        function($scope, $http, $modal, $log) {
             var req = {
                 method: 'GET',
-                url: 'http://127.0.0.1:8100/suppliers',
-            }
+                url: 'http://127.0.0.1:8100/suppliers'
+            };
             $http(req).success(function(data){
-                $scope.jsonsuppliers = data
-            })
-            var addDialogShown = false;
-            $scope.addNewSupplier = function(){
-                $scope.addDialogShown = false;
+                $scope.jsonsuppliers = data;
+            });
 
+            $scope.addNewSupplier = function(){
                 var name = $scope.formData.inputName;
                 $scope.formData.inputName = "";
                 var address = $scope.formData.inputAddress;
                 $scope.formData.inputAddress = "";
                 var city = $scope.formData.inputCity;
-                $scope.formData.inputCity = ""
+                $scope.formData.inputCity = "";
                 var sp = $scope.formData.inputStateProvince;
-                $scope.formData.inputStateProvince = ""
+                $scope.formData.inputStateProvince = "";
                 var country = $scope.formData.inputCountry;
-                $scope.formData.inputCountry = ""
+                $scope.formData.inputCountry = "";
                 var zip = $scope.formData.inputZip;
-                $scope.formData.inputZip = ""
+                $scope.formData.inputZip = "";
                 var fax = $scope.formData.inputFax;
-                $scope.formData.inputFax = ""
+                $scope.formData.inputFax = "";
                 var phone = $scope.formData.inputPhone;
-                $scope.formData.inputPhone = ""
+                $scope.formData.inputPhone = "";
                 var cell = $scope.formData.inputCellular;
-                $scope.formData.inputCellular = ""
+                $scope.formData.inputCellular = "";
                 var contact = $scope.formData.inputContact;
-                $scope.formData.inputContact = ""
+                $scope.formData.inputContact = "";
 
                 console.log("Adding " + name +
                     ", " + address);
@@ -244,84 +221,68 @@
                 }).success(function () {
                     console.log("added");
                 });
-            }
+            };
 
-            var editDialogShown = false;
-            var selectedSupplier = 0;
-            $scope.getEditSupplier = function(id){
-                var req = {
-                method: 'GET',
-                url: 'http://127.0.0.1:8100/' + id + '/supplier',
-                }
-                $http(req).success(function(data){
-                    $scope.formData.inputName = data.Name;
-                    $scope.formData.inputAddress = data.Address;
-                    $scope.formData.inputCity = data.City;
-                    $scope.formData.inputStateProvince = data.StateProvince;
-                    $scope.formData.inputCountry = data.Country;
-                    $scope.formData.inputZip = data.Zipcode;
-                    $scope.formData.inputFax = data.Fax;
-                    $scope.formData.inputPhone = data.Phone;
-                    $scope.formData.inputCellular = data.Cellular;
-                    $scope.formData.inputContact = data.Contact;
-                })
-                $scope.selectedSupplier = id
-                $scope.editDialogShown = true;
-            }
+            var ModalInstanceCtrl = function ($scope, $modalInstance, editingSupplier, id) {
+              $scope.editingSupplier = editingSupplier;
 
-            $scope.editSupplier = function(){
-                $scope.editDialogShown = false;
-
-                var name = $scope.formData.inputName;
-                $scope.formData.inputName = "";
-                var address = $scope.formData.inputAddress;
-                $scope.formData.inputAddress = "";
-                var city = $scope.formData.inputCity;
-                $scope.formData.inputCity = ""
-                var sp = $scope.formData.inputStateProvince;
-                $scope.formData.inputStateProvince = ""
-                var country = $scope.formData.inputCountry;
-                $scope.formData.inputCountry = ""
-                var zip = $scope.formData.inputZip;
-                $scope.formData.inputZip = ""
-                var fax = $scope.formData.inputFax;
-                $scope.formData.inputFax = ""
-                var phone = $scope.formData.inputPhone;
-                $scope.formData.inputPhone = ""
-                var cell = $scope.formData.inputCellular;
-                $scope.formData.inputCellular = ""
-                var contact = $scope.formData.inputContact;
-                $scope.formData.inputContact = ""
-
-                console.log("Editing " + name +
-                    ", " + address);
+              $scope.editSupplier = function() {
                 $http({
                     method: 'PUT',
-                    url: 'http://localhost:8100/' + $scope.selectedSupplier + '/supplier',
-                    data:{'Name': name,
-                            'Address': address,
-                            'City': city,
-                            'StateProvince': sp,
-                            'Country': country,
-                            'Zip': zip,
-                            'Fax': fax,
-                            'Phone': phone,
-                            'Cellular': cell,
-                            'Contact': contact}
+                    url: 'http://localhost:8100/' + id + '/supplier',
+                    data:{'Name': $scope.editingSupplier['Name'],
+                            'Address': $scope.editingSupplier['Address'],
+                            'City': $scope.editingSupplier['City'],
+                            'StateProvince': $scope.editingSupplier['StateProvince'],
+                            'Country': $scope.editingSupplier['Country'],
+                            'Zipcode': $scope.editingSupplier['Zipcode'],
+                            'Fax': $scope.editingSupplier['Fax'],
+                            'Phone': $scope.editingSupplier['Phone'],
+                            'Cellular': $scope.editingSupplier['Cellular'],
+                            'Contact': $scope.editingSupplier['Contact']}
                 }).success(function () {
                     console.log("edited");
                 });
-            }
+                $modalInstance.close();
+              };
+
+              $scope.cancel = function () {
+                $modalInstance.dismiss('cancel');
+              };
+            };
+
+            $scope.getEditSupplier = function(id) {
+                var req = {
+                method: 'GET',
+                url: 'http://127.0.0.1:8100/' + id + '/supplier',
+                };
+                $http(req).success(function(data) {
+                    $scope.editingSupplier = data;
+
+                    var modalInstance = $modal.open({
+                        templateUrl: 'editSupplierModal.html',
+                        controller: ModalInstanceCtrl,
+                        resolve: {
+                            editingSupplier: function () {
+                                return $scope.editingSupplier;
+                            },
+                            id: function () {
+                                return id;
+                            }
+                        }
+                    });
+                });
+            };
 
             $scope.deleteSupplier = function(id){
                 var req = {
                 method: 'DELETE',
                 url: 'http://127.0.0.1:8100/' + id + '/supplier',
-                }
+                };
                 $http(req).success(function(data){
                     alert("Supplier deleted")
-                })
-            }
+                });
+            };
         }
     ]);
 })();

@@ -739,6 +739,48 @@ class TestAddClientSuccessCondition(unittest.TestCase):
         response = clientsview(request)
         self.assertEqual(len(response), 2)
 
+class TestEditClientSuccessCondition(unittest.TestCase):
+    """ Test if a Client's name is changed successfully
+    """
+
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from .views import clientview
+        return clientview(request)
+
+    def test_it(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest(json_body={
+            'Name': 'EditedName',
+            'Address': 'address',
+            'City': 'city',
+            'StateProvince': 'sp',
+            'Country': 'country',
+            'Zipcode': 'zip',
+            'Fax': 'fax',
+            'Phone': 'phone',
+            'Cellular': 'cell',
+            'Contact': 'contact'
+        })
+        request.method = 'PUT'
+        request.matchdict = {'id': 1}
+        response = self._callFUT(request)
+        # test if the correct name is returned
+        self.assertEqual(response.code, 200)
+
+        # check now that the name has changed
+        request = testing.DummyRequest()
+        from .views import clientsview
+        response = clientsview(request)
+        self.assertEqual(response[0]['Name'], 'EditedName')
+
 
 class TestSupplierviewSuccessCondition(unittest.TestCase):
     """ Test if the Supplier view returns a list with the correct supplier
@@ -829,3 +871,45 @@ class TestAddSupplierSuccessCondition(unittest.TestCase):
         from .views import suppliersview
         response = suppliersview(request)
         self.assertEqual(len(response), 2)
+
+class TestEditSupplierSuccessCondition(unittest.TestCase):
+    """ Test if a Supplier's name is changed successfully
+    """
+
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from .views import supplierview
+        return supplierview(request)
+
+    def test_it(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest(json_body={
+            'Name': 'EditedName',
+            'Address': 'address',
+            'City': 'city',
+            'StateProvince': 'sp',
+            'Country': 'country',
+            'Zipcode': 'zip',
+            'Fax': 'fax',
+            'Phone': 'phone',
+            'Cellular': 'cell',
+            'Contact': 'contact'
+        })
+        request.method = 'PUT'
+        request.matchdict = {'id': 1}
+        response = self._callFUT(request)
+        # test if the correct name is returned
+        self.assertEqual(response.code, 200)
+
+        # check now that the name has changed
+        request = testing.DummyRequest()
+        from .views import suppliersview
+        response = suppliersview(request)
+        self.assertEqual(response[0]['Name'], 'EditedName')
