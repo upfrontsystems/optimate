@@ -82,8 +82,3 @@ $(function () {
         });
     });
 })
-
-// on load, prepare "Open a Project" overlay functionality
-$(document).ready(function() {
-    $("button[rel]").overlay();
-});

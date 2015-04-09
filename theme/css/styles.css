@@ -80,35 +80,3 @@ input.editor-text {
 #project-select > * {
     font-size: 0.8em;
 }
-
-#project-select-overlay {
-    width: auto;
-    height: auto;
-    padding: 8px;
-    z-index: 2;
-    background: #fff;
-    border: 1px solid #999;
-    white-space: normal;
-    box-shadow: 0 0 3em 0.5em #777;
-    -moz-box-shadow: 0 0 3em 0.5em #777;
-    -webkit-box-shadow: 0 0 3em #777;
-}
-
-#project-select-overlay a.close {
-    background-image: url(../img/pb_close.png);
-    position: absolute;
-    right: -14px;
-    top: -14px;
-    cursor: pointer;
-    height: 30px;
-    width: 30px;
-}
-
-#project-select-overlay a.close span {
-    display: block;
-    height: 1px;
-    margin: -1px 0 0 -1px;
-    overflow: hidden;
-    padding: 0;
-    width: 1px;
-}
