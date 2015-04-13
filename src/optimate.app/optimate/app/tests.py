@@ -50,6 +50,7 @@ def _initTestingDB():
                         ID=3,
                         Description="TestBIDesc",
                         _Quantity=5.0,
+                        _Markup=0.1,
                         ParentID=budgetgroup.ID)
         rescat = ResourceCategory(ID=9,
                         Name="TestCategory",
@@ -68,19 +69,15 @@ def _initTestingDB():
                        Rate=10.0,
                        ParentID=rescat.ID)
         comp = Component(ID=7,
-                        # Name=res.Name,
-                        # Description=res.Description,
-                        # _Rate=res.Rate,
                         ResourceID = res.ID,
                         _Quantity=5.0,
+                        _Markup=0.05,
                         Type=1,
                         ParentID=budgetitem.ID)
         compa = Component(ID=11,
-                        # Name=resa.Name,
-                        # Description=resa.Description,
-                        # _Rate=resa.Rate,
                         ResourceID=resa.ID,
                         _Quantity=7.0,
+                        _Markup=0.01,
                         Type=1,
                         ParentID=budgetitem.ID)
         comptype = ComponentType(ID=1, Name="type")
@@ -97,6 +94,7 @@ def _initTestingDB():
         budgetitemb = BudgetItem(Name="TestBBIName",
                         ID=6,
                         _Quantity=10.0,
+                        _Markup=0.5,
                         Description="TestBBIDesc",
                         ParentID=budgetgroupb.ID)
         rescatb = ResourceCategory(ID=12,
@@ -116,24 +114,21 @@ def _initTestingDB():
                        Rate=5.0,
                        ParentID=rescatb.ID)
         compb = Component(ID=8,
-                        # Name=resb.Name,
-                        # Description=resb.Description,
-                        # _Rate=resb.Rate,
                         ResourceID=resb.ID,
                         _Quantity=5.0,
+                        _Markup=0.1,
                         Type=1,
                         ParentID=budgetitemb.ID)
         budgetitemc = BudgetItem(Name="TestCBIName",
                         ID=13,
                         _Quantity=6.0,
+                        _Markup=0.1,
                         Description="TestCBIDesc",
                         ParentID=budgetgroupb.ID)
         compc = Component(ID=14,
-                        # Name=resduplicate.Name,
-                        # Description=resduplicate.Description,
-                        # _Rate=resduplicate.Rate,
                         ResourceID=resduplicate.ID,
                         _Quantity=8.0,
+                        _Markup=0.2,
                         Type=1,
                         ParentID=budgetitemc.ID)
 
@@ -165,49 +160,35 @@ def _initTestingDB():
         DBSession.add(client)
         DBSession.add(supplier)
 
-        # res.Components.append(comp)
-
-        # resduplicate.Components.append(compc)
-
-        # resa.Components.append(compa)
-
-        # resb.Components.append(compb)
-
-        # rescat.Children.append(res)
-        # rescat.Children.append(resa)
-
-        # rescatb.Children.append(resduplicate)
-        # rescatb.Children.append(resb)
-
         transaction.commit()
 
         """The hierarchy
-        project -(475) id:1
+        project -(533.225) id:1
                 |
-                budgetgroup -(475) id:2
+                budgetgroup -(533.225) id:2
                             |
-                            budgetitem -((25+70)*5=475) id:3
+                            budgetitem -(1.1*(26.25+70.7)*5=533.225) id:3
                                        |
-                                       comp - res (5*5=25) id:7
+                                       comp - res (1.05*5*5=26.25) id:7
                                        |
-                                       compa - resa (7*10=70) id:11
+                                       compa - resa (1.01*7*10=70.7) id:11
                 |
                 rescat - id:9
                         |
                         res id:15
                         |
                         resa id:16
-        projectb -(590) id:4
+        projectb -(894.3) id:4
                  |
-                 budgetgroupb -(350+240=590) id:5
+                 budgetgroupb -(577.5+316.8=894.3) id:5
                               |
-                              budgetitemb - (35*10=350) id:6
+                              budgetitemb - (1.5*38.5*10=577.5) id:6
                                           |
-                                          compb - resb (5*7=35) id:8
+                                          compb - resb (1.1*5*7=38.5) id:8
                               |
-                              budgetitemc - (40*6=240) id:13
+                              budgetitemc - (1.1*48*6=316.8) id:13
                                           |
-                                          compc - resduplicate (8*5=40) id:14
+                                          compc - resduplicate (1.2*8*5=48) id:14
                  |
                  rescatb - id:12
                          |
@@ -345,6 +326,92 @@ class TestAddBudgetGroupSuccessCondition(unittest.TestCase):
         # true if the name of the child added to the node is 'AddingName'
         self.assertEqual(response[0]['Name'], 'AddingName')
 
+class TestAddProjectSuccessCondition(unittest.TestCase):
+    """ Test if the additemview functions correctly when adding a project
+        including budgetgroups, items, and components
+    """
+
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        self.session.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from .views import additemview
+        return additemview(request)
+
+    def test_it(self):
+        _registerRoutes(self.config)
+
+        # Add the default project using json in the request
+        request = testing.DummyRequest(json_body={
+            'Name': 'AddingProject',
+            'Description': 'Adding test item',
+            'NodeType': 'project'
+        })
+        # add it to id:0 the root
+        request.matchdict = {'id': 0}
+        response = self._callFUT(request)
+        # assert if the response from the add view is OK
+        self.assertEqual(response.code, 200)
+        # get the id of the new node
+        projectid = int(str(response))
+
+        # Add a budgetgroup
+        request = testing.DummyRequest(json_body={
+            'Name': 'AddingBG',
+            'Description': 'Adding test item',
+            'NodeType': 'budgetgroup'
+        })
+        # add it to the parent
+        request.matchdict = {'id': projectid}
+        response = self._callFUT(request)
+        # assert if the response from the add view is OK
+        self.assertEqual(response.code, 200)
+        # get the id of the new node
+        newid = int(str(response))
+
+        # Add a budgetitem
+        request = testing.DummyRequest(json_body={
+            'Name': 'AddingBI',
+            'Description': 'Adding test item',
+            'NodeType': 'budgetitem',
+            'Quantity': 10.0
+        })
+        # add it to the parent
+        request.matchdict = {'id': newid}
+        response = self._callFUT(request)
+        # assert if the response from the add view is OK
+        self.assertEqual(response.code, 200)
+        # get the id of the new node
+        newid = int(str(response))
+
+        # Add a component
+        request = testing.DummyRequest(json_body={
+            'Name': 'TestResource',
+            'Description': 'Adding test item',
+            'NodeType': 'component',
+            'Quantity': 10.0,
+            'ComponentType': 1
+        })
+        # add it to the parent
+        request.matchdict = {'id': newid}
+        response = self._callFUT(request)
+        # assert if the response from the add view is OK
+        self.assertEqual(response.code, 200)
+
+        # test the total cost of the project
+        request = testing.DummyRequest()
+        request.matchdict = {'id': projectid}
+        from .views import costview
+        response = costview(request)
+        # true if the cost is correct
+        self.assertEqual(response["Cost"], 500.0)
+
+
 
 class TestAddComponentSuccessCondition(unittest.TestCase):
     """ Test if the additemview functions correctly when adding a component
@@ -386,7 +453,7 @@ class TestAddComponentSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 4}
         from .views import costview
         response = costview(request)
-        self.assertEqual(response["Cost"], 990.0)
+        self.assertEqual(response["Cost"], 1494.3)
 
 
 class TestDeleteviewSuccessCondition(unittest.TestCase):
@@ -476,12 +543,11 @@ class TestPasteviewSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 4}
         from .views import costview
         response = costview(request)
-        self.assertEqual(response["Cost"], 1065.0)
+        self.assertEqual(response["Cost"], 1427.525)
 
 
 class TestCostviewSuccessCondition(unittest.TestCase):
-    """ Test that the paste functions correctly with getting the
-        total  cost of a node
+    """ Test all the Costs are correct
     """
 
     def setUp(self):
@@ -503,68 +569,68 @@ class TestCostviewSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 1}
         response = self._callFUT(request)
         # true if the cost is correct
-        self.assertEqual(response["Cost"], 475.0)
+        self.assertEqual(response["Cost"], 533.225)
 
         # get the cost of budgetgroup at id 2
         request = testing.DummyRequest()
         request.matchdict = {'id': 2}
         response = self._callFUT(request)
-        self.assertEqual(response["Cost"], 475.0)
+        self.assertEqual(response["Cost"], 533.225)
 
         # get the cost of budgetitem at id 3
         request = testing.DummyRequest()
         request.matchdict = {'id': 3}
         response = self._callFUT(request)
-        self.assertEqual(response["Cost"], 475.0)
+        self.assertEqual(response["Cost"], 533.225)
 
         # get the cost of comp at id 7
         request = testing.DummyRequest()
         request.matchdict = {'id': 7}
         response = self._callFUT(request)
-        self.assertEqual(response["Cost"], 25.0)
+        self.assertEqual(response["Cost"], 26.25)
 
         # get the cost of compa at id 11
         request = testing.DummyRequest()
         request.matchdict = {'id': 11}
         response = self._callFUT(request)
-        self.assertEqual(response["Cost"], 70.0)
+        self.assertEqual(response["Cost"], 70.7)
 
         # get the cost of projectb at id 4
         request = testing.DummyRequest()
         request.matchdict = {'id': 4}
         response = self._callFUT(request)
-        self.assertEqual(response["Cost"], 590.0)
+        self.assertEqual(response["Cost"], 894.3)
 
         # get the cost of budgetgroupb at id 5
         request = testing.DummyRequest()
         request.matchdict = {'id': 5}
         response = self._callFUT(request)
         # true if the cost is correct
-        self.assertEqual(response["Cost"], 590.0)
+        self.assertEqual(response["Cost"], 894.3)
 
         # get the cost of budgetitemb at id 6
         request = testing.DummyRequest()
         request.matchdict = {'id': 6}
         response = self._callFUT(request)
-        self.assertEqual(response["Cost"], 350.0)
+        self.assertEqual(response["Cost"], 577.5)
 
         # get the cost of compb at id 8
         request = testing.DummyRequest()
         request.matchdict = {'id': 8}
         response = self._callFUT(request)
-        self.assertEqual(response["Cost"], 35.0)
+        self.assertEqual(response["Cost"], 38.5)
 
         # get the cost of budgetitemc at id 13
         request = testing.DummyRequest()
         request.matchdict = {'id': 13}
         response = self._callFUT(request)
-        self.assertEqual(response["Cost"], 240.0)
+        self.assertEqual(response["Cost"], 316.8)
 
         # get the cost of compc at id 14
         request = testing.DummyRequest()
         request.matchdict = {'id': 14}
         response = self._callFUT(request)
-        self.assertEqual(response["Cost"], 40.0)
+        self.assertEqual(response["Cost"], 48.0)
 
 
 class TestSetComponentQuantitySuccessCondition(unittest.TestCase):
@@ -591,20 +657,20 @@ class TestSetComponentQuantitySuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 4}
         response = self._callFUT(request)
         # true if the cost is correct
-        self.assertEqual(response["Cost"], 590.0)
+        self.assertEqual(response["Cost"], 894.3)
 
         # now change the rate of the component by calling the test view
-        # in the views its quantity is set to 10
+        # in the views its quantity is set to 7
         request = testing.DummyRequest()
         request.matchdict = {'id': 8}
         from .views import testchangequantityview
         testchangequantityview(request)
 
-        # now the project cost should be 940
+        # now the project cost should be changed
         request = testing.DummyRequest()
         request.matchdict = {'id': 4}
         response = self._callFUT(request)
-        self.assertEqual(response["Cost"], 940.0)
+        self.assertEqual(response["Cost"], 1125.3)
 
 
 class TestSetResourceRateSuccessCondition(unittest.TestCase):
@@ -632,20 +698,20 @@ class TestSetResourceRateSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
 
         # true if the cost is correct
-        self.assertEqual(response["Cost"], 475.0)
+        self.assertEqual(response["Cost"], 533.225)
 
         # now change the rate of the resource by calling the test view
-        # in the views its rate is set to 10
+        # in the views its rate is set to 15
         request = testing.DummyRequest()
         request.matchdict = {'id': 1, 'resourcecode': 'A000'}
         from .views import testchangerateview
         testchangerateview(request)
 
-        # now the project cost should be 940
+        # now the project cost should have changed
         request = testing.DummyRequest()
         request.matchdict = {'id': 1}
         response = self._callFUT(request)
-        self.assertEqual(response["Cost"], 725.0)
+        self.assertEqual(response["Cost"], 821.975)
 
 
 class TestClientviewSuccessCondition(unittest.TestCase):

@@ -357,6 +357,7 @@ class BudgetItem(Node):
     _Quantity = Column('Quantity', Float)
     _Rate = Column('Rate', Float)
     _Total = Column('Total', Float)
+    _Markup = Column('Markup', Float, default=0.0)
 
     __mapper_args__ = {
         'polymorphic_identity': 'BudgetItem',
@@ -371,7 +372,7 @@ class BudgetItem(Node):
         for child in childr:
             rate += child.recalculateTotal()
         self._Rate = rate
-        self._Total = self.Rate * self.Quantity
+        self._Total = (1.0+self.Markup)*(self.Rate * self.Quantity)
         return self.Total
 
     def resetTotal(self):
@@ -384,7 +385,7 @@ class BudgetItem(Node):
         for item in self.Children:
             rate += item.Total
         self._Rate = rate
-        self.Total = rate * self.Quantity
+        self.Total = (1.0+self.Markup)*(rate * self.Quantity)
         return self._Total
 
     @hybrid_property
@@ -420,6 +421,19 @@ class BudgetItem(Node):
                 parent.Total = parent.Total + difference
 
     @hybrid_property
+    def Markup(self):
+        """ Get the markup of this budgetitem
+        """
+        return self._Markup
+
+    @Markup.setter
+    def Markup(self, markup):
+        """ Set the markup value, and change the total accordingly
+        """
+        self._Markup = markup
+        self.Total = (1.0+markup)*(self.Rate*self.Quantity)
+
+    @hybrid_property
     def Rate(self):
         """ Get the Rate, if it is None set it to 0
         """
@@ -433,7 +447,7 @@ class BudgetItem(Node):
         """
         self._Rate = rate
         # when the rate changes recalculate the total
-        self.Total = self.Rate * self.Quantity
+        self.Total = (1.0+self.Markup)*(self.Rate * self.Quantity)
 
     @hybrid_property
     def Quantity(self):
@@ -449,7 +463,7 @@ class BudgetItem(Node):
         """
         self._Quantity = quantity
         # when the quantity changes recalculate the total
-        self.Total = self.Rate * self.Quantity
+        self.Total = (1.0+self.Markup)*(self.Rate * self.Quantity)
 
     def copy(self, parentid):
         """copy returns an exact duplicate of this object,
@@ -459,6 +473,10 @@ class BudgetItem(Node):
                             Description=self.Description,
                             Unit=self.Unit,
                             ParentID=parentid,
+                            _Quantity=self._Quantity,
+                            _Rate=self._Rate,
+                            _Total=self._Total,
+                            _Markup=self._Markup,
                             OrderCost=self.OrderCost,
                             ClaimedCost=self.ClaimedCost,
                             RunningCost=self.RunningCost,
@@ -466,9 +484,6 @@ class BudgetItem(Node):
                             ClientCost=self.ClientCost,
                             ProjectedProfit=self.ProjectedProfit,
                             ActualProfit=self.ActualProfit)
-        copied._Quantity = self.Quantity
-        copied._Rate = self.Rate
-        copied._Total = self.Total
 
         return copied
 
@@ -557,6 +572,7 @@ class Component(Node):
     Unit = Column(Text)
     _Quantity = Column('Quantity', Float)
     _Total = Column('Total', Float)
+    _Markup = Column('Markup', Float, default=0.0)
 
     ThisResource = relationship('Resource',
                                 foreign_keys='Component.ResourceID',
@@ -572,13 +588,13 @@ class Component(Node):
         """
         rate = 0
         childr = self.Children
-        self._Total = self.Rate * self.Quantity
+        self._Total = (1.0+self.Markup)*(self.Rate * self.Quantity)
         return self._Total
 
     def resetTotal(self):
         """The total of a component is based on its rate and quantity
         """
-        self._Total = self.Rate * self.Quantity
+        self._Total = (1.0+self.Markup)*(self.Rate * self.Quantity)
         return self._Total
 
     @hybrid_property
@@ -632,6 +648,19 @@ class Component(Node):
         self.ThisResource.Description = description
 
     @hybrid_property
+    def Markup(self):
+        """ Get the markup of this component
+        """
+        return self._Markup
+
+    @Markup.setter
+    def Markup(self, markup):
+        """ Set the markup value, and change the total accordingly
+        """
+        self._Markup = markup
+        self.Total = (1.0+markup)*(self.Rate*self.Quantity)
+
+    @hybrid_property
     def Rate(self):
         """ Get the component's Rate, the Rate of this resource is returned
         """
@@ -645,7 +674,7 @@ class Component(Node):
         if self.ThisResource.Rate != rate:
             self.ThisResource.Rate = rate
         # change the total when the rate changes
-        self.Total = rate * self.Quantity
+        self.Total = (1.0+self.Markup)*(rate * self.Quantity)
 
     @hybrid_property
     def Quantity(self):
@@ -661,7 +690,7 @@ class Component(Node):
         """
         self._Quantity = quantity
         # change the total when the quantity changes
-        self.Total = self.Rate * self.Quantity
+        self.Total = (1.0+self.Markup)*(self.Rate * self.Quantity)
 
     def copy(self, parentid):
         """ copy returns an exact duplicate of this object,
@@ -671,6 +700,9 @@ class Component(Node):
                             Type=self.Type,
                             Unit=self.Unit,
                             ParentID=parentid,
+                            _Quantity=self._Quantity,
+                            _Total=self._Total,
+                            _Markup=self._Markup,
                             OrderCost=self.OrderCost,
                             ClaimedCost=self.ClaimedCost,
                             RunningCost=self.RunningCost,
@@ -678,8 +710,6 @@ class Component(Node):
                             ClientCost=self.ClientCost,
                             ProjectedProfit=self.ProjectedProfit,
                             ActualProfit=self.ActualProfit)
-        copied._Quantity = self.Quantity
-        copied._Total = self.Total
 
         return copied
 

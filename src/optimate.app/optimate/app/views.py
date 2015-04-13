@@ -232,7 +232,18 @@ def additemview(request):
             rootparentid = parent.getProjectID()
             resourcecategory = DBSession.query(
                     ResourceCategory).filter_by(ParentID=rootparentid).first()
-            rescatid = resourcecategory.ID
+            # if the resourcecategory does not exist create it
+            try:
+                rescatid = resourcecategory.ID
+            except AttributeError, a:
+                resourcecategory = ResourceCategory(Name='Resource Category',
+                                            Description='Category Description',
+                                            ParentID=rootparentid)
+
+                DBSession.add(resourcecategory)
+                DBSession.flush()
+                rescatid = resourcecategory.ID
+
             resource = DBSession.query(
                                 Resource).filter_by(
                                 ParentID=rescatid, Name=name).first()
@@ -263,15 +274,18 @@ def additemview(request):
             return HTTPInternalServerError()
 
         DBSession.add(newnode)
-        transaction.commit()
+        DBSession.flush()
+        newid = newnode.ID
 
         # reset the total of the parent
         if parentid != 0:
             recalculate = DBSession.query(Node).filter_by(ID=parentid).first()
             recalculate.resetTotal()
 
+        # commit the transaction and return ok,
+        # along with the id of the new node
         transaction.commit()
-        return HTTPOk()
+        return HTTPOk(str(newid))
 
 
 @view_config(route_name="deleteview", renderer='json')
@@ -402,12 +416,13 @@ def clientsview(request):
 
 @view_config(route_name='clientview', renderer='json')
 def clientview(request):
-    """ The clientview returns a list with only the data
-        of the client specified
+    """ The clientview handles different cases of a single client
+        depending on the http method
     """
 
     if request.method == 'OPTIONS':
         return {"success": True}
+    # if the method is delete, delete the client
     elif request.method == 'DELETE':
         deleteid = request.matchdict['id']
 
@@ -420,6 +435,7 @@ def clientview(request):
         transaction.commit()
 
         return HTTPOk()
+    # if the method is post, add a new client
     elif request.method == 'POST':
         newclient = Client(Name=request.json_body['Name'],
             Address=request.json_body['Address'],
@@ -431,9 +447,11 @@ def clientview(request):
             Phone=request.json_body['Phone'],
             Cellular=request.json_body['Cellular'],
             Contact=request.json_body['Contact'])
-
         DBSession.add(newclient)
-        return HTTPOk()
+        DBSession.flush()
+        newid = newclient.ID
+        return HTTPOk(newid)
+    # if the method is put, edit an existing client
     elif request.method == 'PUT':
         client = DBSession.query(
                     Client).filter_by(ID=request.matchdict['id']).first()
@@ -450,6 +468,7 @@ def clientview(request):
 
         transaction.commit()
         return HTTPOk()
+    # otherwise return the selected client
     else:
         clientid = request.matchdict['id']
         client = DBSession.query(Client).filter_by(ID=clientid).first()
@@ -497,12 +516,13 @@ def suppliersview(request):
 
 @view_config(route_name='supplierview', renderer='json')
 def supplierview(request):
-    """ The supplierview returns a list with only the data from
-        the supplier specified
+    """ The supplierview handles different cases of a single supplier
+        depending on the http method
     """
 
     if request.method == 'OPTIONS':
         return {"success": True}
+    # if the method is delete, delete the client
     elif request.method == 'DELETE':
         deleteid = request.matchdict['id']
 
@@ -515,6 +535,7 @@ def supplierview(request):
         transaction.commit()
 
         return HTTPOk()
+    # if the method is post, add a new client
     elif request.method == 'POST':
         newsupplier = Supplier(Name=request.json_body['Name'],
             Address=request.json_body['Address'],
@@ -528,7 +549,10 @@ def supplierview(request):
             Contact=request.json_body['Contact'])
 
         DBSession.add(newsupplier)
-        return HTTPOk()
+        DBSession.flush()
+        newid = newsupplier.ID
+        return HTTPOk(newid)
+    # if the method is put, edit an existing client
     elif request.method == 'PUT':
         supplier = DBSession.query(
                     Supplier).filter_by(ID=request.matchdict['id']).first()
@@ -545,6 +569,7 @@ def supplierview(request):
 
         transaction.commit()
         return HTTPOk()
+    # otherwise return the selected client
     else:
         supplierid = request.matchdict['id']
         supplier = DBSession.query(Supplier).filter_by(ID=supplierid).first()
@@ -572,7 +597,7 @@ def testchangequantityview(request):
     coid = request.matchdict['id']
     qry = DBSession.query(Component).filter_by(ID=coid).first()
 
-    qry.Quantity = 10.0
+    qry.Quantity = 7.0
     transaction.commit()
 
     return HTTPOk()

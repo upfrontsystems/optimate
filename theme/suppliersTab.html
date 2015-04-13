@@ -1,0 +1,132 @@
+<div class="container-fluid">
+    <div id="suppliers" class="row">
+        <a data-target="#addSupplierModal" href="" class="btn btn-lg btn-primary" data-toggle="modal">Add new supplier</a>
+        <div id="addSupplierModal" class="modal fade">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title">Add a new supplier</h4>
+                    </div>
+                    <div class="modal-body">
+                    <form>
+                    <br>Name:
+                    <input type="text"
+                            name="inputName"
+                            ng-model="formData.inputName"
+                            required
+                            autofocus>
+                    <br>Address:
+                    <input type="text"
+                            name="inputAddress"
+                            ng-model="formData.inputAddress">
+                    <br>City:
+                    <input type="text"
+                            name="inputCity"
+                            ng-model="formData.inputCity">
+                    <br>State/Province:
+                    <input type="text"
+                            name="inputStateProvince"
+                            ng-model="formData.inputStateProvince">
+                    <br>Country:
+                    <input type="text"
+                            name="inputStateCountry"
+                            ng-model="formData.inputCountry">
+                    <br>Zip Code:
+                    <input type="text"
+                            name="inputZip"
+                            ng-model="formData.inputZip">
+                    <br>Phone:
+                    <input type="text"
+                            name="inputPhone"
+                            ng-model="formData.inputPhone">
+                    <br>Fax:
+                    <input type="text"
+                            name="inputFax"
+                            ng-model="formData.inputFax">
+                    <br>Cellular:
+                    <input type="text"
+                            name="inputCellular"
+                            ng-model="formData.inputCellular">
+                    <br>Contact:
+                    <input type="text"
+                            name="inputContact"
+                            ng-model="formData.inputContact">
+                </form>
+                </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="addNewSupplier()">Add</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <table class="table-hover">
+             <tr ng-repeat="obj in jsonsuppliers">
+              <td>{{obj.Name}}</td>
+              <td>{{obj.City}}</td>
+              <td>{{obj.Address}}</td>
+              <td>{{obj.Phone}}</td>
+              <td><button ng-click="getEditSupplier(obj.ID)">Edit</button></td>
+              <td><button ng-click="deleteSupplier(obj.ID)">Delete</button></td>
+             </tr>
+        </table>
+
+        <script type="text/ng-template" id="editSupplierModal.html">
+            <div class="modal-header">
+                <h3>Edit supplier</h3>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <br>Name:
+                    <input type="text"
+                            name="inputName"
+                            ng-model="editingSupplier['Name']"
+                            required
+                            autofocus>
+                    <br>Address:
+                    <input type="text"
+                            name="inputAddress"
+                            ng-model="editingSupplier['Address']">
+                    <br>City:
+                    <input type="text"
+                            name="inputCity"
+                            ng-model="editingSupplier['City']">
+                    <br>State/Province:
+                    <input type="text"
+                            name="inputStateProvince"
+                            ng-model="editingSupplier['StateProvince']">
+                    <br>Country:
+                    <input type="text"
+                            name="inputStateCountry"
+                            ng-model="editingSupplier['Country']">
+                    <br>Zip Code:
+                    <input type="text"
+                            name="inputZip"
+                            ng-model="editingSupplier['Zipcode']">
+                    <br>Phone:
+                    <input type="text"
+                            name="inputPhone"
+                            ng-model="editingSupplier['Phone']">
+                    <br>Fax:
+                    <input type="text"
+                            name="inputFax"
+                            ng-model="editingSupplier['Fax']">
+                    <br>Cellular:
+                    <input type="text"
+                            name="inputCellular"
+                            ng-model="editingSupplier['Cellular']">
+                    <br>Contact:
+                    <input type="text"
+                            name="inputContact"
+                            ng-model="editingSupplier['Contact']">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" ng-click="editSupplier()">Done</button>
+                <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+            </div>
+        </script>
+    </div>
+</div>
