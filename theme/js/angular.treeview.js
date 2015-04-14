@@ -371,18 +371,11 @@
                                 if (!selectedNode.collapsed){
                                     // get path from the node
                                     // and go to that path with http
-                                    console.log(selectedNode)
-
                                     var nodeid = selectedNode.ID;
-                                    console.log(nodeid);
                                     $http.get('http://127.0.0.1:8100/' + nodeid + '/').success(function(data) {
-                                        console.log("Http request success: " + data);
-                                         // Append the response data to the
-                                         // subitem (children) of the
-                                         // current node
+                                        console.log("Children loaded");
                                         scope[treeId].currentNode.Subitem = data;
                                     });
-
                                     selectedNode.collapsed = true;
                                 }
                                 else{

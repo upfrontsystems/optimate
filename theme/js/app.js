@@ -11,11 +11,11 @@ myApp.config(['$routeProvider',
     $routeProvider.
       when('/', {
         templateUrl: 'projects.html',
-        controller: 'projectlistController'
+        controller: 'treeviewController'
       }).
       when('/projects', {
         templateUrl: 'projects.html',
-        controller: 'projectlistController'
+        controller: 'treeviewController'
       }).
       when('/clients', {
         templateUrl: 'clients.html',

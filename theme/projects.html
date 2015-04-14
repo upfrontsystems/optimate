@@ -1,9 +1,8 @@
 <div class="container-fluid">
-    <script type="text/javascript" src="js/optimate.data.js"></script>
     <div id="costs" class="row">
         <div class="left">
             <a data-target="#selectProjectModal" href="" class="btn btn-lg btn-primary" data-toggle="modal">Open a Project</a>
-            <div id="selectProjectModal" class="modal fade">
+            <div id="selectProjectModal" class="modal fade" ng-controller="projectlistController">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -29,7 +28,7 @@
                     </div>
                 </div>
             </div>
-            <div ng-controller="treeviewController">
+            <div>
                  <div
                     data-angular-treeview="true"
                     data-tree-id="mytree"
@@ -50,7 +49,7 @@
         </div>
         <div class="right">
             <div id="optimate-data-grid-outer">
-                <div id="optimate-data-grid"></div>
+                <projectslickgridjs id="optimate-data-grid"></projectslickgridjs>
             </div>
         </div>
     </div>
