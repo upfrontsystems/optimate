@@ -47,8 +47,9 @@ allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$l
                         'Cellular': cell,
                         'Contact': contact}
             }).success(function (response) {
-                var data = response.data;
-                console.log("added");
+                console.log(response);
+                var data = response;
+                console.log("added: " + data['newid']);
             });
         };
 

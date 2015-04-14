@@ -10,19 +10,19 @@ myApp.config(['$routeProvider',
   function($routeProvider) {
     $routeProvider.
       when('/', {
-        templateUrl: 'costsTab.html',
+        templateUrl: 'projects.html',
         controller: 'projectlistController'
       }).
-      when('/costs', {
-        templateUrl: 'costsTab.html',
+      when('/projects', {
+        templateUrl: 'projects.html',
         controller: 'projectlistController'
       }).
       when('/clients', {
-        templateUrl: 'clientsTab.html',
+        templateUrl: 'clients.html',
         controller: 'clientsController'
       }).
       when('/suppliers', {
-        templateUrl: 'suppliersTab.html',
+        templateUrl: 'suppliers.html',
         controller: 'suppliersController'
       })
   }]);

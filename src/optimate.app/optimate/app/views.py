@@ -182,7 +182,7 @@ def update_value(request):
                 except ValueError:
                     pass # do not do anything
     elif result.type in ['BudgetItem', 'Component']:
-        # update the data - only rate can be modified
+        # update the data - only quanitity can be modified
         if hasattr(result, 'Quantity'):
             if request.params.get('quantity') != None:
                 try:
@@ -256,13 +256,11 @@ def additemview(request):
                 else:
                     newresource = Resource(Name=resource.Name,
                                             Code=resource.Code,
+                                            _Rate = resource.Rate,
                                             Description=resource.Description)
-                    newresource._Rate = resource.Rate
                     resourcecategory.Children.append(newresource)
-                    transaction.commit()
-                    resource = DBSession.query(
-                                Resource).filter_by(
-                                ParentID=rescatid, Name=name).first()
+                    DBSession.flush()
+                    resource = newresource
 
             componenttype = int(request.json_body['ComponentType'])
             quantity = float(request.json_body['Quantity'])
@@ -333,9 +331,6 @@ def pasteitemview(request):
         # Find the object to be copied to from the path
         destinationid = request.matchdict['id']
 
-        # Set expire to false so that the list does not expire
-        # DBSession.expire_on_commit = False
-
         source = DBSession.query(Node).filter_by(ID=sourceid).first()
         dest = DBSession.query(Node).filter_by(ID=destinationid).first()
 
@@ -348,15 +343,12 @@ def pasteitemview(request):
         # Paste the source into the destination
         parentid = dest.ID
         dest.paste(source.copy(dest.ID), source.Children)
-        # transaction.commit()
 
         # Add the new resources to the destinations resource category
         resourcecategory = DBSession.query(
                         ResourceCategory).filter_by(ParentID=projectid).first()
-
         resourcecategory.addResources(componentlist)
 
-        # DBSession.expire_on_commit = True
         if parentid != 0:
             recalculate = DBSession.query(Node).filter_by(ID=parentid).first()
             recalculate.resetTotal()
@@ -551,7 +543,8 @@ def supplierview(request):
         DBSession.add(newsupplier)
         DBSession.flush()
         newid = newsupplier.ID
-        return HTTPOk(newid)
+        print newid
+        return {'newid':newid}
     # if the method is put, edit an existing client
     elif request.method == 'PUT':
         supplier = DBSession.query(
