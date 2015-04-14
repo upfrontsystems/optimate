@@ -434,7 +434,7 @@ def clientview(request):
             City=request.json_body['City'],
             StateProvince=request.json_body['StateProvince'],
             Country=request.json_body['Country'],
-            Zipcode=request.json_body['Zip'],
+            Zipcode=request.json_body['Zipcode'],
             Fax=request.json_body['Fax'],
             Phone=request.json_body['Phone'],
             Cellular=request.json_body['Cellular'],
@@ -442,7 +442,7 @@ def clientview(request):
         DBSession.add(newclient)
         DBSession.flush()
         newid = newclient.ID
-        return HTTPOk(newid)
+        return {'newid':newid}
     # if the method is put, edit an existing client
     elif request.method == 'PUT':
         client = DBSession.query(
@@ -527,14 +527,14 @@ def supplierview(request):
         transaction.commit()
 
         return HTTPOk()
-    # if the method is post, add a new client
+    # if the method is post, add a new supplier
     elif request.method == 'POST':
         newsupplier = Supplier(Name=request.json_body['Name'],
             Address=request.json_body['Address'],
             City=request.json_body['City'],
             StateProvince=request.json_body['StateProvince'],
             Country=request.json_body['Country'],
-            Zipcode=request.json_body['Zip'],
+            Zipcode=request.json_body['Zipcode'],
             Fax=request.json_body['Fax'],
             Phone=request.json_body['Phone'],
             Cellular=request.json_body['Cellular'],
@@ -543,7 +543,6 @@ def supplierview(request):
         DBSession.add(newsupplier)
         DBSession.flush()
         newid = newsupplier.ID
-        print newid
         return {'newid':newid}
     # if the method is put, edit an existing client
     elif request.method == 'PUT':

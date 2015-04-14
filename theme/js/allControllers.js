@@ -13,44 +13,41 @@ allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$l
         });
 
         $scope.addNewClient = function(){
-            var name = $scope.formData.inputName;
+            var postdata = {};
+            postdata['Name'] = $scope.formData.inputName;
             $scope.formData.inputName = "";
-            var address = $scope.formData.inputAddress;
+            postdata['Address'] = $scope.formData.inputAddress;
             $scope.formData.inputAddress = "";
-            var city = $scope.formData.inputCity;
+            postdata['City'] = $scope.formData.inputCity;
             $scope.formData.inputCity = "";
-            var sp = $scope.formData.inputStateProvince;
+            postdata['StateProvince'] = $scope.formData.inputStateProvince;
             $scope.formData.inputStateProvince = "";
-            var country = $scope.formData.inputCountry;
+            postdata['Country'] = $scope.formData.inputCountry;
             $scope.formData.inputCountry = "";
-            var zip = $scope.formData.inputZip;
+            postdata['Zipcode'] = $scope.formData.inputZip;
             $scope.formData.inputZip = "";
-            var fax = $scope.formData.inputFax;
+            postdata['Fax'] = $scope.formData.inputFax;
             $scope.formData.inputFax = "";
-            var phone = $scope.formData.inputPhone;
+            postdata['Phone'] = $scope.formData.inputPhone;
             $scope.formData.inputPhone = "";
-            var cell = $scope.formData.inputCellular;
+            postdata['Cellular'] = $scope.formData.inputCellular;
             $scope.formData.inputCellular = "";
-            var contact = $scope.formData.inputContact;
+            postdata['Contact'] = $scope.formData.inputContact;
             $scope.formData.inputContact = "";
 
             $http({
                 method: 'POST',
                 url: 'http://localhost:8100/0/client',
-                data:{'Name': name,
-                        'Address': address,
-                        'City': city,
-                        'StateProvince': sp,
-                        'Country': country,
-                        'Zip': zip,
-                        'Fax': fax,
-                        'Phone': phone,
-                        'Cellular': cell,
-                        'Contact': contact}
+                data:postdata
             }).success(function (response) {
-                console.log(response);
-                var data = response;
-                console.log("added: " + data['newid']);
+                postdata['ID'] = response['newid'];
+                $scope.jsonclients.push(postdata);
+                // sort alphabetically by client name
+                $scope.jsonclients.sort(function(a, b) {
+                    var textA = a.Name.toUpperCase();
+                    var textB = b.Name.toUpperCase();
+                    return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+                });
             });
         };
 
@@ -73,6 +70,7 @@ allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$l
                         'Contact': $scope.editingClient['Contact']}
             }).success(function () {
                 console.log("edited");
+                $scope.editingClient['Name'] = "edited";
             });
             $modalInstance.close();
           };
@@ -128,42 +126,41 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
         });
 
         $scope.addNewSupplier = function(){
-            var name = $scope.formData.inputName;
+            var postdata = {};
+            postdata['Name'] = $scope.formData.inputName;
             $scope.formData.inputName = "";
-            var address = $scope.formData.inputAddress;
+            postdata['Address'] = $scope.formData.inputAddress;
             $scope.formData.inputAddress = "";
-            var city = $scope.formData.inputCity;
+            postdata['City'] = $scope.formData.inputCity;
             $scope.formData.inputCity = "";
-            var sp = $scope.formData.inputStateProvince;
+            postdata['StateProvince'] = $scope.formData.inputStateProvince;
             $scope.formData.inputStateProvince = "";
-            var country = $scope.formData.inputCountry;
+            postdata['Country'] = $scope.formData.inputCountry;
             $scope.formData.inputCountry = "";
-            var zip = $scope.formData.inputZip;
+            postdata['Zipcode'] = $scope.formData.inputZip;
             $scope.formData.inputZip = "";
-            var fax = $scope.formData.inputFax;
+            postdata['Fax'] = $scope.formData.inputFax;
             $scope.formData.inputFax = "";
-            var phone = $scope.formData.inputPhone;
+            postdata['Phone'] = $scope.formData.inputPhone;
             $scope.formData.inputPhone = "";
-            var cell = $scope.formData.inputCellular;
+            postdata['Cellular'] = $scope.formData.inputCellular;
             $scope.formData.inputCellular = "";
-            var contact = $scope.formData.inputContact;
+            postdata['Contact'] = $scope.formData.inputContact;
             $scope.formData.inputContact = "";
 
             $http({
                 method: 'POST',
                 url: 'http://localhost:8100/0/supplier',
-                data:{'Name': name,
-                        'Address': address,
-                        'City': city,
-                        'StateProvince': sp,
-                        'Country': country,
-                        'Zip': zip,
-                        'Fax': fax,
-                        'Phone': phone,
-                        'Cellular': cell,
-                        'Contact': contact}
-            }).success(function () {
-                console.log("added");
+                data:postdata
+            }).success(function (response) {
+                postdata['ID'] = response['newid'];
+                $scope.jsonsuppliers.push(postdata);
+                // sort alphabetically by supplier name
+                $scope.jsonsuppliers.sort(function(a, b) {
+                    var textA = a.Name.toUpperCase();
+                    var textB = b.Name.toUpperCase();
+                    return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+                });
             });
         };
 

@@ -354,7 +354,9 @@
                             // Function to get the cost of the node
                             scope[treeId].costItem = function(nodeid) {
                                 console.log("Costing "+ nodeid);
-                                $http.get('http://127.0.0.1:8100/' + nodeid + '/cost').success(function(data) {
+                                $http.get(
+                                    'http://127.0.0.1:8100/' + nodeid + '/cost'
+                                    ).success(function(data) {
                                     console.log("Http request success: " + data);
                                      // get the cost of the node and post alert
                                     alert(data['Cost']);
