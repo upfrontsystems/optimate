@@ -574,9 +574,9 @@ class Component(Node):
     _Total = Column('Total', Float)
     _Markup = Column('Markup', Float, default=0.0)
 
-    ThisResource = relationship('Resource',
-                                foreign_keys='Component.ResourceID',
-                                backref='Components')
+    Resource = relationship('Resource',
+                            foreign_keys='Component.ResourceID',
+                            backref='Components')
 
     __mapper_args__ = {
         'polymorphic_identity': 'Component',
@@ -631,21 +631,25 @@ class Component(Node):
     def Name(self):
         """ Get this Components Name, which returns the Resource's Name
         """
-        return self.ThisResource.Name
+        return self.Resource.Name
+
     @Name.setter
     def Name(self, name):
         """ Set this Components Name, which sets the Resource's Name
         """
-        self.ThisResource.Name = name
+        self.Resource.Name = name
 
-    """ Get and set for the Description property
-    """
     @hybrid_property
     def Description(self):
-        return self.ThisResource.Description
+        """ Get the Description property
+        """
+        return self.Resource.Description
+
     @Description.setter
     def Description(self, description):
-        self.ThisResource.Description = description
+        """ Set the Description property
+        """
+        self.Resource.Description = description
 
     @hybrid_property
     def Markup(self):
@@ -664,15 +668,14 @@ class Component(Node):
     def Rate(self):
         """ Get the component's Rate, the Rate of this resource is returned
         """
-        return self.ThisResource.Rate
+        return self.Resource.Rate
+
     @Rate.setter
     def Rate(self, rate):
         """ Set the rate of this component, if the value is not the same
             change the Rate of this resource
             Reset the Total
         """
-        if self.ThisResource.Rate != rate:
-            self.ThisResource.Rate = rate
         # change the total when the rate changes
         self.Total = (1.0+self.Markup)*(rate * self.Quantity)
 
@@ -818,7 +821,7 @@ class ResourceCategory(Node):
         """
         for component in componentlist:
             # add the resource to the category
-            resource = component.ThisResource
+            resource = component.Resource
             if resource not in self.Children:
                 self.Children.append(resource)
 

@@ -787,7 +787,7 @@ class TestAddClientSuccessCondition(unittest.TestCase):
             'City': 'city',
             'StateProvince': 'sp',
             'Country': 'country',
-            'Zip': 'zip',
+            'Zipcode': 'zip',
             'Fax': 'fax',
             'Phone': 'phone',
             'Cellular': 'cell',
@@ -797,7 +797,7 @@ class TestAddClientSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 0}
         response = self._callFUT(request)
         # test if the correct name is returned
-        self.assertEqual(response.code, 200)
+        self.assertEqual(response.keys()[0], 'newid')
 
         # check now that there are two clients
         request = testing.DummyRequest()
@@ -920,7 +920,7 @@ class TestAddSupplierSuccessCondition(unittest.TestCase):
             'City': 'city',
             'StateProvince': 'sp',
             'Country': 'country',
-            'Zip': 'zip',
+            'Zipcode': 'zip',
             'Fax': 'fax',
             'Phone': 'phone',
             'Cellular': 'cell',
@@ -929,8 +929,8 @@ class TestAddSupplierSuccessCondition(unittest.TestCase):
         request.method = 'POST'
         request.matchdict = {'id': 0}
         response = self._callFUT(request)
-        # test if the correct name is returned
-        self.assertEqual(response.code, 200)
+        # test that the new id is returned
+        self.assertEqual(response.keys()[0], 'newid')
 
         # check now that there are two suppliers
         request = testing.DummyRequest()
