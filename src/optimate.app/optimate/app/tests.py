@@ -1,24 +1,26 @@
-""" So far only the pyramid views and their functions are being tested.
+""" The pyramid views and their functions are being tested.
     That is: Child view
              Add view
              Delete view
              Paste view
              Cost view
+             Clients view
+             Suppliers view
+             The POST, PUT, DELETE versions of client and supplier view
 """
 
 import unittest
 import transaction
 from pyramid import testing
 from .models import DBSession
+from decimal import Decimal
 
 def _initTestingDB():
     """ Build a database with default data
     """
 
     from sqlalchemy import create_engine
-    import transaction
     from .models import (
-        DBSession,
         Node,
         Project,
         BudgetGroup,
@@ -38,35 +40,35 @@ def _initTestingDB():
 
 
         root = Node(ID=0)
-        project = Project(Name="TestPName",
+        project = Project(Name='TestPName',
                         ID=1,
-                        Description="TestPDesc",
+                        Description='TestPDesc',
                         ParentID=0)
-        budgetgroup = BudgetGroup(Name="TestBGName",
+        budgetgroup = BudgetGroup(Name='TestBGName',
                         ID=2,
-                        Description="TestBGDesc",
+                        Description='TestBGDesc',
                         ParentID=project.ID)
-        budgetitem = BudgetItem(Name="TestBIName",
+        budgetitem = BudgetItem(Name='TestBIName',
                         ID=3,
-                        Description="TestBIDesc",
+                        Description='TestBIDesc',
                         _Quantity=5.0,
                         _Markup=0.1,
                         ParentID=budgetgroup.ID)
         rescat = ResourceCategory(ID=9,
-                        Name="TestCategory",
-                        Description="Test Category",
+                        Name='TestCategory',
+                        Description='Test Category',
                         ParentID=project.ID)
         res = Resource(ID=15,
-                       Code="A000",
-                       Name="TestResource",
-                       Description="Test resource",
-                       Rate=5.0,
+                       Code='A000',
+                       Name='TestResource',
+                       Description='Test resource',
+                       _Rate=Decimal(5.00),
                        ParentID=rescat.ID)
         resa = Resource(ID=16,
-                       Code="A001",
-                       Name="TestResourceA",
-                       Description="Test resource",
-                       Rate=10.0,
+                       Code='A001',
+                       Name='TestResourceA',
+                       Description='Test resource',
+                       _Rate=Decimal(10.00),
                        ParentID=rescat.ID)
         comp = Component(ID=7,
                         ResourceID = res.ID,
@@ -80,38 +82,38 @@ def _initTestingDB():
                         _Markup=0.01,
                         Type=1,
                         ParentID=budgetitem.ID)
-        comptype = ComponentType(ID=1, Name="type")
+        comptype = ComponentType(ID=1, Name='type')
 
 
-        projectb = Project(Name="TestBPName",
+        projectb = Project(Name='TestBPName',
                         ID=4,
-                        Description="TestBPDesc",
+                        Description='TestBPDesc',
                         ParentID=0)
-        budgetgroupb = BudgetGroup(Name="TestBBGName",
+        budgetgroupb = BudgetGroup(Name='TestBBGName',
                         ID=5,
-                        Description="BBGDesc",
+                        Description='BBGDesc',
                         ParentID=projectb.ID)
-        budgetitemb = BudgetItem(Name="TestBBIName",
+        budgetitemb = BudgetItem(Name='TestBBIName',
                         ID=6,
                         _Quantity=10.0,
                         _Markup=0.5,
-                        Description="TestBBIDesc",
+                        Description='TestBBIDesc',
                         ParentID=budgetgroupb.ID)
         rescatb = ResourceCategory(ID=12,
-                        Name="TestCategory",
-                        Description="Test Category",
+                        Name='TestCategory',
+                        Description='Test Category',
                         ParentID=projectb.ID)
         resb = Resource(ID=17,
-                       Code="A002",
-                       Name="TestResourceB",
-                       Description="Test resource",
-                       Rate=7.0,
+                       Code='A002',
+                       Name='TestResourceB',
+                       Description='Test resource',
+                       _Rate=Decimal(7.00),
                        ParentID=rescatb.ID)
         resduplicate = Resource(ID=18,
-                       Code="A000",
-                       Name="TestResource",
-                       Description="Test resource",
-                       Rate=5.0,
+                       Code='A000',
+                       Name='TestResource',
+                       Description='Test resource',
+                       _Rate=Decimal(5.00),
                        ParentID=rescatb.ID)
         compb = Component(ID=8,
                         ResourceID=resb.ID,
@@ -119,11 +121,11 @@ def _initTestingDB():
                         _Markup=0.1,
                         Type=1,
                         ParentID=budgetitemb.ID)
-        budgetitemc = BudgetItem(Name="TestCBIName",
+        budgetitemc = BudgetItem(Name='TestCBIName',
                         ID=13,
                         _Quantity=6.0,
                         _Markup=0.1,
-                        Description="TestCBIDesc",
+                        Description='TestCBIDesc',
                         ParentID=budgetgroupb.ID)
         compc = Component(ID=14,
                         ResourceID=resduplicate.ID,
@@ -201,10 +203,10 @@ def _initTestingDB():
         # for project in projectlist:
         #     project.recalculateTotal()
 
-        # print "print children"
+        # print 'print children'
         # for child in DBSession.query(Node).filter_by(ID=2).first().Children:
-        #     print child
-        # print "printing components"
+        #     print child.Total
+        # print 'printing components'
         # for bi in DBSession.query(Component).all():
         #     print bi
         # rescatlist = DBSession.query(ResourceCategory).all()
@@ -409,8 +411,7 @@ class TestAddProjectSuccessCondition(unittest.TestCase):
         from .views import costview
         response = costview(request)
         # true if the cost is correct
-        self.assertEqual(response["Cost"], 500.0)
-
+        self.assertEqual(response['Cost'], Decimal('500.00'))
 
 
 class TestAddComponentSuccessCondition(unittest.TestCase):
@@ -453,7 +454,7 @@ class TestAddComponentSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 4}
         from .views import costview
         response = costview(request)
-        self.assertEqual(response["Cost"], 1494.3)
+        self.assertEqual(response['Cost'], Decimal('1494.30'))
 
 
 class TestDeleteviewSuccessCondition(unittest.TestCase):
@@ -495,7 +496,7 @@ class TestDeleteviewSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 1}
         from .views import costview
         response = costview(request)
-        self.assertEqual(response["Cost"], 0.0)
+        self.assertEqual(response['Cost'], Decimal('0.00'))
 
 
 class TestPasteviewSuccessCondition(unittest.TestCase):
@@ -543,7 +544,7 @@ class TestPasteviewSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 4}
         from .views import costview
         response = costview(request)
-        self.assertEqual(response["Cost"], 1427.525)
+        self.assertEqual(response['Cost'], Decimal('1427.52'))
 
 
 class TestCostviewSuccessCondition(unittest.TestCase):
@@ -569,68 +570,68 @@ class TestCostviewSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 1}
         response = self._callFUT(request)
         # true if the cost is correct
-        self.assertEqual(response["Cost"], 533.225)
+        self.assertEqual(response['Cost'], Decimal('533.22'))
 
         # get the cost of budgetgroup at id 2
         request = testing.DummyRequest()
         request.matchdict = {'id': 2}
         response = self._callFUT(request)
-        self.assertEqual(response["Cost"], 533.225)
+        self.assertEqual(response['Cost'], Decimal('533.22'))
 
         # get the cost of budgetitem at id 3
         request = testing.DummyRequest()
         request.matchdict = {'id': 3}
         response = self._callFUT(request)
-        self.assertEqual(response["Cost"], 533.225)
+        self.assertEqual(response['Cost'], Decimal('533.22'))
 
         # get the cost of comp at id 7
         request = testing.DummyRequest()
         request.matchdict = {'id': 7}
         response = self._callFUT(request)
-        self.assertEqual(response["Cost"], 26.25)
+        self.assertEqual(response['Cost'], Decimal('26.25'))
 
         # get the cost of compa at id 11
         request = testing.DummyRequest()
         request.matchdict = {'id': 11}
         response = self._callFUT(request)
-        self.assertEqual(response["Cost"], 70.7)
+        self.assertEqual(response['Cost'], Decimal('70.70'))
 
         # get the cost of projectb at id 4
         request = testing.DummyRequest()
         request.matchdict = {'id': 4}
         response = self._callFUT(request)
-        self.assertEqual(response["Cost"], 894.3)
+        self.assertEqual(response['Cost'], Decimal('894.30'))
 
         # get the cost of budgetgroupb at id 5
         request = testing.DummyRequest()
         request.matchdict = {'id': 5}
         response = self._callFUT(request)
         # true if the cost is correct
-        self.assertEqual(response["Cost"], 894.3)
+        self.assertEqual(response['Cost'], Decimal('894.30'))
 
         # get the cost of budgetitemb at id 6
         request = testing.DummyRequest()
         request.matchdict = {'id': 6}
         response = self._callFUT(request)
-        self.assertEqual(response["Cost"], 577.5)
+        self.assertEqual(response['Cost'], Decimal('577.50'))
 
         # get the cost of compb at id 8
         request = testing.DummyRequest()
         request.matchdict = {'id': 8}
         response = self._callFUT(request)
-        self.assertEqual(response["Cost"], 38.5)
+        self.assertEqual(response['Cost'], Decimal('38.50'))
 
         # get the cost of budgetitemc at id 13
         request = testing.DummyRequest()
         request.matchdict = {'id': 13}
         response = self._callFUT(request)
-        self.assertEqual(response["Cost"], 316.8)
+        self.assertEqual(response['Cost'], Decimal('316.80'))
 
         # get the cost of compc at id 14
         request = testing.DummyRequest()
         request.matchdict = {'id': 14}
         response = self._callFUT(request)
-        self.assertEqual(response["Cost"], 48.0)
+        self.assertEqual(response['Cost'], Decimal('48.00'))
 
 
 class TestSetComponentQuantitySuccessCondition(unittest.TestCase):
@@ -657,7 +658,7 @@ class TestSetComponentQuantitySuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 4}
         response = self._callFUT(request)
         # true if the cost is correct
-        self.assertEqual(response["Cost"], 894.3)
+        self.assertEqual(response['Cost'], Decimal('894.30'))
 
         # now change the rate of the component by calling the test view
         # in the views its quantity is set to 7
@@ -670,7 +671,7 @@ class TestSetComponentQuantitySuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.matchdict = {'id': 4}
         response = self._callFUT(request)
-        self.assertEqual(response["Cost"], 1125.3)
+        self.assertEqual(response['Cost'], Decimal('1125.30'))
 
 
 class TestSetResourceRateSuccessCondition(unittest.TestCase):
@@ -698,7 +699,7 @@ class TestSetResourceRateSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
 
         # true if the cost is correct
-        self.assertEqual(response["Cost"], 533.225)
+        self.assertEqual(response['Cost'], Decimal('533.22'))
 
         # now change the rate of the resource by calling the test view
         # in the views its rate is set to 15
@@ -711,7 +712,7 @@ class TestSetResourceRateSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.matchdict = {'id': 1}
         response = self._callFUT(request)
-        self.assertEqual(response["Cost"], 821.975)
+        self.assertEqual(response['Cost'], Decimal('821.98'))
 
 
 class TestClientviewSuccessCondition(unittest.TestCase):

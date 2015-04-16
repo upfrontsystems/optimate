@@ -3,9 +3,9 @@ views uses pyramid and sqlalchemy to recieve requests from a user
 and send responses with appropriate data
 """
 
-import uuid
 import transaction
 from pyramid.view import view_config
+from decimal import Decimal
 
 from pyramid.httpexceptions import (
     HTTPOk,
@@ -49,25 +49,22 @@ def childview(request):
 
     # Execute the sql query on the Node table to find the parent
     qry = DBSession.query(Node).filter_by(ID=parentid).first()
-    # qry = DBSession.query(Node).filter_by(ParentID=parentid).order_by(Node.Name).all()
+    # qry = DBSession.query(Node).filter_by(ParentID=parentid).all()
 
     # build the list and only get the neccesary values
     if qry != None:
-        for value in qry.Children:
-        # for value in qry:
-            # if value.Children:
-            subitem = [{'Name': '...'}]
-            # else:
-            #     subitem = []
-            try:
-                childrenlist.append({'Name': value.Name,
-                                    'Description': value.Description,
-                                    'ID': value.ID,
-                                    'Subitem': subitem,
-                                    'NodeType': value.type})
-            except AttributeError, a:
-                import pdb
-                pdb.set_trace()
+        if qry.type != 'ResourceCategory':
+            for child in qry.Children:
+            # for value in qry:
+                # if value.Children:
+                    # subitem = [{'Name': '...'}]
+                # else:
+                #     subitem = []
+                childrenlist.append({'Name': child.Name,
+                                    'Description': child.Description,
+                                    'ID': child.ID,
+                                    'Subitem': [{'Name': '...'}],
+                                    'NodeType': child.type})
 
     # return childrenlist
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'])
@@ -223,8 +220,8 @@ def additemview(request):
             quantity = float(request.json_body['Quantity'])
             newnode = BudgetItem(Name=name,
                                  Description=desc,
+                                 _Quantity = quantity,
                                  ParentID=parentid)
-            newnode._Quantity = quantity
         elif objecttype == 'component':
             # Components need to reference a Resource that already exists
             # in the system
@@ -236,14 +233,14 @@ def additemview(request):
             try:
                 rescatid = resourcecategory.ID
             except AttributeError, a:
-                resourcecategory = ResourceCategory(Name='Resource Category',
-                                            Description='Category Description',
+                resourcecategory = ResourceCategory(Name='Resource List',
+                                            Description='List of Resources',
                                             ParentID=rootparentid)
-
                 DBSession.add(resourcecategory)
                 DBSession.flush()
                 rescatid = resourcecategory.ID
 
+            # get the resource used by the component
             resource = DBSession.query(
                                 Resource).filter_by(
                                 ParentID=rescatid, Name=name).first()
@@ -266,8 +263,8 @@ def additemview(request):
             quantity = float(request.json_body['Quantity'])
             newnode = Component(ResourceID=resource.ID,
                                 Type=componenttype,
+                                _Quantity = quantity,
                                 ParentID=parentid)
-            newnode._Quantity = quantity
         else:
             return HTTPInternalServerError()
 
@@ -277,8 +274,8 @@ def additemview(request):
 
         # reset the total of the parent
         if parentid != 0:
-            recalculate = DBSession.query(Node).filter_by(ID=parentid).first()
-            recalculate.resetTotal()
+            reset = DBSession.query(Node).filter_by(ID=parentid).first()
+            reset.resetTotal()
 
         # commit the transaction and return ok,
         # along with the id of the new node
@@ -309,8 +306,8 @@ def deleteitemview(request):
 
         # reset the total of the parent node
         if parentid != 0:
-            recalculate = DBSession.query(Node).filter_by(ID=parentid).first()
-            recalculate.resetTotal()
+            reset = DBSession.query(Node).filter_by(ID=parentid).first()
+            reset.resetTotal()
 
         transaction.commit()
         return HTTPOk()
@@ -350,8 +347,8 @@ def pasteitemview(request):
         resourcecategory.addResources(componentlist)
 
         if parentid != 0:
-            recalculate = DBSession.query(Node).filter_by(ID=parentid).first()
-            recalculate.resetTotal()
+            reset = DBSession.query(Node).filter_by(ID=parentid).first()
+            reset.resetTotal()
 
         transaction.commit()
         return HTTPOk()
@@ -373,7 +370,6 @@ def costview(request):
 
         if qry == None:
             return HTTPNotFound()
-
         totalcost = qry.Total
         transaction.commit()
 
@@ -604,7 +600,7 @@ def testchangerateview(request):
     resourcecode = request.matchdict['resourcecode']
     resource = DBSession.query(Resource).filter_by(Code=resourcecode).first()
 
-    resource.Rate = 15.0
+    resource.Rate = Decimal(15.00)
     resource.Name = "newname"
     transaction.commit()
 

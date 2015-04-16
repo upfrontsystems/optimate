@@ -39,6 +39,7 @@ import os
 from sys import stdout
 from time import sleep
 import unicodedata
+from decimal import *
 
 resourcecodeno = 0
 
@@ -55,7 +56,7 @@ def generateResourceCode(resname):
     return finalcode
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     # get the current directory
     cwd = os.path.dirname(os.path.abspath(__file__))
 
@@ -65,8 +66,8 @@ if __name__ == "__main__":
     # set the path to the excel data
     config_uri = ''
     exceldatapath = ''
-    if os.name == "posix":
-        pathlist = cwd.split("/")
+    if os.name == 'posix':
+        pathlist = cwd.split('/')
         try:
             os.remove(('/').join(pathlist[:-5]) + '/server.sqlite')
         except OSError, o:
@@ -74,7 +75,7 @@ if __name__ == "__main__":
         config_uri = ('/').join(pathlist[:-5]) + '/development.ini'
         exceldatapath = ('/').join(pathlist[:-5]) + '/exceldata/'
     else:
-        pathlist = cwd.split("\\")
+        pathlist = cwd.split('\\')
         try:
             os.remove(('\\').join(pathlist[:-5]) + '\\server.sqlite')
         except OSError, o:
@@ -90,6 +91,9 @@ if __name__ == "__main__":
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
 
+    # set decimal precision
+    getcontext().prec = 2
+
     with transaction.manager:
         # add the root node
         root = Node(ID=0)
@@ -97,7 +101,7 @@ if __name__ == "__main__":
 
         # add the error node
         # the children of this node will be deleted
-        errornode = Project(Name="ErrorNode", ID=149999, ParentID=0)
+        errornode = Project(Name='ErrorNode', ID=149999, ParentID=0)
         DBSession.add(errornode)
 
         # open the excel projects spreadsheet
@@ -118,7 +122,7 @@ if __name__ == "__main__":
         # start the new code for items at 150000
         newcode = 150000
 
-        print "Converting Project table"
+        print 'Converting Project table'
         # build the projects
         # =====================================================================
         for x in range(1, sheet.nrows):
@@ -137,39 +141,39 @@ if __name__ == "__main__":
                 description = unicodedata.normalize('NFKD',
                                     description).encode('ascii', 'ignore')
 
-            # convert the costs to float and if there are issues set it to 0
+            # convert the costs to Decimal and if there are issues set it to 0
             try:
-                budgetcost = float(sheet.cell(x, budgetcostindex).value)
-            except ValueError, e:
-                budgetcost = 0
+                budgetcost = Decimal(sheet.cell(x, budgetcostindex).value)
+            except InvalidOperation, e:
+                budgetcost = Decimal(0.00)
             try:
-                ordercost = float(sheet.cell(x, ordercostindex).value)
-            except ValueError, e:
-                ordercost = 0
+                ordercost = Decimal(sheet.cell(x, ordercostindex).value)
+            except InvalidOperation, e:
+                ordercost = Decimal(0.00)
             try:
-                claimedcost = float(sheet.cell(x, claimedcostindex).value)
-            except ValueError, e:
-                claimedcost = 0
+                claimedcost = Decimal(sheet.cell(x, claimedcostindex).value)
+            except InvalidOperation, e:
+                claimedcost = Decimal(0.00)
             try:
-                running = float(sheet.cell(x, runningindex).value)
-            except ValueError, e:
-                running = 0
+                running = Decimal(sheet.cell(x, runningindex).value)
+            except InvalidOperation, e:
+                running = Decimal(0.00)
             try:
-                income = float(sheet.cell(x, incomeindex).value)
-            except ValueError, e:
-                income = 0
+                income = Decimal(sheet.cell(x, incomeindex).value)
+            except InvalidOperation, e:
+                income = Decimal(0.00)
             try:
-                client = float(sheet.cell(x, clientindex).value)
-            except ValueError, e:
-                client = 0
+                client = Decimal(sheet.cell(x, clientindex).value)
+            except InvalidOperation, e:
+                client = Decimal(0.00)
             try:
-                projprofit = float(sheet.cell(x, projprofitindex).value)
-            except ValueError, e:
-                projprofit = 0
+                projprofit = Decimal(sheet.cell(x, projprofitindex).value)
+            except InvalidOperation, e:
+                projprofit = Decimal(0.00)
             try:
-                actprofit = float(sheet.cell(x, actprofitindex).value)
-            except ValueError, e:
-                actprofit = 0
+                actprofit = Decimal(sheet.cell(x, actprofitindex).value)
+            except InvalidOperation, e:
+                actprofit = Decimal(0.00)
 
             # build the project and add it to the database
             project = Project(ID=code, Name=name,
@@ -183,27 +187,25 @@ if __name__ == "__main__":
                               ClientCost=client,
                               ProjectedProfit=projprofit,
                               ActualProfit=actprofit)
-
             DBSession.add(project)
 
         transaction.commit()
 
-        print "Adding resource categories"
+        print 'Adding resource categories'
         projectlist = DBSession.query(Project).all()
         # add a resourcecategory to each resource, using default values
         for project in projectlist:
             parentid = project.ID
             newcode += 1
             resourcecategory = ResourceCategory(ID=newcode,
-                                            Name='Resource Category: '+
-                                                str(project.Name),
-                                            Description="Category Description",
+                                            Name='Resource List',
+                                            Description='List of Resources',
                                             ParentID=parentid)
 
             DBSession.add(resourcecategory)
         transaction.commit()
 
-        print "Converting BudgetGroups table"
+        print 'Converting BudgetGroups table'
         # build the budgetgroups
         # =====================================================================
         budgetgroupbook = xlrd.open_workbook(
@@ -241,13 +243,13 @@ if __name__ == "__main__":
         # show the percentage of progress
         length = float(sheet.nrows)
         percentile = length / 100.0
-        print "Percentage done: "
+        print 'Percentage done: '
         counter = 2
         # build the budgetgroups
         for x in range(1, sheet.nrows):
             if x == int(percentile * counter):
                 counter += 1
-                stdout.write("\r%d" % counter + "%")
+                stdout.write('\r%d' % counter + '%')
                 stdout.flush()
                 sleep(1)
 
@@ -267,41 +269,41 @@ if __name__ == "__main__":
                                     description).encode('ascii', 'ignore')
             # set the costs to 0 if theres a problem
             try:
-                budgetcost = float(sheet.cell(x, budgetcostindex).value)
-            except ValueError, e:
-                budgetcost = 0
+                budgetcost = Decimal(sheet.cell(x, budgetcostindex).value)
+            except InvalidOperation, e:
+                budgetcost = Decimal(0.00)
             try:
-                ordercost = float(sheet.cell(x, ordercostindex).value)
-            except ValueError, e:
-                ordercost = 0
+                ordercost = Decimal(sheet.cell(x, ordercostindex).value)
+            except InvalidOperation, e:
+                ordercost = Decimal(0.00)
             try:
-                claimedcost = float(sheet.cell(x, claimedcostindex).value)
-            except ValueError, e:
-                claimedcost = 0
+                claimedcost = Decimal(sheet.cell(x, claimedcostindex).value)
+            except InvalidOperation, e:
+                claimedcost = Decimal(0.00)
             try:
                 parentcode = int(sheet.cell(x, parentindex).value)
             except ValueError, e:
                 parentcode = 149999
             try:
-                running = float(sheet.cell(x, runningindex).value)
-            except ValueError, e:
-                running = 0
+                running = Decimal(sheet.cell(x, runningindex).value)
+            except InvalidOperation, e:
+                running = Decimal(0.00)
             try:
-                income = float(sheet.cell(x, incomeindex).value)
-            except ValueError, e:
-                income = 0
+                income = Decimal(sheet.cell(x, incomeindex).value)
+            except InvalidOperation, e:
+                income = Decimal(0.00)
             try:
-                client = float(sheet.cell(x, clientindex).value)
-            except ValueError, e:
-                client = 0
+                client = Decimal(sheet.cell(x, clientindex).value)
+            except InvalidOperation, e:
+                client = Decimal(0.00)
             try:
-                projprofit = float(sheet.cell(x, projprofitindex).value)
-            except ValueError, e:
-                projprofit = 0
+                projprofit = Decimal(sheet.cell(x, projprofitindex).value)
+            except InvalidOperation, e:
+                projprofit = Decimal(0.00)
             try:
-                actprofit = float(sheet.cell(x, actprofitindex).value)
-            except ValueError, e:
-                actprofit = 0
+                actprofit = Decimal(sheet.cell(x, actprofitindex).value)
+            except InvalidOperation, e:
+                actprofit = Decimal(0.00)
 
             # if the code has been changed assign it here
             if code in changedbgcodes:
@@ -333,7 +335,7 @@ if __name__ == "__main__":
             DBSession.add(bg)
 
         transaction.commit()
-        stdout.write("\n")
+        stdout.write('\n')
 
         # build the budgetitems
         budgetitembook = xlrd.open_workbook(exceldatapath + 'BudgetItems.xls')
@@ -380,18 +382,18 @@ if __name__ == "__main__":
                 newcode += 1
                 changedbicodes[code] = newcode
 
-        print "Converting Budgetitems table"
+        print 'Converting Budgetitems table'
         # display the precentage progress
         length = float(sheet.nrows)
         percentile = length / 100.0
-        print "Percentage done: "
+        print 'Percentage done: '
         counter = 2
         # build the budgetitems
         #======================================================================
         for x in range(1, sheet.nrows):
             if x == int(percentile * counter):
                 counter += 1
-                stdout.write("\r%d" % counter + "%")
+                stdout.write('\r%d' % counter + '%')
                 stdout.flush()
                 sleep(1)
 
@@ -412,17 +414,17 @@ if __name__ == "__main__":
             measureunit = sheet.cell(x, unitindex).value
             # set the costs to 0 if theres a problem
             try:
-                budgetcost = float(sheet.cell(x, budgetcostindex).value)
-            except ValueError, e:
-                budgetcost = 0
+                budgetcost = Decimal(sheet.cell(x, budgetcostindex).value)
+            except InvalidOperation, e:
+                budgetcost = Decimal(0.00)
             try:
-                ordercost = float(sheet.cell(x, ordercostindex).value)
-            except ValueError, e:
-                ordercost = 0
+                ordercost = Decimal(sheet.cell(x, ordercostindex).value)
+            except InvalidOperation, e:
+                ordercost = Decimal(0.00)
             try:
-                claimedcost = float(sheet.cell(x, claimedcostindex).value)
-            except ValueError, e:
-                claimedcost = 0
+                claimedcost = Decimal(sheet.cell(x, claimedcostindex).value)
+            except InvalidOperation, e:
+                claimedcost = Decimal(0.00)
             try:
                 parentcode = int(sheet.cell(x, parentindex).value)
             except ValueError, e:
@@ -432,29 +434,29 @@ if __name__ == "__main__":
             except ValueError, e:
                 quantity = 0
             try:
-                rate = float(sheet.cell(x, rateindex).value)
-            except ValueError, e:
-                rate = 0
+                rate = Decimal(sheet.cell(x, rateindex).value)
+            except InvalidOperation, e:
+                rate = Decimal(0.00)
             try:
-                running = float(sheet.cell(x, runningindex).value)
-            except ValueError, e:
-                running = 0
+                running = Decimal(sheet.cell(x, runningindex).value)
+            except InvalidOperation, e:
+                running = Decimal(0.00)
             try:
-                income = float(sheet.cell(x, incomeindex).value)
-            except ValueError, e:
-                income = 0
+                income = Decimal(sheet.cell(x, incomeindex).value)
+            except InvalidOperation, e:
+                income = Decimal(0.00)
             try:
-                client = float(sheet.cell(x, clientindex).value)
-            except ValueError, e:
-                client = 0
+                client = Decimal(sheet.cell(x, clientindex).value)
+            except InvalidOperation, e:
+                client = Decimal(0.00)
             try:
-                projprofit = float(sheet.cell(x, projprofitindex).value)
-            except ValueError, e:
-                projprofit = 0
+                projprofit = Decimal(sheet.cell(x, projprofitindex).value)
+            except InvalidOperation, e:
+                projprofit = Decimal(0.00)
             try:
-                actprofit = float(sheet.cell(x, actprofitindex).value)
-            except ValueError, e:
-                actprofit = 0
+                actprofit = Decimal(sheet.cell(x, actprofitindex).value)
+            except InvalidOperation, e:
+                actprofit = Decimal(0.00)
 
             # if the code has been changed assign it here
             if code in changedbicodes:
@@ -490,7 +492,7 @@ if __name__ == "__main__":
             DBSession.add(bi)
 
         transaction.commit()
-        stdout.write("\n")
+        stdout.write('\n')
 
         # build the components
         componentbook = xlrd.open_workbook(exceldatapath + 'Components.xls')
@@ -540,17 +542,17 @@ if __name__ == "__main__":
                 newcode += 1
                 changedcocodes[code] = newcode
 
-        print "Converting Components table"
+        print 'Converting Components table'
         # build the components
         # =====================================================================
         length = float(sheet.nrows)
         percentile = length / 100.0
-        print "Percentage done: "
+        print 'Percentage done: '
         counter = 2
         for x in range(1, sheet.nrows):
             if x == int(percentile * counter):
                 counter += 1
-                stdout.write("\r%d" % counter + "%")
+                stdout.write('\r%d' % counter + '%')
                 stdout.flush()
                 sleep(1)
 
@@ -573,17 +575,17 @@ if __name__ == "__main__":
                 cotype = 1
             measureunit = sheet.cell(x, unitindex).value
             try:
-                budgetcost = float(sheet.cell(x, budgetcostindex).value)
-            except ValueError, e:
-                budgetcost = 0
+                budgetcost = Decimal(sheet.cell(x, budgetcostindex).value)
+            except InvalidOperation, e:
+                budgetcost = Decimal(0.00)
             try:
-                ordercost = float(sheet.cell(x, ordercostindex).value)
-            except ValueError, e:
-                ordercost = 0
+                ordercost = Decimal(sheet.cell(x, ordercostindex).value)
+            except InvalidOperation, e:
+                ordercost = Decimal(0.00)
             try:
-                claimedcost = float(sheet.cell(x, claimedcostindex).value)
-            except ValueError, e:
-                claimedcost = 0
+                claimedcost = Decimal(sheet.cell(x, claimedcostindex).value)
+            except InvalidOperation, e:
+                claimedcost = Decimal(0.00)
             try:
                 parentcode = int(sheet.cell(x, parentindex).value)
             except ValueError, e:
@@ -593,29 +595,29 @@ if __name__ == "__main__":
             except ValueError, e:
                 quantity = 0
             try:
-                rate = float(sheet.cell(x, rateindex).value)
-            except ValueError, e:
-                rate = 0
+                rate = Decimal(sheet.cell(x, rateindex).value)
+            except InvalidOperation, e:
+                rate = Decimal(0.00)
             try:
-                running = float(sheet.cell(x, runningindex).value)
-            except ValueError, e:
-                running = 0
+                running = Decimal(sheet.cell(x, runningindex).value)
+            except InvalidOperation, e:
+                running = Decimal(0.00)
             try:
-                income = float(sheet.cell(x, incomeindex).value)
-            except ValueError, e:
-                income = 0
+                income = Decimal(sheet.cell(x, incomeindex).value)
+            except InvalidOperation, e:
+                income = Decimal(0.00)
             try:
-                client = float(sheet.cell(x, clientindex).value)
-            except ValueError, e:
-                client = 0
+                client = Decimal(sheet.cell(x, clientindex).value)
+            except InvalidOperation, e:
+                client = Decimal(0.00)
             try:
-                projprofit = float(sheet.cell(x, projprofitindex).value)
-            except ValueError, e:
-                projprofit = 0
+                projprofit = Decimal(sheet.cell(x, projprofitindex).value)
+            except InvalidOperation, e:
+                projprofit = Decimal(0.00)
             try:
-                actprofit = float(sheet.cell(x, actprofitindex).value)
-            except ValueError, e:
-                actprofit = 0
+                actprofit = Decimal(sheet.cell(x, actprofitindex).value)
+            except InvalidOperation, e:
+                actprofit = Decimal(0.00)
 
             # if the code has been changed assign it here
             if code in changedcocodes:
@@ -630,7 +632,7 @@ if __name__ == "__main__":
             # build the resource this component uses
             # check if the component references a new resource
             # format the name of the component
-            beginindex = name.find(".") + 1
+            beginindex = name.find('.') + 1
             checkname = name[beginindex:].strip()
             # name ends in period
             if beginindex == 0:
@@ -695,12 +697,13 @@ if __name__ == "__main__":
                                         Code=resourcecode,
                                         Name=checkname,
                                         Description=description,
-                                        # Rate=rate,
+                                        _Rate = rate,
                                         ParentID=resourcecategory.ID)
-                        resource._Rate = rate
                         DBSession.add(resource)
                         co = Component(ID=code,
                                         ResourceID=resourceid,
+                                        _Total = budgetcost,
+                                        _Quantity = quantity,
                                         Type=cotype,
                                         Unit=measureunit,
                                         ParentID=parentcode,
@@ -711,13 +714,13 @@ if __name__ == "__main__":
                                         ClientCost=client,
                                         ProjectedProfit=projprofit,
                                         ActualProfit=actprofit)
-                        co._Total = budgetcost
-                        co._Quantity = quantity
                         DBSession.add(co)
                     else:
                         # the resource exists, create the component
                         co = Component(ID=code,
                                     ResourceID=resource.ID,
+                                    _Total = budgetcost,
+                                    _Quantity = quantity,
                                     Type=cotype,
                                     Unit=measureunit,
                                     ParentID=parentcode,
@@ -728,22 +731,18 @@ if __name__ == "__main__":
                                     ClientCost=client,
                                     ProjectedProfit=projprofit,
                                     ActualProfit=actprofit)
-                        co._Total = budgetcost
-                        co._Quantity = quantity
                         DBSession.add(co)
                     DBSession.flush()
 
         transaction.commit()
-
-
-        stdout.write("\n")
+        stdout.write('\n')
 
         cotypebook = xlrd.open_workbook(exceldatapath + 'CompTypes.xls')
         sheet = cotypebook.sheet_by_index(0)
         codeindex = 0
         nameindex = 1
 
-        print "Converting Component Type table"
+        print 'Converting Component Type table'
         # build the componenttypes
         for x in range(1, sheet.nrows):
             code = int(sheet.cell(x, codeindex).value)
@@ -759,7 +758,7 @@ if __name__ == "__main__":
 
         transaction.commit()
 
-        print "Deleting error node"
+        print 'Deleting error node'
         deletethis = DBSession.query(Node).filter_by(ID=149999).first()
         DBSession.delete(deletethis)
         transaction.commit()
@@ -784,7 +783,7 @@ if __name__ == "__main__":
         faxindex = 9
         contactindex = 10
 
-        print "Converting Client table"
+        print 'Converting Client table'
         for x in range(1, sheet.nrows):
             try:
                 name = sheet.cell(x, nameindex).value
@@ -821,13 +820,12 @@ if __name__ == "__main__":
 
         transaction.commit()
 
-
         # build the supplier table
         # =====================================================================
         supplierbook = xlrd.open_workbook(exceldatapath + 'Supplier.xls')
         sheet = supplierbook.sheet_by_index(0)
 
-        print "Converting Supplier table"
+        print 'Converting Supplier table'
         for x in range(1, sheet.nrows):
             try:
                 name = sheet.cell(x, nameindex).value
@@ -864,17 +862,17 @@ if __name__ == "__main__":
 
         transaction.commit()
 
-        print "Recalculating the totals of the projects"
+        print 'Recalculating the totals of the projects'
         projectlist = DBSession.query(Project).all()
         length = float(len(projectlist))
         percentile = length / 100.0
-        print "Percentage done: "
+        print 'Percentage done: '
         counter = 2
         x = 0
         for project in projectlist:
             if x == int(percentile * counter):
                 counter += 1
-                stdout.write("\r%d" % counter + "%")
+                stdout.write('\r%d' % counter + '%')
                 stdout.flush()
                 sleep(1)
             project.recalculateTotal()
@@ -882,7 +880,7 @@ if __name__ == "__main__":
 
         transaction.commit()
 
-    print "done"
+    print 'done'
 
 
 

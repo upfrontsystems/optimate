@@ -4,6 +4,8 @@
 from zope.sqlalchemy import ZopeTransactionExtension
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
+from decimal import *
+import sqlalchemy.types as types
 
 from sqlalchemy import (
     Table,
@@ -28,6 +30,19 @@ DBSession = scoped_session(
     sessionmaker(extension=ZopeTransactionExtension('changed')))
 Base = declarative_base()
 
+class SqliteNumeric(types.TypeDecorator):
+    impl = types.String
+    def load_dialect_impl(self, dialect):
+        return dialect.type_descriptor(types.VARCHAR(100))
+    def process_bind_param(self, value, dialect):
+        return str(value)
+    def process_result_value(self, value, dialect):
+        if value != "None":
+            return Decimal(value)
+        else:
+            return None
+
+Numeric = SqliteNumeric
 
 class Node(Base):
 
@@ -41,14 +56,13 @@ class Node(Base):
     __tablename__ = 'Node'
     ID = Column(Integer, primary_key=True)
     ParentID = Column(Integer, ForeignKey('Node.ID', ondelete='CASCADE'))
-    # Name = Column(Text)
-    OrderCost = Column(Float)
-    ClaimedCost = Column(Float)
-    RunningCost=Column(Float)
-    IncomeRecieved=Column(Float)
-    ClientCost=Column(Float)
-    ProjectedProfit=Column(Float)
-    ActualProfit=Column(Float)
+    OrderCost = Column(Numeric(12, 2), default=Decimal(0.00))
+    ClaimedCost = Column(Numeric(12, 2), default=Decimal(0.00))
+    RunningCost=Column(Numeric(12, 2), default=Decimal(0.00))
+    IncomeRecieved=Column(Numeric(12, 2), default=Decimal(0.00))
+    ClientCost=Column(Numeric(12, 2), default=Decimal(0.00))
+    ProjectedProfit=Column(Numeric(12, 2), default=Decimal(0.00))
+    ActualProfit=Column(Numeric(12, 2), default=Decimal(0.00))
     type = Column(Text(50))
 
     Children = relationship('Node',
@@ -86,7 +100,7 @@ class Project(Node):
                 primary_key=True)
     Name = Column(Text)
     Description = Column(Text)
-    _Total = Column('Total', Float)
+    _Total = Column('Total', Numeric)
 
     __mapper_args__ = {
         'polymorphic_identity': 'Project',
@@ -96,30 +110,27 @@ class Project(Node):
     def recalculateTotal(self):
         """recursively recalculate the total of all the node in the hierarchy
         """
-        total = 0
-        childr  = self.Children
-        for child in childr:
+        total = Decimal(0.00)
+        for child in self.Children:
             if child.type != 'ResourceCategory':
                 total += child.recalculateTotal()
-        self._Total = total
+        self._Total = Decimal(total).quantize(Decimal('.01'))
         return total
 
     def resetTotal(self):
         """return the sum of the totals of this node's children
         """
-        total = 0
-        for item in self.Children:
-            total += item.Total
-        self._Total = total
+        total = Decimal(0.00)
+        for child in self.Children:
+            total += child.Total
+        self._Total = Decimal(total).quantize(Decimal('.01'))
 
     @hybrid_property
     def Total(self):
         """Get property total. If the Total has not been set yet, it is set to
            zero and recalculated
         """
-
         if self._Total == None:
-            self._Total = 0.0
             self.resetTotal()
         return self._Total
 
@@ -136,6 +147,7 @@ class Project(Node):
         copied = Project(Name=self.Name,
                          Description=self.Description,
                          ParentID=parentid,
+                         _Total = self.Total,
                          OrderCost=self.OrderCost,
                          ClaimedCost=self.ClaimedCost,
                          RunningCost=self.RunningCost,
@@ -143,7 +155,6 @@ class Project(Node):
                          ClientCost=self.ClientCost,
                          ProjectedProfit=self.ProjectedProfit,
                          ActualProfit=self.ActualProfit)
-        copied._Total = self.Total
 
         return copied
 
@@ -215,7 +226,7 @@ class BudgetGroup(Node):
                 ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
     Description = Column(Text)
     Name = Column(Text)
-    _Total = Column('Total', Float)
+    _Total = Column('Total', Numeric)
 
     __mapper_args__ = {
         'polymorphic_identity': 'BudgetGroup',
@@ -225,36 +236,35 @@ class BudgetGroup(Node):
     def recalculateTotal(self):
         """recursively recalculate the total of all the node in the hierarchy
         """
-        total = 0
-        childr = self.Children
-        for child in childr:
+        total = Decimal(0.00)
+        for child in self.Children:
             total += child.recalculateTotal()
-        self._Total = total
+        self._Total = Decimal(total).quantize(Decimal('.01'))
         return total
 
     def resetTotal(self):
         """return the sum of the totals of this node's children
         """
-        total = 0
-        for item in self.Children:
-            total += item.Total
-        self.Total = total
+        total = Decimal(0.00)
+        for child in self.Children:
+            total += child.Total
+        self.Total = Decimal(total).quantize(Decimal('.01'))
 
     @hybrid_property
     def Total(self):
         """Get the total property, reset the Total if it is None
         """
         if self._Total == None:
-            self._Total = 0.0
             self.resetTotal()
         return self._Total
 
     @Total.setter
     def Total(self, total):
-        """When the total is changed the parent's total is updated
+        """ When the total is changed the parent's total is updated.
+            If the total is none it is completely recalculated.
         """
         if self._Total == None:
-            self._Total = 0.0
+            self.recalculateTotal()
         oldtotal = self._Total
         self._Total = total
         difference = total - oldtotal
@@ -273,6 +283,7 @@ class BudgetGroup(Node):
         copied = BudgetGroup(Name=self.Name,
                              Description=self.Description,
                              ParentID=parentid,
+                             _Total = self.Total,
                              OrderCost=self.OrderCost,
                              ClaimedCost=self.ClaimedCost,
                              RunningCost=self.RunningCost,
@@ -280,7 +291,6 @@ class BudgetGroup(Node):
                              ClientCost=self.ClientCost,
                              ProjectedProfit=self.ProjectedProfit,
                              ActualProfit=self.ActualProfit)
-        copied._Total = self.Total
 
         return copied
 
@@ -355,8 +365,8 @@ class BudgetItem(Node):
     Name = Column(Text)
     Unit = Column(Text)
     _Quantity = Column('Quantity', Float)
-    _Rate = Column('Rate', Float)
-    _Total = Column('Total', Float)
+    _Rate = Column('Rate', Numeric)
+    _Total = Column('Total', Numeric)
     _Markup = Column('Markup', Float, default=0.0)
 
     __mapper_args__ = {
@@ -367,12 +377,12 @@ class BudgetItem(Node):
     def recalculateTotal(self):
         """recursively recalculate the total of all the nodes in the hierarchy
         """
-        rate = 0
-        childr = self.Children
-        for child in childr:
+        rate = Decimal(0.00)
+        for child in self.Children:
             rate += child.recalculateTotal()
         self._Rate = rate
-        self._Total = (1.0+self.Markup)*(self.Rate * self.Quantity)
+        self._Total = Decimal(Decimal((1.0+self.Markup) * self.Quantity)
+                                    * self.Rate).quantize(Decimal('.01'))
         return self.Total
 
     def resetTotal(self):
@@ -380,12 +390,12 @@ class BudgetItem(Node):
            and the total is equal to rate * quantity. The rate is reset, the
            total recalculated and returned
         """
-
-        rate = 0
-        for item in self.Children:
-            rate += item.Total
+        rate = Decimal(0.00)
+        for child in self.Children:
+            rate += child.Total
         self._Rate = rate
-        self.Total = (1.0+self.Markup)*(rate * self.Quantity)
+        self.Total = Decimal(Decimal((1.0+self.Markup) * self.Quantity)
+                                    * self.Rate).quantize(Decimal('.01'))
         return self._Total
 
     @hybrid_property
@@ -393,7 +403,6 @@ class BudgetItem(Node):
         """ Get the Total, if the Total is none it is reset
         """
         if self._Total == None:
-            self._Total = 0.0
             self.resetTotal()
         return self._Total
 
@@ -403,7 +412,7 @@ class BudgetItem(Node):
             between the old total and the new total
         """
         if self._Total == None:
-            self._Total = 0.0
+            self.recalculateTotal()
         oldtotal = self._Total
         self._Total = total
         difference = total - oldtotal
@@ -431,30 +440,32 @@ class BudgetItem(Node):
         """ Set the markup value, and change the total accordingly
         """
         self._Markup = markup
-        self.Total = (1.0+markup)*(self.Rate*self.Quantity)
+        self.Total = Decimal(Decimal((1.0+self.Markup) * self.Quantity)
+                                    * self.Rate).quantize(Decimal('.01'))
 
     @hybrid_property
     def Rate(self):
-        """ Get the Rate, if it is None set it to 0
+        """ Get the Rate
         """
         if self._Rate == None:
-            self._Rate = 0.0
-        return self._Rate
+            self.resetTotal()
+        return Decimal(self._Rate).quantize(Decimal('.01'))
 
     @Rate.setter
     def Rate(self, rate):
         """ Set the Rate and recalculate the total
         """
-        self._Rate = rate
+        self._Rate = Decimal(rate).quantize(Decimal('.01'))
         # when the rate changes recalculate the total
-        self.Total = (1.0+self.Markup)*(self.Rate * self.Quantity)
+        self.Total = Decimal(Decimal((1.0+self.Markup) * self.Quantity)
+                                * self.Rate).quantize(Decimal('.01'))
 
     @hybrid_property
     def Quantity(self):
         """ Get the Quantity, if it is None set it to 0
         """
         if self._Quantity == None:
-            self._Quantity = 0.0
+            self.Quantity = 0.0
         return self._Quantity
 
     @Quantity.setter
@@ -463,7 +474,8 @@ class BudgetItem(Node):
         """
         self._Quantity = quantity
         # when the quantity changes recalculate the total
-        self.Total = (1.0+self.Markup)*(self.Rate * self.Quantity)
+        self.Total = Decimal(Decimal((1.0+self.Markup) * self.Quantity)
+                                * self.Rate).quantize(Decimal('.01'))
 
     def copy(self, parentid):
         """copy returns an exact duplicate of this object,
@@ -566,12 +578,11 @@ class Component(Node):
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'),
                 primary_key=True)
-    # Name = Column(Text)
     ResourceID = Column(Integer, ForeignKey('Resource.ID'))
     Type = Column(Integer, ForeignKey('ComponentType.ID'))
     Unit = Column(Text)
     _Quantity = Column('Quantity', Float)
-    _Total = Column('Total', Float)
+    _Total = Column('Total', Numeric)
     _Markup = Column('Markup', Float, default=0.0)
 
     Resource = relationship('Resource',
@@ -584,17 +595,17 @@ class Component(Node):
     }
 
     def recalculateTotal(self):
-        """ Recursively recalculate the total of this hierarchy
+        """ Recalculate the total of this Component
         """
-        rate = 0
-        childr = self.Children
-        self._Total = (1.0+self.Markup)*(self.Rate * self.Quantity)
+        self._Total = Decimal(Decimal((1.0+self.Markup) * self.Quantity)
+                                * self.Rate).quantize(Decimal('.01'))
         return self._Total
 
     def resetTotal(self):
         """The total of a component is based on its rate and quantity
         """
-        self._Total = (1.0+self.Markup)*(self.Rate * self.Quantity)
+        self._Total = Decimal(Decimal((1.0+self.Markup) * self.Quantity)
+                             * self.Rate).quantize(Decimal('.01'))
         return self._Total
 
     @hybrid_property
@@ -602,7 +613,6 @@ class Component(Node):
         """ Get the Total, if it is None reset it
         """
         if self._Total == None:
-            self._Total = 0.0
             self.resetTotal()
         return self._Total
 
@@ -611,7 +621,7 @@ class Component(Node):
         """ Set the Total and update the parent with the new value
         """
         if self._Total == None:
-            self._Total = 0.0
+            self.resetTotal()
         oldtotal = self._Total
         self._Total = total
         difference = total - oldtotal
@@ -668,23 +678,23 @@ class Component(Node):
     def Rate(self):
         """ Get the component's Rate, the Rate of this resource is returned
         """
-        return self.Resource.Rate
+        return Decimal(self.Resource.Rate).quantize(Decimal('.01'))
 
     @Rate.setter
     def Rate(self, rate):
-        """ Set the rate of this component, if the value is not the same
-            change the Rate of this resource
-            Reset the Total
+        """ The rate of the component is set by it's resource
+            It triggers a reset of the total
         """
         # change the total when the rate changes
-        self.Total = (1.0+self.Markup)*(rate * self.Quantity)
+        self.Total = Decimal(Decimal((1.0+self.Markup) * self.Quantity)
+                         * self.Rate).quantize(Decimal('.01'))
 
     @hybrid_property
     def Quantity(self):
         """ Get the Quantity, if it is None set it to 0
         """
         if self._Quantity == None:
-            self._Quantity = 0
+            self._Quantity = 0.0
         return self._Quantity
 
     @Quantity.setter
@@ -693,7 +703,8 @@ class Component(Node):
         """
         self._Quantity = quantity
         # change the total when the quantity changes
-        self.Total = (1.0+self.Markup)*(self.Rate * self.Quantity)
+        self.Total = Decimal(Decimal((1.0+self.Markup) * self.Quantity)
+                             * self.Rate).quantize(Decimal('.01'))
 
     def copy(self, parentid):
         """ copy returns an exact duplicate of this object,
@@ -720,11 +731,6 @@ class Component(Node):
         """ Paste into this Component, since Components do not have children
             nothing is added to its Children and this function does nothing
         """
-        # for child in sourcechildren:
-        #     # The resource category is not pasted
-        #     if child.type != 'ResourceCategory':
-        #         source.paste(child.copy(source.ID), child.Children)
-        # self.resetTotal()
         pass
 
     def getComponents(self):
@@ -765,8 +771,8 @@ class Component(Node):
     def __repr__(self):
         """ return a representation of this component
         """
-        return '<Co(Name="%s", ID="%s", Rate="%d", Quantity="%d", ParentID="%s")>' % (
-            self.Name, self.ID, self.Rate, self._Quantity, self.ParentID)
+        return '<Co(Name="%s", ID="%s", ParentID="%s")>' % (
+            self.Name, self.ID, self.ParentID)
 
 
 class ComponentType(Base):
@@ -796,7 +802,7 @@ class ResourceCategory(Node):
     Description = Column(Text)
     Name = Column(Text)
     # Total is just a dummy column for when a project is calculating its total
-    _Total = Column('Total', Float, default=0.0)
+    _Total = Column('Total', Numeric(12, 2), default=Decimal(0.00))
 
     __mapper_args__ = {
         'polymorphic_identity': 'ResourceCategory',
@@ -804,15 +810,15 @@ class ResourceCategory(Node):
     }
 
     def recalculateTotal(self):
-        return 0
+        return Decimal(0.00)
 
     @hybrid_property
     def Total(self):
-        return self._Total
+        return Decimal(0.00)
 
     @Total.setter
     def Total(self, total):
-        self._Total = total
+        pass
 
     def addResources(self, componentlist):
         """ Add a list of components to this ResourceCategory.
@@ -828,7 +834,6 @@ class ResourceCategory(Node):
     def addResource(self, resource):
         """ check if the resource is already in this category and add it if not
         """
-
         if resource not in self.Children:
             self.Children.append(resource)
             return True
@@ -839,19 +844,15 @@ class ResourceCategory(Node):
         """ Returns a dictionary of this ResourceCategory, which only contains
             its name and a list indicating it has children or not
         """
-        if len(self.Children) == 0:
-            subitem = []
-        else:
-            subitem = [{'Name':''}]
         return {'name': self.Name,
-                'budg_cost': 'x',
-                'order_cost': 'x',
-                'run_cost': 'x',
-                'claim_cost': 'x',
-                'income_rec': 'x',
-                'client_cost': 'x',
-                'proj_profit': 'x',
-                'act_profit': 'x'}
+                'budg_cost': '-',
+                'order_cost': '-',
+                'run_cost': '-',
+                'claim_cost': '-',
+                'income_rec': '-',
+                'client_cost': '-',
+                'proj_profit': '-',
+                'act_profit': '-'}
 
     def getGridData(self):
         """ Returns a dictionary with the data needed for the slick grid
@@ -859,14 +860,14 @@ class ResourceCategory(Node):
         return {'name': self.Name,
                 'id': self.ID,
                 'node_type': self.type,
-                'budg_cost': 'x',
-                'order_cost': 'x',
-                'run_cost': 'x',
-                'claim_cost': 'x',
-                'income_rec': 'x',
-                'client_cost': 'x',
-                'proj_profit': 'x',
-                'act_profit': 'x'}
+                'budg_cost': '-',
+                'order_cost': '-',
+                'run_cost': '-',
+                'claim_cost': '-',
+                'income_rec': '-',
+                'client_cost': '-',
+                'proj_profit': '-',
+                'act_profit': '-'}
 
     def __repr__(self):
         """Return a representation of this ResourceCategory
@@ -890,7 +891,7 @@ class Resource(Node):
     Code = Column(Text)
     Name = Column(Text)
     Description = Column(Text)
-    _Rate = Column('Rate', Float)
+    _Rate = Column('Rate', Numeric)
 
     __mapper_args__ = {
             'polymorphic_identity': 'Resource',
@@ -899,16 +900,18 @@ class Resource(Node):
 
     @hybrid_property
     def Rate(self):
-        return self._Rate
+        """ Get the Rate of the Resource
+        """
+        return Decimal(self._Rate).quantize(Decimal('.01'))
 
     @Rate.setter
     def Rate(self, rate):
         """ Set the Resource's rate and reset the Rate of all the component's
-            that referenc it
+            that reference it
         """
-        self._Rate = rate
+        self._Rate = Decimal(rate).quantize(Decimal('.01'))
         for comp in self.Components:
-            comp.Rate = rate
+            comp.Rate = self._Rate
 
     def __eq__(self, other):
         """Test for equality, for now testing based on the name
@@ -920,33 +923,33 @@ class Resource(Node):
 
     def toDict(self):
         return {'name': self.Name,
-                'budg_cost': 'x',
-                'order_cost': 'x',
-                'run_cost': 'x',
-                'claim_cost': 'x',
-                'income_rec': 'x',
-                'client_cost': 'x',
-                'proj_profit': 'x',
-                'act_profit': 'x'}
+                'budg_cost': '-',
+                'order_cost': '-',
+                'run_cost': '-',
+                'claim_cost': '-',
+                'income_rec': '-',
+                'client_cost': '-',
+                'proj_profit': '-',
+                'act_profit': '-'}
 
     def getGridData(self):
         return {'name': self.Name,
                 'id': self.ID,
                 'node_type': self.type,
                 'rate': self.Rate,
-                'budg_cost': 'x',
-                'order_cost': 'x',
-                'run_cost': 'x',
-                'claim_cost': 'x',
-                'income_rec': 'x',
-                'client_cost': 'x',
-                'proj_profit': 'x',
-                'act_profit': 'x'}
+                'budg_cost': '-',
+                'order_cost': '-',
+                'run_cost': '-',
+                'claim_cost': '-',
+                'income_rec': '-',
+                'client_cost': '-',
+                'proj_profit': '-',
+                'act_profit': '-'}
 
     def __repr__(self):
         """Return a representation of this resource
         """
-        return '<Resource(Name="%s", Code="%s%", Rate="%s", ID="%s")>' % (
+        return '<Resource(Name="%s", Code="%s", Rate="%f", ID="%s")>' % (
             self.Name, self.Code, self.Rate, self.ID)
 
 
