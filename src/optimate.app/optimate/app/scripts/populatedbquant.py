@@ -140,36 +140,36 @@ if __name__ == '__main__':
 
             # convert the costs to Decimal and if there are issues set it to 0
             try:
-                budgetcost = Decimal(str(round(sheet.cell(x, budgetcostindex).value, 2)))
-            except TypeError:
+                budgetcost = Decimal(sheet.cell(x, budgetcostindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
                 budgetcost = Decimal(0.00)
             try:
-                ordercost = Decimal(str(round(sheet.cell(x, ordercostindex).value, 2)))
-            except TypeError:
+                ordercost = Decimal(sheet.cell(x, ordercostindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
                 ordercost = Decimal(0.00)
             try:
-                claimedcost = Decimal(str(round(sheet.cell(x, claimedcostindex).value, 2)))
-            except TypeError:
+                claimedcost = Decimal(sheet.cell(x, claimedcostindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
                 claimedcost = Decimal(0.00)
             try:
-                running = Decimal(str(round(sheet.cell(x, runningindex).value, 2)))
-            except TypeError:
+                running = Decimal(sheet.cell(x, runningindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
                 running = Decimal(0.00)
             try:
-                income = Decimal(str(round(sheet.cell(x, incomeindex).value, 2)))
-            except TypeError:
+                income = Decimal(sheet.cell(x, incomeindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
                 income = Decimal(0.00)
             try:
-                client = Decimal(str(round(sheet.cell(x, clientindex).value, 2)))
-            except TypeError:
+                client = Decimal(sheet.cell(x, clientindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
                 client = Decimal(0.00)
             try:
-                projprofit = Decimal(str(round(sheet.cell(x, projprofitindex).value, 2)))
-            except TypeError:
+                projprofit = Decimal(sheet.cell(x, projprofitindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
                 projprofit = Decimal(0.00)
             try:
-                actprofit = Decimal(str(round(sheet.cell(x, actprofitindex).value, 2)))
-            except TypeError:
+                actprofit = Decimal(sheet.cell(x, actprofitindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
                 actprofit = Decimal(0.00)
 
             # build the project and add it to the database
@@ -264,43 +264,43 @@ if __name__ == '__main__':
             except UnicodeEncodeError, u:
                 description = unicodedata.normalize('NFKD',
                                     description).encode('ascii', 'ignore')
-            # convert the costs to Decimal and if there are issues set it to 0
+            # set the costs to 0 if theres a problem
             try:
-                budgetcost = Decimal(str(round(sheet.cell(x, budgetcostindex).value, 2)))
-            except TypeError:
+                budgetcost = Decimal(sheet.cell(x, budgetcostindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
                 budgetcost = Decimal(0.00)
             try:
-                ordercost = Decimal(str(round(sheet.cell(x, ordercostindex).value, 2)))
-            except TypeError:
+                ordercost = Decimal(sheet.cell(x, ordercostindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
                 ordercost = Decimal(0.00)
             try:
-                claimedcost = Decimal(str(round(sheet.cell(x, claimedcostindex).value, 2)))
-            except TypeError:
+                claimedcost = Decimal(sheet.cell(x, claimedcostindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
                 claimedcost = Decimal(0.00)
-            try:
-                running = Decimal(str(round(sheet.cell(x, runningindex).value, 2)))
-            except TypeError:
-                running = Decimal(0.00)
-            try:
-                income = Decimal(str(round(sheet.cell(x, incomeindex).value, 2)))
-            except TypeError:
-                income = Decimal(0.00)
-            try:
-                client = Decimal(str(round(sheet.cell(x, clientindex).value, 2)))
-            except TypeError:
-                client = Decimal(0.00)
-            try:
-                projprofit = Decimal(str(round(sheet.cell(x, projprofitindex).value, 2)))
-            except TypeError:
-                projprofit = Decimal(0.00)
-            try:
-                actprofit = Decimal(str(round(sheet.cell(x, actprofitindex).value, 2)))
-            except TypeError:
-                actprofit = Decimal(0.00)
             try:
                 parentcode = int(sheet.cell(x, parentindex).value)
             except ValueError, e:
                 parentcode = 149999
+            try:
+                running = Decimal(sheet.cell(x, runningindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
+                running = Decimal(0.00)
+            try:
+                income = Decimal(sheet.cell(x, incomeindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
+                income = Decimal(0.00)
+            try:
+                client = Decimal(sheet.cell(x, clientindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
+                client = Decimal(0.00)
+            try:
+                projprofit = Decimal(sheet.cell(x, projprofitindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
+                projprofit = Decimal(0.00)
+            try:
+                actprofit = Decimal(sheet.cell(x, actprofitindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
+                actprofit = Decimal(0.00)
 
             # if the code has been changed assign it here
             if code in changedbgcodes:
@@ -409,43 +409,19 @@ if __name__ == '__main__':
                 description = unicodedata.normalize('NFKD',
                                     description).encode('ascii', 'ignore')
             measureunit = sheet.cell(x, unitindex).value
-            # convert the costs to Decimal and if there are issues set it to 0
+            # set the costs to 0 if theres a problem
             try:
-                budgetcost = Decimal(str(round(sheet.cell(x, budgetcostindex).value, 2)))
-            except TypeError:
+                budgetcost = Decimal(sheet.cell(x, budgetcostindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
                 budgetcost = Decimal(0.00)
             try:
-                ordercost = Decimal(str(round(sheet.cell(x, ordercostindex).value, 2)))
-            except TypeError:
+                ordercost = Decimal(sheet.cell(x, ordercostindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
                 ordercost = Decimal(0.00)
             try:
-                claimedcost = Decimal(str(round(sheet.cell(x, claimedcostindex).value, 2)))
-            except TypeError:
+                claimedcost = Decimal(sheet.cell(x, claimedcostindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
                 claimedcost = Decimal(0.00)
-            try:
-                running = Decimal(str(round(sheet.cell(x, runningindex).value, 2)))
-            except TypeError:
-                running = Decimal(0.00)
-            try:
-                income = Decimal(str(round(sheet.cell(x, incomeindex).value, 2)))
-            except TypeError:
-                income = Decimal(0.00)
-            try:
-                client = Decimal(str(round(sheet.cell(x, clientindex).value, 2)))
-            except TypeError:
-                client = Decimal(0.00)
-            try:
-                projprofit = Decimal(str(round(sheet.cell(x, projprofitindex).value, 2)))
-            except TypeError:
-                projprofit = Decimal(0.00)
-            try:
-                actprofit = Decimal(str(round(sheet.cell(x, actprofitindex).value, 2)))
-            except TypeError:
-                actprofit = Decimal(0.00)
-            try:
-                rate = Decimal(str(round(sheet.cell(x, rateindex).value, 2)))
-            except TypeError:
-                rate = Decimal(0.00)
             try:
                 parentcode = int(sheet.cell(x, parentindex).value)
             except ValueError, e:
@@ -454,6 +430,30 @@ if __name__ == '__main__':
                 quantity = float(sheet.cell(x, quantityindex).value)
             except ValueError, e:
                 quantity = 0
+            try:
+                rate = Decimal(sheet.cell(x, rateindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
+                rate = Decimal(0.00)
+            try:
+                running = Decimal(sheet.cell(x, runningindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
+                running = Decimal(0.00)
+            try:
+                income = Decimal(sheet.cell(x, incomeindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
+                income = Decimal(0.00)
+            try:
+                client = Decimal(sheet.cell(x, clientindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
+                client = Decimal(0.00)
+            try:
+                projprofit = Decimal(sheet.cell(x, projprofitindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
+                projprofit = Decimal(0.00)
+            try:
+                actprofit = Decimal(sheet.cell(x, actprofitindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
+                actprofit = Decimal(0.00)
 
             # if the code has been changed assign it here
             if code in changedbicodes:
@@ -571,43 +571,18 @@ if __name__ == '__main__':
             except ValueError, v:
                 cotype = 1
             measureunit = sheet.cell(x, unitindex).value
-            # convert the costs to Decimal and if there are issues set it to 0
             try:
-                budgetcost = Decimal(str(round(sheet.cell(x, budgetcostindex).value, 2)))
-            except TypeError:
+                budgetcost = Decimal(sheet.cell(x, budgetcostindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
                 budgetcost = Decimal(0.00)
             try:
-                ordercost = Decimal(str(round(sheet.cell(x, ordercostindex).value, 2)))
-            except TypeError:
+                ordercost = Decimal(sheet.cell(x, ordercostindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
                 ordercost = Decimal(0.00)
             try:
-                claimedcost = Decimal(str(round(sheet.cell(x, claimedcostindex).value, 2)))
-            except TypeError:
+                claimedcost = Decimal(sheet.cell(x, claimedcostindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
                 claimedcost = Decimal(0.00)
-            try:
-                running = Decimal(str(round(sheet.cell(x, runningindex).value, 2)))
-            except TypeError:
-                running = Decimal(0.00)
-            try:
-                income = Decimal(str(round(sheet.cell(x, incomeindex).value, 2)))
-            except TypeError:
-                income = Decimal(0.00)
-            try:
-                client = Decimal(str(round(sheet.cell(x, clientindex).value, 2)))
-            except TypeError:
-                client = Decimal(0.00)
-            try:
-                projprofit = Decimal(str(round(sheet.cell(x, projprofitindex).value, 2)))
-            except TypeError:
-                projprofit = Decimal(0.00)
-            try:
-                actprofit = Decimal(str(round(sheet.cell(x, actprofitindex).value, 2)))
-            except TypeError:
-                actprofit = Decimal(0.00)
-            try:
-                rate = Decimal(str(round(sheet.cell(x, rateindex).value, 2)))
-            except TypeError:
-                rate = Decimal(0.00)
             try:
                 parentcode = int(sheet.cell(x, parentindex).value)
             except ValueError, e:
@@ -616,6 +591,30 @@ if __name__ == '__main__':
                 quantity = float(sheet.cell(x, quantityindex).value)
             except ValueError, e:
                 quantity = 0
+            try:
+                rate = Decimal(sheet.cell(x, rateindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
+                rate = Decimal(0.00)
+            try:
+                running = Decimal(sheet.cell(x, runningindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
+                running = Decimal(0.00)
+            try:
+                income = Decimal(sheet.cell(x, incomeindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
+                income = Decimal(0.00)
+            try:
+                client = Decimal(sheet.cell(x, clientindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
+                client = Decimal(0.00)
+            try:
+                projprofit = Decimal(sheet.cell(x, projprofitindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
+                projprofit = Decimal(0.00)
+            try:
+                actprofit = Decimal(sheet.cell(x, actprofitindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
+                actprofit = Decimal(0.00)
 
             # if the code has been changed assign it here
             if code in changedcocodes:
