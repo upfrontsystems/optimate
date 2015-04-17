@@ -357,7 +357,45 @@ allControllers.directive('projectslickgridjs', function() {
                     url: url,
                     dataType: "json",
                     success: function(data) {
-                        grid.setData(data)
+                        if (data.length > 0){
+                            var columns = [];
+                            if (data[0]['node_type'] == 'Resource'){
+                                columns = [
+                                    {id: "name", name: "Name", field: "name",
+                                     width: cell_large, cssClass: "cell-title"},
+                                    {id: "rate", name: "Rate", field: "rate", cssClass: "cell",
+                                     width: cell_small, editor: Slick.Editors.Float},
+                                ];
+                            }
+                            else {
+                                columns = [
+                                        {id: "name", name: "Name", field: "name",
+                                         width: cell_large, cssClass: "cell-title"},
+                                        {id: "budg_cost", name: "Total", field: "budg_cost",
+                                         width: cell_medium, cssClass: "cell"},
+                                        {id: "order_cost", name: "Order Cost", field: "order_cost",
+                                         width: cell_medium, cssClass: "cell"},
+                                        {id: "run_cost", name: "Run Cost", field: "run_cost",
+                                         width: cell_medium, cssClass: "cell"},
+                                        {id: "claim_cost", name: "Claim Cost", field: "claim_cost",
+                                         width: cell_medium, cssClass: "cell"},
+                                        {id: "income_rec", name: "Income Rec", field: "income_rec",
+                                         width: cell_medium, cssClass: "cell"},
+                                        {id: "client_cost", name: "Client Cost", field: "client_cost",
+                                         width: cell_medium, cssClass: "cell"},
+                                        {id: "proj_profit", name: "Proj. Profit", field: "proj_profit",
+                                         width: cell_medium, cssClass: "cell"},
+                                        {id: "act_profit", name: "Act. Profit", field: "act_profit",
+                                         width: cell_medium, cssClass: "cell"},
+                                        {id: "rate", name: "Rate", field: "rate", cssClass: "cell",
+                                         width: cell_small, editor: Slick.Editors.Float},
+                                        {id: "quantity", name: "Quantity", field: "quantity", cssClass: "cell",
+                                         width: cell_medium, editor: Slick.Editors.Float},
+                                ];
+                            }
+                            grid.setColumns(columns);
+                        }
+                        grid.setData(data);
                         grid.render();
                     }
                 });
