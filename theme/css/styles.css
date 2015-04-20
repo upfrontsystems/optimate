@@ -4,14 +4,14 @@ body {
 
 /* treeview div */
 .left {
-    width: 40%;
+    width: 35%;
     display: inline-block;
     vertical-align: top;
 }
 
 /* slickgrid div */
 .right {
-    width: 58%;
+    width: 63%;
     max-width: 855px;
     display: inline-block;
     vertical-align: top;
@@ -79,6 +79,11 @@ input.editor-text {
 #project-select,
 #project-select > * {
     font-size: 0.8em;
+}
+
+/* Slickgrid non editable columns, editable stays default white */
+.non-editable-column {
+    background-color: #eee;
 }
 
 /* Fix for bootstrap box issues in slickgrid */
