@@ -199,13 +199,13 @@ class Project(Node):
                 'id': self.ID,
                 'node_type': self.type,
                 'budg_cost': str(self.Total),
-                'order_cost': str(self.OrderCost),
-                'run_cost': str(self.RunningCost),
-                'claim_cost': str(self.ClaimedCost),
-                'income_rec': str(self.IncomeRecieved),
-                'client_cost': str(self.ClientCost),
-                'proj_profit': str(self.ProjectedProfit),
-                'act_profit': str(self.ActualProfit)}
+                'order_cost': str(self.OrderCost.quantize(Decimal('.01'))),
+                'run_cost': str(self.RunningCost.quantize(Decimal('.01'))),
+                'claim_cost': str(self.ClaimedCost.quantize(Decimal('.01'))),
+                'income_rec': str(self.IncomeRecieved.quantize(Decimal('.01'))),
+                'client_cost': str(self.ClientCost.quantize(Decimal('.01'))),
+                'proj_profit': str(self.ProjectedProfit.quantize(Decimal('.01'))),
+                'act_profit': str(self.ActualProfit.quantize(Decimal('.01')))}
 
     def __repr__(self):
         """ Return a representation of this project
@@ -337,13 +337,13 @@ class BudgetGroup(Node):
                 'id': self.ID,
                 'node_type': self.type,
                 'budg_cost': str(self.Total),
-                'order_cost': str(self.OrderCost),
-                'run_cost': str(self.RunningCost),
-                'claim_cost': str(self.ClaimedCost),
-                'income_rec': str(self.IncomeRecieved),
-                'client_cost': str(self.ClientCost),
-                'proj_profit': str(self.ProjectedProfit),
-                'act_profit': str(self.ActualProfit)}
+                'order_cost': str(self.OrderCost.quantize(Decimal('.01'))),
+                'run_cost': str(self.RunningCost.quantize(Decimal('.01'))),
+                'claim_cost': str(self.ClaimedCost.quantize(Decimal('.01'))),
+                'income_rec': str(self.IncomeRecieved.quantize(Decimal('.01'))),
+                'client_cost': str(self.ClientCost.quantize(Decimal('.01'))),
+                'proj_profit': str(self.ProjectedProfit.quantize(Decimal('.01'))),
+                'act_profit': str(self.ActualProfit.quantize(Decimal('.01')))}
 
     def __repr__(self):
         """Return a representation of this budgetgroup
@@ -499,9 +499,7 @@ class BudgetItem(Node):
         """
         self.Children.append(source)
         for child in sourcechildren:
-            # The resource category is not pasted
-            if child.type != 'ResourceCategory':
-                source.paste(child.copy(source.ID), child.Children)
+            source.paste(child.copy(source.ID), child.Children)
 
         self.resetTotal()
 
@@ -543,15 +541,16 @@ class BudgetItem(Node):
         return {'name': self.Name,
                 'id': self.ID,
                 'node_type': self.type,
+                'markup':self.Markup,
                 'quantity': self.Quantity,
                 'budg_cost': str(self.Total),
-                'order_cost': str(self.OrderCost),
-                'run_cost': str(self.RunningCost),
-                'claim_cost': str(self.ClaimedCost),
-                'income_rec': str(self.IncomeRecieved),
-                'client_cost': str(self.ClientCost),
-                'proj_profit': str(self.ProjectedProfit),
-                'act_profit': str(self.ActualProfit)}
+                'order_cost': str(self.OrderCost.quantize(Decimal('.01'))),
+                'run_cost': str(self.RunningCost.quantize(Decimal('.01'))),
+                'claim_cost': str(self.ClaimedCost.quantize(Decimal('.01'))),
+                'income_rec': str(self.IncomeRecieved.quantize(Decimal('.01'))),
+                'client_cost': str(self.ClientCost.quantize(Decimal('.01'))),
+                'proj_profit': str(self.ProjectedProfit.quantize(Decimal('.01'))),
+                'act_profit': str(self.ActualProfit.quantize(Decimal('.01')))}
 
     def __repr__(self):
         """ return a representation of this budgetitem
@@ -746,15 +745,16 @@ class Component(Node):
         return {'name': self.Name,
                 'id': self.ID,
                 'node_type': self.type,
+                'markup': self.Markup,
                 'quantity': self.Quantity,
                 'budg_cost': str(self.Total),
-                'order_cost': str(self.OrderCost),
-                'run_cost': str(self.RunningCost),
-                'claim_cost': str(self.ClaimedCost),
-                'income_rec': str(self.IncomeRecieved),
-                'client_cost': str(self.ClientCost),
-                'proj_profit': str(self.ProjectedProfit),
-                'act_profit': str(self.ActualProfit)}
+                'order_cost': str(self.OrderCost.quantize(Decimal('.01'))),
+                'run_cost': str(self.RunningCost.quantize(Decimal('.01'))),
+                'claim_cost': str(self.ClaimedCost.quantize(Decimal('.01'))),
+                'income_rec': str(self.IncomeRecieved.quantize(Decimal('.01'))),
+                'client_cost': str(self.ClientCost.quantize(Decimal('.01'))),
+                'proj_profit': str(self.ProjectedProfit.quantize(Decimal('.01'))),
+                'act_profit': str(self.ActualProfit.quantize(Decimal('.01')))}
 
     def __repr__(self):
         """ return a representation of this component
@@ -890,11 +890,7 @@ class Resource(Node):
     def Rate(self):
         """ Get the Rate of the Resource
         """
-        try:
-            return self._Rate.quantize(Decimal('.01'))
-        except:
-            import pdb
-            pdb.set_trace()
+        return self._Rate.quantize(Decimal('.01'))
 
     @Rate.setter
     def Rate(self, rate):

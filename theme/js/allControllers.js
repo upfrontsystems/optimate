@@ -317,6 +317,8 @@ allControllers.directive('projectslickgridjs', function() {
                      width: cell_medium, cssClass: "cell non-editable-column"},
                     {id: "act_profit", name: "Act. Profit", field: "act_profit",
                      width: cell_medium, cssClass: "cell non-editable-column"},
+                    {id: "markup", name: "Markup", field: "markup", cssClass: "cell",
+                     width: cell_medium, editor: Slick.Editors.Float},
                     {id: "rate", name: "Rate", field: "rate",
                      width: cell_small, cssClass: "cell non-editable-column"},
                     {id: "quantity", name: "Quantity", field: "quantity", cssClass: "cell",
@@ -370,7 +372,6 @@ allControllers.directive('projectslickgridjs', function() {
                             else {
                                 newcolumns = columns;
                             }
-
                         }
                         else {
                             newcolumns = columns;
