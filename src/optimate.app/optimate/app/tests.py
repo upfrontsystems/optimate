@@ -405,13 +405,13 @@ class TestAddProjectSuccessCondition(unittest.TestCase):
         # assert if the response from the add view is OK
         self.assertEqual(response.code, 200)
 
-        # test the total cost of the project
+        # test the total  of the project
         request = testing.DummyRequest()
         request.matchdict = {'id': projectid}
         from .views import costview
         response = costview(request)
         # true if the cost is correct
-        self.assertEqual(response['Cost'], Decimal('500.00'))
+        self.assertEqual(response['Cost'], '500.00')
 
 
 class TestAddComponentSuccessCondition(unittest.TestCase):
@@ -454,7 +454,7 @@ class TestAddComponentSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 4}
         from .views import costview
         response = costview(request)
-        self.assertEqual(response['Cost'], Decimal('1494.30'))
+        self.assertEqual(response['Cost'], '1494.30')
 
 
 class TestDeleteviewSuccessCondition(unittest.TestCase):
@@ -496,7 +496,7 @@ class TestDeleteviewSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 1}
         from .views import costview
         response = costview(request)
-        self.assertEqual(response['Cost'], Decimal('0.00'))
+        self.assertEqual(response['Cost'], '0.00')
 
 
 class TestPasteviewSuccessCondition(unittest.TestCase):
@@ -544,7 +544,7 @@ class TestPasteviewSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 4}
         from .views import costview
         response = costview(request)
-        self.assertEqual(response['Cost'], Decimal('1427.52'))
+        self.assertEqual(response['Cost'], '1427.52')
 
 
 class TestCostviewSuccessCondition(unittest.TestCase):
@@ -570,68 +570,68 @@ class TestCostviewSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 1}
         response = self._callFUT(request)
         # true if the cost is correct
-        self.assertEqual(response['Cost'], Decimal('533.22'))
+        self.assertEqual(response['Cost'], '533.22')
 
         # get the cost of budgetgroup at id 2
         request = testing.DummyRequest()
         request.matchdict = {'id': 2}
         response = self._callFUT(request)
-        self.assertEqual(response['Cost'], Decimal('533.22'))
+        self.assertEqual(response['Cost'], '533.22')
 
         # get the cost of budgetitem at id 3
         request = testing.DummyRequest()
         request.matchdict = {'id': 3}
         response = self._callFUT(request)
-        self.assertEqual(response['Cost'], Decimal('533.22'))
+        self.assertEqual(response['Cost'], '533.22')
 
         # get the cost of comp at id 7
         request = testing.DummyRequest()
         request.matchdict = {'id': 7}
         response = self._callFUT(request)
-        self.assertEqual(response['Cost'], Decimal('26.25'))
+        self.assertEqual(response['Cost'], '26.25')
 
         # get the cost of compa at id 11
         request = testing.DummyRequest()
         request.matchdict = {'id': 11}
         response = self._callFUT(request)
-        self.assertEqual(response['Cost'], Decimal('70.70'))
+        self.assertEqual(response['Cost'], '70.70')
 
         # get the cost of projectb at id 4
         request = testing.DummyRequest()
         request.matchdict = {'id': 4}
         response = self._callFUT(request)
-        self.assertEqual(response['Cost'], Decimal('894.30'))
+        self.assertEqual(response['Cost'], '894.30')
 
         # get the cost of budgetgroupb at id 5
         request = testing.DummyRequest()
         request.matchdict = {'id': 5}
         response = self._callFUT(request)
         # true if the cost is correct
-        self.assertEqual(response['Cost'], Decimal('894.30'))
+        self.assertEqual(response['Cost'], '894.30')
 
         # get the cost of budgetitemb at id 6
         request = testing.DummyRequest()
         request.matchdict = {'id': 6}
         response = self._callFUT(request)
-        self.assertEqual(response['Cost'], Decimal('577.50'))
+        self.assertEqual(response['Cost'], '577.50')
 
         # get the cost of compb at id 8
         request = testing.DummyRequest()
         request.matchdict = {'id': 8}
         response = self._callFUT(request)
-        self.assertEqual(response['Cost'], Decimal('38.50'))
+        self.assertEqual(response['Cost'], '38.50')
 
         # get the cost of budgetitemc at id 13
         request = testing.DummyRequest()
         request.matchdict = {'id': 13}
         response = self._callFUT(request)
-        self.assertEqual(response['Cost'], Decimal('316.80'))
+        self.assertEqual(response['Cost'], '316.80')
 
         # get the cost of compc at id 14
         request = testing.DummyRequest()
         request.matchdict = {'id': 14}
         response = self._callFUT(request)
-        self.assertEqual(response['Cost'], Decimal('48.00'))
+        self.assertEqual(response['Cost'], '48.00')
 
 
 class TestSetComponentQuantitySuccessCondition(unittest.TestCase):
@@ -658,7 +658,7 @@ class TestSetComponentQuantitySuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 4}
         response = self._callFUT(request)
         # true if the cost is correct
-        self.assertEqual(response['Cost'], Decimal('894.30'))
+        self.assertEqual(response['Cost'], '894.30')
 
         # now change the rate of the component by calling the test view
         # in the views its quantity is set to 7
@@ -671,7 +671,7 @@ class TestSetComponentQuantitySuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.matchdict = {'id': 4}
         response = self._callFUT(request)
-        self.assertEqual(response['Cost'], Decimal('1125.30'))
+        self.assertEqual(response['Cost'], '1125.30')
 
 
 class TestSetResourceRateSuccessCondition(unittest.TestCase):
@@ -699,7 +699,7 @@ class TestSetResourceRateSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
 
         # true if the cost is correct
-        self.assertEqual(response['Cost'], Decimal('533.22'))
+        self.assertEqual(response['Cost'], '533.22')
 
         # now change the rate of the resource by calling the test view
         # in the views its rate is set to 15
@@ -712,7 +712,7 @@ class TestSetResourceRateSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.matchdict = {'id': 1}
         response = self._callFUT(request)
-        self.assertEqual(response['Cost'], Decimal('821.98'))
+        self.assertEqual(response['Cost'], '821.98')
 
 
 class TestClientviewSuccessCondition(unittest.TestCase):

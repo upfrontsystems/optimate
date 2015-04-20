@@ -370,7 +370,7 @@ def costview(request):
 
         if qry == None:
             return HTTPNotFound()
-        totalcost = qry.Total
+        totalcost = str(qry.Total)
         transaction.commit()
 
         return {'Cost': totalcost}
