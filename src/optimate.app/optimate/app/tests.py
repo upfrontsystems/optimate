@@ -189,7 +189,7 @@ def _initTestingDB():
                               |
                               budgetitemc - (1.1*48*6=316.8) id:13
                                           |
-                                          compc - resduplicate (1.2*8*5=48) id:14
+                                          compc - resdupli (1.2*8*5=48) id:14
                  |
                  rescatb - id:12
                          |

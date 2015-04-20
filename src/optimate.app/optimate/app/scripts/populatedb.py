@@ -140,35 +140,43 @@ if __name__ == '__main__':
 
             # convert the costs to Decimal and if there are issues set it to 0
             try:
-                budgetcost = Decimal(sheet.cell(x, budgetcostindex).value).quantize(Decimal('.01'))
+                budgetcost = Decimal(sheet.cell(x,
+                    budgetcostindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 budgetcost = Decimal(0.00)
             try:
-                ordercost = Decimal(sheet.cell(x, ordercostindex).value).quantize(Decimal('.01'))
+                ordercost = Decimal(sheet.cell(x,
+                    ordercostindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 ordercost = Decimal(0.00)
             try:
-                claimedcost = Decimal(sheet.cell(x, claimedcostindex).value).quantize(Decimal('.01'))
+                claimedcost = Decimal(sheet.cell(x,
+                    claimedcostindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 claimedcost = Decimal(0.00)
             try:
-                running = Decimal(sheet.cell(x, runningindex).value).quantize(Decimal('.01'))
+                running = Decimal(sheet.cell(x,
+                    runningindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 running = Decimal(0.00)
             try:
-                income = Decimal(sheet.cell(x, incomeindex).value).quantize(Decimal('.01'))
+                income = Decimal(sheet.cell(x,
+                    incomeindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 income = Decimal(0.00)
             try:
-                client = Decimal(sheet.cell(x, clientindex).value).quantize(Decimal('.01'))
+                client = Decimal(sheet.cell(x,
+                    clientindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 client = Decimal(0.00)
             try:
-                projprofit = Decimal(sheet.cell(x, projprofitindex).value).quantize(Decimal('.01'))
+                projprofit = Decimal(sheet.cell(x,
+                    projprofitindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 projprofit = Decimal(0.00)
             try:
-                actprofit = Decimal(sheet.cell(x, actprofitindex).value).quantize(Decimal('.01'))
+                actprofit = Decimal(sheet.cell(x,
+                    actprofitindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 actprofit = Decimal(0.00)
 
@@ -266,39 +274,48 @@ if __name__ == '__main__':
                                     description).encode('ascii', 'ignore')
             # set the costs to 0 if theres a problem
             try:
-                budgetcost = Decimal(sheet.cell(x, budgetcostindex).value).quantize(Decimal('.01'))
+                budgetcost = Decimal(sheet.cell(x,
+                    budgetcostindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 budgetcost = Decimal(0.00)
             try:
-                ordercost = Decimal(sheet.cell(x, ordercostindex).value).quantize(Decimal('.01'))
+                ordercost = Decimal(sheet.cell(x,
+                    ordercostindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 ordercost = Decimal(0.00)
             try:
-                claimedcost = Decimal(sheet.cell(x, claimedcostindex).value).quantize(Decimal('.01'))
+                claimedcost = Decimal(sheet.cell(x,
+                    claimedcostindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 claimedcost = Decimal(0.00)
             try:
-                parentcode = int(sheet.cell(x, parentindex).value)
+                parentcode = int(sheet.cell(x,
+                    parentindex).value)
             except ValueError, e:
                 parentcode = 149999
             try:
-                running = Decimal(sheet.cell(x, runningindex).value).quantize(Decimal('.01'))
+                running = Decimal(sheet.cell(x,
+                    runningindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 running = Decimal(0.00)
             try:
-                income = Decimal(sheet.cell(x, incomeindex).value).quantize(Decimal('.01'))
+                income = Decimal(sheet.cell(x,
+                    incomeindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 income = Decimal(0.00)
             try:
-                client = Decimal(sheet.cell(x, clientindex).value).quantize(Decimal('.01'))
+                client = Decimal(sheet.cell(x,
+                    clientindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 client = Decimal(0.00)
             try:
-                projprofit = Decimal(sheet.cell(x, projprofitindex).value).quantize(Decimal('.01'))
+                projprofit = Decimal(sheet.cell(x,
+                    projprofitindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 projprofit = Decimal(0.00)
             try:
-                actprofit = Decimal(sheet.cell(x, actprofitindex).value).quantize(Decimal('.01'))
+                actprofit = Decimal(sheet.cell(x,
+                    actprofitindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 actprofit = Decimal(0.00)
 
@@ -411,47 +428,58 @@ if __name__ == '__main__':
             measureunit = sheet.cell(x, unitindex).value
             # set the costs to 0 if theres a problem
             try:
-                budgetcost = Decimal(sheet.cell(x, budgetcostindex).value).quantize(Decimal('.01'))
+                budgetcost = Decimal(sheet.cell(x,
+                    budgetcostindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 budgetcost = Decimal(0.00)
             try:
-                ordercost = Decimal(sheet.cell(x, ordercostindex).value).quantize(Decimal('.01'))
+                ordercost = Decimal(sheet.cell(x,
+                    ordercostindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 ordercost = Decimal(0.00)
             try:
-                claimedcost = Decimal(sheet.cell(x, claimedcostindex).value).quantize(Decimal('.01'))
+                claimedcost = Decimal(sheet.cell(x,
+                    claimedcostindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 claimedcost = Decimal(0.00)
             try:
-                parentcode = int(sheet.cell(x, parentindex).value)
+                parentcode = int(sheet.cell(x,
+                    parentindex).value)
             except ValueError, e:
                 parentcode = 0
             try:
-                quantity = float(sheet.cell(x, quantityindex).value)
+                quantity = float(sheet.cell(x,
+                    quantityindex).value)
             except ValueError, e:
                 quantity = 0
             try:
-                rate = Decimal(sheet.cell(x, rateindex).value).quantize(Decimal('.01'))
+                rate = Decimal(sheet.cell(x,
+                    rateindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 rate = Decimal(0.00)
             try:
-                running = Decimal(sheet.cell(x, runningindex).value).quantize(Decimal('.01'))
+                running = Decimal(sheet.cell(x,
+                    runningindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 running = Decimal(0.00)
             try:
-                income = Decimal(sheet.cell(x, incomeindex).value).quantize(Decimal('.01'))
+                income = Decimal(sheet.cell(x,
+                    incomeindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 income = Decimal(0.00)
             try:
-                client = Decimal(sheet.cell(x, clientindex).value).quantize(Decimal('.01'))
+                client = Decimal(sheet.cell(x,
+                    clientindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 client = Decimal(0.00)
             try:
-                projprofit = Decimal(sheet.cell(x, projprofitindex).value).quantize(Decimal('.01'))
+                projprofit = Decimal(sheet.cell(x,
+                    projprofitindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 projprofit = Decimal(0.00)
             try:
-                actprofit = Decimal(sheet.cell(x, actprofitindex).value).quantize(Decimal('.01'))
+                actprofit = Decimal(sheet.cell(x,
+                    actprofitindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 actprofit = Decimal(0.00)
 
@@ -572,47 +600,58 @@ if __name__ == '__main__':
                 cotype = 1
             measureunit = sheet.cell(x, unitindex).value
             try:
-                budgetcost = Decimal(sheet.cell(x, budgetcostindex).value).quantize(Decimal('.01'))
+                budgetcost = Decimal(sheet.cell(x,
+                    budgetcostindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 budgetcost = Decimal(0.00)
             try:
-                ordercost = Decimal(sheet.cell(x, ordercostindex).value).quantize(Decimal('.01'))
+                ordercost = Decimal(sheet.cell(x,
+                    ordercostindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 ordercost = Decimal(0.00)
             try:
-                claimedcost = Decimal(sheet.cell(x, claimedcostindex).value).quantize(Decimal('.01'))
+                claimedcost = Decimal(sheet.cell(x,
+                    claimedcostindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 claimedcost = Decimal(0.00)
             try:
-                parentcode = int(sheet.cell(x, parentindex).value)
+                parentcode = int(sheet.cell(x,
+                    parentindex).value)
             except ValueError, e:
                 parentcode = 149999
             try:
-                quantity = float(sheet.cell(x, quantityindex).value)
+                quantity = float(sheet.cell(x,
+                    quantityindex).value)
             except ValueError, e:
                 quantity = 0
             try:
-                rate = Decimal(sheet.cell(x, rateindex).value).quantize(Decimal('.01'))
+                rate = Decimal(sheet.cell(x,
+                    rateindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 rate = Decimal(0.00)
             try:
-                running = Decimal(sheet.cell(x, runningindex).value).quantize(Decimal('.01'))
+                running = Decimal(sheet.cell(x,
+                    runningindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 running = Decimal(0.00)
             try:
-                income = Decimal(sheet.cell(x, incomeindex).value).quantize(Decimal('.01'))
+                income = Decimal(sheet.cell(x,
+                    incomeindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 income = Decimal(0.00)
             try:
-                client = Decimal(sheet.cell(x, clientindex).value).quantize(Decimal('.01'))
+                client = Decimal(sheet.cell(x,
+                    clientindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 client = Decimal(0.00)
             try:
-                projprofit = Decimal(sheet.cell(x, projprofitindex).value).quantize(Decimal('.01'))
+                projprofit = Decimal(sheet.cell(x,
+                    projprofitindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 projprofit = Decimal(0.00)
             try:
-                actprofit = Decimal(sheet.cell(x, actprofitindex).value).quantize(Decimal('.01'))
+                actprofit = Decimal(sheet.cell(x,
+                    actprofitindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 actprofit = Decimal(0.00)
 
@@ -878,14 +917,3 @@ if __name__ == '__main__':
         transaction.commit()
 
     print 'done'
-
-
-
-
-
-
-
-
-
-
-
