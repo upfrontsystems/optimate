@@ -178,7 +178,8 @@ def update_value(request):
                 pass # do not do anything
         if request.params.get('markup') != None:
             try:
-                result.Markup = float(request.params.get('markup'))
+                newmarkup = request.params.get('markup').replace('%', '')
+                result.Markup = (float(newmarkup))/100.0
             except ValueError:
                 pass # do not do anything
 
