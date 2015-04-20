@@ -90,26 +90,23 @@ def project_listing(request):
     else:
         projects = []
         # Execute the sql query on the Node table to find the parent
-        qry = DBSession.query(Node).filter_by(ID=0).first()
+        qry = DBSession.query(Project).all()
         # build the list and only get the neccesary values
-        if qry != None:
-            for value in qry.Children:
-                projects.append({'Name': value.Name,
-                                 'ID': value.ID})
+        for project in qry:
+            projects.append({'Name': project.Name,
+                             'ID': project.ID})
         return sorted(projects, key=lambda k: k['Name'])
 
 
 @view_config(route_name="projectview", renderer='json')
 def projectview(request):
+    """ Return the project specified by the projectid
     """
-    """
-    parentid = 0
-    if 'parentid' in request.matchdict:
-        parentid = request.matchdict['parentid']
+    projectid = request.matchdict['projectid']
 
     project = []
     # Execute the sql query on the Node table to find the parent
-    qry = DBSession.query(Node).filter_by(ID=parentid).first()
+    qry = DBSession.query(Project).filter_by(ID=projectid).first()
     # build the list and only get the neccesary values
     if qry != None:
         project.append({'Name': qry.Name,
@@ -130,22 +127,17 @@ def nodegridview(request):
         in a format that is acceptable to Slickgrid.
     """
 
-    parentid = 0
-    if 'parentid' in request.matchdict:
-        parentid = request.matchdict['parentid']
+    parentid = request.matchdict['parentid']
 
     childrenlist = []
     # Execute the sql query on the Node table to find the parent
-    qry = DBSession.query(Node).filter_by(ID=parentid).first()
+    qry = DBSession.query(Node).filter_by(ParentID=parentid).all()
 
-    # Add the todict version of each item to the list
-    # the resource category is not shown in the grid
-    if qry != None:
-        for value in qry.Children:
-            childrenlist.append(value.getGridData())
+    # Get the griddata dict from each child and add it to the list
+    for child in qry:
+        childrenlist.append(child.getGridData())
 
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['name'])
-
     return sorted_childrenlist
 
 
@@ -160,7 +152,7 @@ def update_value(request):
         can be updated this way. The rate parameters can only be updated on
         Resource type nodes.
     """
-    nodeid = request.params.get('id')
+    nodeid = request.matchdict['id']
     result = DBSession.query(Node).filter_by(ID=nodeid).first()
     if result.type in ['Resource']:
         # update the data - only rate can be modified
@@ -569,34 +561,3 @@ def supplierview(request):
                         'Cellular': supplier.Cellular,
                         'Contact': supplier.Contact}
         return supplierdict
-
-
-@view_config(route_name="testchangequantityview", renderer="json")
-def testchangequantityview(request):
-    """ This is for testing purposes only. The quantity of a component is changed
-        so that its effect can be tested.
-    """
-
-    coid = request.matchdict['id']
-    qry = DBSession.query(Component).filter_by(ID=coid).first()
-
-    qry.Quantity = 7.0
-    transaction.commit()
-
-    return HTTPOk()
-
-@view_config(route_name="testchangerateview", renderer="json")
-def testchangerateview(request):
-    """ This is for testing purposes only. The rate of a resource is changed
-        so that its effect can be tested.
-    """
-
-    projectid = request.matchdict['id']
-    resourcecode = request.matchdict['resourcecode']
-    resource = DBSession.query(Resource).filter_by(Code=resourcecode).first()
-
-    resource.Rate = Decimal(15.00)
-    resource.Name = "newname"
-    transaction.commit()
-
-    return HTTPOk()

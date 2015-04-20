@@ -55,7 +55,7 @@ def _initTestingDB():
                         _Markup=0.1,
                         ParentID=budgetgroup.ID)
         rescat = ResourceCategory(ID=9,
-                        Name='TestCategory',
+                        Name='Resource List',
                         Description='Test Category',
                         ParentID=project.ID)
         res = Resource(ID=15,
@@ -100,7 +100,7 @@ def _initTestingDB():
                         Description='TestBBIDesc',
                         ParentID=budgetgroupb.ID)
         rescatb = ResourceCategory(ID=12,
-                        Name='TestCategory',
+                        Name='Resource List',
                         Description='Test Category',
                         ParentID=projectb.ID)
         resb = Resource(ID=17,
@@ -149,7 +149,6 @@ def _initTestingDB():
         DBSession.add(compa)
 
         DBSession.add(projectb)
-        DBSession.add(rescatb)
         DBSession.add(resb)
         DBSession.add(resduplicate)
         DBSession.add(budgetgroupb)
@@ -234,7 +233,7 @@ def _registerRoutes(config):
     config.add_route('supplierview', '/suppliers')
 
 
-class TestRootviewSuccessCondition(unittest.TestCase):
+class TestChildViewSuccessCondition(unittest.TestCase):
     """ Test if the Root view functions correctly.
         It also calls the childview but without a url path,
         the default root id '0' is then used in the view
@@ -252,7 +251,7 @@ class TestRootviewSuccessCondition(unittest.TestCase):
         from .views import childview
         return childview(request)
 
-    def test_it(self):
+    def test_root_view(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         response = self._callFUT(request)
@@ -261,9 +260,19 @@ class TestRootviewSuccessCondition(unittest.TestCase):
         # Name 'TestBName'
         self.assertEqual(response[0]['Name'], 'TestBPName')
 
+    def test_child_view(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict['parentid'] = 1
+        response = self._callFUT(request)
 
-class TestChildviewSuccessCondition(unittest.TestCase):
-    """ Test if the childview functions correctly with any other id.
+        # true if the children of project id '1'
+        self.assertEqual(response[0]['Name'], 'Resource List')
+        self.assertEqual(response[1]['Name'], 'TestBGName')
+
+class TestProjectListingSuccessCondition(unittest.TestCase):
+    """ Test if the project_listing view works and returns
+        a list of all the projects
     """
 
     def setUp(self):
@@ -271,24 +280,198 @@ class TestChildviewSuccessCondition(unittest.TestCase):
         self.config = testing.setUp()
 
     def tearDown(self):
-        self.session.remove()
+        DBSession.remove()
         testing.tearDown()
 
     def _callFUT(self, request):
-        from .views import childview
-        return childview(request)
+        from .views import project_listing
+        return project_listing(request)
 
     def test_it(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
-        request.matchdict['parentid'] = 1
         response = self._callFUT(request)
 
-        # true if the child object of parent id '1' has Name 'TestBGName'
-        self.assertEqual(response[0]['Name'], 'TestBGName')
+        # assert returns true if the projects are returned in the correct order
+        self.assertEqual(response[0]['Name'], 'TestBPName')
+        self.assertEqual(response[1]['Name'], 'TestPName')
 
+class TestProjectViewSuccessCondition(unittest.TestCase):
+    """ Test if the projectview works and returns the project specified
+    """
 
-class TestAddBudgetGroupSuccessCondition(unittest.TestCase):
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from .views import projectview
+        return projectview(request)
+
+    def test_it(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict = {'projectid': 1}
+        response = self._callFUT(request)
+
+        # assert returns true if the correct project is returned
+        self.assertEqual(response[0]['Name'], 'TestPName')
+
+        # test that nothing is returned when an incorrect id is given
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict = {'projectid': 5}
+        response = self._callFUT(request)
+
+        # assert returns true if there is nothing in the response
+        self.assertEqual(len(response), 0)
+
+class TestNodeGridViewSuccessCondition(unittest.TestCase):
+    """ Test if the nodegrid view works for all types
+    """
+
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from .views import nodegridview
+        return nodegridview(request)
+
+    def test_project_gridview(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict = {'parentid': 0}
+        response = self._callFUT(request)
+        # assert returns true if the projects are returned correctly
+        self.assertEqual(response[0]['name'], 'TestBPName')
+        self.assertEqual(response[1]['name'], 'TestPName')
+
+    def test_budgetgroup_gridview(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict = {'parentid': 1}
+        response = self._callFUT(request)
+
+        # assert returns true if the projects are returned correctly
+        self.assertEqual(response[0]['name'], 'Resource List')
+        self.assertEqual(response[1]['name'], 'TestBGName')
+
+    def test_budgetitem_gridview(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict = {'parentid': 5}
+        response = self._callFUT(request)
+
+        # assert returns true if the projects are returned correctly
+        self.assertEqual(response[0]['name'], 'TestBBIName')
+        self.assertEqual(response[1]['name'], 'TestCBIName')
+
+    def test_component_gridview(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict = {'parentid': 3}
+        response = self._callFUT(request)
+
+        # assert returns true if the projects are returned correctly
+        self.assertEqual(response[0]['name'], 'TestResource')
+        self.assertEqual(response[1]['name'], 'TestResourceA')
+
+class TestUpdateValueSuccessCondition(unittest.TestCase):
+    """ Update values in resource, component, and budgetitem and test
+    """
+
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from .views import update_value
+        return update_value(request)
+
+    def test_update_resource_rate(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 16}
+        request.params = {'rate': 15}
+        response = self._callFUT(request)
+
+        # now the project cost should have changed
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 1}
+        from .views import costview
+        response = costview(request)
+        self.assertEqual(response['Cost'], '727.65')
+
+    def test_update_component_quantity(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 7}
+        request.params = {'quantity': 10}
+        response = self._callFUT(request)
+
+        # now the project cost should have changed
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 1}
+        from .views import costview
+        response = costview(request)
+        self.assertEqual(response['Cost'], '677.60')
+
+    def test_update_component_markup(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 7}
+        request.params = {'markup': '50%'}
+        response = self._callFUT(request)
+
+        # now the project cost should have changed
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 1}
+        from .views import costview
+        response = costview(request)
+        self.assertEqual(response['Cost'], '595.10')
+
+    def test_update_budgetitem_quantity(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 3}
+        request.params = {'quantity': 50}
+        response = self._callFUT(request)
+
+        # now the project cost should have changed
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 1}
+        from .views import costview
+        response = costview(request)
+        self.assertEqual(response['Cost'], '5332.25')
+
+    def test_update_budgetitem_markup(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 3}
+        request.params = {'markup': '1 %'}
+        response = self._callFUT(request)
+
+        # now the project cost should have changed
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 1}
+        from .views import costview
+        response = costview(request)
+        self.assertEqual(response['Cost'], '489.60')
+
+class TestAddItemSuccessCondition(unittest.TestCase):
     """ Test if the additemview functions correctly when adding a budgetgroup
         Using default data and adding it as the child of one of the objects.
     """
@@ -305,7 +488,7 @@ class TestAddBudgetGroupSuccessCondition(unittest.TestCase):
         from .views import additemview
         return additemview(request)
 
-    def test_it(self):
+    def test_add_budgetgroup(self):
         _registerRoutes(self.config)
 
         # Add the default data using json in the request
@@ -328,24 +511,32 @@ class TestAddBudgetGroupSuccessCondition(unittest.TestCase):
         # true if the name of the child added to the node is 'AddingName'
         self.assertEqual(response[0]['Name'], 'AddingName')
 
-class TestAddProjectSuccessCondition(unittest.TestCase):
-    """ Test if the additemview functions correctly when adding a project
-        including budgetgroups, items, and components
-    """
+    def test_add_component(self):
+        _registerRoutes(self.config)
 
-    def setUp(self):
-        self.session = _initTestingDB()
-        self.config = testing.setUp()
+        # Add the default data using json in the request
+        request = testing.DummyRequest(json_body={
+            'Name': 'TestResourceA',
+            'Description': 'Test resource',
+            'Quantity': 4,
+            'NodeType': 'component',
+            'ComponentType': 1
+        })
+        # add it to id:6 the budgetitemb
+        request.matchdict = {'id': 6}
+        response = self._callFUT(request)
 
-    def tearDown(self):
-        self.session.remove()
-        testing.tearDown()
+        # assert if the response from the add view is OK
+        self.assertEqual(response.code, 200)
 
-    def _callFUT(self, request):
-        from .views import additemview
-        return additemview(request)
+        # do another test to see if the cost is correct
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 4}
+        from .views import costview
+        response = costview(request)
+        self.assertEqual(response['Cost'], '1494.30')
 
-    def test_it(self):
+    def test_add_whole_project(self):
         _registerRoutes(self.config)
 
         # Add the default project using json in the request
@@ -412,50 +603,6 @@ class TestAddProjectSuccessCondition(unittest.TestCase):
         response = costview(request)
         # true if the cost is correct
         self.assertEqual(response['Cost'], '500.00')
-
-
-class TestAddComponentSuccessCondition(unittest.TestCase):
-    """ Test if the additemview functions correctly when adding a component
-        Using default data and adding it as the child of one of the objects.
-    """
-
-    def setUp(self):
-        self.session = _initTestingDB()
-        self.config = testing.setUp()
-
-    def tearDown(self):
-        self.session.remove()
-        testing.tearDown()
-
-    def _callFUT(self, request):
-        from .views import additemview
-        return additemview(request)
-
-    def test_it(self):
-        _registerRoutes(self.config)
-
-        # Add the default data using json in the request
-        request = testing.DummyRequest(json_body={
-            'Name': 'TestResourceA',
-            'Description': 'Test resource',
-            'Quantity': 4,
-            'NodeType': 'component',
-            'ComponentType': 1
-        })
-        # add it to id:6 the budgetitemb
-        request.matchdict = {'id': 6}
-        response = self._callFUT(request)
-
-        # assert if the response from the add view is OK
-        self.assertEqual(response.code, 200)
-
-        # do another test to see if the cost is correct
-        request = testing.DummyRequest()
-        request.matchdict = {'id': 4}
-        from .views import costview
-        response = costview(request)
-        self.assertEqual(response['Cost'], '1494.30')
-
 
 class TestDeleteviewSuccessCondition(unittest.TestCase):
     """ Test if the delete view functions correctly and deletes the node
@@ -563,7 +710,7 @@ class TestCostviewSuccessCondition(unittest.TestCase):
         from .views import costview
         return costview(request)
 
-    def test_it(self):
+    def test_project_cost(self):
         _registerRoutes(self.config)
         # get the cost of project at id 1
         request = testing.DummyRequest()
@@ -572,36 +719,48 @@ class TestCostviewSuccessCondition(unittest.TestCase):
         # true if the cost is correct
         self.assertEqual(response['Cost'], '533.22')
 
+    def test_budgetgroup_cost(self):
+        _registerRoutes(self.config)
         # get the cost of budgetgroup at id 2
         request = testing.DummyRequest()
         request.matchdict = {'id': 2}
         response = self._callFUT(request)
         self.assertEqual(response['Cost'], '533.22')
 
+    def test_budgetitem_cost(self):
+        _registerRoutes(self.config)
         # get the cost of budgetitem at id 3
         request = testing.DummyRequest()
         request.matchdict = {'id': 3}
         response = self._callFUT(request)
         self.assertEqual(response['Cost'], '533.22')
 
+    def test_component_cost(self):
+        _registerRoutes(self.config)
         # get the cost of comp at id 7
         request = testing.DummyRequest()
         request.matchdict = {'id': 7}
         response = self._callFUT(request)
         self.assertEqual(response['Cost'], '26.25')
 
+    def test_componenta_cost(self):
+        _registerRoutes(self.config)
         # get the cost of compa at id 11
         request = testing.DummyRequest()
         request.matchdict = {'id': 11}
         response = self._callFUT(request)
         self.assertEqual(response['Cost'], '70.70')
 
+    def test_projectb_cost(self):
+        _registerRoutes(self.config)
         # get the cost of projectb at id 4
         request = testing.DummyRequest()
         request.matchdict = {'id': 4}
         response = self._callFUT(request)
         self.assertEqual(response['Cost'], '894.30')
 
+    def test_budgetgroupb_cost(self):
+        _registerRoutes(self.config)
         # get the cost of budgetgroupb at id 5
         request = testing.DummyRequest()
         request.matchdict = {'id': 5}
@@ -609,113 +768,39 @@ class TestCostviewSuccessCondition(unittest.TestCase):
         # true if the cost is correct
         self.assertEqual(response['Cost'], '894.30')
 
+    def test_budgetitemb_cost(self):
+        _registerRoutes(self.config)
         # get the cost of budgetitemb at id 6
         request = testing.DummyRequest()
         request.matchdict = {'id': 6}
         response = self._callFUT(request)
         self.assertEqual(response['Cost'], '577.50')
 
+    def test_componentb_cost(self):
+        _registerRoutes(self.config)
         # get the cost of compb at id 8
         request = testing.DummyRequest()
         request.matchdict = {'id': 8}
         response = self._callFUT(request)
         self.assertEqual(response['Cost'], '38.50')
 
+    def test_budgetitemc_cost(self):
+        _registerRoutes(self.config)
         # get the cost of budgetitemc at id 13
         request = testing.DummyRequest()
         request.matchdict = {'id': 13}
         response = self._callFUT(request)
         self.assertEqual(response['Cost'], '316.80')
 
+    def test_componentc_cost(self):
+        _registerRoutes(self.config)
         # get the cost of compc at id 14
         request = testing.DummyRequest()
         request.matchdict = {'id': 14}
         response = self._callFUT(request)
         self.assertEqual(response['Cost'], '48.00')
 
-
-class TestSetComponentQuantitySuccessCondition(unittest.TestCase):
-    """ Test that the paste functions correctly with getting the
-        total  cost of a node
-    """
-
-    def setUp(self):
-        self.session = _initTestingDB()
-        self.config = testing.setUp()
-
-    def tearDown(self):
-        self.session.remove()
-        testing.tearDown()
-
-    def _callFUT(self, request):
-        from .views import costview
-        return costview(request)
-
-    def test_it(self):
-        _registerRoutes(self.config)
-        # get the cost of the node as is
-        request = testing.DummyRequest()
-        request.matchdict = {'id': 4}
-        response = self._callFUT(request)
-        # true if the cost is correct
-        self.assertEqual(response['Cost'], '894.30')
-
-        # now change the rate of the component by calling the test view
-        # in the views its quantity is set to 7
-        request = testing.DummyRequest()
-        request.matchdict = {'id': 8}
-        from .views import testchangequantityview
-        testchangequantityview(request)
-
-        # now the project cost should be changed
-        request = testing.DummyRequest()
-        request.matchdict = {'id': 4}
-        response = self._callFUT(request)
-        self.assertEqual(response['Cost'], '1125.30')
-
-
-class TestSetResourceRateSuccessCondition(unittest.TestCase):
-    """ Test that the paste functions correctly with getting the
-        total  cost of a node
-    """
-
-    def setUp(self):
-        self.session = _initTestingDB()
-        self.config = testing.setUp()
-
-    def tearDown(self):
-        self.session.remove()
-        testing.tearDown()
-
-    def _callFUT(self, request):
-        from .views import costview
-        return costview(request)
-
-    def test_it(self):
-        _registerRoutes(self.config)
-        # get the cost of the node as is
-        request = testing.DummyRequest()
-        request.matchdict = {'id': 1}
-        response = self._callFUT(request)
-
-        # true if the cost is correct
-        self.assertEqual(response['Cost'], '533.22')
-
-        # now change the rate of the resource by calling the test view
-        # in the views its rate is set to 15
-        request = testing.DummyRequest()
-        request.matchdict = {'id': 1, 'resourcecode': 'A000'}
-        from .views import testchangerateview
-        testchangerateview(request)
-
-        # now the project cost should have changed
-        request = testing.DummyRequest()
-        request.matchdict = {'id': 1}
-        response = self._callFUT(request)
-        self.assertEqual(response['Cost'], '821.98')
-
-
-class TestClientviewSuccessCondition(unittest.TestCase):
+class TestClientsviewSuccessCondition(unittest.TestCase):
     """ Test if the Client view returns a list with the correct client
     """
 
@@ -739,7 +824,7 @@ class TestClientviewSuccessCondition(unittest.TestCase):
         self.assertEqual(response[0]['Name'], 'TestClientName')
 
 
-class TestDeleteClientSuccessCondition(unittest.TestCase):
+class TestClientSuccessCondition(unittest.TestCase):
     """ Test if the Client deletes successfully
     """
 
@@ -755,7 +840,7 @@ class TestDeleteClientSuccessCondition(unittest.TestCase):
         from .views import clientview
         return clientview(request)
 
-    def test_it(self):
+    def test_delete_client(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.method = 'DELETE'
@@ -764,23 +849,7 @@ class TestDeleteClientSuccessCondition(unittest.TestCase):
         # test if the correct name is returned
         self.assertEqual(response.code, 200)
 
-class TestAddClientSuccessCondition(unittest.TestCase):
-    """ Test if a Client is added successfully
-    """
-
-    def setUp(self):
-        self.session = _initTestingDB()
-        self.config = testing.setUp()
-
-    def tearDown(self):
-        DBSession.remove()
-        testing.tearDown()
-
-    def _callFUT(self, request):
-        from .views import clientview
-        return clientview(request)
-
-    def test_it(self):
+    def test_add_client(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest(json_body={
             'Name': 'AddingName',
@@ -806,23 +875,7 @@ class TestAddClientSuccessCondition(unittest.TestCase):
         response = clientsview(request)
         self.assertEqual(len(response), 2)
 
-class TestEditClientSuccessCondition(unittest.TestCase):
-    """ Test if a Client's name is changed successfully
-    """
-
-    def setUp(self):
-        self.session = _initTestingDB()
-        self.config = testing.setUp()
-
-    def tearDown(self):
-        DBSession.remove()
-        testing.tearDown()
-
-    def _callFUT(self, request):
-        from .views import clientview
-        return clientview(request)
-
-    def test_it(self):
+    def test_edit_client(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest(json_body={
             'Name': 'EditedName',
@@ -848,8 +901,7 @@ class TestEditClientSuccessCondition(unittest.TestCase):
         response = clientsview(request)
         self.assertEqual(response[0]['Name'], 'EditedName')
 
-
-class TestSupplierviewSuccessCondition(unittest.TestCase):
+class TestSuppliersviewSuccessCondition(unittest.TestCase):
     """ Test if the Supplier view returns a list with the correct supplier
     """
 
@@ -872,7 +924,7 @@ class TestSupplierviewSuccessCondition(unittest.TestCase):
         # test if the correct name is returned
         self.assertEqual(response[0]['Name'], 'TestSupplierName')
 
-class TestDeleteSupplierSuccessCondition(unittest.TestCase):
+class TestSupplierSuccessCondition(unittest.TestCase):
     """ Test if the Suppler deletes successfully
     """
 
@@ -888,7 +940,7 @@ class TestDeleteSupplierSuccessCondition(unittest.TestCase):
         from .views import supplierview
         return supplierview(request)
 
-    def test_it(self):
+    def test_delete_supplier(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.method = 'DELETE'
@@ -897,23 +949,7 @@ class TestDeleteSupplierSuccessCondition(unittest.TestCase):
         # test if the correct name is returned
         self.assertEqual(response.code, 200)
 
-class TestAddSupplierSuccessCondition(unittest.TestCase):
-    """ Test if a Supplier is added successfully
-    """
-
-    def setUp(self):
-        self.session = _initTestingDB()
-        self.config = testing.setUp()
-
-    def tearDown(self):
-        DBSession.remove()
-        testing.tearDown()
-
-    def _callFUT(self, request):
-        from .views import supplierview
-        return supplierview(request)
-
-    def test_it(self):
+    def test_add_supplier(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest(json_body={
             'Name': 'AddingName',
@@ -939,23 +975,7 @@ class TestAddSupplierSuccessCondition(unittest.TestCase):
         response = suppliersview(request)
         self.assertEqual(len(response), 2)
 
-class TestEditSupplierSuccessCondition(unittest.TestCase):
-    """ Test if a Supplier's name is changed successfully
-    """
-
-    def setUp(self):
-        self.session = _initTestingDB()
-        self.config = testing.setUp()
-
-    def tearDown(self):
-        DBSession.remove()
-        testing.tearDown()
-
-    def _callFUT(self, request):
-        from .views import supplierview
-        return supplierview(request)
-
-    def test_it(self):
+    def test_edit_supplier(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest(json_body={
             'Name': 'EditedName',
