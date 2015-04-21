@@ -51,7 +51,7 @@ def main(global_config, **settings):
     config.add_route('project_listing', '/project_listing')
     config.add_route('projectview', 'projectview/{projectid}/')
     config.add_route('nodegridview', '/nodegridview/{parentid}/')
-    config.add_route('update_value', '/update_value')
+    config.add_route('update_value', '/update_value/{id}/')
     config.add_route('addview', '/{id}/add')
     config.add_route('deleteview', '/{id}/delete')
     config.add_route('pasteview', '/{id}/paste')

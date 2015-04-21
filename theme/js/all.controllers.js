@@ -317,12 +317,12 @@ allControllers.directive('projectslickgridjs', function() {
                      width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                     {id: "act_profit", name: "Act. Profit", field: "act_profit",
                      width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                    {id: "markup", name: "Markup", field: "markup", cssClass: "cell",
-                     width: cell_medium, formatter: MarkupFormatter, editor: Slick.Editors.Float},
+                    {id: "markup", name: "Markup", field: "markup", cssClass: "cell  editable-column",
+                     width: cell_medium, formatter: MarkupFormatter, editor: Slick.Editors.CustomEditor},
                     {id: "rate", name: "Rate", field: "rate",
                      width: cell_small, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                    {id: "quantity", name: "Quantity", field: "quantity", cssClass: "cell",
-                     width: cell_medium, editor: Slick.Editors.Float},
+                    {id: "quantity", name: "Quantity", field: "quantity", cssClass: "cell editable-column",
+                     width: cell_medium, editor: Slick.Editors.CustomEditor},
                 ];
 
             var options = {
@@ -348,14 +348,20 @@ allControllers.directive('projectslickgridjs', function() {
                 if (value != undefined){
                     return value + " %";
                 }
+                else{
+                    return "";
+                }
               }
 
             // Formatter for displaying currencies
             function CurrencyFormatter(row, cell, value, columnDef, dataContext) {
                 if (value != undefined){
-                    var parts = value.split(".");
+                    var parts = value.toString().split(".");
                     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                     return parts.join(".");
+                }
+                else {
+                    return "";
                 }
               }
 
@@ -381,8 +387,8 @@ allControllers.directive('projectslickgridjs', function() {
                                 newcolumns = [
                                     {id: "name", name: "Name", field: "name",
                                      width: cell_large, cssClass: "cell-title non-editable-column"},
-                                    {id: "rate", name: "Rate", field: "rate", cssClass: "cell",
-                                     width: cell_small, editor: Slick.Editors.Float},
+                                    {id: "rate", name: "Rate", field: "rate", cssClass: "cell editable-column",
+                                     width: cell_small, formatter: CurrencyFormatter, editor: Slick.Editors.Float},
                                 ];
                             }
                             else {
@@ -402,7 +408,7 @@ allControllers.directive('projectslickgridjs', function() {
             grid.onCellChange.subscribe(function (e, ctx) {
                 var item = ctx.item
                 $.ajax({
-                    url: 'http://127.0.0.1:8100/update_value',
+                    url: 'http://127.0.0.1:8100/update_value/' + item.id + '/',
                     data: item,
                     dataType: "json",
                     success: function(data) {

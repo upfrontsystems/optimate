@@ -77,11 +77,14 @@ def childview(request):
         if qry.type != 'ResourceCategory':
             for child in qry.Children:
 
-                childqry = DBSession.query(Node).filter_by(ParentID=child.ID)
-                if childqry.count() > 0:
-                    subitem = [{'Name': '...'}]
-                else:
+                if child.type == 'ResourceCategory':
                     subitem = []
+                else:
+                    childqry = DBSession.query(Node).filter_by(ParentID=child.ID)
+                    if childqry.count() > 0:
+                        subitem = [{'Name': '...'}]
+                    else:
+                        subitem = []
 
                 # if child.Children:
                 #     subitem = [{'Name': '...'}]

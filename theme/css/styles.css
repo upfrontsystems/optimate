@@ -86,6 +86,10 @@ input.editor-text {
     background-color: #eee;
 }
 
+.editable-column {
+    background-color: white;
+}
+
 /* Fix for bootstrap box issues in slickgrid */
 *,
 *:before,

@@ -16,10 +16,136 @@
         "YesNoSelect": YesNoSelectEditor,
         "Checkbox": CheckboxEditor,
         "PercentComplete": PercentCompleteEditor,
-        "LongText": LongTextEditor
+        "LongText": LongTextEditor,
+        "CustomEditor": CustomEditor
       }
     }
   });
+
+  function CustomEditor(args) {
+    // A custom editor used in the Markup and Quantity columns
+    // Since only BudgetItem and Component have Markup and Quantity attributes
+    // If the node type is amything else it will pass to empty functions and
+    // the cell will be non-editable
+
+    var node_type = args.item["node_type"]
+    if (node_type == "BudgetItem" || node_type == "Component"){
+      var $input;
+      var defaultValue;
+      var scope = this;
+
+      this.init = function () {
+
+        $input = $("<INPUT type=text class='editor-text' />");
+
+        $input.bind("keydown.nav", function (e) {
+          if (e.keyCode === $.ui.keyCode.LEFT || e.keyCode === $.ui.keyCode.RIGHT) {
+            e.stopImmediatePropagation();
+          }
+        });
+
+        $input.appendTo(args.container);
+        $input.focus().select();
+      };
+
+      this.destroy = function () {
+        $input.remove();
+      };
+
+      this.focus = function () {
+        $input.focus();
+      };
+
+      this.loadValue = function (item) {
+        defaultValue = item[args.column.field];
+        $input.val(defaultValue);
+        $input[0].defaultValue = defaultValue;
+        $input.select();
+      };
+
+      this.serializeValue = function () {
+        return parseFloat($input.val(), 10) || 0;
+      };
+
+      this.applyValue = function (item, state) {
+        item[args.column.field] = state;
+      };
+
+      this.isValueChanged = function () {
+        return (!($input.val() == "" && defaultValue == null)) && ($input.val() != defaultValue);
+      };
+
+      this.validate = function () {
+        if (isNaN(parseFloat($input.val()))) {
+          console.log("NOT FLOAT")
+          return {
+            valid: false,
+            msg: "Please enter a valid float"
+          };
+        }
+
+        console.log("FLOAT")
+        return {
+          valid: true,
+          msg: null
+        };
+      };
+
+      this.init();
+    }
+    else {
+      var $input;
+      var defaultValue;
+      var scope = this;
+
+      this.init = function () {
+        $input = $("<INPUT type=text class='editor-text' />");
+
+        $input.bind("keydown.nav", function (e) {
+          if (e.keyCode === $.ui.keyCode.LEFT || e.keyCode === $.ui.keyCode.RIGHT) {
+            e.stopImmediatePropagation();
+          }
+        });
+
+        $input.appendTo(args.container);
+      };
+
+      this.destroy = function () {
+        $input.remove();
+      };
+
+      this.focus = function () {
+        $input.focus();
+      };
+
+      this.loadValue = function (item) {
+        defaultValue = item[args.column.field];
+        $input.val(defaultValue);
+        $input[0].defaultValue = defaultValue;
+      };
+
+      this.serializeValue = function () {
+        return '';
+      };
+
+      this.applyValue = function (item, state) {
+        item[args.column.field] = state;
+      };
+
+      this.isValueChanged = function () {
+        return false;
+      };
+
+      this.validate = function () {
+        return {
+          valid: true,
+          msg: null
+        };
+      };
+
+      this.init();
+    }
+  }
 
   function TextEditor(args) {
     var $input;
