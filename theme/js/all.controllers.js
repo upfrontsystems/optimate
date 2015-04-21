@@ -302,25 +302,25 @@ allControllers.directive('projectslickgridjs', function() {
                     {id: "name", name: "Name", field: "name",
                      width: cell_large, cssClass: "cell-title non-editable-column"},
                     {id: "budg_cost", name: "Total", field: "budg_cost",
-                     width: cell_medium, cssClass: "cell non-editable-column"},
+                     width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                     {id: "order_cost", name: "Order Cost", field: "order_cost",
-                     width: cell_medium, cssClass: "cell non-editable-column"},
+                     width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                     {id: "run_cost", name: "Run Cost", field: "run_cost",
-                     width: cell_medium, cssClass: "cell non-editable-column"},
+                     width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                     {id: "claim_cost", name: "Claim Cost", field: "claim_cost",
-                     width: cell_medium, cssClass: "cell non-editable-column"},
+                     width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                     {id: "income_rec", name: "Income Rec", field: "income_rec",
-                     width: cell_medium, cssClass: "cell non-editable-column"},
+                     width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                     {id: "client_cost", name: "Client Cost", field: "client_cost",
-                     width: cell_medium, cssClass: "cell non-editable-column"},
+                     width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                     {id: "proj_profit", name: "Proj. Profit", field: "proj_profit",
-                     width: cell_medium, cssClass: "cell non-editable-column"},
+                     width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                     {id: "act_profit", name: "Act. Profit", field: "act_profit",
-                     width: cell_medium, cssClass: "cell non-editable-column"},
+                     width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                     {id: "markup", name: "Markup", field: "markup", cssClass: "cell",
-                     width: cell_medium, editor: Slick.Editors.Float},
+                     width: cell_medium, formatter: MarkupFormatter, editor: Slick.Editors.Float},
                     {id: "rate", name: "Rate", field: "rate",
-                     width: cell_small, cssClass: "cell non-editable-column"},
+                     width: cell_small, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                     {id: "quantity", name: "Quantity", field: "quantity", cssClass: "cell",
                      width: cell_medium, editor: Slick.Editors.Float},
                 ];
@@ -342,6 +342,22 @@ allControllers.directive('projectslickgridjs', function() {
             // '...' is being shown.
             autotooltips_plugin = new Slick.AutoTooltips({enableForHeaderCells: true})
             grid.registerPlugin(autotooltips_plugin);
+
+            // Formatter for displaying markup
+            function MarkupFormatter(row, cell, value, columnDef, dataContext) {
+                if (value != undefined){
+                    return value + " %";
+                }
+              }
+
+            // Formatter for displaying currencies
+            function CurrencyFormatter(row, cell, value, columnDef, dataContext) {
+                if (value != undefined){
+                    var parts = value.split(".");
+                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    return parts.join(".");
+                }
+              }
 
             grid.onAddNewRow.subscribe(function (e, args) {
                 var item = args.item;
@@ -385,7 +401,6 @@ allControllers.directive('projectslickgridjs', function() {
 
             grid.onCellChange.subscribe(function (e, ctx) {
                 var item = ctx.item
-                console.log(item.id)
                 $.ajax({
                     url: 'http://127.0.0.1:8100/update_value',
                     data: item,

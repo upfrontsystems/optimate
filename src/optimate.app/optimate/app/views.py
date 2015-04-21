@@ -50,9 +50,28 @@ def childview(request):
 
     starttime = timeit.default_timer()
     # Execute the sql query on the Node table to find the parent
-    qry = DBSession.query(Node).filter_by(ID=parentid).first()
     # qry = DBSession.query(Node).filter_by(ParentID=parentid).all()
+    # for child in qry:
+    #     if child.type != 'ResourceCategory':
+    #     childqry = DBSession.query(Node).filter_by(ParentID=child.ID)
+    #     if childqry.count() > 0:
+    #         subitem = [{'Name': '...'}]
+    #     else:
+    #         subitem = []
 
+    #     # if child.Children:
+    #     #     subitem = [{'Name': '...'}]
+    #     # else:
+    #     #     subitem = []
+    #     childrenlist.append({
+    #         'Name': child.Name,
+    #         'Description': child.Description,
+    #         'ID': child.ID,
+    #         'Subitem': subitem,
+    #         'NodeType': child.type
+    #         })
+
+    qry = DBSession.query(Node).filter_by(ID=parentid).first()
     # build the list and only get the neccesary values
     if qry != None:
         if qry.type != 'ResourceCategory':
@@ -181,8 +200,7 @@ def update_value(request):
                 pass # do not do anything
         if request.params.get('markup') != None:
             try:
-                newmarkup = request.params.get('markup').replace('%', '')
-                result.Markup = (float(newmarkup))/100.0
+                result.Markup = (float(request.params.get('markup')))/100.0
             except ValueError:
                 pass # do not do anything
 
