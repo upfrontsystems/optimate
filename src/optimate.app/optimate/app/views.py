@@ -55,16 +55,18 @@ def childview(request):
     if qry != None:
         if qry.type != 'ResourceCategory':
             for child in qry.Children:
-            # for value in qry:
-                # if value.Children:
-                    # subitem = [{'Name': '...'}]
-                # else:
-                #     subitem = []
-                childrenlist.append({'Name': child.Name,
-                                    'Description': child.Description,
-                                    'ID': child.ID,
-                                    'Subitem': [{'Name': '...'}],
-                                    'NodeType': child.type})
+                childqry = DBSession.query(Node).filter_by(ParentID=child.ID)
+                if childqry.count() > 0:
+                    subitem = [{'Name': '...'}]
+                else:
+                    subitem = []
+                childrenlist.append({
+                    'Name': child.Name,
+                    'Description': child.Description,
+                    'ID': child.ID,
+                    'Subitem': subitem,
+                    'NodeType': child.type
+                    })
 
     # return childrenlist
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'])
