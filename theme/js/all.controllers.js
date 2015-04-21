@@ -295,7 +295,7 @@ allControllers.directive('projectslickgridjs', function() {
 
             var grid;
             var data = [];
-            var cell_large = 120;
+            var cell_large = 300;
             var cell_medium = 75;
             var cell_small = 50;
             var columns = [

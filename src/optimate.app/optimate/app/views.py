@@ -6,6 +6,7 @@ and send responses with appropriate data
 import transaction
 from pyramid.view import view_config
 from decimal import Decimal
+import timeit
 
 from pyramid.httpexceptions import (
     HTTPOk,
@@ -47,6 +48,7 @@ def childview(request):
     start = request.params.get('start')
     end = request.params.get('end')
 
+    starttime = timeit.default_timer()
     # Execute the sql query on the Node table to find the parent
     qry = DBSession.query(Node).filter_by(ID=parentid).first()
     # qry = DBSession.query(Node).filter_by(ParentID=parentid).all()
@@ -55,11 +57,17 @@ def childview(request):
     if qry != None:
         if qry.type != 'ResourceCategory':
             for child in qry.Children:
+
                 childqry = DBSession.query(Node).filter_by(ParentID=child.ID)
                 if childqry.count() > 0:
                     subitem = [{'Name': '...'}]
                 else:
                     subitem = []
+
+                # if child.Children:
+                #     subitem = [{'Name': '...'}]
+                # else:
+                #     subitem = []
                 childrenlist.append({
                     'Name': child.Name,
                     'Description': child.Description,
@@ -68,6 +76,7 @@ def childview(request):
                     'NodeType': child.type
                     })
 
+    print (timeit.default_timer() - starttime)
     # return childrenlist
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'])
 
@@ -85,13 +94,13 @@ def childview(request):
 
 @view_config(route_name="project_listing", renderer='json')
 def project_listing(request):
-    """
+    """ Returns a list of all the Projects in the database
     """
     if request.method == 'OPTIONS':
         return {"success": True}
     else:
         projects = []
-        # Execute the sql query on the Node table to find the parent
+        # Get all the Projects in the Project table
         qry = DBSession.query(Project).all()
         # build the list and only get the neccesary values
         for project in qry:

@@ -55,7 +55,7 @@ class Node(Base):
 
     __tablename__ = 'Node'
     ID = Column(Integer, primary_key=True)
-    ParentID = Column(Integer, ForeignKey('Node.ID', ondelete='CASCADE'))
+    ParentID = Column(Integer, ForeignKey('Node.ID', ondelete='CASCADE'), index=True)
     OrderCost = Column(Numeric(12, 2), default=Decimal(0.00))
     ClaimedCost = Column(Numeric(12, 2), default=Decimal(0.00))
     RunningCost=Column(Numeric(12, 2), default=Decimal(0.00))
