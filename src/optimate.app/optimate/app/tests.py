@@ -54,8 +54,8 @@ def _initTestingDB():
                         _Quantity=5.0,
                         _Markup=0.1,
                         ParentID=budgetgroup.ID)
-        rescat = ResourceCategory(ID=9,
-                        Name='Resource List',
+        rescat = ResourceCategory(Name='Resource List',
+                        ID=9,
                         Description='Test Category',
                         ParentID=project.ID)
         res = Resource(ID=15,
@@ -99,19 +99,19 @@ def _initTestingDB():
                         _Markup=0.5,
                         Description='TestBBIDesc',
                         ParentID=budgetgroupb.ID)
-        rescatb = ResourceCategory(ID=12,
-                        Name='Resource List',
+        rescatb = ResourceCategory(Name='Resource List',
+                        ID=12,
                         Description='Test Category',
                         ParentID=projectb.ID)
-        resb = Resource(ID=17,
+        resb = Resource(Name='TestResourceB',
+                       ID=17,
                        Code='A002',
-                       Name='TestResourceB',
                        Description='Test resource',
                        _Rate=Decimal(7.00),
                        ParentID=rescatb.ID)
-        resduplicate = Resource(ID=18,
+        resduplicate = Resource(Name='TestResource',
+                       ID=18,
                        Code='A000',
-                       Name='TestResource',
                        Description='Test resource',
                        _Rate=Decimal(5.00),
                        ParentID=rescatb.ID)
@@ -133,6 +133,53 @@ def _initTestingDB():
                         _Markup=0.2,
                         Type=1,
                         ParentID=budgetitemc.ID)
+
+        projectc = Project(Name='TestCPName',
+                        ID=19,
+                        Description='TestCPDesc',
+                        ParentID=0)
+        budgetgroupc = BudgetGroup(Name='TestCBGName',
+                        ID=20,
+                        Description='CBGDesc',
+                        ParentID=projectc.ID)
+        budgetgroupd = BudgetGroup(Name='TestDBGName',
+                        ID=21,
+                        Description='DBGDesc',
+                        ParentID=budgetgroupc.ID)
+        budgetitemd = BudgetItem(Name='TestDBIName',
+                        ID=22,
+                        _Quantity=39.0,
+                        _Markup=0.15,
+                        Description='TestDBIDesc',
+                        ParentID=budgetgroupd.ID)
+        budgetiteme = BudgetItem(Name='TestEBIName',
+                        ID=23,
+                        _Quantity=16.3,
+                        _Markup=0.001,
+                        Description='TestEBIDesc',
+                        ParentID=budgetgroupc.ID)
+        rescatc = ResourceCategory(ID=24,
+                        Name='Resource List',
+                        Description='Test Category',
+                        ParentID=projectc.ID)
+        resbduplicate = Resource(ID=25,
+                       Code='A002',
+                       Name='TestResourceB',
+                       Description='Test resource',
+                       _Rate=Decimal(7.00),
+                       ParentID=rescatc.ID)
+        compd = Component(ID=26,
+                        ResourceID=resbduplicate.ID,
+                        _Quantity=7.01,
+                        _Markup=0.9,
+                        Type=1,
+                        ParentID=budgetitemd.ID)
+        compe = Component(ID=27,
+                        ResourceID=resbduplicate.ID,
+                        _Quantity=15.0,
+                        _Markup=0.25,
+                        Type=1,
+                        ParentID=budgetiteme.ID)
 
         client = Client (Name='TestClientName')
         supplier = Supplier(Name='TestSupplierName')
@@ -158,17 +205,27 @@ def _initTestingDB():
         DBSession.add(compc)
         DBSession.add(rescatb)
 
+        DBSession.add(projectc)
+        DBSession.add(budgetgroupc)
+        DBSession.add(budgetgroupd)
+        DBSession.add(budgetitemd)
+        DBSession.add(budgetiteme)
+        DBSession.add(rescatc)
+        DBSession.add(resbduplicate)
+        DBSession.add(compd)
+        DBSession.add(compe)
+
         DBSession.add(client)
         DBSession.add(supplier)
 
         transaction.commit()
 
         """The hierarchy
-        project -(533.225) id:1
+        project -(533.23) id:1
                 |
-                budgetgroup -(533.225) id:2
+                budgetgroup -(533.23) id:2
                             |
-                            budgetitem -(1.1*(26.25+70.7)*5=533.225) id:3
+                            budgetitem -(1.1*(26.25+70.7)*5=533.23) id:3
                                        |
                                        comp - res (1.05*5*5=26.25) id:7
                                        |
@@ -181,13 +238,13 @@ def _initTestingDB():
                         resa id:16
         projectb -(894.3) id:4
                  |
-                 budgetgroupb -(577.5+316.8=894.3) id:5
+                 budgetgroupb -(577.50+316.80=894.3) id:5
                               |
-                              budgetitemb - (1.5*38.5*10=577.5) id:6
+                              budgetitemb - (1.5*38.5*10=577.50) id:6
                                           |
                                           compb - resb (1.1*5*7=38.5) id:8
                               |
-                              budgetitemc - (1.1*48*6=316.8) id:13
+                              budgetitemc - (1.1*48*6=316.80) id:13
                                           |
                                           compc - resdupli (1.2*8*5=48) id:14
                  |
@@ -196,8 +253,30 @@ def _initTestingDB():
                          resb id:17
                          |
                          resduplicate id:18
-        """
 
+        projectc -(6322.88) id:19
+                 |
+                 budgetgroupc -(4181.36+2141.51=6322.88) id:20
+                              |
+                              budgetgroupd - (4181.37) id:21
+                                           |
+                                           budgetitemd -
+                                           (1.15*39*93.23=4181.37) id:22
+                                                      |
+                                                      compd - id:26
+                                                      resbduplicate
+                                                         (1.9*7.01*7=93.23) id:8
+                              |
+                              budgetiteme - (1.001*131.25*16.3=2141.51) id:23
+                                          |
+                                          compe - id:27
+                                          resbduplicate (1.25*15*7=131.25) id:14
+                 |
+                 rescatc - id:24
+                         |
+                         resbduplicate id:25 rate:7
+
+        """
         # projectlist = DBSession.query(Project).all()
         # for project in projectlist:
         #     project.recalculateTotal()
@@ -259,6 +338,8 @@ class TestChildViewSuccessCondition(unittest.TestCase):
         # assert returns true if the first child object of the root has
         # Name 'TestBName'
         self.assertEqual(response[0]['Name'], 'TestBPName')
+        self.assertEqual(response[1]['Name'], 'TestCPName')
+        self.assertEqual(response[2]['Name'], 'TestPName')
 
     def test_child_view(self):
         _registerRoutes(self.config)
@@ -269,6 +350,16 @@ class TestChildViewSuccessCondition(unittest.TestCase):
         # true if the children of project id '1'
         self.assertEqual(response[0]['Name'], 'Resource List')
         self.assertEqual(response[1]['Name'], 'TestBGName')
+
+    def test_resourcecategory_view(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict['parentid'] = 9
+        response = self._callFUT(request)
+
+        # the resource category should return no children
+        self.assertEqual(len(response), 0)
+
 
 class TestProjectListingSuccessCondition(unittest.TestCase):
     """ Test if the project_listing view works and returns
@@ -294,7 +385,8 @@ class TestProjectListingSuccessCondition(unittest.TestCase):
 
         # assert returns true if the projects are returned in the correct order
         self.assertEqual(response[0]['Name'], 'TestBPName')
-        self.assertEqual(response[1]['Name'], 'TestPName')
+        self.assertEqual(response[1]['Name'], 'TestCPName')
+        self.assertEqual(response[2]['Name'], 'TestPName')
 
 class TestProjectViewSuccessCondition(unittest.TestCase):
     """ Test if the projectview works and returns the project specified
@@ -321,7 +413,7 @@ class TestProjectViewSuccessCondition(unittest.TestCase):
         # assert returns true if the correct project is returned
         self.assertEqual(response[0]['Name'], 'TestPName')
 
-        # test that nothing is returned when an incorrect id is given
+        # test that nothing is returned when a different node id is given
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.matchdict = {'projectid': 5}
@@ -353,7 +445,8 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
         # assert returns true if the projects are returned correctly
         self.assertEqual(response['list'][0]['name'], 'TestBPName')
-        self.assertEqual(response['list'][1]['name'], 'TestPName')
+        self.assertEqual(response['list'][1]['name'], 'TestCPName')
+        self.assertEqual(response['list'][2]['name'], 'TestPName')
         self.assertEqual(response['emptycolumns'], True)
 
     def test_budgetgroup_gridview(self):
@@ -366,6 +459,18 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         self.assertEqual(response['list'][0]['name'], 'Resource List')
         self.assertEqual(response['list'][1]['name'], 'TestBGName')
         self.assertEqual(response['emptycolumns'], True)
+
+    def test_mixed_gridview(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict = {'parentid': 20}
+        response = self._callFUT(request)
+
+        # the children are a mix of budgetgroup and budgetitem
+        # emptycolumns should return false
+        self.assertEqual(response['list'][0]['name'], 'TestDBGName')
+        self.assertEqual(response['list'][1]['name'], 'TestEBIName')
+        self.assertEqual(response['emptycolumns'], False)
 
     def test_budgetitem_gridview(self):
         _registerRoutes(self.config)
@@ -418,6 +523,20 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         from .views import costview
         response = costview(request)
         self.assertEqual(response['Cost'], '727.65')
+
+    def test_update_duplicate_resource_rate(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 25}
+        request.params = {'rate': 10}
+        response = self._callFUT(request)
+
+        # now the project cost should have changed
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 19}
+        from .views import costview
+        response = costview(request)
+        self.assertEqual(response['Cost'], '9032.88')
 
     def test_update_component_quantity(self):
         _registerRoutes(self.config)
@@ -695,8 +814,7 @@ class TestPasteviewSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 4}
         from .views import costview
         response = costview(request)
-        self.assertEqual(response['Cost'], '1427.52')
-
+        self.assertEqual(response['Cost'], '1427.53')
 
 class TestCostviewSuccessCondition(unittest.TestCase):
     """ Test all the Costs are correct
@@ -721,7 +839,7 @@ class TestCostviewSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 1}
         response = self._callFUT(request)
         # true if the cost is correct
-        self.assertEqual(response['Cost'], '533.22')
+        self.assertEqual(response['Cost'], '533.23')
 
     def test_budgetgroup_cost(self):
         _registerRoutes(self.config)
@@ -729,7 +847,7 @@ class TestCostviewSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.matchdict = {'id': 2}
         response = self._callFUT(request)
-        self.assertEqual(response['Cost'], '533.22')
+        self.assertEqual(response['Cost'], '533.23')
 
     def test_budgetitem_cost(self):
         _registerRoutes(self.config)
@@ -737,7 +855,7 @@ class TestCostviewSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.matchdict = {'id': 3}
         response = self._callFUT(request)
-        self.assertEqual(response['Cost'], '533.22')
+        self.assertEqual(response['Cost'], '533.23')
 
     def test_component_cost(self):
         _registerRoutes(self.config)
@@ -803,6 +921,62 @@ class TestCostviewSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 14}
         response = self._callFUT(request)
         self.assertEqual(response['Cost'], '48.00')
+
+    def test_projectc_cost(self):
+        _registerRoutes(self.config)
+
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 19}
+        response = self._callFUT(request)
+        self.assertEqual(response['Cost'], '6322.88')
+
+    def test_budgetgroupc_cost(self):
+        _registerRoutes(self.config)
+
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 20}
+        response = self._callFUT(request)
+        self.assertEqual(response['Cost'], '6322.88')
+
+    def test_budgetgroupd_cost(self):
+        _registerRoutes(self.config)
+
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 21}
+        response = self._callFUT(request)
+        self.assertEqual(response['Cost'], '4181.37')
+
+    def test_budgetitemd_cost(self):
+        _registerRoutes(self.config)
+
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 22}
+        response = self._callFUT(request)
+        self.assertEqual(response['Cost'], '4181.37')
+
+    def test_compd_cost(self):
+        _registerRoutes(self.config)
+
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 26}
+        response = self._callFUT(request)
+        self.assertEqual(response['Cost'], '93.23')
+
+    def test_budgetiteme_cost(self):
+        _registerRoutes(self.config)
+
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 23}
+        response = self._callFUT(request)
+        self.assertEqual(response['Cost'], '2141.51')
+
+    def test_compe_cost(self):
+        _registerRoutes(self.config)
+
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 27}
+        response = self._callFUT(request)
+        self.assertEqual(response['Cost'], '131.25')
 
 class TestClientsviewSuccessCondition(unittest.TestCase):
     """ Test if the Client view returns a list with the correct client
