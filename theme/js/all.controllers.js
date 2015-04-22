@@ -393,8 +393,9 @@ allControllers.directive('projectslickgridjs', function() {
                 $.ajax({
                     url: url,
                     dataType: "json",
-                    success: function(data) {
+                    success: function(response) {
                         var newcolumns = [];
+                        var data = response['list'];
                         if (data.length > 0){
                             if (data[0]['node_type'] == 'Resource'){
                                 newcolumns = [
@@ -405,15 +406,11 @@ allControllers.directive('projectslickgridjs', function() {
                                 ];
                             }
                             else {
-                                console.log(data);
-                                var loop = true;
-                                var x = 0;
-                                while (loop && (data.length > x)){
-                                    loop = !(data[x]['node_type'] == 'Component' || data[x]['node_type'] == 'BudgetItem');
-                                    x += 1;
-                                }
-
-                                if (loop){
+                                // Get the value that indicated whether there
+                                // are empty columns
+                                var emptycolumns = response['emptycolumns'];
+                                // if there will be empty columns remove them
+                                if (emptycolumns){
                                     newcolumns = [
                                         {id: "name", name: "Name", field: "name",
                                          width: cell_large, cssClass: "cell-title non-editable-column"},

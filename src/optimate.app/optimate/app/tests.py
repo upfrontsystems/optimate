@@ -352,8 +352,9 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         request.matchdict = {'parentid': 0}
         response = self._callFUT(request)
         # assert returns true if the projects are returned correctly
-        self.assertEqual(response[0]['name'], 'TestBPName')
-        self.assertEqual(response[1]['name'], 'TestPName')
+        self.assertEqual(response['list'][0]['name'], 'TestBPName')
+        self.assertEqual(response['list'][1]['name'], 'TestPName')
+        self.assertEqual(response['emptycolumns'], True)
 
     def test_budgetgroup_gridview(self):
         _registerRoutes(self.config)
@@ -362,8 +363,9 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
 
         # assert returns true if the projects are returned correctly
-        self.assertEqual(response[0]['name'], 'Resource List')
-        self.assertEqual(response[1]['name'], 'TestBGName')
+        self.assertEqual(response['list'][0]['name'], 'Resource List')
+        self.assertEqual(response['list'][1]['name'], 'TestBGName')
+        self.assertEqual(response['emptycolumns'], True)
 
     def test_budgetitem_gridview(self):
         _registerRoutes(self.config)
@@ -372,8 +374,9 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
 
         # assert returns true if the projects are returned correctly
-        self.assertEqual(response[0]['name'], 'TestBBIName')
-        self.assertEqual(response[1]['name'], 'TestCBIName')
+        self.assertEqual(response['list'][0]['name'], 'TestBBIName')
+        self.assertEqual(response['list'][1]['name'], 'TestCBIName')
+        self.assertEqual(response['emptycolumns'], False)
 
     def test_component_gridview(self):
         _registerRoutes(self.config)
@@ -382,8 +385,9 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
 
         # assert returns true if the projects are returned correctly
-        self.assertEqual(response[0]['name'], 'TestResource')
-        self.assertEqual(response[1]['name'], 'TestResourceA')
+        self.assertEqual(response['list'][0]['name'], 'TestResource')
+        self.assertEqual(response['list'][1]['name'], 'TestResourceA')
+        self.assertEqual(response['emptycolumns'], False)
 
 class TestUpdateValueSuccessCondition(unittest.TestCase):
     """ Update values in resource, component, and budgetitem and test

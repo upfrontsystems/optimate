@@ -138,12 +138,20 @@ def nodegridview(request):
     # Execute the sql query on the Node table to find the parent
     qry = DBSession.query(Node).filter_by(ParentID=parentid).all()
 
+    # Filter out all the Budgetitems and Components
+    # Test if the result is the same length as the query
+    # Therefore there will be empty columns
+    emptyresult = DBSession.query(Node).filter(Node.ParentID==parentid,
+                                            Node.type != 'BudgetItem',
+                                            Node.type != 'Component').all()
+    emptycolumns = len(emptyresult) == len(qry)
+
     # Get the griddata dict from each child and add it to the list
     for child in qry:
         childrenlist.append(child.getGridData())
 
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['name'])
-    return sorted_childrenlist
+    return {'list':sorted_childrenlist, 'emptycolumns': emptycolumns}
 
 
 @view_config(route_name="update_value", renderer='json')
