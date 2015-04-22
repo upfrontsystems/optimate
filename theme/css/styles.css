@@ -51,6 +51,11 @@ body {
     display: inline-block;
 }
 
+#optimate-data-grid {    
+    max-height: 500px !important;
+    overflow: auto !important;
+}
+
 #optimate-data-grid-outer {
     padding: 5px;
 }
