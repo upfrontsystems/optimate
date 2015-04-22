@@ -48,29 +48,6 @@ def childview(request):
     start = request.params.get('start')
     end = request.params.get('end')
 
-    starttime = timeit.default_timer()
-    # Execute the sql query on the Node table to find the parent
-    # qry = DBSession.query(Node).filter_by(ParentID=parentid).all()
-    # for child in qry:
-    #     if child.type != 'ResourceCategory':
-    #     childqry = DBSession.query(Node).filter_by(ParentID=child.ID)
-    #     if childqry.count() > 0:
-    #         subitem = [{'Name': '...'}]
-    #     else:
-    #         subitem = []
-
-    #     # if child.Children:
-    #     #     subitem = [{'Name': '...'}]
-    #     # else:
-    #     #     subitem = []
-    #     childrenlist.append({
-    #         'Name': child.Name,
-    #         'Description': child.Description,
-    #         'ID': child.ID,
-    #         'Subitem': subitem,
-    #         'NodeType': child.type
-    #         })
-
     qry = DBSession.query(Node).filter_by(ID=parentid).first()
     # build the list and only get the neccesary values
     if qry != None:
@@ -86,10 +63,6 @@ def childview(request):
                     else:
                         subitem = []
 
-                # if child.Children:
-                #     subitem = [{'Name': '...'}]
-                # else:
-                #     subitem = []
                 childrenlist.append({
                     'Name': child.Name,
                     'Description': child.Description,
@@ -98,7 +71,6 @@ def childview(request):
                     'NodeType': child.type
                     })
 
-    print (timeit.default_timer() - starttime)
     # return childrenlist
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'])
 

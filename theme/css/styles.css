@@ -7,6 +7,7 @@ body {
     width: 35%;
     display: inline-block;
     vertical-align: top;
+    height: 100vh;
 }
 
 /* slickgrid div */
@@ -81,7 +82,7 @@ input.editor-text {
     font-size: 0.8em;
 }
 
-/* Slickgrid non editable columns, editable stays default white */
+/* Slickgrid non editable columns, editable stays white */
 .non-editable-column {
     background-color: #eee;
 }

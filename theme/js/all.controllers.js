@@ -230,6 +230,8 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
 // Controller for loading the list of projects
 allControllers.controller('projectlistController',['$scope', '$http',
         function($scope, $http) {
+            // Add a loading value to the project list while it loads
+            $scope.projectsList = [{"Name": "Loading..."}];
             var req = {
                 method: 'GET',
                 url: 'http://127.0.0.1:8100/project_listing',
@@ -325,6 +327,8 @@ allControllers.directive('projectslickgridjs', function() {
                      width: cell_medium, editor: Slick.Editors.CustomEditor},
                 ];
 
+            // dataView.setAggregators([ new Slick.Data.Aggregators.Sum("quantity") ], false);
+
             var options = {
                     editable: true,
                     enableAddRow: true,
@@ -335,13 +339,24 @@ allControllers.directive('projectslickgridjs', function() {
                 };
 
             data = []
-            grid = new Slick.Grid("#optimate-data-grid", data, columns, options);
+            dataView = new Slick.Data.DataView();
+            grid = new Slick.Grid("#optimate-data-grid", dataView, columns, options);
             grid.setSelectionModel(new Slick.CellSelectionModel());
 
             // show tooltips on hover if the cellsize is so small, that an ellipsis
             // '...' is being shown.
             autotooltips_plugin = new Slick.AutoTooltips({enableForHeaderCells: true})
             grid.registerPlugin(autotooltips_plugin);
+
+            dataView.onRowCountChanged.subscribe(function (e, args) {
+              grid.updateRowCount();
+              grid.render();
+            });
+
+            dataView.onRowsChanged.subscribe(function (e, args) {
+              grid.invalidateRows(args.rows);
+              grid.render();
+            });
 
             // Formatter for displaying markup
             function MarkupFormatter(row, cell, value, columnDef, dataContext) {
@@ -399,7 +414,9 @@ allControllers.directive('projectslickgridjs', function() {
                             newcolumns = columns;
                         }
                         grid.setColumns(newcolumns);
-                        grid.setData(data);
+                        dataView.beginUpdate();
+                        dataView.setItems(data);
+                        dataView.endUpdate();
                         grid.render();
                     }
                 });

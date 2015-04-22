@@ -433,7 +433,7 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.matchdict = {'id': 7}
-        request.params = {'markup': '50%'}
+        request.params = {'markup': '50'}
         response = self._callFUT(request)
 
         # now the project cost should have changed
@@ -461,7 +461,7 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.matchdict = {'id': 3}
-        request.params = {'markup': '1 %'}
+        request.params = {'markup': '1'}
         response = self._callFUT(request)
 
         # now the project cost should have changed
