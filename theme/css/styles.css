@@ -7,7 +7,11 @@ body {
     width: 35%;
     display: inline-block;
     vertical-align: top;
-    height: 100vh;
+
+    /* scrollbars */
+    /*overflow:auto;
+    overflow-x:scroll;
+    overflow-y:scroll;*/
 }
 
 /* slickgrid div */
@@ -26,10 +30,11 @@ body {
 
 /* angular treeview info box */
 .info-box {
-    margin: 10px 0 30px 0;
-    padding: 10px;
+    margin: 5px 0 30px 0;
+    padding:5px;
     background-color: #eee;
-    border-radius: 5px;
+    border-radius: 3px;
+    font-size:13px;
 }
 
 /* Slickgrid table styles */
@@ -51,7 +56,7 @@ body {
     display: inline-block;
 }
 
-#optimate-data-grid {    
+#optimate-data-grid {
     max-height: 500px !important;
     overflow: auto !important;
 }

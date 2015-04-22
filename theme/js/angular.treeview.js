@@ -115,7 +115,7 @@
 
 }).call(this);
 
-// Treeview module
+// Treeview directive
 (function ( angular ) {
     'use strict';
     angular.module( 'angularTreeview', ['ngModal'] )
