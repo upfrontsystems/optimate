@@ -327,8 +327,6 @@ allControllers.directive('projectslickgridjs', function() {
                      width: cell_medium, editor: Slick.Editors.CustomEditor},
                 ];
 
-            // dataView.setAggregators([ new Slick.Data.Aggregators.Sum("quantity") ], false);
-
             var options = {
                     editable: true,
                     enableAddRow: true,
@@ -407,7 +405,40 @@ allControllers.directive('projectslickgridjs', function() {
                                 ];
                             }
                             else {
-                                newcolumns = columns;
+                                console.log(data);
+                                var loop = true;
+                                var x = 0;
+                                while (loop && (data.length > x)){
+                                    loop = !(data[x]['node_type'] == 'Component' || data[x]['node_type'] == 'BudgetItem');
+                                    x += 1;
+                                }
+
+                                if (loop){
+                                    newcolumns = [
+                                        {id: "name", name: "Name", field: "name",
+                                         width: cell_large, cssClass: "cell-title non-editable-column"},
+                                        {id: "budg_cost", name: "Total", field: "budg_cost",
+                                         width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                                        {id: "order_cost", name: "Order Cost", field: "order_cost",
+                                         width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                                        {id: "run_cost", name: "Run Cost", field: "run_cost",
+                                         width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                                        {id: "claim_cost", name: "Claim Cost", field: "claim_cost",
+                                         width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                                        {id: "income_rec", name: "Income Rec", field: "income_rec",
+                                         width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                                        {id: "client_cost", name: "Client Cost", field: "client_cost",
+                                         width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                                        {id: "proj_profit", name: "Proj. Profit", field: "proj_profit",
+                                         width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                                        {id: "act_profit", name: "Act. Profit", field: "act_profit",
+                                         width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                                    ];
+                                }
+                                else {
+                                    newcolumns = columns;
+                                }
+
                             }
                         }
                         else {
