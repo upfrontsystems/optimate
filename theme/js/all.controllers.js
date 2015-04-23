@@ -303,8 +303,14 @@ allControllers.directive('projectslickgridjs', function() {
             var columns = [
                     {id: "name", name: "Name", field: "name",
                      width: cell_large, cssClass: "cell-title non-editable-column"},
+                    {id: "quantity", name: "Quantity", field: "quantity", cssClass: "cell editable-column",
+                     width: cell_medium, editor: Slick.Editors.CustomEditor},
+                    {id: "rate", name: "Rate", field: "rate",
+                     width: cell_small, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                     {id: "budg_cost", name: "Total", field: "budg_cost",
                      width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                    {id: "markup", name: "Markup", field: "markup", cssClass: "cell  editable-column",
+                     width: cell_medium, formatter: MarkupFormatter, editor: Slick.Editors.CustomEditor},
                     {id: "order_cost", name: "Order Cost", field: "order_cost",
                      width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                     {id: "run_cost", name: "Run Cost", field: "run_cost",
@@ -319,12 +325,6 @@ allControllers.directive('projectslickgridjs', function() {
                      width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                     {id: "act_profit", name: "Act. Profit", field: "act_profit",
                      width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                    {id: "markup", name: "Markup", field: "markup", cssClass: "cell  editable-column",
-                     width: cell_medium, formatter: MarkupFormatter, editor: Slick.Editors.CustomEditor},
-                    {id: "rate", name: "Rate", field: "rate",
-                     width: cell_small, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                    {id: "quantity", name: "Quantity", field: "quantity", cssClass: "cell editable-column",
-                     width: cell_medium, editor: Slick.Editors.CustomEditor},
                 ];
 
             var options = {
@@ -335,6 +335,7 @@ allControllers.directive('projectslickgridjs', function() {
                     autoEdit: true,
                     autoHeight: true,
                     syncColumnCellResize: true,
+                    enableColumnReorder: true,
                 };
 
             data = []
@@ -397,7 +398,12 @@ allControllers.directive('projectslickgridjs', function() {
                     success: function(response) {
                         var newcolumns = [];
                         var data = response['list'];
+                        // Get the value that indicated
+                        // whether there are empty columns
+                        console.log(data.length > 0);
+                        var emptycolumns = response['emptycolumns'];
                         if (data.length > 0){
+                            console.log("apperently more than 0");
                             if (data[0]['node_type'] == 'Resource'){
                                 newcolumns = [
                                     {id: "name", name: "Name", field: "name",
@@ -407,9 +413,6 @@ allControllers.directive('projectslickgridjs', function() {
                                 ];
                             }
                             else {
-                                // Get the value that indicated whether there
-                                // are empty columns
-                                var emptycolumns = response['emptycolumns'];
                                 // if there will be empty columns remove them
                                 if (emptycolumns){
                                     newcolumns = [
@@ -432,21 +435,54 @@ allControllers.directive('projectslickgridjs', function() {
                                         {id: "act_profit", name: "Act. Profit", field: "act_profit",
                                          width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                                     ];
+
+                                    grid.setColumns(newcolumns);
+                                    dataView.beginUpdate();
+                                    dataView.setItems(data);
+                                    dataView.endUpdate();
+                                    grid.render();
+
                                 }
+                                // otherwise loop through the data and grey out
+                                // uneditable columns
                                 else {
                                     newcolumns = columns;
+
+                                    grid.setColumns(newcolumns);
+                                    dataView.beginUpdate();
+                                    dataView.setItems(data);
+                                    dataView.endUpdate();
+
+                                    for (var i=0; i < data.length; i++){
+                                        if (data[i]['node_type'] == 'BudgetGroup'){
+                                            grid.setCellCssStyles("non-editable-cell", {
+                                               i: {
+                                                    quantity: 'cell non-editable-column',
+                                                    markup: 'cell non-editable-column'
+                                                   },
+                                            });
+                                        }
+                                    }
+
+
+                                    // dataView.getItemMetadata = function (row) {
+                                    //     console.log("were in this");
+                                    //     if (this.getItem(row)['node_type'] == 'BudgetGroup') {
+                                    //         return {
+                                    //             'cssClass': 'cell non-editable-column'
+                                    //         };
+                                    //     }
+                                    // };
+                                    grid.render();
                                 }
 
                             }
                         }
                         else {
                             newcolumns = columns;
+                            grid.setColumns(newcolumns);
+                            grid.render();
                         }
-                        grid.setColumns(newcolumns);
-                        dataView.beginUpdate();
-                        dataView.setItems(data);
-                        dataView.endUpdate();
-                        grid.render();
                     }
                 });
             });

@@ -916,4 +916,4 @@ if __name__ == '__main__':
 
         transaction.commit()
 
-    print 'done'
+    print '\ndone'
