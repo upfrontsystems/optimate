@@ -33,6 +33,8 @@
                     var treeModel = attrs.treeModel;
                     // node id
                     var nodeId = attrs.nodeId || 'id';
+                    // type     
+                    var nodeType = attrs.nodeType || 'nodetype';
                     // node label
                     var nodeLabel = attrs.nodeLabel || 'label';
                     // children
@@ -93,7 +95,7 @@
                                 '</i> ' +
                                 // Call this funcion when
                                 // the node label is clicked
-                                '<span class="treenode" '+
+                                '<span class="treenode {{node.' + nodeType + '}}" '+
                                     'id="{{node.' + nodeId + '}}"'+
                                     'data-ng-class="node.selected" '+
                                     'data-ng-click="' + treeId +
