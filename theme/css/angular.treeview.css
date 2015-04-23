@@ -106,8 +106,8 @@ div[data-tree-model] li .collapsed {
 
 div[data-tree-model] li .normal {
     padding: 1px 10px;
-    background-image: url("../img/empty.png");
-    background-repeat: no-repeat;
+/*    background-image: url("../img/empty.png");
+    background-repeat: no-repeat; */
 }
 
 div[data-tree-model] li i,
