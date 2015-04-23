@@ -1,0 +1,6 @@
+[
+{"UID": "asdlfkjasdlfkjasdf", "Title": "News", "path": "/news", "portal_type": "Folder", "getIcon": ""},
+{"UID": "124asdfasasdaf34", "Title": "About", "path": "/about", "portal_type": "Folder", "getIcon": ""},
+{"UID": "asdf1234", "Title": "Projects", "path": "/projects", "portal_type": "Folder", "getIcon": ""},
+{"UID": "asdhsfghyt45", "Title": "Donate", "path": "/donate-now", "portal_type": "Document", "getIcon": ""}
+]

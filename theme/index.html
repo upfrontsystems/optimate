@@ -3,9 +3,11 @@
 <head>
     <meta charset="utf-8">
     <title>Optimate Cost System</title>
+    <script type="text/javascript" src="js/bundle.js"></script>
     <script type="text/javascript" src="js/firebugx.js"></script>
     <script type="text/javascript" src="bower_components/angular/angular.js"></script>
-    <script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
+    <!-- bundle.js includes jquery 1.11 already -->
+<!--    <script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script> -->
     <script type="text/javascript" src="bower_components/angular-route/angular-route.js"></script>
     <script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
 
@@ -40,8 +42,13 @@
 
     <!-- Custom CSS stylings -->
     <link rel="stylesheet" type="text/css" href="css/styles.css">
+    <link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
 </head>
 <body>
+    <input type="text" class="pat-relateditems"
+          data-pat-relateditems="width:30em;
+                                 vocabularyUrl:/relateditems.json" />
+
     <div ng-app="myApp" class="main-container">
         <ul class="nav nav-pills">
             <li><a href="#/projects">Projects</a></li>
