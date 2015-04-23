@@ -107,3 +107,52 @@ input.editor-text {
      -moz-box-sizing: border-box;
           box-sizing: border-box;
 }
+
+/* icons for the tree nodes */
+@font-face {
+    font-family: "../img/fontawesome";
+    src:url("../img/fontawesome-webfont.eot");
+    src:url("../img/fontawesome-webfont.eot?#iefix") format("embedded-opentype"),
+    url("../img/fontawesome-webfont.ttf") format("truetype"),
+    url("../img/fontawesome-webfont.woff") format("woff"),
+    url("../img/fontawesome-webfont.svg#fontawesome") format("svg");
+    url("../img/fontawesome.otf");
+    font-weight: normal;
+    font-style: normal;
+}
+
+.treenode {
+    font-family: "../img/fontawesome", sans-serif;    
+}
+
+.treenode:before {
+    font-size: 16px;
+    padding-right: 4px;
+}
+
+.treenode.Project:before {
+    content: "\f0b1"; /* briefcase */
+}
+
+.treenode.BudgetGroup:before {
+    content: "\f003"; /* envelope */  
+    /*content: "\f1ec";*/ /* calculator */  
+}
+
+.treenode.BudgetItem:before {
+    content: "\f199"; /* envelope-square */
+    /*content: "\f0a0"; */ /* hdd */
+    /*content: "\f155"; *//* dollar */
+}
+
+.treenode.Component:before {
+    content: "\f013"; /* cog */
+}
+
+.treenode.Resource:before {
+    content: "\f0ad"; /* wrench */
+}
+
+.treenode.ResourceCategory:before {
+    content: "\f15c"; /* file-text */
+}

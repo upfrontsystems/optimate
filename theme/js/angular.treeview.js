@@ -35,6 +35,8 @@
                     var treeModel = attrs.treeModel;
                     // node id
                     var nodeId = attrs.nodeId || 'id';
+                    // type     
+                    var nodeType = attrs.nodeType || 'NodeType';
                     // node label
                     var nodeLabel = attrs.nodeLabel || 'label';
                     // children
