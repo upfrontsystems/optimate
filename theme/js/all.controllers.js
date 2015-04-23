@@ -337,7 +337,6 @@ allControllers.directive('projectslickgridjs', function() {
                     enableCellNavigation: true,
                     asyncEditorLoading: true,
                     autoEdit: true,
-                    autoHeight: true,
                     syncColumnCellResize: true,
                     enableColumnReorder: true,
                 };

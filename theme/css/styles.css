@@ -2,21 +2,33 @@ body {
     background: none repeat scroll 0 0;
 }
 
+/* nav-pills custom styling */
+.nav > li > a {
+    padding: 5px 15px;
+}
+
 /* treeview div */
 .left {
-    width: 100%;
+    width: 40%;
     display: inline-block;
     vertical-align: top;
 }
 
 /* slickgrid div */
 .right {
-/*    width: 48%;*/
+    width: 58%;
     max-width: 855px;
     display: inline-block;
     vertical-align: top;
 }
 
+/* angular treeview */
+.angular-treeview {
+    height: 65vh;
+    overflow:auto;
+    overflow-x:scroll;
+    overflow-y:scroll;
+}
 
 /* angular treeview background */
 .ng-scope {
@@ -25,8 +37,8 @@ body {
 
 /* angular treeview info box */
 .info-box {
-    margin: 5px 0 30px 0;
-    padding:5px;
+    margin: 4px 0 30px 0;
+    padding:4px;
     background-color: #eee;
     border-radius: 3px;
     font-size:13px;
@@ -51,14 +63,14 @@ body {
     display: inline-block;
 }
 
-#optimate-data-grid {
-    max-height: 500px !important;
-    overflow: auto !important;
-}
-
 #optimate-data-grid-outer {
     padding: 5px;
 }
+
+#optimate-data-grid {
+    height: 87vh;
+}
+
 
 input.editor-text {
     background: none repeat scroll 0 0 transparent;
@@ -81,15 +93,6 @@ input.editor-text {
 #project-select,
 #project-select > * {
     font-size: 0.8em;
-}
-
-/* Slickgrid non editable columns, editable stays white */
-.non-editable-column {
-    background-color: #eee;
-}
-
-.editable-column {
-    background-color: white;
 }
 
 /* Fix for bootstrap box issues in slickgrid */
@@ -122,7 +125,7 @@ input.editor-text {
 }
 
 .treenode {
-    font-family: "../img/fontawesome", sans-serif;    
+    font-family: "../img/fontawesome", sans-serif;
 }
 
 .treenode:before {
@@ -135,8 +138,8 @@ input.editor-text {
 }
 
 .treenode.BudgetGroup:before {
-    content: "\f003"; /* envelope */  
-    /*content: "\f1ec";*/ /* calculator */  
+    content: "\f003"; /* envelope */ 
+    /*content: "\f1ec";*/ /* calculator */ 
 }
 
 .treenode.BudgetItem:before {
