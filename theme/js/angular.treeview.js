@@ -34,7 +34,7 @@
                     // node id
                     var nodeId = attrs.nodeId || 'id';
                     // type     
-                    var nodeType = attrs.nodeType || 'nodetype';
+                    var nodeType = attrs.nodeType || 'NodeType';
                     // node label
                     var nodeLabel = attrs.nodeLabel || 'label';
                     // children
