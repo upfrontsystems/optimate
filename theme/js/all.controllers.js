@@ -400,10 +400,8 @@ allControllers.directive('projectslickgridjs', function() {
                         var data = response['list'];
                         // Get the value that indicated
                         // whether there are empty columns
-                        console.log(data.length > 0);
                         var emptycolumns = response['emptycolumns'];
                         if (data.length > 0){
-                            console.log("apperently more than 0");
                             if (data[0]['node_type'] == 'Resource'){
                                 newcolumns = [
                                     {id: "name", name: "Name", field: "name",
@@ -466,7 +464,6 @@ allControllers.directive('projectslickgridjs', function() {
 
 
                                     // dataView.getItemMetadata = function (row) {
-                                    //     console.log("were in this");
                                     //     if (this.getItem(row)['node_type'] == 'BudgetGroup') {
                                     //         return {
                                     //             'cssClass': 'cell non-editable-column'

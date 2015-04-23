@@ -1,7 +1,6 @@
 "use strict";
 var myApp = angular.module('myApp', [
                     'angularTreeview',
-                    'ngModal',
                     'ui.bootstrap',
                     'ngRoute',
                     'allControllers']);

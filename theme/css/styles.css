@@ -4,7 +4,7 @@ body {
 
 /* treeview div */
 .left {
-    width: 35%;
+    width: 45%;
     display: inline-block;
     vertical-align: top;
 
@@ -16,7 +16,7 @@ body {
 
 /* slickgrid div */
 .right {
-    width: 63%;
+    width: 48%;
     max-width: 855px;
     display: inline-block;
     vertical-align: top;

@@ -1,10 +1,3 @@
-/* change button look */
-button {
-    background: white;
-    color: black;
-    border: solid 1px black;
-}
-
 .ng-modal-dialog button {
     display: block;
 }
