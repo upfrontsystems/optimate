@@ -4,19 +4,14 @@ body {
 
 /* treeview div */
 .left {
-    width: 45%;
+    width: 100%;
     display: inline-block;
     vertical-align: top;
-
-    /* scrollbars */
-    /*overflow:auto;
-    overflow-x:scroll;
-    overflow-y:scroll;*/
 }
 
 /* slickgrid div */
 .right {
-    width: 48%;
+/*    width: 48%;*/
     max-width: 855px;
     display: inline-block;
     vertical-align: top;

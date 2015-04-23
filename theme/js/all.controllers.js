@@ -278,9 +278,13 @@ allControllers.controller('treeviewController',['$scope', '$http',
         };
         $scope.roleList = [];
         $scope.formData = {};
-        $scope.closeModal = function() {
-            $scope.modalShown = false;
-        }
+        $scope.addToProject = '<li><a data-target="#addBudgetGroup" href="" data-toggle="modal">Add BudgetGroup</a></li>';
+        $scope.addToBudgetGroup = '<li><a data-target="#addBudgetGroup" href="" data-toggle="modal">Add BudgetGroup</a></li>'+
+                                        '<li><a data-target="#addBudgetItem" href="" data-toggle="modal">Add BudgetItem</a><li>'+
+                                        '<li><a data-target="#addComponent" href="" data-toggle="modal">Add Component</a><li>';
+        $scope.addToBudgetItem = '<li><a data-target="#addComponent" href="" data-toggle="modal">Add Component</a></li>';
+        $scope.addToComponent = '<li><a style="color: #666;">Add</a></li';
+        $scope.addToResourceCategory = '<li><a data-target="#addResource" href="" data-toggle="modal">Add Resource</a></li>'
         $( document ).on( "click", "#select-project-submit", function( e ) {
             $scope.loadProject();
         });

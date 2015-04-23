@@ -29,6 +29,8 @@
                 link: function ( scope, element, attrs ) {
                     // tree id
                     var treeId = attrs.treeId;
+                    // type
+                    var nodeType = attrs.nodeType || 'NodeType';
                     // tree model
                     var treeModel = attrs.treeModel;
                     // node id
@@ -42,30 +44,152 @@
                     // show modal and other input options
                     scope.showcosts = false
                     scope.showtype = false;
+                    scope.tempTestingType = 'Project';
 
                     // tree template
                     var template =
-                        // Bootstrap modal dialog for adding a node
-                        '<div id="addItem" class="modal">'+
+                        // Bootstrap modal dialog for adding a budgetgroup
+                        '<div id="addBudgetGroup" class="modal">'+
                             '<div class="modal-dialog">'+
                                 '<div class="modal-content">'+
                                     '<div class="modal-header">'+
                                         '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>'+
-                                        '<h3 class="modal-title">Add a new Node</h3>'+
+                                        '<h3 class="modal-title">Add BudgetGroup</h3>'+
                                     '</div>'+
                                     '<div class="modal-body">'+
                                         '<form>'+
                                             '<br>Name:'+
                                             '<input type="text"'+
                                                     'name="inputName"'+
-                                                    'data-ng-model="formData.inputName"'+
+                                                    'ng-model="formData.inputName"'+
+                                                    'required'+
+                                                    'autofocus>'+
+                                            '<br>Description:'+
+                                            '<input type="textarea"'+
+                                                    'name="inputDescription"'+
+                                                    'ng-model="formData.inputDescription"'+
+                                                    'style="width: 300px; height: 150px;"'+
+                                                    'autofocus>'+
+                                        '</form>'+
+                                    '</div>'+
+                                    '<div class="modal-footer">'+
+                                        '<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>'+
+                                        '<button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="addItem()">Add</button>'+
+                                    '</div>'+
+                                '</div>'+
+                            '</div>'+
+                        '</div>'+
+
+                        // Bootstrap modal dialog for adding a budgetitem
+                        '<div id="addBudgetItem" class="modal">'+
+                            '<div class="modal-dialog">'+
+                                '<div class="modal-content">'+
+                                    '<div class="modal-header">'+
+                                        '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>'+
+                                        '<h3 class="modal-title">Add BudgetItem</h3>'+
+                                    '</div>'+
+                                    '<div class="modal-body">'+
+                                        '<form>'+
+                                            '<br>Name:'+
+                                            '<input type="text"'+
+                                                    'name="inputName"'+
+                                                    'ng-model="formData.inputName"'+
+                                                    'required'+
+                                                    'autofocus>'+
+                                            '<br>Description:'+
+                                            '<input type="textarea"'+
+                                                    'name="inputDescription"'+
+                                                    'ng-model="formData.inputDescription"'+
+                                                    'style="width: 300px; height: 150px;"'+
+                                                    'autofocus>'+
+                                            '<br>Quantity:'+
+                                            '<input type="text"'+
+                                                    'name="inputQuantity"'+
+                                                    'ng-model="formData.inputQuantity"'+
+                                                    'autofocus>'+
+                                            '<br>Markup:'+
+                                            '<input type="number"'+
+                                                    'name="inputMarkup"'+
+                                                    'ng-model="formData.inputMarkup"'+
+                                                    'autofocus>'+
+                                        '</form>'+
+                                    '</div>'+
+                                    '<div class="modal-footer">'+
+                                        '<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>'+
+                                        '<button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="addItem()">Add</button>'+
+                                    '</div>'+
+                                '</div>'+
+                            '</div>'+
+                        '</div>'+
+
+                        // Bootstrap modal dialog for adding a component
+                        '<div id="addComponent" class="modal">'+
+                            '<div class="modal-dialog">'+
+                                '<div class="modal-content">'+
+                                    '<div class="modal-header">'+
+                                        '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>'+
+                                        '<h3 class="modal-title">Add Component</h3>'+
+                                    '</div>'+
+                                    '<div class="modal-body">'+
+                                        '<form>'+
+                                            '<br>Name:'+
+                                            '<input type="text"'+
+                                                    'name="inputName"'+
+                                                    'ng-model="formData.inputName"'+
+                                                    'required'+
+                                                    'autofocus>'+
+                                            '<br>Description:'+
+                                            '<input type="textarea"'+
+                                                    'name="inputDescription"'+
+                                                    'ng-model="formData.inputDescription"'+
+                                                    'style="width: 300px; height: 150px;"'+
+                                                    'autofocus>'+
+                                            '<br>Quantity:'+
+                                            '<input type="text"'+
+                                                    'name="inputQuantity"'+
+                                                    'ng-model="formData.inputQuantity"'+
+                                                    'autofocus>'+
+                                            '<br>Markup:'+
+                                            '<input type="number"'+
+                                                    'name="inputMarkup"'+
+                                                    'ng-model="formData.inputMarkup"'+
+                                                    'autofocus>'+
+                                            '<br>Type:'+
+                                            '<input type="number"'+
+                                                    'name="inputType"'+
+                                                    'ng-model="formData.inputType"'+
+                                                    'autofocus>'+
+                                        '</form>'+
+                                    '</div>'+
+                                    '<div class="modal-footer">'+
+                                        '<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>'+
+                                        '<button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="addItem()">Add</button>'+
+                                    '</div>'+
+                                '</div>'+
+                            '</div>'+
+                        '</div>'+
+
+                        // Bootstrap modal dialog for adding a resource
+                        '<div id="addResource" class="modal">'+
+                            '<div class="modal-dialog">'+
+                                '<div class="modal-content">'+
+                                    '<div class="modal-header">'+
+                                        '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>'+
+                                        '<h3 class="modal-title">Add Resource</h3>'+
+                                    '</div>'+
+                                    '<div class="modal-body">'+
+                                        '<form>'+
+                                            '<br>Name:'+
+                                            '<input type="text"'+
+                                                    'name="inputName"'+
+                                                    'ng-model="formData.inputName"'+
                                                     'required'+
                                                     'autofocus>'+
                                         '</form>'+
                                     '</div>'+
                                     '<div class="modal-footer">'+
                                         '<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>'+
-                                        '<button type="button" class="btn btn-primary" data-dismiss="modal" data-ng-click="addItem()">Add</button>'+
+                                        '<button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="addItem()">Add</button>'+
                                     '</div>'+
                                 '</div>'+
                             '</div>'+
@@ -93,7 +217,7 @@
                                 '</i> ' +
                                 // Call this funcion when
                                 // the node label is clicked
-                                '<span class="treenode" '+
+                                '<span class="treenode {{node.' + nodeType + '}}" '+
                                     'id="{{node.' + nodeId + '}}"'+
                                     'data-ng-class="node.selected" '+
                                     'data-ng-click="' + treeId +
@@ -105,7 +229,8 @@
                                 '<span class="btn-group" data-ng-show="node.selected">'+
                                         '<button type="button" data-toggle="dropdown" class="btn btn-default dropdown-toggle"><span class="caret"></span></button>'+
                                         '<ul class="dropdown-menu">'+
-                                            '<li><a ng-data-target="#addItem" href="" ng-data-toggle="modal">Add</a></li>'+
+                                        //'{{addTo' + nodeType + '}}'+
+                                            '{{addToProject}}'+
                                             '<li class="divider"></li>'+
                                             '<li><a data-ng-click="' + treeId + '.deleteItem(node.ID)">Delete</a></li>'+
                                             '<li><a data-ng-click="' + treeId + '.copy(node.ID)">Copy</a></li>'+
@@ -122,7 +247,6 @@
                                 '</div>' +
                             '</li>' +
                         '</ul>';
-
 
                     // check tree id, tree model
                     if ( treeId && treeModel ) {
@@ -171,7 +295,7 @@
                                     method: 'POST',
                                     url:'http://localhost:8100/' + nodeid + '/delete'
                                 }).success(function () {
-                                    alert('Success: Item deleted');
+                                    console.log('Success: Item deleted');
                                 });
                             }
 
@@ -179,7 +303,6 @@
                             scope[treeId].copy = function(cnode) {
                                 scope.copiednode = cnode;
                                 console.log("Path that is copied: " + scope.copiednode);
-                                alert('Node address copied')
                             }
 
                             // function to POST data to server to paste item
@@ -190,7 +313,7 @@
                                     url: 'http://localhost:8100/' + nodeid + '/paste',
                                     data:{'ID': scope.copiednode}
                                 }).success(function () {
-                                    alert('Success: Node pasted');
+                                    console.log('Success: Node pasted');
                                     scope[treeId].currentNode.Subitem = [{'Name': '...'}];
                                 });
                             }
@@ -230,6 +353,7 @@
 
                                 // set currentNode
                                 scope[treeId].currentNode = selectedNode;
+                                scope.tempTestingType = scope[treeId].currentNode.NodeType;
                             };
                         }
                         // Rendering template.
