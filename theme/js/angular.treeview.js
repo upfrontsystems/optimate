@@ -21,9 +21,9 @@
 // Treeview directive
 (function ( angular ) {
     'use strict';
-    angular.module( 'angularTreeview', [] )
+    angular.module( 'angularTreeview', ['allControllers'] )
     .directive(
-        'treeModel', ['$compile', '$http', function( $compile, $http) {
+        'treeModel', ['$compile', '$http', 'globalServerURL', function( $compile, $http, globalServerURL) {
             return {
                 restrict: 'A',
                 link: function ( scope, element, attrs ) {
@@ -271,7 +271,7 @@
                                     ", " + description + " to: " + nodeid);
                                 $http({
                                     method: 'POST',
-                                    url: 'http://localhost:8100/' + nodeid + '/add',
+                                    url: globalServerURL + nodeid + '/add',
                                     data:{'Name': name,
                                           'Description': description,
                                           'NodeType': nodetype,
@@ -290,7 +290,7 @@
                                 console.log("Deleting "+ nodeid);
                                 $http({
                                     method: 'POST',
-                                    url:'http://localhost:8100/' + nodeid + '/delete'
+                                    url:globalServerURL + nodeid + '/delete'
                                 }).success(function () {
                                     console.log('Success: Item deleted');
                                 });
@@ -307,7 +307,7 @@
                                 console.log("Node to be pasted: " + scope.copiednode);
                                 $http({
                                     method: 'POST',
-                                    url: 'http://localhost:8100/' + nodeid + '/paste',
+                                    url: globalServerURL + nodeid + '/paste',
                                     data:{'ID': scope.copiednode}
                                 }).success(function () {
                                     console.log('Success: Node pasted');
@@ -326,7 +326,7 @@
                                     // get path from the node
                                     // and go to that path with http
                                     var nodeid = selectedNode.ID;
-                                    $http.get('http://127.0.0.1:8100/' + nodeid + '/').success(function(data) {
+                                    $http.get(globalServerURL + nodeid + '/').success(function(data) {
                                         console.log("Children loaded");
                                         scope[treeId].currentNode.Subitem = data;
                                     });

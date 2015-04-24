@@ -1,12 +1,15 @@
 // angular module that contains all the controllers
 var allControllers = angular.module('allControllers', []);
 
+allControllers.value('globalServerURL', 'http://127.0.0.1:8100/');
+
 // controller for the Client data from the server
-allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$log',
-    function($scope, $http, $modal, $log) {
+allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$log', 'globalServerURL',
+    function($scope, $http, $modal, $log, globalServerURL) {
+
         var req = {
             method: 'GET',
-            url: 'http://127.0.0.1:8100/clients',
+            url: globalServerURL +'clients',
         };
         $http(req).success(function(data){
             $scope.jsonclients = data;
@@ -37,7 +40,7 @@ allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$l
 
             $http({
                 method: 'POST',
-                url: 'http://localhost:8100/0/client',
+                url: globalServerURL +'0/client',
                 data:postdata
             }).success(function (response) {
                 postdata['ID'] = response['newid'];
@@ -57,7 +60,7 @@ allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$l
           $scope.editClient = function() {
             $http({
                 method: 'PUT',
-                url: 'http://localhost:8100/' + id + '/client',
+                url: globalServerURL + id + '/client',
                 data:{'Name': $scope.editingClient['Name'],
                         'Address': $scope.editingClient['Address'],
                         'City': $scope.editingClient['City'],
@@ -83,7 +86,7 @@ allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$l
         $scope.getEditClient = function(id) {
             var req = {
             method: 'GET',
-            url: 'http://127.0.0.1:8100/' + id + '/client',
+            url: globalServerURL + id + '/client',
             };
             $http(req).success(function(data) {
                 $scope.editingClient = data;
@@ -105,7 +108,7 @@ allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$l
         $scope.deleteClient = function(id){
             var req = {
             method: 'DELETE',
-            url: 'http://127.0.0.1:8100/' + id + '/client',
+            url: globalServerURL + id + '/client',
             };
             $http(req).success(function(data){
                 alert("Client deleted")
@@ -115,11 +118,11 @@ allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$l
 ]);
 
 // Controller for the suppliers page
-allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '$log',
-    function($scope, $http, $modal, $log) {
+allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '$log', 'globalServerURL',
+    function($scope, $http, $modal, $log, globalServerURL) {
         var req = {
             method: 'GET',
-            url: 'http://127.0.0.1:8100/suppliers'
+            url: globalServerURL +'suppliers'
         };
         $http(req).success(function(data){
             $scope.jsonsuppliers = data;
@@ -150,7 +153,7 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
 
             $http({
                 method: 'POST',
-                url: 'http://localhost:8100/0/supplier',
+                url: globalServerURL +'supplier',
                 data:postdata
             }).success(function (response) {
                 postdata['ID'] = response['newid'];
@@ -170,7 +173,7 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
           $scope.editSupplier = function() {
             $http({
                 method: 'PUT',
-                url: 'http://localhost:8100/' + id + '/supplier',
+                url: globalServerURL + id + '/supplier',
                 data:{'Name': $scope.editingSupplier['Name'],
                         'Address': $scope.editingSupplier['Address'],
                         'City': $scope.editingSupplier['City'],
@@ -195,7 +198,7 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
         $scope.getEditSupplier = function(id) {
             var req = {
             method: 'GET',
-            url: 'http://127.0.0.1:8100/' + id + '/supplier',
+            url: globalServerURL + id + '/supplier',
             };
             $http(req).success(function(data) {
                 $scope.editingSupplier = data;
@@ -218,7 +221,7 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
         $scope.deleteSupplier = function(id){
             var req = {
             method: 'DELETE',
-            url: 'http://127.0.0.1:8100/' + id + '/supplier',
+            url: globalServerURL + id + '/supplier',
             };
             $http(req).success(function(data){
                 alert("Supplier deleted")
@@ -228,13 +231,13 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
 ]);
 
 // Controller for loading the list of projects
-allControllers.controller('projectlistController',['$scope', '$http',
-        function($scope, $http) {
+allControllers.controller('projectlistController',['$scope', '$http', 'globalServerURL',
+        function($scope, $http, globalServerURL) {
             // Add a loading value to the project list while it loads
             $scope.projectsList = [{"Name": "Loading..."}];
             var req = {
                 method: 'GET',
-                url: 'http://127.0.0.1:8100/project_listing',
+                url: globalServerURL +'project_listing',
             }
             $http(req).success(function(data) {
                 $scope.projectsList = data;
@@ -244,8 +247,9 @@ allControllers.controller('projectlistController',['$scope', '$http',
 
 // Angular function that loads a specific project into the treeview
 // upon selection from the user
-allControllers.controller('treeviewController',['$scope', '$http',
-    function ProjectList($scope, $http) {
+allControllers.controller('treeviewController',['$scope', '$http', 'globalServerURL',
+    function ProjectList($scope, $http, globalServerURL) {
+
         // aux function - checks if object is already in list based on ID
         function containsObject(obj, list) {
             var i;
@@ -258,7 +262,7 @@ allControllers.controller('treeviewController',['$scope', '$http',
         }
         $scope.loadProject = function () {
             var id = $('#project-select').find(":selected").val()
-            var url = 'http://127.0.0.1:8100/projectview/' + id + '/'
+            var url = globalServerURL +'projectview/' + id + '/'
             var req = {
                 method: 'GET',
                 url: url,
@@ -285,7 +289,7 @@ allControllers.controller('treeviewController',['$scope', '$http',
     }
 ]);
 
-allControllers.directive('projectslickgridjs', function() {
+allControllers.directive('projectslickgridjs', ['globalServerURL', function(globalServerURL) {
     return {
         require: '?ngModel',
         restrict: 'E',
@@ -388,7 +392,7 @@ allControllers.directive('projectslickgridjs', function() {
             // eventhandler to update grid data when a tree node is clicked
             $( document ).on( "click", ".treenode", function( e ) {
                 var nodeid = $(this).attr('ID');
-                var url = 'http://127.0.0.1:8100/nodegridview/' + nodeid + '/'
+                var url = globalServerURL +'nodegridview/' + nodeid + '/'
                 $.ajax({
                     url: url,
                     dataType: "json",
@@ -459,14 +463,6 @@ allControllers.directive('projectslickgridjs', function() {
                                         }
                                     }
 
-
-                                    // dataView.getItemMetadata = function (row) {
-                                    //     if (this.getItem(row)['node_type'] == 'BudgetGroup') {
-                                    //         return {
-                                    //             'cssClass': 'cell non-editable-column'
-                                    //         };
-                                    //     }
-                                    // };
                                     grid.render();
                                 }
 
@@ -484,7 +480,7 @@ allControllers.directive('projectslickgridjs', function() {
             grid.onCellChange.subscribe(function (e, ctx) {
                 var item = ctx.item
                 $.ajax({
-                    url: 'http://127.0.0.1:8100/update_value/' + item.id + '/',
+                    url: globalServerURL +'update_value/' + item.id + '/',
                     data: item,
                     dataType: "json",
                     success: function(data) {
@@ -494,4 +490,4 @@ allControllers.directive('projectslickgridjs', function() {
             });
         }
     }
-});
+}]);

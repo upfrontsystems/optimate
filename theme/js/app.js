@@ -2,8 +2,7 @@
 var myApp = angular.module('myApp', [
                     'angularTreeview',
                     'ui.bootstrap',
-                    'ngRoute',
-                    'allControllers']);
+                    'ngRoute']);
 
 myApp.config(['$routeProvider',
   function($routeProvider) {
