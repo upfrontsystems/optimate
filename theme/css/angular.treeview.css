@@ -20,7 +20,6 @@ div[data-tree-model] ul {
     padding: 0;
     list-style: none;
     border: none;
-    overflow: hidden;
 }
 
 div[data-tree-model] li {
@@ -53,7 +52,10 @@ div[data-tree-model] li span {
 }
 
 div[data-tree-model] li .selected {
-    background-color: #aaddff;
     font-weight: bold;
-    padding: 1px 5px;
+    padding-right: 5px;
+}
+
+div[data-tree-model] div.dropdown {
+    display: inline-block;
 }

@@ -228,8 +228,8 @@
                                 '</span>' +
 
                                 // bootstap dropdown menu
-                                '<span class="btn-group" data-ng-show="node.selected">'+
-                                        '<button type="button" data-toggle="dropdown" class="btn btn-default dropdown-toggle"><span class="caret"></span></button>'+
+                                '<div class="dropdown" data-ng-show="node.selected">'+
+                                        '<a data-toggle="dropdown"><span class="caret"></span></a>'+
                                         '<ul class="dropdown-menu">'+
                                         //'{{addTo' + nodeType + '}}'+
                                             '{{addToProject}}'+
@@ -238,7 +238,7 @@
                                             '<li><a data-ng-click="' + treeId + '.copy(node.ID)">Copy</a></li>'+
                                             '<li><a data-ng-click="' + treeId + '.paste(node.ID)">Paste</a></li>'+
                                         '</ul>'+
-                                '</span>'+
+                                '</div>'+
 
                                 '<div data-ng-hide="!node.collapsed" '+
                                     'data-tree-id="' + treeId +
