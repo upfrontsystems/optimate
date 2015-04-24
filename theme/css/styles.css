@@ -12,14 +12,16 @@ body {
     width: 40%;
     display: inline-block;
     vertical-align: top;
+    padding-left: 1px;
 }
 
 /* slickgrid div */
 .right {
-    width: 58%;
+    width: 59.5%;
     max-width: 855px;
     display: inline-block;
     vertical-align: top;
+    float: right;
 }
 
 /* angular treeview */
@@ -61,10 +63,6 @@ body {
 #main-container {
     width: 100%;
     display: inline-block;
-}
-
-#optimate-data-grid-outer {
-    padding: 5px;
 }
 
 #optimate-data-grid {

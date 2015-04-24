@@ -231,7 +231,6 @@
                                 '<div class="dropdown" data-ng-show="node.selected">'+
                                         '<a data-toggle="dropdown"><span class="caret"></span></a>'+
                                         '<ul class="dropdown-menu">'+
-
                                         '</ul>'+
                                 '</div>'+
 
@@ -355,7 +354,7 @@
                                 var nodetype = scope[treeId].currentNode.NodeType;
                                 var appendThis = '<li><p>Add</p></li>';
                                 var otherMenuItems = '<li class="divider"></li>'+
-                                            '<li><a data-ng-click="' + treeId + '.deleteItem(node.ID)">Delete</a></li>'+
+                                            '<li><a data-ng-click="' + treeId + '.deleteItem('+scope[treeId].currentNode.ID+')">Delete</a></li>'+
                                             '<li><a data-ng-click="' + treeId + '.copy(node.ID)">Copy</a></li>'+
                                             '<li><a data-ng-click="' + treeId + '.paste(node.ID)">Paste</a></li>';
                                 if (nodetype == 'Project'){
@@ -376,7 +375,8 @@
                                     appendThis = '<li><a data-target="#addResource" href="" data-toggle="modal">Add Resource</a></li>'
                                 }
 
-                                $(".dropdown > ul.dropdown-menu").append(appendThis + otherMenuItems);
+                                // $(".dropdown > ul.dropdown-menu").append($compile(appendThis + otherMenuItems)(scope));
+                                $(".dropdown > ul.dropdown-menu").html($compile(appendThis + otherMenuItems)(scope));
                             };
                         }
                         // Rendering template.
