@@ -35,7 +35,7 @@
                     var treeModel = attrs.treeModel;
                     // node id
                     var nodeId = attrs.nodeId || 'id';
-                    // type     
+                    // type
                     var nodeType = attrs.nodeType || 'NodeType';
                     // node label
                     var nodeLabel = attrs.nodeLabel || 'label';
@@ -231,12 +231,7 @@
                                 '<div class="dropdown" data-ng-show="node.selected">'+
                                         '<a data-toggle="dropdown"><span class="caret"></span></a>'+
                                         '<ul class="dropdown-menu">'+
-                                        //'{{addTo' + nodeType + '}}'+
-                                            '{{addToProject}}'+
-                                            '<li class="divider"></li>'+
-                                            '<li><a data-ng-click="' + treeId + '.deleteItem(node.ID)">Delete</a></li>'+
-                                            '<li><a data-ng-click="' + treeId + '.copy(node.ID)">Copy</a></li>'+
-                                            '<li><a data-ng-click="' + treeId + '.paste(node.ID)">Paste</a></li>'+
+
                                         '</ul>'+
                                 '</div>'+
 
@@ -355,7 +350,33 @@
 
                                 // set currentNode
                                 scope[treeId].currentNode = selectedNode;
-                                scope.tempTestingType = scope[treeId].currentNode.NodeType;
+
+                                // add the add menus in the dropdown
+                                var nodetype = scope[treeId].currentNode.NodeType;
+                                var appendThis = '<li><p>Add</p></li>';
+                                var otherMenuItems = '<li class="divider"></li>'+
+                                            '<li><a data-ng-click="' + treeId + '.deleteItem(node.ID)">Delete</a></li>'+
+                                            '<li><a data-ng-click="' + treeId + '.copy(node.ID)">Copy</a></li>'+
+                                            '<li><a data-ng-click="' + treeId + '.paste(node.ID)">Paste</a></li>';
+                                if (nodetype == 'Project'){
+                                    appendThis = '<li><a data-target="#addBudgetGroup" href="" data-toggle="modal">Add BudgetGroup</a></li>';
+                                }
+                                else if (nodetype == 'BudgetGroup'){
+                                    appendThis = '<li><a data-target="#addBudgetGroup" href="" data-toggle="modal">Add BudgetGroup</a></li>'+
+                                                                '<li><a data-target="#addBudgetItem" href="" data-toggle="modal">Add BudgetItem</a><li>'+
+                                                                '<li><a data-target="#addComponent" href="" data-toggle="modal">Add Component</a><li>';
+                                }
+                                else if (nodetype == 'BudgetItem'){
+                                    appendThis = '<li><a data-target="#addComponent" href="" data-toggle="modal">Add Component</a></li>';
+                                }
+                                else if (nodetype == 'Component'){
+                                    appendThis = '<li><a style="color: gray;">Add</a></li';
+                                }
+                                else if (nodetpye == 'ResourceCategory'){
+                                    appendThis = '<li><a data-target="#addResource" href="" data-toggle="modal">Add Resource</a></li>'
+                                }
+
+                                $(".dropdown > ul.dropdown-menu").append(appendThis + otherMenuItems);
                             };
                         }
                         // Rendering template.
