@@ -203,25 +203,29 @@ def additemview(request):
 
         # Get the data to be added to the new object from the request body
         name = request.json_body['Name']
-        desc = request.json_body['Description']
         objecttype = request.json_body['NodeType']
 
         # Determine the type of object to be added and build it
-        if objecttype == 'project':
+        if objecttype == 'Project':
+            desc = request.json_body['Description']
             newnode = Project(Name=name,
                               Description=desc,
                               ParentID=parentid)
-        elif objecttype == 'budgetgroup':
+        elif objecttype == 'BudgetGroup':
+            desc = request.json_body['Description']
             newnode = BudgetGroup(Name=name,
                                   Description=desc,
                                   ParentID=parentid)
-        elif objecttype == 'budgetitem':
+        elif objecttype == 'BudgetItem':
             quantity = float(request.json_body['Quantity'])
+            desc = request.json_body['Description']
+            markup = float(request.json_body['Markup'])/100.0
             newnode = BudgetItem(Name=name,
                                  Description=desc,
                                  _Quantity = quantity,
+                                 _Markup = markup,
                                  ParentID=parentid)
-        elif objecttype == 'component':
+        elif objecttype == 'Component':
             # Components need to reference a Resource that already exists
             # in the system
             parent = DBSession.query(Node).filter_by(ID=parentid).first()
@@ -260,10 +264,15 @@ def additemview(request):
 
             componenttype = int(request.json_body['ComponentType'])
             quantity = float(request.json_body['Quantity'])
+            markup = float(request.json_body['Markup'])/100.0
             newnode = Component(ResourceID=resource.ID,
                                 Type=componenttype,
                                 _Quantity = quantity,
+                                _Markup = markup,
                                 ParentID=parentid)
+        elif objecttype == 'Resource':
+            # do nothing
+            pass
         else:
             return HTTPInternalServerError()
 

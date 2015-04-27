@@ -289,6 +289,106 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
     }
 ]);
 
+allControllers.controller('addBudgetGroupControl', function ($scope, $modal) {
+    $scope.formData = {'NodeType': 'BudgetGroup'};
+
+    $scope.open = function (size) {
+        var modalInstance = $modal.open({
+                templateUrl: 'modal_templates/addbudgetgroup.html',
+                controller: 'ModalInstanceCtrl',
+                resolve: {
+                formData: function () {
+                    return $scope.formData;
+                }
+            }
+        });
+    };
+    $scope.open();
+});
+
+allControllers.controller('addBudgetItemControl', function ($scope, $modal) {
+    $scope.formData = {'NodeType': 'BudgetItem'};
+    $scope.open = function (size) {
+        var modalInstance = $modal.open({
+                templateUrl: 'modal_templates/addbudgetitem.html',
+                controller: 'ModalInstanceCtrl',
+                resolve: {
+                formData: function () {
+                    return $scope.formData;
+                }
+            }
+        });
+    };
+    $scope.open();
+});
+
+allControllers.controller('addComponentControl', function ($scope, $modal) {
+    $scope.formData = {'NodeType': 'Component'};
+    $scope.open = function (size) {
+        var modalInstance = $modal.open({
+                templateUrl: 'modal_templates/addcomponent.html',
+                controller: 'ModalInstanceCtrl',
+                resolve: {
+                formData: function () {
+                    return $scope.formData;
+                }
+            }
+        });
+    };
+    $scope.open();
+});
+
+allControllers.controller('addResourceControl', function ($scope, $modal) {
+    $scope.formData = {'NodeType': 'Resource'};
+    $scope.open = function (size) {
+        var modalInstance = $modal.open({
+                templateUrl: 'modal_templates/addresource.html',
+                controller: 'ModalInstanceCtrl',
+                resolve: {
+                formData: function () {
+                    return $scope.formData;
+                }
+            }
+        });
+    };
+    $scope.open();
+});
+
+// Please note that $modalInstance represents a modal window (instance) dependency.
+// It is not the same as the $modal service used above.
+allControllers.controller('ModalInstanceCtrl', function ($scope, $modalInstance, formData, $rootScope, $http, globalServerURL, $location) {
+
+    $scope.formData = formData;
+    $scope.selected = {
+    name: $scope.formData.inputName,
+    };
+
+    $scope.ok = function () {
+        $modalInstance.close($scope.selected.name);
+        var currentId = $rootScope.currentSelectedNodeID;
+        inputData = {'Name': $scope.formData.inputName,
+                'NodeType':$scope.formData.NodeType,
+                'Description': $scope.formData.inputDescription || '',
+                'Quantity': $scope.formData.inputQuantity || 0,
+                'Markup': $scope.formData.inputMarkup || 0,
+                'ComponentType': $scope.formData.inputComponentType || 0}
+
+        $http({
+            method: 'POST',
+            url: globalServerURL + currentId + '/add',
+            data: inputData
+        }).success(function () {
+            console.log("added");
+        });
+        $location.path('/projects');
+      };
+
+    $scope.cancel = function () {
+        $modalInstance.dismiss('cancel');
+        $location.path('/projects');
+    };
+});
+
 allControllers.directive('projectslickgridjs', ['globalServerURL', function(globalServerURL) {
     return {
         require: '?ngModel',

@@ -618,7 +618,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest(json_body={
             'Name': 'AddingName',
             'Description': 'Adding test item',
-            'NodeType': 'budgetgroup'
+            'NodeType': 'BudgetGroup'
         })
         # add it to id:1 the project
         request.matchdict = {'id': 1}
@@ -642,7 +642,8 @@ class TestAddItemSuccessCondition(unittest.TestCase):
             'Name': 'TestResourceA',
             'Description': 'Test resource',
             'Quantity': 4,
-            'NodeType': 'component',
+            'Markup': 15,
+            'NodeType': 'Component',
             'ComponentType': 1
         })
         # add it to id:6 the budgetitemb
@@ -657,7 +658,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 4}
         from .views import costview
         response = costview(request)
-        self.assertEqual(response['Cost'], '1494.30')
+        self.assertEqual(response['Cost'], '1584.30')
 
     def test_add_whole_project(self):
         _registerRoutes(self.config)
@@ -666,7 +667,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest(json_body={
             'Name': 'AddingProject',
             'Description': 'Adding test item',
-            'NodeType': 'project'
+            'NodeType': 'Project'
         })
         # add it to id:0 the root
         request.matchdict = {'id': 0}
@@ -680,7 +681,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest(json_body={
             'Name': 'AddingBG',
             'Description': 'Adding test item',
-            'NodeType': 'budgetgroup'
+            'NodeType': 'BudgetGroup'
         })
         # add it to the parent
         request.matchdict = {'id': projectid}
@@ -694,8 +695,9 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest(json_body={
             'Name': 'AddingBI',
             'Description': 'Adding test item',
-            'NodeType': 'budgetitem',
-            'Quantity': 10.0
+            'NodeType': 'BudgetItem',
+            'Quantity': 10.0,
+            'Markup': 3,
         })
         # add it to the parent
         request.matchdict = {'id': newid}
@@ -709,8 +711,9 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest(json_body={
             'Name': 'TestResource',
             'Description': 'Adding test item',
-            'NodeType': 'component',
+            'NodeType': 'Component',
             'Quantity': 10.0,
+            'Markup': 23.5,
             'ComponentType': 1
         })
         # add it to the parent
@@ -725,7 +728,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         from .views import costview
         response = costview(request)
         # true if the cost is correct
-        self.assertEqual(response['Cost'], '500.00')
+        self.assertEqual(response['Cost'], '636.03')
 
 class TestDeleteviewSuccessCondition(unittest.TestCase):
     """ Test if the delete view functions correctly and deletes the node

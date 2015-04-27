@@ -7,6 +7,11 @@ body {
     padding: 5px 15px;
 }
 
+/* Fix for cursor point in angular boostrap */
+.nav, .pagination, .carousel, .panel-title a {
+    cursor: pointer;
+}
+
 /* treeview div */
 .left {
     width: 40%;
