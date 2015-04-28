@@ -218,6 +218,7 @@
                                                     // '<li><a data-ng-click="' + treeId + '.deleteItem('+scope[treeId].currentNode.ID+')">Delete</a></li>'+
                                                     // '<li><a data-ng-click="' + treeId + '.copy('+scope[treeId].currentNode.ID+')">Copy</a></li>'+
                                                     // '<li><a data-ng-click="' + treeId + '.paste('+scope[treeId].currentNode.ID+')">Paste</a></li>';
+                                                    '<li><a data-toggle="modal" data-target="#addbudgetgroup">Launch demo modal</a></li>'+
                                                     '<li><a data-ng-click="' + treeId + '.deleteItem(node.ID)">Delete</a></li>'+
                                                     '<li><a data-ng-click="' + treeId + '.copy(node.ID)">Copy</a></li>'+
                                                     '<li><a data-ng-click="' + treeId + '.paste(node.ID)">Paste</a></li>';

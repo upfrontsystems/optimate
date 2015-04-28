@@ -4,6 +4,22 @@ var myApp = angular.module('myApp', [
                     'ngRoute',
                     'ui.bootstrap']);
 
+myApp.directive('customModals', function () {
+    return {
+        restrict: 'A',
+        require: '?ngModel',
+        transclude: true,
+        scope:{
+            ngModel: '='
+        },
+        templateUrl: 'modal_templates/addbudgetgroup.html',
+        link: function(scope, el, attrs, transcludeFn){
+            scope.modalId = attrs.modalId;
+        }
+    };
+});
+
+
 myApp.config(['$routeProvider',
   function($routeProvider) {
     $routeProvider.
