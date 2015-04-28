@@ -318,7 +318,7 @@ def deleteitemview(request):
             reset.resetTotal()
 
         transaction.commit()
-        return HTTPOk()
+        return {"parentid": parentid}
 
 
 @view_config(route_name="pasteview", renderer='json')

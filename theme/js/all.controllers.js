@@ -289,82 +289,9 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
     }
 ]);
 
-allControllers.controller('addBudgetGroupControl', function ($scope, $modal) {
-    $scope.formData = {'NodeType': 'BudgetGroup'};
-
-    $scope.open = function (size) {
-        var modalInstance = $modal.open({
-                templateUrl: 'modal_templates/addbudgetgroup.html',
-                controller: 'ModalInstanceCtrl',
-                resolve: {
-                formData: function () {
-                    return $scope.formData;
-                }
-            }
-        });
-    };
-    $scope.open();
-});
-
-allControllers.controller('addBudgetItemControl', function ($scope, $modal) {
-    $scope.formData = {'NodeType': 'BudgetItem'};
-    $scope.open = function (size) {
-        var modalInstance = $modal.open({
-                templateUrl: 'modal_templates/addbudgetitem.html',
-                controller: 'ModalInstanceCtrl',
-                resolve: {
-                formData: function () {
-                    return $scope.formData;
-                }
-            }
-        });
-    };
-    $scope.open();
-});
-
-allControllers.controller('addComponentControl', function ($scope, $modal) {
-    $scope.formData = {'NodeType': 'Component'};
-    $scope.open = function (size) {
-        var modalInstance = $modal.open({
-                templateUrl: 'modal_templates/addcomponent.html',
-                controller: 'ModalInstanceCtrl',
-                resolve: {
-                formData: function () {
-                    return $scope.formData;
-                }
-            }
-        });
-    };
-    $scope.open();
-});
-
-allControllers.controller('addResourceControl', function ($scope, $modal) {
-    $scope.formData = {'NodeType': 'Resource'};
-    $scope.open = function (size) {
-        var modalInstance = $modal.open({
-                templateUrl: 'modal_templates/addresource.html',
-                controller: 'ModalInstanceCtrl',
-                resolve: {
-                formData: function () {
-                    return $scope.formData;
-                }
-            }
-        });
-    };
-    $scope.open();
-});
-
-// Please note that $modalInstance represents a modal window (instance) dependency.
-// It is not the same as the $modal service used above.
-allControllers.controller('ModalInstanceCtrl', function ($scope, $modalInstance, formData, $rootScope, $http, globalServerURL, $location) {
-
-    $scope.formData = formData;
-    $scope.selected = {
-    name: $scope.formData.inputName,
-    };
-
+// Controller for the modals, handles adding new nodes
+allControllers.controller('ModalInstanceCtrl', function ($scope, $rootScope, $http, globalServerURL) {
     $scope.ok = function () {
-        $modalInstance.close($scope.selected.name);
         var currentId = $rootScope.currentSelectedNodeID;
         inputData = {'Name': $scope.formData.inputName,
                 'NodeType':$scope.formData.NodeType,
@@ -379,16 +306,35 @@ allControllers.controller('ModalInstanceCtrl', function ($scope, $modalInstance,
             data: inputData
         }).success(function () {
             console.log("added");
+            $rootScope.addedChild = true;
         });
-        $location.path('/projects');
       };
+});
 
-    $scope.cancel = function () {
-        $modalInstance.dismiss('cancel');
-        $location.path('/projects');
+// Directive for the custom modals, the html for the relevant modal is loaded
+// from the directive attribute and compiled
+allControllers.directive('customModals', function ($http, $compile) {
+    return {
+        restrict: 'A',
+        require: '?ngModel',
+        transclude: true,
+        scope:{
+            ngModel: '='
+        },
+        templateUrl: '',
+        controller: 'ModalInstanceCtrl',
+        link: function(scope, el, attrs, transcludeFn){
+            scope.formData = {'NodeType': attrs.modalType};
+            $http.get(attrs.modalSrc).success(function (response) {
+                $compile(response)(scope, function(compliledElement, scope){
+                    el.append(compliledElement);
+                });
+            });
+        }
     };
 });
 
+// Directive for the slickgrid
 allControllers.directive('projectslickgridjs', ['globalServerURL', function(globalServerURL) {
     return {
         require: '?ngModel',

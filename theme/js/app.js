@@ -4,22 +4,6 @@ var myApp = angular.module('myApp', [
                     'ngRoute',
                     'ui.bootstrap']);
 
-myApp.directive('customModals', function () {
-    return {
-        restrict: 'A',
-        require: '?ngModel',
-        transclude: true,
-        scope:{
-            ngModel: '='
-        },
-        templateUrl: 'modal_templates/addbudgetgroup.html',
-        link: function(scope, el, attrs, transcludeFn){
-            scope.modalId = attrs.modalId;
-        }
-    };
-});
-
-
 myApp.config(['$routeProvider',
   function($routeProvider) {
     $routeProvider.
@@ -38,21 +22,5 @@ myApp.config(['$routeProvider',
       when('/suppliers', {
         templateUrl: 'partials/suppliers.html',
         controller: 'suppliersController'
-      }).
-      when('/addbudgetgroup', {
-        templateUrl: 'partials/projects.html',
-        controller: 'addBudgetGroupControl',
-      }).
-      when('/addbudgetitem', {
-        templateUrl: 'partials/projects.html',
-        controller: 'addBudgetItemControl'
-      }).
-      when('/addcomponent', {
-        templateUrl: 'partials/projects.html',
-        controller: 'addComponentControl'
-      }).
-      when('/addresource', {
-        templateUrl: 'partials/projects.html',
-        controller: 'addResourceControl'
       })
   }]);

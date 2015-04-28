@@ -753,8 +753,8 @@ class TestDeleteviewSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.matchdict = {'id': 2}
         response = self._callFUT(request)
-        # true if the response from deleteview is OK
-        self.assertEqual(response.code, 200)
+        # true if the response from deleteview is the parentid
+        self.assertEqual(response['parentid'], 1)
 
         # check now that no nodes have that budgetgroup as a parent
         request = testing.DummyRequest()
