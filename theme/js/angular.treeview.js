@@ -355,7 +355,8 @@
                                                     '<li><a data-ng-click="' + treeId + '.paste('+scope[treeId].currentNode.ID+')">Paste</a></li>';
                                 // Check the current node type and add menus
                                 if (nodetype == 'Project'){
-                                    appendThis = '<li><a data-toggle="modal" data-target="#addbudgetgroup">Add BudgetGroup</a></li>';
+                                    appendThis = '<li><a data-toggle="modal" data-target="#addbudgetgroup">Add BudgetGroup</a></li>'+
+                                                 '<li><a class="close-project" data-id="'+scope[treeId].currentNode.ID+'">Close project</a></li>';
                                 }
                                 else if (nodetype == 'BudgetGroup'){
                                     appendThis = '<li><a data-toggle="modal" data-target="#addbudgetgroup">Add BudgetGroup</a></li>'+

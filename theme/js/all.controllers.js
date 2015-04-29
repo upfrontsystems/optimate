@@ -279,12 +279,25 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
                     });
                 }
             });
+        };        
+        $scope.closeProject = function (project_id) {
+            var result = $.grep($scope.roleList, function(e) {
+                return e.ID == project_id;
+            });
+            var i = $scope.roleList.indexOf(result[0]);
+            if (i != -1) {
+                $scope.roleList.splice(i, 1);
+            }
         };
         $scope.roleList = [];
+        // xxx here we need to check if anything is stored in local storage
         $scope.formData = {};
 
         $( document ).on( "click", "#select-project-submit", function( e ) {
             $scope.loadProject();
+        });
+        $( document ).on( "click", ".close-project", function( e ) {
+            $scope.closeProject($(this).data("id"));
         });
     }
 ]);
