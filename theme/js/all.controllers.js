@@ -260,6 +260,23 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
             }
             return false;
         }
+        function supports_html5_storage() {
+        try {
+            return 'localStorage' in window && window['localStorage'] !== null;
+        } 
+        catch (e) {
+            return false;
+            }
+        }        
+        var hasStorage = (function() {
+          try {
+            localStorage.setItem(mod, mod);
+            localStorage.removeItem(mod);
+            return true;
+          } catch (exception) {
+            return false;
+          }
+        }());                
         $scope.loadProject = function () {
             var id = $('#project-select').find(":selected").val()
             var url = globalServerURL +'projectview/' + id + '/'
@@ -277,6 +294,20 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
                         var textB = b.Name.toUpperCase();
                         return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
                     });
+                    if (hasStorage) {                    
+                        console.log("HAS STORAGE!")
+                    }
+                    else {
+                        console.log("HAS STORAGE FAILED")
+                    }
+                    if ( supports_html5_storage() ) {
+                        console.log("SUPPORT HTML5 STORAGE")
+                        // xxx add entry to local storage
+                    }
+                    else {
+                        console.log("SUPPORT HTML5 STORAGE NOT FOUND")
+                    }                    
+
                 }
             });
         };        
