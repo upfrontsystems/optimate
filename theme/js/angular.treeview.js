@@ -43,7 +43,6 @@
                 // var templateUrl = baseUrl + templateMap[contentType];
                 // templateLoader = $http.get(templateUrl, {cache: $templateCache});
                 var treeviewtemplate = $http.get("partials/treeview.html", {cache: $templateCache});
-                console.log(treeviewtemplate);
                 // return templateLoader;
                 return treeviewtemplate;
 
@@ -51,76 +50,82 @@
 
             var linker = function(scope, element, attrs) {
                 console.log("in linker");
-                // tree id
-                scope.treeId = attrs.treeId;
-                // type
                 scope.nodeType = attrs.nodeType || 'NodeType';
                 // tree model
-                scope.treeModel = attrs.treeModel;
+                // scope.treeModel = scope.roleList;
+                scope.treeModel = scope[attrs.treeModel] || [];
                 // node id
                 scope.nodeId = attrs.nodeId || 'id';
-                // type
-                scope.nodeType = attrs.nodeType || 'NodeType';
                 // node label
                 scope.nodeLabel = attrs.nodeLabel || 'label';
                 // children
                 scope.nodeChildren = attrs.nodeChildren || 'children';
                 // Copied node to be pasted
-                scope.copiednode;
+                scope.copiednodeid;
+                console.log(scope.treeModel);
 
-                console.log("getting template");
                 var loader = getTemplate();
 
                 // check tree id, tree model
-                if ( scope.treeId && scope.treeModel ) {
+                // if ( treeId && treeModel ) {
+                if (scope.treeModel.length > 0 ) {
                     // root node
                     if ( attrs.angularTreeview ) {
                         // create tree object if not exists
-                        scope[scope.treeId] = scope[scope.treeId] || {};
+                        // scope[treeId] = scope[treeId] || {};
+
+                        // Watch for adding a child
+                        $rootScope.$watch('addedChild', function() {
+                            if ($rootScope.addedChild){
+                                var nodeid = scope.currentNode.ID;
+                                scope.loadNodeChildren(nodeid);
+                                $rootScope.addedChild = false;
+                            }
+                        });
 
                         // Function to delete data in server
-                        scope[scope.treeId].deleteItem = function(nodeid) {
+                        scope.deleteThisNode = function(nodeid) {
                             console.log("Deleting "+ nodeid);
                             $http({
                                 method: 'POST',
                                 url:globalServerURL + nodeid + '/delete'
-                            }).success(function () {
+                            }).success(function (response) {
                                 console.log('Success: Item deleted');
-                                scope[scope.treeId].loadChildren(nodeid);
+                                scope.loadNodeChildren(nodeid);
+                                scope.currentNode.selected = undefined;
                             });
                         }
 
                         // Function to copy a node
-                        scope[scope.treeId].copy = function(cnode) {
-                            scope.copiednode = cnode;
-                            console.log("Path that is copied: " + scope.copiednode);
+                        scope.copyThisNode = function(cnode) {
+                            scope.copiednodeid = cnode;
+                            console.log("Path that is copied: " + scope.copiednodeid);
                         }
 
                         // function to POST data to server to paste item
-                        scope[scope.treeId].paste = function(nodeid) {
-                            console.log("Node to be pasted: " + scope.copiednode);
+                        scope.pasteThisNode = function(nodeid) {
+                            console.log("Node to be pasted: " + scope.copiednodeid);
                             $http({
                                 method: 'POST',
                                 url: globalServerURL + nodeid + '/paste',
-                                data:{'ID': scope.copiednode}
+                                data:{'ID': scope.copiednodeid}
                             }).success(function () {
                                 console.log('Success: Node pasted');
-                                scope[scope.treeId].loadChildren(nodeid);
+                                scope.loadNodeChildren(nodeid);
                             });
                         }
-
                         // if node head clicks,
                         // get the children of the node
                         // and collapse or expand the node
-                        scope[scope.treeId].selectNodeHead = scope[scope.treeId].selectNodeHead || function( selectedNode ) {
-                            scope[scope.treeId].currentNode = selectedNode;
+                        scope.selectNodeHead = scope.selectNodeHead || function( selectedNode ) {
+                            scope.currentNode = selectedNode;
                             // if the node is collapsed, get the data and
                             // expand the node
                             if (!selectedNode.collapsed){
                                 // get path from the node
                                 // and go to that path with http
                                 var nodeid = selectedNode.ID;
-                                scope[scope.treeId].loadChildren(nodeid);
+                                scope.loadNodeChildren(nodeid);
                                 selectedNode.collapsed = true;
                             }
                             else{
@@ -129,37 +134,32 @@
                             }
                         };
 
-                        scope[scope.treeId].loadChildren = function(parentid){
+                        // Load the children and add to the tree
+                        scope.loadNodeChildren = function(parentid){
                             $http.get(globalServerURL + parentid + '/').success(function(data) {
                                     console.log("Children loaded");
-                                    scope[scope.treeId].currentNode.Subitem = data;
+                                    scope.currentNode.Subitem = data;
                                 });
                         }
 
                         // if node label clicks,
-                        scope[scope.treeId].selectNodeLabel = scope[scope.treeId].selectNodeLabel || function( selectedNode ) {
+                        scope.selectNodeLabel = scope.selectNodeLabel || function( selectedNode ) {
                             // remove highlight from previous node
-                            if ( scope[scope.treeId].currentNode && scope[scope.treeId].currentNode.selected ) {
-                                scope[scope.treeId].currentNode.selected = undefined;
+                            if ( scope.currentNode && scope.currentNode.selected ) {
+                                scope.currentNode.selected = undefined;
                             }
 
                             // set highlight to selected node
                             selectedNode.selected = 'selected';
 
                             // set currentNode
-                            scope[scope.treeId].currentNode = selectedNode;
+                            scope.currentNode = selectedNode;
 
-                            // add the add menus in the dropdown
-                            var nodetype = scope[scope.treeId].currentNode.NodeType;
-                            var appendThis = '<li><a style="color: gray;">Add</a></li';
-                            var otherMenuItems = '<li class="divider"></li>'+
-                                                // '<li><a data-ng-click="' + treeId + '.deleteItem('+scope[treeId].currentNode.ID+')">Delete</a></li>'+
-                                                // '<li><a data-ng-click="' + treeId + '.copy('+scope[treeId].currentNode.ID+')">Copy</a></li>'+
-                                                // '<li><a data-ng-click="' + treeId + '.paste('+scope[treeId].currentNode.ID+')">Paste</a></li>';
-                                                '<li><a data-toggle="modal" data-target="#myModal">Launch demo modal</a></li>'+
-                                                '<li><a data-ng-click="' + scope.treeId + '.deleteItem(node.ID)">Delete</a></li>'+
-                                                '<li><a data-ng-click="' + scope.treeId + '.copy(node.ID)">Copy</a></li>'+
-                                                '<li><a data-ng-click="' + scope.treeId + '.paste(node.ID)">Paste</a></li>';
+                            /*
+
+                            TODO: adding dropdown menu items
+
+                            */
                         };
                     }
                 }
@@ -172,45 +172,53 @@
                 });
             }
 
-            var getDropdownMenu = function(nodetype, treeid){
-                var appendThis = '<li><a style="color: gray;">Add</a></li';
-                var otherMenuItems = '<li class="divider"></li>'+
-                                    '<li><a data-toggle="modal" data-target="#myModal">Launch demo modal</a></li>'+
-                                    '<li><a data-ng-click="' + treeid + '.deleteItem(node.ID)">Delete</a></li>'+
-                                    '<li><a data-ng-click="' + treeid + '.copy(node.ID)">Copy</a></li>'+
-                                    '<li><a data-ng-click="' + treeid + '.paste(node.ID)">Paste</a></li>';
-
-                return otherMenuItems;
-            }
-
             return {
                 restrict: 'A',
                 scope: {
-                    node:'='
+                    treeModel:'='
                 },
                 link: linker
             };
 
             // return {
+            //     restrict: 'EA',
+
+            //     templateUrl: 'partials/treeview.html',
+
+            //     compile: function (element, attrs) {
+            //         var template = element.html()
+            //                         .replace('#__NODETYPE__#', attrs.nodeType || 'NodeType')
+            //                         .replace('#__TREEMODEL__#', attrs.treeModel)
+            //                         .replace('#__NODEID__#', attrs.nodeId || 'id')
+            //                         .replace('#__NODELABEL__#', attrs.nodeLabel || 'label')
+            //                         .replace('#__NODECHILDREN__#', attrs.nodeChildren || 'children');
+
+            //         element.html(template);
+
+            //         return function link(scope, element, attrs) {}
+            //         }
+            //     };
+
+            // return {
             //     restrict: 'A',
             //     link: function ( scope, element, attrs ) {
             //         // tree id
-            //         var treeId = attrs.treeId;
+            //         // var treeId = attrs.treeId;
+            //         // console.log(treeId);
             //         // type
             //         var nodeType = attrs.nodeType || 'NodeType';
             //         // tree model
             //         var treeModel = attrs.treeModel;
             //         // node id
             //         var nodeId = attrs.nodeId || 'id';
-            //         // type
-            //         var nodeType = attrs.nodeType || 'NodeType';
             //         // node label
             //         var nodeLabel = attrs.nodeLabel || 'label';
             //         // children
             //         var nodeChildren = attrs.nodeChildren || 'children';
             //         // Copied node to be pasted
-            //         scope.copiednode;
+            //         scope.copiednodeid;
             //         // tree template
+
             //         var template =
             //             // Build a list of the nodes in the tree
             //             // Display depends on the state of the node
@@ -219,14 +227,12 @@
             //                     '<i class="collapsed" ' +
             //                         'data-ng-show="node.' + nodeChildren +
             //                         '.length && node.collapsed" '+
-            //                         'data-ng-click="' +
-            //                         treeId + '.selectNodeHead(node)">'+
+            //                         'data-ng-click="selectNodeHead(node)">'+
             //                     '</i>' +
             //                     '<i class="expanded" '+
             //                         'data-ng-show="node.' + nodeChildren +
             //                         '.length && !node.collapsed" '+
-            //                         'data-ng-click="' +
-            //                         treeId + '.selectNodeHead(node)">'+
+            //                         'data-ng-click="selectNodeHead(node)">'+
             //                     '</i>' +
             //                     '<i class="normal" '+
             //                         'data-ng-hide="node.' + nodeChildren +
@@ -237,8 +243,7 @@
             //                     '<span class="treenode {{node.' + nodeType + '}}" '+
             //                         'id="{{node.' + nodeId + '}}"'+
             //                         'data-ng-class="node.selected" '+
-            //                         'data-ng-click="' + treeId +
-            //                         '.selectNodeLabel(node)">'+
+            //                         'data-ng-click="selectNodeLabel(node)">'+
             //                         '{{node.' + nodeLabel + '}}'+
             //                     '</span>' +
 
@@ -251,7 +256,7 @@
             //                     '</div>'+
 
             //                     '<div data-ng-hide="!node.collapsed"'+
-            //                         ' data-tree-id="' + treeId + '"' +
+            //                         // ' data-tree-id="' + treeId + '"' +
             //                         ' data-tree-model="node.' + nodeChildren + '"'+
             //                         ' data-node-id=' + nodeId +
             //                         ' data-node-label=' + nodeLabel +
@@ -261,64 +266,65 @@
             //             '</ul>';
 
             //         // check tree id, tree model
-            //         if ( treeId && treeModel ) {
+            //         // if ( treeId && treeModel ) {
+            //         if (treeModel ) {
             //             // root node
             //             if ( attrs.angularTreeview ) {
             //                 // create tree object if not exists
-            //                 scope[treeId] = scope[treeId] || {};
+            //                 // scope[treeId] = scope[treeId] || {};
 
             //                 // Watch for adding a child
             //                 $rootScope.$watch('addedChild', function() {
             //                     if ($rootScope.addedChild){
-            //                         var nodeid = scope[treeId].currentNode.ID;
-            //                         scope[treeId].loadChildren(nodeid);
+            //                         var nodeid = scope.currentNode.ID;
+            //                         scope.loadNodeChildren(nodeid);
             //                         $rootScope.addedChild = false;
             //                     }
             //                 });
 
             //                 // Function to delete data in server
-            //                 scope[treeId].deleteItem = function(nodeid) {
+            //                 scope.deleteThisNode = function(nodeid) {
             //                     console.log("Deleting "+ nodeid);
             //                     $http({
             //                         method: 'POST',
             //                         url:globalServerURL + nodeid + '/delete'
             //                     }).success(function (response) {
             //                         console.log('Success: Item deleted');
-            //                         scope[treeId].loadChildren(nodeid);
-            //                         scope[treeId].currentNode.selected = undefined;
+            //                         scope.loadNodeChildren(nodeid);
+            //                         scope.currentNode.selected = undefined;
             //                     });
             //                 }
 
             //                 // Function to copy a node
-            //                 scope[treeId].copy = function(cnode) {
-            //                     scope.copiednode = cnode;
-            //                     console.log("Path that is copied: " + scope.copiednode);
+            //                 scope.copyThisNode = function(cnode) {
+            //                     scope.copiednodeid = cnode;
+            //                     console.log("Path that is copied: " + scope.copiednodeid);
             //                 }
 
             //                 // function to POST data to server to paste item
-            //                 scope[treeId].paste = function(nodeid) {
-            //                     console.log("Node to be pasted: " + scope.copiednode);
+            //                 scope.pasteThisNode = function(nodeid) {
+            //                     console.log("Node to be pasted: " + scope.copiednodeid);
             //                     $http({
             //                         method: 'POST',
             //                         url: globalServerURL + nodeid + '/paste',
-            //                         data:{'ID': scope.copiednode}
+            //                         data:{'ID': scope.copiednodeid}
             //                     }).success(function () {
             //                         console.log('Success: Node pasted');
-            //                         scope[treeId].loadChildren(nodeid);
+            //                         scope.loadNodeChildren(nodeid);
             //                     });
             //                 }
             //                 // if node head clicks,
             //                 // get the children of the node
             //                 // and collapse or expand the node
-            //                 scope[treeId].selectNodeHead = scope[treeId].selectNodeHead || function( selectedNode ) {
-            //                     scope[treeId].currentNode = selectedNode;
+            //                 scope.selectNodeHead = scope.selectNodeHead || function( selectedNode ) {
+            //                     scope.currentNode = selectedNode;
             //                     // if the node is collapsed, get the data and
             //                     // expand the node
             //                     if (!selectedNode.collapsed){
             //                         // get path from the node
             //                         // and go to that path with http
             //                         var nodeid = selectedNode.ID;
-            //                         scope[treeId].loadChildren(nodeid);
+            //                         scope.loadNodeChildren(nodeid);
             //                         selectedNode.collapsed = true;
             //                     }
             //                     else{
@@ -328,33 +334,33 @@
             //                 };
 
             //                 // Load the children and add to the tree
-            //                 scope[treeId].loadChildren = function(parentid){
+            //                 scope.loadNodeChildren = function(parentid){
             //                     $http.get(globalServerURL + parentid + '/').success(function(data) {
             //                             console.log("Children loaded");
-            //                             scope[treeId].currentNode.Subitem = data;
+            //                             scope.currentNode.Subitem = data;
             //                         });
             //                 }
 
             //                 // if node label clicks,
-            //                 scope[treeId].selectNodeLabel = scope[treeId].selectNodeLabel || function( selectedNode ) {
+            //                 scope.selectNodeLabel = scope.selectNodeLabel || function( selectedNode ) {
             //                     // remove highlight from previous node
-            //                     if ( scope[treeId].currentNode && scope[treeId].currentNode.selected ) {
-            //                         scope[treeId].currentNode.selected = undefined;
+            //                     if ( scope.currentNode && scope.currentNode.selected ) {
+            //                         scope.currentNode.selected = undefined;
             //                     }
 
             //                     // set highlight to selected node
             //                     selectedNode.selected = 'selected';
 
             //                     // set currentNode
-            //                     scope[treeId].currentNode = selectedNode;
+            //                     scope.currentNode = selectedNode;
 
             //                     // add the add menus in the dropdown
-            //                     var nodetype = scope[treeId].currentNode.NodeType;
+            //                     var nodetype = scope.currentNode.NodeType;
             //                     var appendThis = '<li><a style="color: gray;">Add</a></li>';
             //                     var otherMenuItems = '<li class="divider"></li>'+
-            //                                         '<li><a data-ng-click="' + treeId + '.deleteItem('+scope[treeId].currentNode.ID+')">Delete</a></li>'+
-            //                                         '<li><a data-ng-click="' + treeId + '.copy('+scope[treeId].currentNode.ID+')">Copy</a></li>'+
-            //                                         '<li><a data-ng-click="' + treeId + '.paste('+scope[treeId].currentNode.ID+')">Paste</a></li>';
+            //                                         '<li><a data-ng-click="deleteThisNode('+scope.currentNode.ID+')">Delete</a></li>'+
+            //                                         '<li><a data-ng-click="copyThisNode('+scope.currentNode.ID+')">Copy</a></li>'+
+            //                                         '<li><a data-ng-click="pasteThisNode('+scope.currentNode.ID+')">Paste</a></li>';
             //                     // Check the current node type and add menus
             //                     if (nodetype == 'Project'){
             //                         appendThis = '<li><a data-toggle="modal" data-target="#addbudgetgroup">Add BudgetGroup</a></li>';
@@ -370,7 +376,7 @@
             //                     else if (nodetype == 'ResourceCategory'){
             //                         appendThis = '<li><a data-toggle="modal" data-target="#addresource">Add Resource</a></li>';
             //                     }
-            //                     $rootScope.currentSelectedNodeID = scope[treeId].currentNode.ID;
+            //                     $rootScope.currentSelectedNodeID = scope.currentNode.ID;
 
             //                     // Add to the html
             //                     $(".dropdown > ul.dropdown-menu").html(appendThis + otherMenuItems);
@@ -382,53 +388,8 @@
             //         }
             //     }
             // };
-                            // if node label clicks,
-            //                 scope[treeId].selectNodeLabel = scope[treeId].selectNodeLabel || function( selectedNode ) {
-            //                     // remove highlight from previous node
-            //                     if ( scope[treeId].currentNode && scope[treeId].currentNode.selected ) {
-            //                         scope[treeId].currentNode.selected = undefined;
-            //                     }
 
-            //                     // set highlight to selected node
-            //                     selectedNode.selected = 'selected';
 
-            //                     // set currentNode
-            //                     scope[treeId].currentNode = selectedNode;
 
-            //                     // add the add menus in the dropdown
-            //                     var nodetype = scope[treeId].currentNode.NodeType;
-            //                     var appendThis = '<li><a style="color: gray;">Add</a></li>';
-            //                     var otherMenuItems = '<li class="divider"></li>'+
-            //                                         '<li><a data-ng-click="' + treeId + '.deleteItem('+scope[treeId].currentNode.ID+')">Delete</a></li>'+
-            //                                         '<li><a data-ng-click="' + treeId + '.copy('+scope[treeId].currentNode.ID+')">Copy</a></li>'+
-            //                                         '<li><a data-ng-click="' + treeId + '.paste('+scope[treeId].currentNode.ID+')">Paste</a></li>';
-            //                     // Check the current node type and add menus
-            //                     if (nodetype == 'Project'){
-            //                         appendThis = '<li><a data-toggle="modal" data-target="#addbudgetgroup">Add BudgetGroup</a></li>'+
-            //                                      '<li><a class="close-project" data-id="'+scope[treeId].currentNode.ID+'">Close project</a></li>';
-            //                     }
-            //                     else if (nodetype == 'BudgetGroup'){
-            //                         appendThis = '<li><a data-toggle="modal" data-target="#addbudgetgroup">Add BudgetGroup</a></li>'+
-            //                                         '<li><a data-toggle="modal" data-target="#addbudgetitem">Add BudgetItem</a></li>'+
-            //                                         '<li><a data-toggle="modal" data-target="#addcomponent">Add Component</a></li>';
-            //                     }
-            //                     else if (nodetype == 'BudgetItem'){
-            //                         appendThis = '<li><a data-toggle="modal" data-target="#addcomponent">Add Component</a></li>';
-            //                     }
-            //                     else if (nodetype == 'ResourceCategory'){
-            //                         appendThis = '<li><a data-toggle="modal" data-target="#addresource">Add Resource</a></li>';
-            //                     }
-            //                     $rootScope.currentSelectedNodeID = scope[treeId].currentNode.ID;
-
-            //                     // Add to the html
-            //                     $(".dropdown > ul.dropdown-menu").html(appendThis + otherMenuItems);
-            //                     $compile($(".dropdown > ul.dropdown-menu").contents())(scope);
-            //                 };
-            //             }
-            //             // Rendering template.
-            //             element.html('').append( $compile( template )( scope ) );
-            //         }
-            //     }
-            // };
     }]);
 })( angular );
