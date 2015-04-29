@@ -183,11 +183,10 @@
                 return otherMenuItems;
             }
 
-            console.log ("returning");
             return {
-                restrict: 'E',
+                restrict: 'A',
                 scope: {
-                    post:'='
+                    node:'='
                 },
                 link: linker
             };

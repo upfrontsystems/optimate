@@ -1,28 +1,28 @@
 <ul>
-    <li data-ng-repeat="node in {{treeModel}}">
+    <li data-ng-repeat="node in treeModel">
         <i class="collapsed"
-            data-ng-show="{{node.Subitem.length}} && {{node.collapsed}}"
+            data-ng-show="node.Subitem.length && node.collapsed"
             data-ng-click="mytree.selectNodeHead(node)">
         </i>
         <i class="expanded"
-            data-ng-show="{{node.Subitem.length}} && !{{node.collapsed}}"
+            data-ng-show="node.Subitem.length && !node.collapsed"
             data-ng-click="mytree.selectNodeHead(node)">
         </i>
         <i class="normal"
-            data-ng-hide="{{node.Subitem.length}}">
+            data-ng-hide="node.Subitem.length">
         </i>
         <span class="treenode {{node.nodeType}}"
             id="{{node.nodeId}}"
-            data-ng-class="{{node.selected}}"
+            data-ng-class="node.selected"
             data-ng-click="mytree.selectNodeLabel(node)">
             {{node.nodeLabel}}
         </span>
-        <div data-ng-hide="!{{node.collapsed}}"
+        <div data-ng-hide="!node.collapsed"
             data-tree-id="mytree"
-            data-tree-model="{{node.Subitem}}"
-            data-node-id="{{node.nodeId}}"
-            data-node-label="{{node.nodeLabel}}"
-            data-node-children="{{node.nodeChildren}}"
+            data-tree-model="node.Subitem"
+            data-node-id="node.nodeId"
+            data-node-label="node.nodeLabel"
+            data-node-children="node.nodeChildren"
             class="angular-treeview">
         </div>
     </li>
