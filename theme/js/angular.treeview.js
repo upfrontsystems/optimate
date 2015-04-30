@@ -139,6 +139,10 @@
                         if (nodetype == 'Project'){
                             appendThis = '<li><a data-toggle="modal" data-target="#addbudgetgroup">Add BudgetGroup</a></li>';
                         }
+                        if (nodetype == 'Project'){
+                            appendThis = '<li><a data-toggle="modal" data-target="#addbudgetgroup">Add BudgetGroup</a></li>'+
+                                         '<li><a class="close-project" data-id="'+currentnodeid+'">Close project</a></li>';
+                        }                        
                         else if (nodetype == 'BudgetGroup'){
                             appendThis = '<li><a data-toggle="modal" data-target="#addbudgetgroup">Add BudgetGroup</a></li>'+
                                         '<li><a data-toggle="modal" data-target="#addbudgetitem">Add BudgetItem</a></li>'+
