@@ -49,7 +49,6 @@
             }
 
             var linker = function(scope, element, attrs) {
-                console.log("in linker");
                 scope.nodeType = attrs.nodeType || 'NodeType';
                 // tree model
                 // scope.treeModel = scope.roleList;
@@ -62,13 +61,15 @@
                 scope.nodeChildren = attrs.nodeChildren || 'children';
                 // Copied node to be pasted
                 scope.copiednodeid;
+                console.log("Current array of nodes: " + attrs.treeModel);
                 console.log(scope.treeModel);
+                // console.log(attrs.treeModel);
 
                 var loader = getTemplate();
 
                 // check tree id, tree model
                 // if ( treeId && treeModel ) {
-                if (scope.treeModel.length > 0 ) {
+                if (scope.treeModel) {
                     // root node
                     if ( attrs.angularTreeview ) {
                         // create tree object if not exists
@@ -164,7 +165,6 @@
                     }
                 }
 
-                console.log("loading template in element");
                 var promise = loader.success(function(html) {
                     element.html(html);
                 }).then(function (response) {

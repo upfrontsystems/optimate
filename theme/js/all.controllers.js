@@ -263,11 +263,11 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
         function supports_html5_storage() {
         try {
             return 'localStorage' in window && window['localStorage'] !== null;
-        } 
+        }
         catch (e) {
             return false;
             }
-        }        
+        }
         var hasStorage = (function() {
           try {
             localStorage.setItem(mod, mod);
@@ -276,7 +276,7 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
           } catch (exception) {
             return false;
           }
-        }());                
+        }());
         $scope.loadProject = function () {
             var id = $('#project-select').find(":selected").val()
             var url = globalServerURL +'projectview/' + id + '/'
@@ -294,7 +294,7 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
                         var textB = b.Name.toUpperCase();
                         return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
                     });
-                    if (hasStorage) {                    
+                    if (hasStorage) {
                         console.log("HAS STORAGE!")
                     }
                     else {
@@ -306,11 +306,10 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
                     }
                     else {
                         console.log("SUPPORT HTML5 STORAGE NOT FOUND")
-                    }                    
-
+                    }
                 }
             });
-        };        
+        };
         $scope.closeProject = function (project_id) {
             var result = $.grep($scope.roleList, function(e) {
                 return e.ID == project_id;
