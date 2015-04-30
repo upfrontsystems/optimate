@@ -332,6 +332,10 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
             else {
                 console.log("LOCAL STORAGE NOT SUPPORTED!")
             }
+            // blank the data in the info box under the treeview
+            $scope.currentNode.ID = '';
+            $scope.currentNode.Description = '';
+            $scope.currentNode.NodeType = '';            
             $scope.$apply() // refresh the tree so that closed project is not shown            
         };
         // reopen projects that were previously opened upon page load
@@ -613,7 +617,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', function(glob
                 });
             });
 
-            // eventhandler to update blank data when a project is closed
+            // eventhandler to blank grid data when a project is closed
             $( document ).on( "click", ".close-project", function( e ) {
                 dataView.beginUpdate();
                 dataView.setItems([]);
