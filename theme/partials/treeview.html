@@ -15,13 +15,15 @@
             id="{{node.ID}}"
             data-ng-class="node.selected"
             data-ng-click="selectNodeLabel(node)">
-            {{$eval('node.' + nodeLabel)}}
+            {{node.Name}}
         </span>
+        <div class="dropdown" data-ng-show="node.selected">
+            <a data-toggle="dropdown"><span class="caret"></span></a>
+            <ul class="dropdown-menu">
+            </ul>
+        </div>
         <div data-ng-hide="!node.collapsed"
-            data-tree-model="node.Subitem"
-            data-node-id="ID"
-            data-node-label="Name"
-            data-node-children="Subitem">
+            data-tree-model="node.Subitem">
         </div>
     </li>
 </ul>
