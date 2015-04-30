@@ -260,23 +260,18 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
             }
             return false;
         }
-        function supports_html5_storage() {
-        try {
-            return 'localStorage' in window && window['localStorage'] !== null;
-        } 
-        catch (e) {
-            return false;
-            }
-        }        
+        // aux function to test if we can support localstorage
         var hasStorage = (function() {
-          try {
-            localStorage.setItem(mod, mod);
-            localStorage.removeItem(mod);
-            return true;
-          } catch (exception) {
-            return false;
-          }
-        }());                
+            try {
+                var mod = 'modernizr';
+                localStorage.setItem(mod, mod);
+                localStorage.removeItem(mod);
+                return true;
+            }
+            catch (exception) {
+                return false;
+            }
+        }());
         $scope.loadProject = function () {
             var id = $('#project-select').find(":selected").val()
             var url = globalServerURL +'projectview/' + id + '/'
@@ -294,23 +289,29 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
                         var textB = b.Name.toUpperCase();
                         return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
                     });
-                    if (hasStorage) {                    
-                        console.log("HAS STORAGE!")
+                    if (hasStorage) {
+                        // add id of project to local storage
+                        var open_projects;
+                        try {
+                            // attempt to add an id to open_projects storage
+                            open_projects = JSON.parse(localStorage["open_projects"])
+                            open_projects.push(data[0].ID);
+                            localStorage["open_projects"] = JSON.stringify(open_projects);
+                        }
+                        catch (exception) {
+                            // create a new open_projects storage as one doesnt exist
+                            localStorage.setItem("open_projects", []);
+                            open_projects = []
+                            open_projects.push(data[0].ID);
+                            localStorage["open_projects"] = JSON.stringify(open_projects);
+                        }
                     }
                     else {
-                        console.log("HAS STORAGE FAILED")
+                        console.log("LOCAL STORAGE NOT SUPPORTED!")
                     }
-                    if ( supports_html5_storage() ) {
-                        console.log("SUPPORT HTML5 STORAGE")
-                        // xxx add entry to local storage
-                    }
-                    else {
-                        console.log("SUPPORT HTML5 STORAGE NOT FOUND")
-                    }                    
-
                 }
             });
-        };        
+        };
         $scope.closeProject = function (project_id) {
             var result = $.grep($scope.roleList, function(e) {
                 return e.ID == project_id;
@@ -319,9 +320,53 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
             if (i != -1) {
                 $scope.roleList.splice(i, 1);
             }
+            if (hasStorage) {
+                // remove id of project that we are closing from storage
+                var open_projects = JSON.parse(localStorage["open_projects"])
+                var index = open_projects.indexOf(project_id);
+                if (index > -1) {
+                   open_projects.splice(index, 1);
+                }
+                localStorage["open_projects"] = JSON.stringify(open_projects);
+            }
+            else {
+                console.log("LOCAL STORAGE NOT SUPPORTED!")
+            }
         };
-        $scope.roleList = [];
-        // xxx here we need to check if anything is stored in local storage
+        // reopen projects that were previously opened upon page load
+        $scope.preloadProjects = function () {
+            if (hasStorage) {
+                open_projects = []                
+                try {
+                    open_projects = JSON.parse(localStorage["open_projects"])
+                }
+                catch (exception) {
+                }
+                if ( open_projects.length != 0 ) {
+                    for (i = 0; i < open_projects.length; i++) {                        
+                        var id = open_projects[i];
+                        var url = globalServerURL +'projectview/' + id + '/'
+                        var req = {
+                            method: 'GET',
+                            url: url,
+                        }
+                        $http(req).success(function(data) {
+                            $scope.roleList.push(data[0]);
+                            $scope.roleList.sort(function(a, b) {
+                                var textA = a.Name.toUpperCase();
+                                var textB = b.Name.toUpperCase();
+                                return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+                            });
+                        });
+                    }
+                }
+            }
+            else {
+                console.log("LOCAL STORAGE NOT SUPPORTED!")
+            }
+        };        
+        $scope.roleList = [];        
+        $scope.preloadProjects(); // check if anything is stored in local storage
         $scope.formData = {};
 
         $( document ).on( "click", "#select-project-submit", function( e ) {
