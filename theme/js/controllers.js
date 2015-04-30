@@ -336,14 +336,14 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
         // reopen projects that were previously opened upon page load
         $scope.preloadProjects = function () {
             if (hasStorage) {
-                open_projects = []
+                open_projects = []                
                 try {
                     open_projects = JSON.parse(localStorage["open_projects"])
                 }
                 catch (exception) {
                 }
                 if ( open_projects.length != 0 ) {
-                    for (i = 0; i < open_projects.length; i++) {
+                    for (i = 0; i < open_projects.length; i++) {                        
                         var id = open_projects[i];
                         var url = globalServerURL +'projectview/' + id + '/'
                         var req = {
@@ -364,8 +364,8 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
             else {
                 console.log("LOCAL STORAGE NOT SUPPORTED!")
             }
-        };
-        $scope.roleList = [];
+        };        
+        $scope.roleList = [];        
         $scope.preloadProjects(); // check if anything is stored in local storage
         $scope.formData = {};
 
