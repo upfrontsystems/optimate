@@ -51,8 +51,6 @@
             var linker = function(scope, element, attrs) {
                 scope.nodeType = attrs.nodeType || 'NodeType';
                 // tree model
-                // scope.treeModel = scope.roleList;
-                scope.treeModel = scope[attrs.treeModel] || [];
                 // node id
                 scope.nodeId = attrs.nodeId || 'id';
                 // node label
@@ -168,7 +166,8 @@
                 var promise = loader.success(function(html) {
                     element.html(html);
                 }).then(function (response) {
-                    element.replaceWith($compile(element.html())(scope));
+                    var result = $compile(element.html())(scope);
+                    element.html('').append(result);
                 });
             }
 

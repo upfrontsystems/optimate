@@ -1,15 +1,15 @@
 <ul>
     <li data-ng-repeat="node in treeModel">
         <i class="collapsed"
-            data-ng-show="{{node.Subitem.length > 0}} && node.collapsed"
+            data-ng-show="node.Subitem.length && node.collapsed"
             data-ng-click="selectNodeHead(node)">
         </i>
         <i class="expanded"
-            data-ng-show="{{node.Subitem.length > 0}} && !node.collapsed"
+            data-ng-show="node.Subitem.length && !node.collapsed"
             data-ng-click="selectNodeHead(node)">
         </i>
         <i class="normal"
-            data-ng-hide="{{node.Subitem.length > 0}}">
+            data-ng-hide="node.Subitem.length">
         </i>
         <span class="treenode {{node.NodeType}}"
             id="{{node.ID}}"
