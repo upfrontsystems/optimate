@@ -126,10 +126,10 @@
                         selectedNode.selected = 'selected';
                         // set currentNode
                         $rootScope.currentNode = selectedNode;
-
+                        $rootScope.currentSelectedNodeID = currentnodeid;
                          // add the add menus in the dropdown
                         var nodetype = $rootScope.currentNode.NodeType;
-                        var currentnodeid = $rootScope.currentNode.NodeType;
+                        var currentnodeid = $rootScope.currentNode.ID;
                         var appendThis = '<li><a style="color: gray;">Add</a></li>';
                         var otherMenuItems = '<li class="divider"></li>'+
                                         '<li><a data-ng-click="deleteThisNode('+currentnodeid+')">Delete</a></li>'+
@@ -150,8 +150,6 @@
                         else if (nodetype == 'ResourceCategory'){
                             appendThis = '<li><a data-toggle="modal" data-target="#addresource">Add Resource</a></li>';
                         }
-                        $rootScope.currentSelectedNodeID = currentnodeid;
-
                         // Add to the html
                         $(".dropdown > ul.dropdown-menu").html(appendThis + otherMenuItems);
                         $compile($(".dropdown > ul.dropdown-menu").contents())(scope);
