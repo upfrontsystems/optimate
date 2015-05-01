@@ -1,5 +1,5 @@
 <ul>
-    <li data-ng-repeat="node in treeModel">
+    <li data-ng-repeat="node in treeModel track by node.ID">
         <i class="collapsed"
             data-ng-show="node.Subitem.length && node.collapsed"
             data-ng-click="selectNodeHead(node)">
@@ -18,8 +18,15 @@
             {{node.Name}}
         </span>
         <div class="dropdown" data-ng-show="node.selected">
-            <a data-toggle="dropdown"><span class="caret"></span></a>
-            <ul class="dropdown-menu">
+            <a id="menu1" data-toggle="dropdown"><span class="caret"></span></a>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">
+                <div class="treeview-dropdown" id="space-for-add-menus"></div>
+                <li role="presentation" class="divider"></li>
+                <div class="treeview-dropdown">
+                <li role="presentation"><a role="button" data-ng-click="copyThisNode(node.ID)">Copy</a></li>
+                <li role="presentation"><a role="button" data-ng-click="pasteThisNode(node.ID)">Paste</a></li>
+                <li role="presentation"><a role="button" data-ng-click="deleteThisNode($index)">Delete</a></li>
+                </div>
             </ul>
         </div>
         <div data-ng-hide="!node.collapsed"
