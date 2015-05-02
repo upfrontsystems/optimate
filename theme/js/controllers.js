@@ -247,8 +247,8 @@ allControllers.controller('projectlistController',['$scope', '$http', 'globalSer
 
 // Angular function that loads a specific project into the treeview
 // upon selection from the user
-allControllers.controller('treeviewController',['$scope', '$http', 'globalServerURL',
-    function ProjectList($scope, $http, globalServerURL) {
+allControllers.controller('treeviewController',['$scope', '$http', 'globalServerURL', '$rootScope',
+    function($scope, $http, globalServerURL, $rootScope) {
 
         // aux function - checks if object is already in list based on ID
         function containsObject(obj, list) {
@@ -312,16 +312,20 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
                 }
             });
         };
-        $scope.closeProject = function (project_id) {
-            var result = $.grep($scope.roleList, function(e) {
-                return e.ID == project_id;
-            });
-            var i = $scope.roleList.indexOf(result[0]);
-            if (i != -1) {
-                $scope.roleList.splice(i, 1);
-            }
+        $scope.closeProject = function (project_index) {
+            // var result = $.grep($scope.roleList, function(e) {
+            //     return e.ID == project_id;
+            // });
+            // var i = $scope.roleList.indexOf(result[0]);
+            // if (i != -1) {
+            //     $scope.roleList.splice(i, 1);
+            // }
+            console.log(project_index);
+            console.log($scope.treeModel);
+            console.log($scope.treeModel.splice(project_index, 1));
             if (hasStorage) {
                 // remove id of project that we are closing from storage
+                project_id = $scope.treeModel[project_index].ID
                 var open_projects = JSON.parse(localStorage["open_projects"])
                 var index = open_projects.indexOf(project_id);
                 if (index > -1) {
@@ -333,9 +337,11 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
                 console.log("LOCAL STORAGE NOT SUPPORTED!")
             }
             // blank the data in the info box under the treeview
-            $scope.currentNode.ID = '';
-            $scope.currentNode.Description = '';
-            $scope.currentNode.NodeType = '';
+            if ($rootScope.currentNode){
+                $rootScope.currentNode.ID = '';
+                $rootScope.currentNode.Description = '';
+                $rootScope.currentNode.NodeType = '';
+            }
             $scope.$apply() // refresh the tree so that closed project is not shown
         };
         // reopen projects that were previously opened upon page load
@@ -348,6 +354,7 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
                 catch (exception) {
                 }
                 if ( open_projects.length != 0 ) {
+                    var templist = []
                     for (i = 0; i < open_projects.length; i++) {
                         var id = open_projects[i];
                         var url = globalServerURL +'projectview/' + id + '/'
@@ -356,14 +363,15 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
                             url: url,
                         }
                         $http(req).success(function(data) {
-                            $scope.roleList.push(data[0]);
-                            $scope.roleList.sort(function(a, b) {
+                            templist.push(data[0]);
+                        });
+                    }
+                    templist.sort(function(a, b) {
                                 var textA = a.Name.toUpperCase();
                                 var textB = b.Name.toUpperCase();
                                 return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
                             });
-                        });
-                    }
+                    $scope.roleList = templist;
                 }
             }
             else {
@@ -372,21 +380,101 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
         };
         $scope.roleList = [];
         $scope.preloadProjects(); // check if anything is stored in local storage
+
         $scope.formData = {};
 
         $( document ).on( "click", "#select-project-submit", function( e ) {
             $scope.loadProject();
         });
-        $( document ).on( "click", ".close-project", function( e ) {
-            $scope.closeProject($(this).data("id"));
+        // $( document ).on( "click", ".close-project", function( e ) {
+        //     $scope.closeProject($(this).data("id"));
+        // });
+
+        // functions used in the treeview model
+        // ==================================================================
+        // Watch for when a child is added and refresh the treeview
+        $rootScope.$watch('addedChild', function() {
+            if ($rootScope.addedChild){
+                var nodeid = $rootScope.currentNode.ID;
+                $scope.loadNodeChildren(nodeid);
+                $rootScope.addedChild = false;
+            }
         });
+
+        // Deleting a node. It recieves the index of the node
+        // The id is sent to the server to be deleted and the node
+        // removed from the treemodel
+        $scope.deleteThisNode = function ( idx ) {
+            var nodeid = $scope.treeModel[idx].ID;
+            $http({
+                method: 'POST',
+                url:globalServerURL + nodeid + '/delete'
+            }).success(function (response) {
+                console.log('Success: Item deleted');
+                $scope.treeModel.splice(idx, 1);
+            });
+        };
+
+        // Function to copy a node
+        $scope.copyThisNode = function(cnode) {
+            $rootScope.copiednodeid = cnode;
+            console.log("Path that is copied: " + cnode);
+        }
+
+        // function to paste copied node into another node
+        // the id is sent to the server and the node pasted there
+        // the user cant paste into the same node
+        $scope.pasteThisNode = function(nodeid) {
+            if ($rootScope.copiednodeid){
+                var cnodeid = $rootScope.copiednodeid;
+                if (cnodeid == nodeid){
+                    alert("You can't paste into the same node");
+                }
+                else {
+                    $http({
+                        method: 'POST',
+                        url: globalServerURL + nodeid + '/paste',
+                        data:{'ID': cnodeid}
+                    }).success(function () {
+                        console.log('Success: Node pasted');
+                        $scope.loadNodeChildren(nodeid);
+                    });
+                }
+            }
+        }
+
+        // if node head clicks, get the children of the node
+        // and collapse or expand the node
+        $scope.selectNodeHead = $scope.selectNodeHead || function( selectedNode ) {
+            // if the node is collapsed, get the data and
+            // expand the node
+            if (!selectedNode.collapsed){
+                selectedNode.collapsed = true;
+                var parentid = selectedNode.ID;
+                $http.get(globalServerURL + parentid + '/').success(function(data) {
+                    console.log("Children loaded");
+                    selectedNode.Subitem = data;
+                });
+            }
+            else{
+                selectedNode.collapsed = false;
+            }
+        };
+
+        // Load the children and add to the tree
+        $scope.loadNodeChildren = function(parentid){
+            $http.get(globalServerURL + parentid + '/').success(function(data) {
+                console.log("Children loaded");
+                $rootScope.currentNode.Subitem = data;
+            });
+        }
     }
 ]);
 
 // Controller for the modals, handles adding new nodes
 allControllers.controller('ModalInstanceCtrl', function ($scope, $rootScope, $http, globalServerURL) {
     $scope.ok = function () {
-        var currentId = $rootScope.currentSelectedNodeID;
+        var currentId = $rootScope.currentNode.ID;
         inputData = {'Name': $scope.formData.inputName,
                 'NodeType':$scope.formData.NodeType,
                 'Description': $scope.formData.inputDescription || '',
@@ -613,6 +701,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', function(glob
                             grid.setColumns(newcolumns);
                             grid.render();
                         }
+                        console.log("Slickgrid data loaded");
                     }
                 });
             });
