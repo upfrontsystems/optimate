@@ -4,6 +4,12 @@
             <li>
                 <a title="Add Client" data-target="#addClientModal" data-toggle="modal"><i class="fa fa-plus-square"></i></a>
             </li>
+            <li ng-show="selectedClientId">
+                <a title="Edit Client" ng-click="getEditClient(selectedClientId)"><i class="fa fa-pencil"></i></a>
+            </li>
+            <li ng-show="selectedClientId">
+                <a title="Delete Client" ng-click="deleteClient(selectedClientId)"><i class="fa fa-trash"></i></a>
+            </li>
         </ul>
     </div>
 </nav>
@@ -131,21 +137,15 @@
             <thead>
                 <tr>
                     <th>Name</th>
-                    <th>City</th>
                     <th>Address</th>
                     <th>Phone</th>
-                    <th></th>
-                    <th></th>
                 </tr>
             </thead>
             <tbody>
-                <tr ng-repeat="obj in jsonclients">
+                <tr ng-repeat="obj in jsonclients" ng-click="showActionsFor(obj)" id="client-{{obj.ID}}">
                     <td>{{obj.Name}}</td>
-                    <td>{{obj.City}}</td>
                     <td>{{obj.Address}}</td>
                     <td>{{obj.Phone}}</td>
-                    <td><button ng-click="getEditClient(obj.ID)">Edit</button></td>
-                    <td><button ng-click="deleteClient(obj.ID)">Delete</button></td>
                 </tr>
             </tbody>
         </table>
