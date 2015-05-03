@@ -161,7 +161,7 @@
 
             return {
                 restrict: 'A',
-                controller: 'treeviewController',
+                //controller: 'treeviewController',
                 scope: {
                     treeModel:'='
                 },
