@@ -4,6 +4,12 @@
             <li>
                 <a title="Add Supplier" data-target="#addSupplierModal" data-toggle="modal"><i class="fa fa-plus-square"></i></a>
             </li>
+            <li ng-show="selectedSupplierId">
+                <a title="Edit Supplier" ng-click="getEditSupplier(selectedSupplierId)"><i class="fa fa-pencil"></i></a>
+            </li>
+            <li ng-show="selectedSupplierId">
+                <a title="Delete Supplier" ng-click="deleteSupplier(selectedSupplierId)"><i class="fa fa-trash"></i></a>
+            </li>
         </ul>
     </div>
 </nav>
@@ -76,17 +82,13 @@
                     <th>Name</th>
                     <th>Address</th>
                     <th>Phone</th>
-                    <th></th>
-                    <th></th>
                 </tr>
             </thead>
             <tbody>
-                <tr ng-repeat="obj in jsonsuppliers">
+                <tr ng-repeat="obj in jsonsuppliers" ng-click="showActionsFor(obj)" id="supplier-{{obj.ID}}">
                     <td>{{obj.Name}}</td>
                     <td>{{obj.Address}}</td>
                     <td>{{obj.Phone}}</td>
-                    <td><button ng-click="getEditSupplier(obj.ID)">Edit</button></td>
-                    <td><button ng-click="deleteSupplier(obj.ID)">Delete</button></td>
                 </tr>
             </tbody>
         </table>

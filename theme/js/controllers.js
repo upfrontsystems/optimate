@@ -210,6 +210,12 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
           };
         };
 
+
+        $scope.showActionsFor = function(obj) {
+            $scope.selectedSupplierId = obj.ID;
+            $('#supplier-'+obj.ID).addClass('active').siblings().removeClass('active');
+        };
+
         $scope.getEditSupplier = function(id) {
             var req = {
             method: 'GET',
