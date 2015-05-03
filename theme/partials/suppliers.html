@@ -1,77 +1,94 @@
-<div class="container-fluid">
-    <div id="suppliers" class="row">
-        <a data-target="#addSupplierModal" href="" class="btn btn-primary" data-toggle="modal">Add new supplier</a>
-        <div>&nbsp;</div>
-        <div id="addSupplierModal" class="modal fade">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title">Add a new supplier</h4>
-                    </div>
-                    <div class="modal-body">
-                    <form>
-                    <br>Name:
-                    <input type="text"
-                            name="inputName"
-                            ng-model="formData.inputName"
-                            required
-                            autofocus>
-                    <br>Address:
-                    <input type="text"
-                            name="inputAddress"
-                            ng-model="formData.inputAddress">
-                    <br>City:
-                    <input type="text"
-                            name="inputCity"
-                            ng-model="formData.inputCity">
-                    <br>State/Province:
-                    <input type="text"
-                            name="inputStateProvince"
-                            ng-model="formData.inputStateProvince">
-                    <br>Country:
-                    <input type="text"
-                            name="inputStateCountry"
-                            ng-model="formData.inputCountry">
-                    <br>Zip Code:
-                    <input type="text"
-                            name="inputZip"
-                            ng-model="formData.inputZip">
-                    <br>Phone:
-                    <input type="text"
-                            name="inputPhone"
-                            ng-model="formData.inputPhone">
-                    <br>Fax:
-                    <input type="text"
-                            name="inputFax"
-                            ng-model="formData.inputFax">
-                    <br>Cellular:
-                    <input type="text"
-                            name="inputCellular"
-                            ng-model="formData.inputCellular">
-                    <br>Contact:
-                    <input type="text"
-                            name="inputContact"
-                            ng-model="formData.inputContact">
-                </form>
-                </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="addNewSupplier()">Add</button>
-                    </div>
-                </div>
+<nav class="navbar navbar-default navbar-fixed-top action-bar">
+    <div class="container-fluid">
+        <ul class="nav nav-pills">
+            <li>
+                <a title="Add Supplier" data-target="#addSupplierModal" data-toggle="modal"><i class="fa fa-plus-square"></i></a>
+            </li>
+        </ul>
+    </div>
+</nav>
+<div id="addSupplierModal" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Add Supplier</h4>
+            </div>
+            <div class="modal-body">
+            <form>
+            <br>Name:
+            <input type="text"
+                    name="inputName"
+                    ng-model="formData.inputName"
+                    required
+                    autofocus>
+            <br>Address:
+            <input type="text"
+                    name="inputAddress"
+                    ng-model="formData.inputAddress">
+            <br>City:
+            <input type="text"
+                    name="inputCity"
+                    ng-model="formData.inputCity">
+            <br>State/Province:
+            <input type="text"
+                    name="inputStateProvince"
+                    ng-model="formData.inputStateProvince">
+            <br>Country:
+            <input type="text"
+                    name="inputStateCountry"
+                    ng-model="formData.inputCountry">
+            <br>Zip Code:
+            <input type="text"
+                    name="inputZip"
+                    ng-model="formData.inputZip">
+            <br>Phone:
+            <input type="text"
+                    name="inputPhone"
+                    ng-model="formData.inputPhone">
+            <br>Fax:
+            <input type="text"
+                    name="inputFax"
+                    ng-model="formData.inputFax">
+            <br>Cellular:
+            <input type="text"
+                    name="inputCellular"
+                    ng-model="formData.inputCellular">
+            <br>Contact:
+            <input type="text"
+                    name="inputContact"
+                    ng-model="formData.inputContact">
+        </form>
+        </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="addNewSupplier()">Add</button>
             </div>
         </div>
+    </div>
+</div>
 
-        <table class="table-hover">
-             <tr ng-repeat="obj in jsonsuppliers">
-              <td>{{obj.Name}}</td>
-              <td>{{obj.City}}</td>
-              <td>{{obj.Address}}</td>
-              <td>{{obj.Phone}}</td>
-              <td><button ng-click="getEditSupplier(obj.ID)">Edit</button></td>
-              <td><button ng-click="deleteSupplier(obj.ID)">Delete</button></td>
-             </tr>
+<div class="container-fluid">
+    <div id="suppliers" class="row">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Address</th>
+                    <th>Phone</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="obj in jsonsuppliers">
+                    <td>{{obj.Name}}</td>
+                    <td>{{obj.Address}}</td>
+                    <td>{{obj.Phone}}</td>
+                    <td><button ng-click="getEditSupplier(obj.ID)">Edit</button></td>
+                    <td><button ng-click="deleteSupplier(obj.ID)">Delete</button></td>
+                </tr>
+            </tbody>
         </table>
 
         <script type="text/ng-template" id="editSupplierModal.html">

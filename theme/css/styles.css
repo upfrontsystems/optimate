@@ -1,6 +1,6 @@
 body {
     background: none repeat scroll 0 0;
-    padding-top: 40px;
+    padding-top: 105px;
 }
 
 /* nav-pills custom styling */
@@ -15,6 +15,11 @@ body {
 
 .nav {
     margin-top: 10px;
+}
+
+.action-bar {
+    top: 50px;
+    z-index: 999;
 }
 
 /* treeview div */
@@ -41,11 +46,6 @@ body {
     overflow:auto;
     overflow-x:scroll;
     overflow-y:scroll;
-}
-
-/* angular treeview background */
-.ng-scope {
-    padding: 5px 5px 0px 5px;
 }
 
 /* angular treeview info box */
@@ -121,19 +121,19 @@ input.editor-text {
 
 /* icons for the tree nodes */
 @font-face {
-    font-family: "../img/fontawesome";
-    src:url("../img/fontawesome-webfont.eot");
-    src:url("../img/fontawesome-webfont.eot?#iefix") format("embedded-opentype"),
-    url("../img/fontawesome-webfont.ttf") format("truetype"),
-    url("../img/fontawesome-webfont.woff") format("woff"),
-    url("../img/fontawesome-webfont.svg#fontawesome") format("svg");
-    url("../img/fontawesome.otf");
+    font-family: "../fonts/fontawesome";
+    src:url("../fonts/fontawesome-webfont.eot");
+    src:url("../fonts/fontawesome-webfont.eot?#iefix") format("embedded-opentype"),
+    url("../fonts/fontawesome-webfont.ttf") format("truetype"),
+    url("../fonts/fontawesome-webfont.woff") format("woff"),
+    url("../fonts/fontawesome-webfont.svg#fontawesome") format("svg");
+    url("../fonts/fontawesome.otf");
     font-weight: normal;
     font-style: normal;
 }
 
 .treenode {
-    font-family: "../img/fontawesome", sans-serif;
+    font-family: "../fonts/fontawesome", sans-serif;
 }
 
 .treenode:before {

@@ -1,33 +1,41 @@
+<nav class="navbar navbar-default navbar-fixed-top action-bar">
+    <div class="container-fluid">
+        <ul class="nav nav-pills">
+            <li>
+                <a title="Open Project" data-target="#selectProjectModal" data-toggle="modal"><i class="fa fa-folder-open"></i></a>
+            </li>
+        </ul>
+    </div>
+</nav>
+<div id="selectProjectModal" class="modal fade" ng-controller="projectlistController">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close"
+                        data-dismiss="modal" aria-hidden="true">&times;
+                </button>
+                <h3 class="modal-title">Open Project</h3>
+            </div>
+            <div class="modal-body">
+                <span> Select project: </span>
+                <span>
+                    <select id="project-select">
+                        <option ng-repeat="obj in projectsList" value="{{obj.ID}}">{{obj.Name}}</option>
+                    </select>
+                </span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default"
+                        data-dismiss="modal">Cancel</button>
+                <button type="select" class="btn btn-primary" id="select-project-submit"
+                        data-dismiss="modal">Open</button>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="container-fluid">
     <div id="costs" class="row">
         <div class="left">
-            <a data-target="#selectProjectModal" href="" class="btn btn-primary" data-toggle="modal">Open a Project</a>
-            <div id="selectProjectModal" class="modal fade" ng-controller="projectlistController">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close"
-                                    data-dismiss="modal" aria-hidden="true">&times;
-                            </button>
-                            <h3 class="modal-title">Open a project</h3>
-                        </div>
-                        <div class="modal-body">
-                            <span> Select project: </span>
-                            <span>
-                                <select id="project-select">
-                                    <option ng-repeat="obj in projectsList" value="{{obj.ID}}">{{obj.Name}}</option>
-                                </select>
-                            </span>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-default"
-                                    data-dismiss="modal">Cancel</button>
-                            <button type="select" class="btn btn-primary" id="select-project-submit"
-                                    data-dismiss="modal">Open</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
             <div>
                 <!-- div directives for the custom modals -->
                 <div custom-modals modal-id="addbudgetgroup"
