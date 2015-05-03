@@ -126,12 +126,12 @@
                         var appendThis = '<li><a class="unselectable">Add</a></li>';
                         // Check the current node type and add menus
                         if (nodetype == 'Project'){
-                            appendThis = '<li><a role="button" data-toggle="modal" data-target="#addbudgetgroup">Add BudgetGroup</a></li>'+
+                            appendThis = '<li><a role="button" data-toggle="modal" data-target="#addbudgetgroup">Add Budget Group</a></li>'+
                                          '<li><a role="button" class="close-project" data-id="'+currentnodeid+'">Close project</a></li>';
                         }
                         else if (nodetype == 'BudgetGroup'){
-                            appendThis = '<li><a role="button" data-toggle="modal" data-target="#addbudgetgroup">Add BudgetGroup</a></li>'+
-                                        '<li><a role="button" data-toggle="modal" data-target="#addbudgetitem">Add BudgetItem</a></li>'+
+                            appendThis = '<li><a role="button" data-toggle="modal" data-target="#addbudgetgroup">Add Budget Group</a></li>'+
+                                        '<li><a role="button" data-toggle="modal" data-target="#addbudgetitem">Add Budget Item</a></li>'+
                                         '<li><a role="button" data-toggle="modal" data-target="#addcomponent">Add Component</a></li>';
                         }
                         else if (nodetype == 'BudgetItem'){
