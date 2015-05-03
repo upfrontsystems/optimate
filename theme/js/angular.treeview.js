@@ -25,25 +25,11 @@
     .directive(
         'treeModel', ['$compile', '$http', 'globalServerURL', '$rootScope', '$templateCache', '$timeout', '$parse',
         function($compile, $http, globalServerURL, $rootScope, $templateCache, $timeout, $parse) {
-            // var getTemplate = function(contentType) {
-            var getTemplate = function() {
-                // var templateLoader,
-                // baseUrl = 'modal_templates',
-                // templateMap = {
-                // };
-
-                // var templateUrl = baseUrl + templateMap[contentType];
-                // templateLoader = $http.get(templateUrl, {cache: $templateCache});
-                var treeviewtemplate = $http.get("partials/treeview.html", {cache: $templateCache});
-                // return templateLoader;
-                return treeviewtemplate;
-            }
 
             var linker = function(scope, element, attrs) {
-                var loader = getTemplate();
+                var loader = $http.get("partials/treeview.html", {cache: $templateCache});
 
-
-                // Watch for adding a child
+                // Watch for when a child is added and refresh the treeview
                 $rootScope.$watch('addedChild', function() {
                     if ($rootScope.addedChild){
                         var nodeid = $rootScope.currentNode.ID;
@@ -54,18 +40,19 @@
 
                 // Check if the model exists before adding functions to it
                 if (scope.treeModel){
-                    // Function to delete data in server
-                    scope.deleteThisNode = function(nodeid) {
-                        console.log("Deleting "+ nodeid);
+                    // Deleting a node. It recieves the index of the node
+                    // The id is sent to the server to be deleted and the node
+                    // removed from the treemodel
+                    scope.deleteThisNode = function ( idx ) {
+                        var nodeid = scope.treeModel[idx].ID;
                         $http({
                             method: 'POST',
                             url:globalServerURL + nodeid + '/delete'
                         }).success(function (response) {
                             console.log('Success: Item deleted');
-                            scope.loadNodeChildren(nodeid);
-                            $rootScope.currentNode.selected = undefined;
+                            scope.treeModel.splice(idx, 1);
                         });
-                    }
+                    };
 
                     // Function to copy a node
                     scope.copyThisNode = function(cnode) {
@@ -73,36 +60,41 @@
                         console.log("Path that is copied: " + cnode);
                     }
 
-                    // function to POST data to server to paste item
+                    // function to paste copied node into another node
+                    // the id is sent to the server and the node pasted there
+                    // the user cant paste into the same node
                     scope.pasteThisNode = function(nodeid) {
                         if ($rootScope.copiednodeid){
-                            console.log("Node to be pasted: " + $rootScope.copiednodeid);
-                            $http({
-                                method: 'POST',
-                                url: globalServerURL + nodeid + '/paste',
-                                data:{'ID': $rootScope.copiednodeid}
-                            }).success(function () {
-                                console.log('Success: Node pasted');
-                                scope.loadNodeChildren(nodeid);
-                            });
+                            if ($rootScope.copiednodeid == nodeid){
+                                alert("You can't paste into the same node");
+                            }
+                            else {
+                                $http({
+                                    method: 'POST',
+                                    url: globalServerURL + nodeid + '/paste',
+                                    data:{'ID': $rootScope.copiednodeid}
+                                }).success(function () {
+                                    console.log('Success: Node pasted');
+                                    scope.loadNodeChildren(nodeid);
+                                });
+                            }
                         }
                     }
                     // if node head clicks,
                     // get the children of the node
                     // and collapse or expand the node
                     scope.selectNodeHead = scope.selectNodeHead || function( selectedNode ) {
-                        $rootScope.currentNode = selectedNode;
                         // if the node is collapsed, get the data and
                         // expand the node
                         if (!selectedNode.collapsed){
-                            // get path from the node
-                            // and go to that path with http
-                            var nodeid = selectedNode.ID;
-                            scope.loadNodeChildren(nodeid);
                             selectedNode.collapsed = true;
+                            var parentid = selectedNode.ID;
+                            $http.get(globalServerURL + parentid + '/').success(function(data) {
+                                console.log("Children loaded");
+                                selectedNode.Subitem = data;
+                            });
                         }
                         else{
-                        // collapse the node if it is expanded
                             selectedNode.collapsed = false;
                         }
                     };
@@ -118,7 +110,7 @@
                     // if node label clicks,
                     scope.selectNodeLabel = scope.selectNodeLabel || function( selectedNode ) {
                         // remove highlight from previous node
-                        if ( $rootScope.currentNode && $rootScope.currentNode.selected ) {
+                        if ($rootScope.currentNode) {
                             $rootScope.currentNode.selected = undefined;
                         }
 
@@ -126,37 +118,36 @@
                         selectedNode.selected = 'selected';
                         // set currentNode
                         $rootScope.currentNode = selectedNode;
-                        $rootScope.currentSelectedNodeID = currentnodeid;
+
                          // add the add menus in the dropdown
                         var nodetype = $rootScope.currentNode.NodeType;
                         var currentnodeid = $rootScope.currentNode.ID;
-                        var appendThis = '<li><a style="color: gray;">Add</a></li>';
-                        var otherMenuItems = '<li class="divider"></li>'+
-                                        '<li><a data-ng-click="deleteThisNode('+currentnodeid+')">Delete</a></li>'+
-                                        '<li><a data-ng-click="copyThisNode('+currentnodeid+')">Copy</a></li>'+
-                                        '<li><a data-ng-click="pasteThisNode('+currentnodeid+')">Paste</a></li>';
+                        $rootScope.currentSelectedNodeID = currentnodeid;
+                        var appendThis = '<li><a class="unselectable">Add</a></li>';
                         // Check the current node type and add menus
                         if (nodetype == 'Project'){
-                            appendThis = '<li><a data-toggle="modal" data-target="#addbudgetgroup">Add BudgetGroup</a></li>';
+                            appendThis = '<li><a role="button" data-toggle="modal" data-target="#addbudgetgroup">Add BudgetGroup</a></li>'+
+                                         '<li><a role="button" class="close-project" data-id="'+currentnodeid+'">Close project</a></li>';
                         }
-                        if (nodetype == 'Project'){
-                            appendThis = '<li><a data-toggle="modal" data-target="#addbudgetgroup">Add BudgetGroup</a></li>'+
-                                         '<li><a class="close-project" data-id="'+currentnodeid+'">Close project</a></li>';
-                        }                        
                         else if (nodetype == 'BudgetGroup'){
-                            appendThis = '<li><a data-toggle="modal" data-target="#addbudgetgroup">Add BudgetGroup</a></li>'+
-                                        '<li><a data-toggle="modal" data-target="#addbudgetitem">Add BudgetItem</a></li>'+
-                                        '<li><a data-toggle="modal" data-target="#addcomponent">Add Component</a></li>';
+                            appendThis = '<li><a role="button" data-toggle="modal" data-target="#addbudgetgroup">Add BudgetGroup</a></li>'+
+                                        '<li><a role="button" data-toggle="modal" data-target="#addbudgetitem">Add BudgetItem</a></li>'+
+                                        '<li><a role="button" data-toggle="modal" data-target="#addcomponent">Add Component</a></li>';
                         }
                         else if (nodetype == 'BudgetItem'){
-                            appendThis = '<li><a data-toggle="modal" data-target="#addcomponent">Add Component</a></li>';
+                            appendThis = '<li><a role="button" data-toggle="modal" data-target="#addcomponent">Add Component</a></li>';
                         }
                         else if (nodetype == 'ResourceCategory'){
-                            appendThis = '<li><a data-toggle="modal" data-target="#addresource">Add Resource</a></li>';
+                            appendThis = '<li><a role="button" data-toggle="modal" data-target="#addresource">Add Resource</a></li>';
                         }
                         // Add to the html
-                        $(".dropdown > ul.dropdown-menu").html(appendThis + otherMenuItems);
-                        $compile($(".dropdown > ul.dropdown-menu").contents())(scope);
+                        // $(".dropdown > ul.dropdown-menu").html(appendThis);
+                        // $compile($(".dropdown > ul.dropdown-menu").contents())(scope);
+                        $(".dropdown > ul.dropdown-menu #space-for-add-menus").html(appendThis);
+                        $compile($(".dropdown > ul.dropdown-menu #space-for-add-menus").contents())(scope);
+
+                        // var e = $compile(appendThis)(scope);
+                        // $(".dropdown > ul.dropdown-menu #space-for-add-menus").replaceWith(e);
                     };
                 }
 
@@ -170,6 +161,7 @@
 
             return {
                 restrict: 'A',
+                controller: 'treeviewController',
                 scope: {
                     treeModel:'='
                 },
