@@ -25,50 +25,22 @@
     .directive(
         'treeModel', ['$compile', '$http', 'globalServerURL', '$rootScope', '$templateCache', '$timeout', '$parse',
         function($compile, $http, globalServerURL, $rootScope, $templateCache, $timeout, $parse) {
-
-            var linker = function(scope, element, attrs) {
-                var loader = $http.get("partials/treeview.html", {cache: $templateCache});
-
-                // Check if the model exists before adding functions to it
-                if (scope.treeModel){
-                    // if node label clicks,
-                    scope.selectNodeLabel = scope.selectNodeLabel || function( selectedNode ) {
-                        // remove highlight from previous node
-                        if ($rootScope.currentNode) {
-                            $rootScope.currentNode.selected = undefined;
-                        }
-
-                        // set highlight to selected node
-                        selectedNode.selected = 'selected';
-                        // set currentNode
-                        $rootScope.currentNode = selectedNode;
-
-                         // add the add menus in the dropdown
-                         // Get the node type and retrieve the neccesary html
-                        var nodetype = selectedNode.NodeType;
-                        $http.get("modal_templates/menu"+nodetype+".html")
-                        .success(function (response) {
-                            $(".dropdown > ul.dropdown-menu #space-for-add-menus").html(response);
-                            $compile($(".dropdown > ul.dropdown-menu #space-for-add-menus").contents())(scope);
-                        });
-                    };
-                }
-
-                var promise = loader.success(function(html) {
-                    element.html(html);
-                }).then(function (response) {
-                    var result = $compile(element.html())(scope);
-                    element.html('').append(result);
-                });
-            }
-
             return {
                 restrict: 'A',
-                controller: 'treeviewController',
+                controller: 'treeviewFunctionsController',
                 scope: {
                     treeModel:'='
                 },
-                link: linker
+                // templateUrl: 'partials/treeview.html',
+                link: function(scope, element, attrs) {
+                    $http.get("partials/treeview.html", {cache: $templateCache})
+                    .success(function(html) {
+                        element.html(html);
+                    }).then(function (response) {
+                        var result = $compile(element.html())(scope);
+                        element.html('').append(result);
+                    });
+                }
             };
     }]);
 })( angular );

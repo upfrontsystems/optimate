@@ -312,37 +312,32 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
                 }
             });
         };
-        $scope.closeProject = function (project_index) {
-            // var result = $.grep($scope.roleList, function(e) {
-            //     return e.ID == project_id;
-            // });
-            // var i = $scope.roleList.indexOf(result[0]);
-            // if (i != -1) {
-            //     $scope.roleList.splice(i, 1);
-            // }
-            console.log(project_index);
-            console.log($scope.treeModel);
-            console.log($scope.treeModel.splice(project_index, 1));
-            if (hasStorage) {
-                // remove id of project that we are closing from storage
-                project_id = $scope.treeModel[project_index].ID
-                var open_projects = JSON.parse(localStorage["open_projects"])
-                var index = open_projects.indexOf(project_id);
-                if (index > -1) {
-                   open_projects.splice(index, 1);
+        $scope.closeProject = function (project_id) {
+            var result = $.grep($scope.roleList, function(e) {
+                return e.ID == project_id;
+            });
+            var i = $scope.roleList.indexOf(result[0]);
+            if (i != -1) {
+                $scope.roleList.splice(i, 1);
+
+                if (hasStorage) {
+                    // remove id of project that we are closing from storage
+                    var open_projects = JSON.parse(localStorage["open_projects"])
+                    var index = open_projects.indexOf(project_id);
+                    if (index > -1) {
+                       open_projects.splice(index, 1);
+                    }
+                    localStorage["open_projects"] = JSON.stringify(open_projects);
                 }
-                localStorage["open_projects"] = JSON.stringify(open_projects);
-            }
-            else {
-                console.log("LOCAL STORAGE NOT SUPPORTED!")
-            }
-            // blank the data in the info box under the treeview
-            if ($rootScope.currentNode){
+                else {
+                    console.log("LOCAL STORAGE NOT SUPPORTED!")
+                }
+                // blank the data in the info box under the treeview
                 $rootScope.currentNode.ID = '';
                 $rootScope.currentNode.Description = '';
                 $rootScope.currentNode.NodeType = '';
+                $scope.$apply() // refresh the tree so that closed project is not shown
             }
-            $scope.$apply() // refresh the tree so that closed project is not shown
         };
         // reopen projects that were previously opened upon page load
         $scope.preloadProjects = function () {
@@ -386,12 +381,14 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
         $( document ).on( "click", "#select-project-submit", function( e ) {
             $scope.loadProject();
         });
-        // $( document ).on( "click", ".close-project", function( e ) {
-        //     $scope.closeProject($(this).data("id"));
-        // });
+        $( document ).on( "click", ".close-project", function( e ) {
+            $scope.closeProject($(this).data("id"));
+        });
+    }
+]);
 
-        // functions used in the treeview model
-        // ==================================================================
+allControllers.controller('treeviewFunctionsController', ['$scope', '$http', 'globalServerURL', '$rootScope',
+    function($scope, $http, globalServerURL, $rootScope) {
         // Watch for when a child is added and refresh the treeview
         $rootScope.$watch('addedChild', function() {
             if ($rootScope.addedChild){
@@ -461,6 +458,18 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
             }
         };
 
+        // if node label clicks,
+        $scope.selectNodeLabel = $scope.selectNodeLabel || function(selectedNode) {
+            // remove highlight from previous node
+            if ($rootScope.currentNode) {
+                $rootScope.currentNode.selected = undefined;
+            }
+            // set highlight to selected node
+            selectedNode.selected = 'selected';
+            // set currentNode
+            $rootScope.currentNode = selectedNode;
+        };
+
         // Load the children and add to the tree
         $scope.loadNodeChildren = function(parentid){
             $http.get(globalServerURL + parentid + '/').success(function(data) {
@@ -469,7 +478,7 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
             });
         }
     }
-]);
+])
 
 // Controller for the modals, handles adding new nodes
 allControllers.controller('ModalInstanceCtrl', function ($scope, $rootScope, $http, globalServerURL) {
@@ -638,6 +647,12 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', function(glob
                                     {id: "rate", name: "Rate", field: "rate", cssClass: "cell editable-column",
                                      width: cell_small, formatter: CurrencyFormatter, editor: Slick.Editors.Float},
                                 ];
+
+                                grid.setColumns(newcolumns);
+                                dataView.beginUpdate();
+                                dataView.setItems(data);
+                                dataView.endUpdate();
+                                grid.render();
                             }
                             else {
                                 // if there will be empty columns remove them
@@ -668,7 +683,6 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', function(glob
                                     dataView.setItems(data);
                                     dataView.endUpdate();
                                     grid.render();
-
                                 }
                                 // otherwise loop through the data and grey out
                                 // uneditable columns
@@ -690,15 +704,16 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', function(glob
                                             });
                                         }
                                     }
-
                                     grid.render();
                                 }
-
                             }
                         }
                         else {
                             newcolumns = columns;
                             grid.setColumns(newcolumns);
+                            dataView.beginUpdate();
+                            dataView.setItems(data);
+                            dataView.endUpdate();
                             grid.render();
                         }
                         console.log("Slickgrid data loaded");
