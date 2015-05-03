@@ -1,5 +1,6 @@
 body {
     background: none repeat scroll 0 0;
+    padding-top: 40px;
 }
 
 /* nav-pills custom styling */
@@ -10,6 +11,10 @@ body {
 /* Fix for cursor point in angular boostrap */
 .nav, .pagination, .carousel, .panel-title a {
     cursor: pointer;
+}
+
+.nav {
+    margin-top: 10px;
 }
 
 /* treeview div */
@@ -74,7 +79,6 @@ body {
 #optimate-data-grid {
     height: 87vh;
 }
-
 
 input.editor-text {
     background: none repeat scroll 0 0 transparent;

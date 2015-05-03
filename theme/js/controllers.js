@@ -3,9 +3,16 @@ var allControllers = angular.module('allControllers', []);
 
 allControllers.value('globalServerURL', 'http://127.0.0.1:8100/');
 
+function toggleMenu(itemclass) {
+    $("ul.nav li").removeClass("active");
+    $("li."+itemclass).toggleClass("active");
+}
+
 // controller for the Client data from the server
 allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$log', 'globalServerURL',
     function($scope, $http, $modal, $log, globalServerURL) {
+
+        toggleMenu('setup');
 
         var req = {
             method: 'GET',
@@ -120,6 +127,9 @@ allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$l
 // Controller for the suppliers page
 allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '$log', 'globalServerURL',
     function($scope, $http, $modal, $log, globalServerURL) {
+
+        toggleMenu('setup');
+
         var req = {
             method: 'GET',
             url: globalServerURL +'suppliers'
@@ -249,6 +259,8 @@ allControllers.controller('projectlistController',['$scope', '$http', 'globalSer
 // upon selection from the user
 allControllers.controller('treeviewController',['$scope', '$http', 'globalServerURL',
     function ProjectList($scope, $http, globalServerURL) {
+
+        toggleMenu('projects');
 
         // aux function - checks if object is already in list based on ID
         function containsObject(obj, list) {
