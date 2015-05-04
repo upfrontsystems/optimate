@@ -27,19 +27,19 @@ div[data-tree-model] li {
 }
 
 div[data-tree-model] li .expanded {
-    padding: 1px 10px;
+    padding: 1px 7px;
     background-image: url("../img/plusbtn.png");
     background-repeat: no-repeat;
 }
 
 div[data-tree-model] li .collapsed {
-    padding: 1px 10px;
+    padding: 1px 7px;
     background-image: url("../img/minusbtn.png");
     background-repeat: no-repeat;
 }
 
 div[data-tree-model] li .normal {
-    padding: 1px 10px;
+    padding: 1px 7px;
 /*    background-image: url("../img/empty.png");
     background-repeat: no-repeat; */
 }

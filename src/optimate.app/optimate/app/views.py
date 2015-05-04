@@ -63,12 +63,25 @@ def childview(request):
                     else:
                         subitem = []
 
+                nodetypeabbr = ''
+                if child.type == "Resource":
+                    nodetypeabbr = 'R'
+                if child.type == "ResourceCategory":
+                    nodetypeabbr = 'L'
+                elif child.type == "BudgetItem":
+                    nodetypeabbr = 'I'
+                elif child.type == "BudgetGroup":
+                    nodetypeabbr = 'G'
+                elif child.type == "Component":
+                    nodetypeabbr = 'C'
+
                 childrenlist.append({
                     'Name': child.Name,
                     'Description': child.Description,
                     'ID': child.ID,
                     'Subitem': subitem,
-                    'NodeType': child.type
+                    'NodeType': child.type,
+                    'NodeTypeAbbr' : nodetypeabbr
                     })
 
     # return childrenlist
@@ -118,7 +131,9 @@ def projectview(request):
                         'Description': qry.Description,
                         'ID': qry.ID,
                         'Subitem': [{'Name': '...'}],
-                        'NodeType': qry.type})
+                        'NodeType': qry.type,
+                        'NodeTypeAbbr' : 'P'
+                        })
     return project
 
 

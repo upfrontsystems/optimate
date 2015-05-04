@@ -26,6 +26,9 @@
     <link rel="stylesheet" type="text/css" href="css/slick.grid.css">
     <link rel="stylesheet" type="text/css" href="gridthemes/slick-default-theme.css">
 
+    <!-- Font awesome -->
+    <link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
+
     <!-- Bootstrap CSS and js -->
     <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap-theme.min.css">
@@ -43,11 +46,22 @@
 </head>
 <body>
     <div ng-app="myApp" class="main-container">
-        <ul class="nav nav-pills">
-            <li><a href="#/projects">Projects</a></li>
-            <li><a href="#/clients">Clients</a></li>
-            <li><a href="#/suppliers">Suppliers</a></li>
-        </ul>
+        <nav class="navbar navbar-default navbar-fixed-top">
+            <div class="container-fluid">
+                <ul class="nav nav-pills">
+                    <li class="projects"><a href="#/projects">Projects</a></li>
+                    <li class="dropdown setup">
+                        <a href="javascript:;" data-toggle="dropdown">
+                            Setup <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a href="#/clients">Clients</a></li>
+                            <li><a href="#/suppliers">Suppliers</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </nav>
 
         <div ng-view></div>
 

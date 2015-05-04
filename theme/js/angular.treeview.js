@@ -25,6 +25,9 @@
     .directive(
         'treeModel', ['$compile', '$http', 'globalServerURL', '$rootScope', '$templateCache', '$timeout', '$parse',
         function($compile, $http, globalServerURL, $rootScope, $templateCache, $timeout, $parse) {
+            // All the functions used for the treeview are in the
+            // treeviewFunctionsController controller
+            // The treeview html is retrieved from treeview.html and compiled
             return {
                 restrict: 'A',
                 controller: 'treeviewFunctionsController',
