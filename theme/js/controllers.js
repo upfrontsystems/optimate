@@ -90,6 +90,11 @@ allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$l
           };
         };
 
+        $scope.showActionsFor = function(obj) {
+            $scope.selectedClientId = obj.ID;
+            $('#client-'+obj.ID).addClass('active').siblings().removeClass('active');
+        };
+
         $scope.getEditClient = function(id) {
             var req = {
             method: 'GET',
@@ -234,6 +239,12 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
           $scope.cancel = function () {
             $modalInstance.dismiss('cancel');
           };
+        };
+
+
+        $scope.showActionsFor = function(obj) {
+            $scope.selectedSupplierId = obj.ID;
+            $('#supplier-'+obj.ID).addClass('active').siblings().removeClass('active');
         };
 
         $scope.getEditSupplier = function(id) {
