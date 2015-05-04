@@ -161,14 +161,12 @@ class Project(Node):
         """paste appends a source object to the children of this node,
            and then recursively does the same
            with each child of the source object.
-           Reset the total when done.
         """
         self.Children.append(source)
         for child in sourcechildren:
             # The resource category is not pasted
             if child.type != 'ResourceCategory':
                 source.paste(child.copy(source.ID), child.Children)
-        self.resetTotal()
 
     def getComponents(self):
         """ Returns a list of all the Components that are used in this project.
@@ -297,14 +295,12 @@ class BudgetGroup(Node):
     def paste(self, source, sourcechildren):
         """paste appends a source object to the children of this node,
         and then recursively does the same with each child of the source object.
-        Reset the total when done
         """
         self.Children.append(source)
         for child in sourcechildren:
             # The resource category is not pasted
             if child.type != 'ResourceCategory':
                 source.paste(child.copy(source.ID), child.Children)
-        self.resetTotal()
 
     def getComponents(self):
         """Returns a list of all the Components that are used in this
@@ -496,13 +492,10 @@ class BudgetItem(Node):
         """ Paste appends a source object to the children of this node,
             and then recursively does the same
             with each child of the source object.
-            Reset the total when done
         """
         self.Children.append(source)
         for child in sourcechildren:
             source.paste(child.copy(source.ID), child.Children)
-
-        self.resetTotal()
 
     def getComponents(self):
         """Returns a list of all the Components that are used in this

@@ -389,6 +389,7 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
 
 allControllers.controller('treeviewFunctionsController', ['$scope', '$http', 'globalServerURL', '$rootScope',
     function($scope, $http, globalServerURL, $rootScope) {
+        // $scope.copiedId = 0;
         // Watch for when a child is added and refresh the treeview
         $rootScope.$watch('addedChild', function() {
             if ($rootScope.addedChild){
@@ -413,17 +414,36 @@ allControllers.controller('treeviewFunctionsController', ['$scope', '$http', 'gl
         };
 
         // Function to copy a node
-        $scope.copyThisNode = function(cnode) {
-            $rootScope.copiednodeid = cnode;
-            console.log("Path that is copied: " + cnode);
+        $scope.copyThisNode = function(cid) {
+            if ($scope.$parent.copyThisNode) {
+                $scope.$parent.copyThisNode(cid);
+            }
+            else{
+                $scope.copiedId = cid;
+                console.log("Node id copied: " + cid);
+            }
+        }
+
+        $scope.getCopiedId = function(){
+            if($scope.copiedId){
+                return $scope.copiedId;
+            }
+            else{
+                if ($scope.$parent.getCopiedId){
+                    return $scope.$parent.getCopiedId();
+                }
+                else {
+                    return undefined;
+                }
+            }
         }
 
         // function to paste copied node into another node
         // the id is sent to the server and the node pasted there
         // the user cant paste into the same node
         $scope.pasteThisNode = function(nodeid) {
-            if ($rootScope.copiednodeid){
-                var cnodeid = $rootScope.copiednodeid;
+            var cnodeid = $scope.getCopiedId();
+            if (cnodeid){
                 if (cnodeid == nodeid){
                     alert("You can't paste into the same node");
                 }
@@ -435,8 +455,13 @@ allControllers.controller('treeviewFunctionsController', ['$scope', '$http', 'gl
                     }).success(function () {
                         console.log('Success: Node pasted');
                         $scope.loadNodeChildren(nodeid);
+                    }).error(function(){
+                        console.log("Server error");
                     });
                 }
+            }
+            else{
+                console.log("Id undefined");
             }
         }
 

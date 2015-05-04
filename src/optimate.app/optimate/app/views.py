@@ -353,6 +353,7 @@ def pasteitemview(request):
         resourcecategory = DBSession.query(
                         ResourceCategory).filter_by(ParentID=projectid).first()
         resourcecategory.addResources(componentlist)
+        transaction.commit()
 
         if parentid != 0:
             reset = DBSession.query(Node).filter_by(ID=parentid).first()

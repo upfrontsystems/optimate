@@ -60,6 +60,7 @@ div[data-tree-model] div.dropdown {
 }
 
 div[data-tree-model] div.treeview-dropdown a {
+    display: block;
     cursor: pointer;
     text-decoration: none;
     color: #333;
