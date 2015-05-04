@@ -112,13 +112,44 @@ allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$l
             });
         };
 
-        $scope.deleteClient = function(id){
+        var ModalInstanceCtrl2 = function ($scope, $modalInstance, deletingClient, id) {
+          $scope.deletingClient = deletingClient;
+
+          $scope.deleteClient = function() {
+            $http({
+                method: 'DELETE',
+                url: globalServerURL + id + '/client'
+            }).success(function () {
+                console.log("deleted client");
+            });
+            $modalInstance.close();
+          };
+
+          $scope.cancel = function () {
+            $modalInstance.dismiss('cancel');
+          };
+        };
+
+        $scope.getDeleteClient = function(id) {
             var req = {
-            method: 'DELETE',
+            method: 'GET',
             url: globalServerURL + id + '/client',
             };
-            $http(req).success(function(data){
-                alert("Client deleted")
+            $http(req).success(function(data) {
+                $scope.deletingClient = data;
+
+                var modalInstance = $modal.open({
+                    templateUrl: 'deleteClientModal.html',
+                    controller: ModalInstanceCtrl2,
+                    resolve: {
+                        deletingClient: function () {
+                            return $scope.deletingClient;
+                        },
+                        id: function () {
+                            return id;
+                        }
+                    }
+                });
             });
         };
     }
@@ -228,13 +259,44 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
             });
         };
 
-        $scope.deleteSupplier = function(id){
+        var ModalInstanceCtrl2 = function ($scope, $modalInstance, deletingSupplier, id) {
+          $scope.deletingSupplier = deletingSupplier;
+
+          $scope.deleteSupplier = function() {
+            $http({
+                method: 'DELETE',
+                url: globalServerURL + id + '/supplier'
+            }).success(function () {
+                console.log("deleted supplier");
+            });
+            $modalInstance.close();
+          };
+
+          $scope.cancel = function () {
+            $modalInstance.dismiss('cancel');
+          };
+        };
+
+        $scope.getDeleteSupplier = function(id) {
             var req = {
-            method: 'DELETE',
+            method: 'GET',
             url: globalServerURL + id + '/supplier',
             };
-            $http(req).success(function(data){
-                alert("Supplier deleted")
+            $http(req).success(function(data) {
+                $scope.deletingSupplier = data;
+
+                var modalInstance = $modal.open({
+                    templateUrl: 'deleteSupplierModal.html',
+                    controller: ModalInstanceCtrl2,
+                    resolve: {
+                        deletingSupplier: function () {
+                            return $scope.deletingSupplier;
+                        },
+                        id: function () {
+                            return id;
+                        }
+                    }
+                });
             });
         };
     }

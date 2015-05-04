@@ -102,6 +102,7 @@
 
 <div class="container-fluid">
     <div id="suppliers" class="row">
+    
         <table class="table table-hover">
             <thead>
                 <tr>
@@ -118,7 +119,7 @@
                     <td>{{obj.Address}}</td>
                     <td>{{obj.Phone}}</td>
                     <td><button ng-click="getEditSupplier(obj.ID)">Edit</button></td>
-                    <td><button ng-click="deleteSupplier(obj.ID)">Delete</button></td>
+                    <td><button ng-click="getDeleteSupplier(obj.ID)">Delete</button></td>
                 </tr>
             </tbody>
         </table>
@@ -207,6 +208,20 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-primary" ng-click="editSupplier()">Save</button>
+                <button class="btn btn-default" ng-click="cancel()">Cancel</button>
+            </div>
+        </script>
+
+        <script type="text/ng-template" id="deleteSupplierModal.html">
+            <div class="modal-header">
+                <h3>Delete supplier?</h3>
+            </div>
+            <div class="modal-body">
+                <span>Name: </span>
+                <span>{{deletingSupplier['Name']}}</span>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" ng-click="deleteSupplier()">Delete</button>
                 <button class="btn btn-default" ng-click="cancel()">Cancel</button>
             </div>
         </script>
