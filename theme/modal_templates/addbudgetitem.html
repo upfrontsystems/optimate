@@ -8,29 +8,41 @@
                 <h3 class="modal-title">Add Budget Item</h3>
             </div>
             <div class="modal-body">
-                <form>
-                    <br>Name:
-                    <input type="text"
-                            name="inputName"
-                            ng-model="formData.inputName"
-                            required
-                            autofocus>
-                    <br>Description:
-                    <input type="textarea"
-                            name="inputDescription"
-                            ng-model="formData.inputDescription"
-                            style="width: 300px; height: 150px;"
-                            autofocus>
-                    <br>Quantity:
-                    <input type="number"
-                            name="inputQuantity"
-                            ng-model="formData.inputQuantity"
-                            autofocus>
-                    <br>Markup:
-                    <input type="number"
-                            name="inputMarkup"
-                            ng-model="formData.inputMarkup"
-                            autofocus>
+                <form class="form-horizontal">
+                    <div class="form-group">
+                        <label for="inputName" class="col-sm-2 control-label">Name:</label>
+                        <input type="text"
+                                id="inputName"
+                                name="inputName"
+                                ng-model="formData.inputName"
+                                required
+                                autofocus>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputDescription" class="col-sm-2 control-label">Description:</label>
+                        <input type="textarea"
+                                id="inputDescription"
+                                name="inputDescription"
+                                ng-model="formData.inputDescription"
+                                style="width: 300px; height: 150px;"
+                                autofocus>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputQuantity" class="col-sm-2 control-label">Quantity:</label>
+                        <input type="number"
+                                id="inputQuantity"
+                                name="inputQuantity"
+                                ng-model="formData.inputQuantity"
+                                autofocus>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputMarkup" class="col-sm-2 control-label">Markup:</label>
+                        <input type="number"
+                                id="inputMarkup"
+                                name="inputMarkup"
+                                ng-model="formData.inputMarkup"
+                                autofocus>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
