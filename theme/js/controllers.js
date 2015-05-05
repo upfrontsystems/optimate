@@ -8,6 +8,14 @@ function toggleMenu(itemclass) {
     $("li."+itemclass).toggleClass("active");
 }
 
+// controller for the Company Information data from the server
+allControllers.controller('companyinformationController', ['$scope', '$http', '$modal', '$log', 'globalServerURL',
+    function($scope, $http, $modal, $log, globalServerURL) {
+
+        toggleMenu('setup');
+    }
+]);
+
 // controller for the Client data from the server
 allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$log', 'globalServerURL',
     function($scope, $http, $modal, $log, globalServerURL) {
