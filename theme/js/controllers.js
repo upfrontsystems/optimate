@@ -133,6 +133,7 @@ allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$l
                 method: 'DELETE',
                 url: globalServerURL + id + '/client'
             }).success(function () {
+                $("#clients .table tr.ng-scope.active").remove()                
                 console.log("deleted client");
             });
             $modalInstance.close();
@@ -286,6 +287,7 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
                 method: 'DELETE',
                 url: globalServerURL + id + '/supplier'
             }).success(function () {
+                $("#suppliers .table tr.ng-scope.active").remove()                
                 console.log("deleted supplier");
             });
             $modalInstance.close();
