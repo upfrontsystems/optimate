@@ -19,6 +19,11 @@ allControllers.factory('sharedService', ['$rootScope',
             $rootScope.$broadcast('handleNewSupplier');
         }
 
+        shared.nodeDeleted = function(nodeid){
+           this.deletedNodeId = nodeid;
+           $rootScope.$broadcast('handleDeletedNode');
+        }
+
         return shared;
 }]);
 
@@ -41,7 +46,7 @@ allControllers.controller('companyinformationController', ['$scope', '$http', '$
         };
         $http(req).success(function(data){
             $scope.company_information = data;
-        });        
+        });
     }
 ]);
 
@@ -73,61 +78,9 @@ allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$l
             console.log ("client added");
         });
 
-
-        var ModalInstanceCtrl = function ($scope, $modalInstance, editingClient, id) {
-          $scope.editingClient = editingClient;
-
-          $scope.editClient = function() {
-            $http({
-                method: 'PUT',
-                url: globalServerURL + id + '/client',
-                data:{'Name': $scope.editingClient['Name'],
-                        'Address': $scope.editingClient['Address'],
-                        'City': $scope.editingClient['City'],
-                        'StateProvince': $scope.editingClient['StateProvince'],
-                        'Country': $scope.editingClient['Country'],
-                        'Zipcode': $scope.editingClient['Zipcode'],
-                        'Fax': $scope.editingClient['Fax'],
-                        'Phone': $scope.editingClient['Phone'],
-                        'Cellular': $scope.editingClient['Cellular'],
-                        'Contact': $scope.editingClient['Contact']}
-            }).success(function () {
-                console.log("client edited");
-                $scope.editingClient['Name'] = "edited";
-            });
-            $modalInstance.close();
-          };
-
-          $scope.cancel = function () {
-            $modalInstance.dismiss('cancel');
-          };
-        };
-
         $scope.showActionsFor = function(obj) {
             $scope.selectedClientId = obj.ID;
             $('#client-'+obj.ID).addClass('active').siblings().removeClass('active');
-        };
-
-        $scope.getEditClient = function(id) {
-            var req = {
-            method: 'GET',
-            url: globalServerURL + id + '/client',
-            };
-            $http(req).success(function(data) {
-                $scope.editingClient = data;
-                var modalInstance = $modal.open({
-                    templateUrl: 'editClientModal.html',
-                    controller: ModalInstanceCtrl,
-                    resolve: {
-                        editingClient: function () {
-                            return $scope.editingClient;
-                        },
-                        id: function () {
-                            return id;
-                        }
-                    }
-                });
-            });
         };
 
         var ModalInstanceCtrl2 = function ($scope, $modalInstance, deletingClient, id) {
@@ -138,7 +91,7 @@ allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$l
                 method: 'DELETE',
                 url: globalServerURL + id + '/client'
             }).success(function () {
-                $("#clients .table tr.ng-scope.active").remove()                
+                $("#clients .table tr.ng-scope.active").remove()
                 console.log("deleted client");
             });
             $modalInstance.close();
@@ -201,61 +154,9 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
             console.log("supplier added");
         });
 
-        var ModalInstanceCtrl = function ($scope, $modalInstance, editingSupplier, id) {
-          $scope.editingSupplier = editingSupplier;
-
-          $scope.editSupplier = function() {
-            $http({
-                method: 'PUT',
-                url: globalServerURL + id + '/supplier',
-                data:{'Name': $scope.editingSupplier['Name'],
-                        'Address': $scope.editingSupplier['Address'],
-                        'City': $scope.editingSupplier['City'],
-                        'StateProvince': $scope.editingSupplier['StateProvince'],
-                        'Country': $scope.editingSupplier['Country'],
-                        'Zipcode': $scope.editingSupplier['Zipcode'],
-                        'Fax': $scope.editingSupplier['Fax'],
-                        'Phone': $scope.editingSupplier['Phone'],
-                        'Cellular': $scope.editingSupplier['Cellular'],
-                        'Contact': $scope.editingSupplier['Contact']}
-            }).success(function () {
-                console.log("supplier edited");
-            });
-            $modalInstance.close();
-          };
-
-          $scope.cancel = function () {
-            $modalInstance.dismiss('cancel');
-          };
-        };
-
-
         $scope.showActionsFor = function(obj) {
             $scope.selectedSupplierId = obj.ID;
             $('#supplier-'+obj.ID).addClass('active').siblings().removeClass('active');
-        };
-
-        $scope.getEditSupplier = function(id) {
-            var req = {
-            method: 'GET',
-            url: globalServerURL + id + '/supplier',
-            };
-            $http(req).success(function(data) {
-                $scope.editingSupplier = data;
-
-                var modalInstance = $modal.open({
-                    templateUrl: 'editSupplierModal.html',
-                    controller: ModalInstanceCtrl,
-                    resolve: {
-                        editingSupplier: function () {
-                            return $scope.editingSupplier;
-                        },
-                        id: function () {
-                            return id;
-                        }
-                    }
-                });
-            });
         };
 
         var ModalInstanceCtrl2 = function ($scope, $modalInstance, deletingSupplier, id) {
@@ -266,7 +167,7 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
                 method: 'DELETE',
                 url: globalServerURL + id + '/supplier'
             }).success(function () {
-                $("#suppliers .table tr.ng-scope.active").remove()                
+                $("#suppliers .table tr.ng-scope.active").remove()
                 console.log("deleted supplier");
             });
             $modalInstance.close();
@@ -342,6 +243,38 @@ allControllers.controller('ModalInstanceCtrl',
             });
         };
 
+      $scope.editClient = function() {
+        var postdata = {};
+            postdata['Name'] = $scope.formData.inputName;
+            $scope.formData.inputName = "";
+            postdata['Address'] = $scope.formData.inputAddress || "";
+            $scope.formData.inputAddress = "";
+            postdata['City'] = $scope.formData.inputCity || "";
+            $scope.formData.inputCity = "";
+            postdata['StateProvince'] = $scope.formData.inputStateProvince || "";
+            $scope.formData.inputStateProvince = "";
+            postdata['Country'] = $scope.formData.inputCountry || "";
+            $scope.formData.inputCountry = "";
+            postdata['Zipcode'] = $scope.formData.inputZip || "";
+            $scope.formData.inputZip = "";
+            postdata['Fax'] = $scope.formData.inputFax || "";
+            $scope.formData.inputFax = "";
+            postdata['Phone'] = $scope.formData.inputPhone || "";
+            $scope.formData.inputPhone = "";
+            postdata['Cellular'] = $scope.formData.inputCellular || "";
+            $scope.formData.inputCellular = "";
+            postdata['Contact'] = $scope.formData.inputContact || "";
+            $scope.formData.inputContact = "";
+
+            $http({
+                method: 'PUT',
+                url: globalServerURL + $scope.editid + '/client',
+                data:postdata
+            }).success(function () {
+                console.log("client edited");
+            });
+        };
+
         $scope.addSupplier = function(){
             var postdata = {};
             postdata['Name'] = $scope.formData.inputName;
@@ -374,6 +307,39 @@ allControllers.controller('ModalInstanceCtrl',
                 $scope.sharedService.supplierAdded(postdata);
             });
         };
+
+        $scope.editSupplier = function() {
+            var postdata = {};
+            postdata['Name'] = $scope.formData.inputName;
+            $scope.formData.inputName = "";
+            postdata['Address'] = $scope.formData.inputAddress || "";
+            $scope.formData.inputAddress = "";
+            postdata['City'] = $scope.formData.inputCity || "";
+            $scope.formData.inputCity = "";
+            postdata['StateProvince'] = $scope.formData.inputStateProvince || "";
+            $scope.formData.inputStateProvince = "";
+            postdata['Country'] = $scope.formData.inputCountry || "";
+            $scope.formData.inputCountry = "";
+            postdata['Zipcode'] = $scope.formData.inputZip || "";
+            $scope.formData.inputZip = "";
+            postdata['Fax'] = $scope.formData.inputFax || "";
+            $scope.formData.inputFax = "";
+            postdata['Phone'] = $scope.formData.inputPhone || "";
+            $scope.formData.inputPhone = "";
+            postdata['Cellular'] = $scope.formData.inputCellular || "";
+            $scope.formData.inputCellular = "";
+            postdata['Contact'] = $scope.formData.inputContact || "";
+            $scope.formData.inputContact = "";
+
+            $http({
+                method: 'PUT',
+                url: globalServerURL + $scope.editid + '/supplier',
+                data:postdata
+            }).success(function () {
+                console.log("supplier edited");
+            });
+        };
+
 
         // When the addNode button is clicked on the modal a new node
         // is added to the database
@@ -415,8 +381,8 @@ allControllers.controller('projectlistController',['$scope', '$http', 'globalSer
 
 // Angular function that loads a specific project into the treeview
 // upon selection from the user
-allControllers.controller('treeviewController',['$scope', '$http', 'globalServerURL', '$rootScope',
-    function($scope, $http, globalServerURL, $rootScope) {
+allControllers.controller('projectsController',['$scope', '$http', 'globalServerURL', '$rootScope', 'sharedService',
+    function($scope, $http, globalServerURL, $rootScope, sharedService) {
 
         toggleMenu('projects');
 
@@ -557,33 +523,51 @@ allControllers.controller('treeviewController',['$scope', '$http', 'globalServer
     }
 ]);
 
-allControllers.controller('treeviewFunctionsController', ['$scope', '$http', 'globalServerURL', '$rootScope',
-    function($scope, $http, globalServerURL, $rootScope) {
-        // $scope.copiedId = 0;
-        // Watch for when a child is added and refresh the treeview
-        $rootScope.$watch('addedChild', function() {
-            if ($rootScope.addedChild){
-                var nodeid = $rootScope.currentNode.ID;
-                $scope.loadNodeChildren(nodeid);
-                $rootScope.addedChild = false;
+allControllers.controller('treeviewController', ['$http', '$scope', 'globalServerURL', '$rootScope', 'sharedService',
+    function($http, $scope, globalServerURL, $rootScope, sharedService){
+        // if node head clicks, get the children of the node
+        // and collapse or expand the node
+        $scope.selectNodeHead = $scope.selectNodeHead || function( selectedNode ) {
+            // if the node is collapsed, get the data and
+            // expand the node
+            if (!selectedNode.collapsed){
+                selectedNode.collapsed = true;
+                var parentid = selectedNode.ID;
+                $http.get(globalServerURL + parentid + '/').success(function(data) {
+                    selectedNode.Subitem = data;
+                    console.log("Children loaded");
+                });
             }
-        });
+            else{
+                selectedNode.collapsed = false;
+            }
+        };
+
+        // if node label clicks,
+        $scope.selectNodeLabel = $scope.selectNodeLabel || function(selectedNode) {
+            // remove highlight from previous node
+            if ($rootScope.currentNode) {
+                $rootScope.currentNode.selected = undefined;
+            }
+            // set highlight to selected node
+            selectedNode.selected = 'selected';
+            // set currentNode
+            $rootScope.currentNode = selectedNode;
+        };
+}])
+
+allControllers.controller('treeviewFunctionsController', ['$scope', '$http', 'globalServerURL', '$rootScope', 'sharedService',
+    function($scope, $http, globalServerURL, $rootScope, sharedService) {
 
         // Deleting a node. It recieves the id of the node
         // The id is sent to the server to be deleted and the node
         // removed from the treemodel
         $scope.deleteThisNode = function ( nodeid ) {
-            console.log($scope.treeModel);
-            // var result = $.grep($scope.treeModel, function(e) {
-            //     return e.ID == nodeid;
-            // });
-            // var i = $scope.treeModel.indexOf(result[0]);
             $http({
                 method: 'POST',
                 url:globalServerURL + nodeid + '/delete'
             }).success(function (response) {
-                console.log('Success: Item deleted');
-                // $scope.treeModel.splice(i, 1);
+                sharedService.nodeDeleted(nodeid);
             });
         };
 
@@ -636,35 +620,14 @@ allControllers.controller('treeviewFunctionsController', ['$scope', '$http', 'gl
             }
         }
 
-        // if node head clicks, get the children of the node
-        // and collapse or expand the node
-        $scope.selectNodeHead = $scope.selectNodeHead || function( selectedNode ) {
-            // if the node is collapsed, get the data and
-            // expand the node
-            if (!selectedNode.collapsed){
-                selectedNode.collapsed = true;
-                var parentid = selectedNode.ID;
-                $http.get(globalServerURL + parentid + '/').success(function(data) {
-                    selectedNode.Subitem = data;
-                    console.log("Children loaded");
-                });
+        // Watch for when a child is added and refresh the treeview
+        $rootScope.$watch('addedChild', function() {
+            if ($rootScope.addedChild){
+                var nodeid = $rootScope.currentNode.ID;
+                $scope.loadNodeChildren(nodeid);
+                $rootScope.addedChild = false;
             }
-            else{
-                selectedNode.collapsed = false;
-            }
-        };
-
-        // if node label clicks,
-        $scope.selectNodeLabel = $scope.selectNodeLabel || function(selectedNode) {
-            // remove highlight from previous node
-            if ($rootScope.currentNode) {
-                $rootScope.currentNode.selected = undefined;
-            }
-            // set highlight to selected node
-            selectedNode.selected = 'selected';
-            // set currentNode
-            $rootScope.currentNode = selectedNode;
-        };
+        });
 
         // Load the children and add to the tree
         $scope.loadNodeChildren = function(parentid){

@@ -5,7 +5,7 @@
                 <a title="Add Client" data-target="#addClientModal" data-toggle="modal"><i class="fa fa-plus-square"></i></a>
             </li>
             <li ng-show="selectedClientId">
-                <a title="Edit Client" ng-click="getEditClient(selectedClientId)"><i class="fa fa-pencil"></i></a>
+                <a title="Edit Client" data-target="#editClientModal" data-toggle="modal"><i class="fa fa-pencil"></i></a>
             </li>
             <li ng-show="selectedClientId">
                 <a title="Delete Client" ng-click="getDeleteClient(selectedClientId)"><i class="fa fa-trash"></i></a>
@@ -18,6 +18,13 @@
     modal-type="Client"
     modal-src="modal_templates/addclient.html">
 </div>
+
+<div custom-modals modal-id="editClientModal"
+    modal-type="Client"
+    modal-supplier-id="selectedClientId"
+    modal-src="modal_templates/editclient.html">
+</div>
+
 
 <div class="container-fluid">
     <div id="clients" class="row">
@@ -38,94 +45,6 @@
                 </tr>
             </tbody>
         </table>
-
-        <script type="text/ng-template" id="editClientModal.html">
-            <div class="modal-header">
-                <h3>Edit client</h3>
-            </div>
-            <div class="modal-body">
-                <form class="form-horizontal">
-                    <div class="form-group">
-                        <label for="inputName" class="col-sm-2 control-label">Name:</label>
-                        <input type="text"
-                                id="inputName"
-                                name="inputName"
-                                ng-model="editingClient['Name']"
-                                required
-                                autofocus>
-                    </div>
-                    <div class="form-group">
-                        <label for="inputAddress" class="col-sm-2 control-label">Address:</label>
-                        <input type="textarea"
-                                id="inputAddress"
-                                name="inputAddress"
-                                ng-model="editingClient['Address']"
-                                style="width: 300px; height: 70px;"
-                                autofocus>
-                    </div>
-                    <div class="form-group">
-                        <label for="inputCity" class="col-sm-2 control-label">City:</label>
-                        <input type="text"
-                                id="inputCity"
-                                name="inputCity"
-                                ng-model="editingClient['City']">
-                    </div>
-                    <div class="form-group">
-                        <label for="inputStateProvince" class="col-sm-2 control-label">State/Province:</label>
-                        <input type="text"
-                                id="inputStateProvince"
-                                name="inputStateProvince"
-                                ng-model="editingClient['StateProvince']">
-                    </div>
-                    <div class="form-group">
-                        <label for="inputStateCountry" class="col-sm-2 control-label">Country:</label>
-                        <input type="text"
-                                id="inputStateCountry"
-                                name="inputStateCountry"
-                                ng-model="editingClient['Country']">
-                    </div>
-                    <div class="form-group">
-                        <label for="inputZip" class="col-sm-2 control-label">Zip Code:</label>
-                        <input type="text"
-                                id="inputZip"
-                                name="inputZip"
-                                ng-model="editingClient['Zipcode']">
-                    </div>
-                    <div class="form-group">
-                        <label for="inputPhone" class="col-sm-2 control-label">Phone:</label>
-                        <input type="text"
-                                id="inputPhone"
-                                name="inputPhone"
-                                ng-model="editingClient['Phone']">
-                    </div>
-                    <div class="form-group">
-                        <label for="inputFax" class="col-sm-2 control-label">Fax:</label>
-                        <input type="text"
-                                id="inputFax"
-                                name="inputFax"
-                                ng-model="editingClient['Fax']">
-                    </div>
-                    <div class="form-group">
-                        <label for="inputCellular" class="col-sm-2 control-label">Cellular:</label>
-                        <input type="text"
-                                id="inputCellular"
-                                name="inputCellular"
-                                ng-model="editingClient['Cellular']">
-                    </div>
-                    <div class="form-group">
-                        <label for="inputContact" class="col-sm-2 control-label">Contact:</label>
-                        <input type="text"
-                                id="inputContact"
-                                name="inputContact"
-                                ng-model="editingClient['Contact']">
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" ng-click="editClient()">Save</button>
-                <button class="btn btn-default" ng-click="cancel()">Cancel</button>
-            </div>
-        </script>
 
         <script type="text/ng-template" id="deleteClientModal.html">
             <div class="modal-header">

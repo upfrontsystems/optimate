@@ -819,6 +819,53 @@ class TestPasteviewSuccessCondition(unittest.TestCase):
         response = costview(request)
         self.assertEqual(response['Cost'], '1427.53')
 
+class TestCutAndPasteSuccessCondition(unittest.TestCase):
+    """ Test that a node is correctly cut and pasted
+    """
+
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        self.session.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from .views import pasteitemview
+        return pasteitemview(request)
+
+    def test_it(self):
+        _registerRoutes(self.config)
+        # set the default node to be cut
+        # which is budgetgroup with id 2
+        request = testing.DummyRequest(json_body={
+            'ID': '2',
+            'cut': True}
+        )
+        # set the node to be pasted into
+        # which is projectb with id 4
+        request.matchdict = {'id': 4}
+        response = self._callFUT(request)
+
+        # true if the response from paste view is OK
+        self.assertEqual(response.code, 200)
+
+        # do another test to see if the children of the parent is now three
+        # (two budgetgroups and the resourcecategory)
+        request = testing.DummyRequest()
+        request.matchdict = {'parentid': 4}
+        from .views import childview
+        response = childview(request)
+        self.assertEqual(len(response), 3)
+
+        # do another test to see if the children of project id 1 is now 1
+        request = testing.DummyRequest()
+        request.matchdict = {'parentid': 1}
+        from .views import childview
+        response = childview(request)
+        self.assertEqual(len(response), 1)
+
 class TestCostviewSuccessCondition(unittest.TestCase):
     """ Test all the Costs are correct
     """

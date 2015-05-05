@@ -352,27 +352,36 @@ def pasteitemview(request):
         destinationid = request.matchdict['id']
 
         source = DBSession.query(Node).filter_by(ID=sourceid).first()
-        dest = DBSession.query(Node).filter_by(ID=destinationid).first()
 
-        # Get a list of the components in the source
-        componentlist = source.getComponents()
+        # if the source is to be cut and pasted into the destination
+        if "cut" in request.json_body:
+            source.ParentID = destinationid
+            transaction.commit()
 
-        # Get the ID of the project the destination is in
-        projectid = dest.getProjectID()
+            if destinationid != 0:
+                reset = DBSession.query(Node).filter_by(ID=destinationid).first()
+                reset.resetTotal()
+        else:
+            dest = DBSession.query(Node).filter_by(ID=destinationid).first()
+            # Get a list of the components in the source
+            componentlist = source.getComponents()
 
-        # Paste the source into the destination
-        parentid = dest.ID
-        dest.paste(source.copy(dest.ID), source.Children)
+            # Get the ID of the project the destination is in
+            projectid = dest.getProjectID()
 
-        # Add the new resources to the destinations resource category
-        resourcecategory = DBSession.query(
-                        ResourceCategory).filter_by(ParentID=projectid).first()
-        resourcecategory.addResources(componentlist)
-        transaction.commit()
+            # Paste the source into the destination
+            parentid = dest.ID
+            dest.paste(source.copy(dest.ID), source.Children)
 
-        if parentid != 0:
-            reset = DBSession.query(Node).filter_by(ID=parentid).first()
-            reset.resetTotal()
+            # Add the new resources to the destinations resource category
+            resourcecategory = DBSession.query(
+                            ResourceCategory).filter_by(ParentID=projectid).first()
+            resourcecategory.addResources(componentlist)
+            transaction.commit()
+
+            if parentid != 0:
+                reset = DBSession.query(Node).filter_by(ID=parentid).first()
+                reset.resetTotal()
 
         transaction.commit()
         return HTTPOk()
@@ -407,13 +416,13 @@ def company_information(request):
     if request.method == 'OPTIONS':
         return {"success": True}
     else:
-        # XXX get the information from the database        
+        # XXX get the information from the database
         dummy_data = {'Name': 'TETIUS RABE PROPERTY SERVICES',
                       'Address': '173 KLEINBOS AVENUE, SOMERSET-WEST',
                       'Tel': '0218511572',
                       'Fax': '0218511572',
                       'Cell': '0832742643',
-                      'Company Header': '', 
+                      'Company Header': '',
                       'Order Header': '',
                       'Bank name': 'BOE BANK WORCESTER',
                       'Branch Code': '440-707',

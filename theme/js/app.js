@@ -9,16 +9,16 @@ myApp.config(['$routeProvider',
     $routeProvider.
       when('/', {
         templateUrl: 'partials/projects.html',
-        controller: 'treeviewController'
+        controller: 'projectsController'
       }).
       when('/projects', {
         templateUrl: 'partials/projects.html',
-        controller: 'treeviewController'
+        controller: 'projectsController'
       }).
       when('/company_information', {
         templateUrl: 'partials/company_information.html',
         controller: 'companyinformationController'
-      }).      
+      }).
       when('/clients', {
         templateUrl: 'partials/clients.html',
         controller: 'clientsController'

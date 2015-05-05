@@ -5,7 +5,7 @@
                 <a title="Add Supplier" data-target="#addSupplierModal" data-toggle="modal"><i class="fa fa-plus-square"></i></a>
             </li>
             <li ng-show="selectedSupplierId">
-                <a title="Edit Supplier" ng-click="getEditSupplier(selectedSupplierId)"><i class="fa fa-pencil"></i></a>
+                <a title="Edit Supplier" data-target="#editSupplierModal" data-toggle="modal"><i class="fa fa-pencil"></i></a>
             </li>
             <li ng-show="selectedSupplierId">
                 <a title="Delete Supplier" ng-click="getDeleteSupplier(selectedSupplierId)"><i class="fa fa-trash"></i></a>
@@ -17,6 +17,12 @@
 <div custom-modals modal-id="addSupplierModal"
     modal-type="Supplier"
     modal-src="modal_templates/addsupplier.html">
+</div>
+
+<div custom-modals modal-id="editSupplierModal"
+    modal-type="Supplier"
+    modal-supplier-id="selectedSupplierId"
+    modal-src="modal_templates/editsupplier.html">
 </div>
 
 
@@ -39,107 +45,5 @@
                 </tr>
             </tbody>
         </table>
-
-        <script type="text/ng-template" id="editSupplierModal.html">
-            <div class="modal-header">
-                <h3>Edit supplier</h3>
-            </div>
-            <div class="modal-body">
-                <form class="form-horizontal">
-                    <div class="form-group">
-                        <label for="inputName" class="col-sm-2 control-label">Name:</label>
-                        <input type="text"
-                                id="inputName"
-                                name="inputName"
-                                ng-model="editingSupplier['Name']"
-                                required
-                                autofocus>
-                    </div>
-                    <div class="form-group">
-                        <label for="inputAddress" class="col-sm-2 control-label">Address:</label>
-                        <input type="textarea"
-                                id="inputAddress"
-                                name="inputAddress"
-                                ng-model="editingSupplier['Address']"
-                                style="width: 300px; height: 70px;"
-                                autofocus>
-                    </div>
-                    <div class="form-group">
-                        <label for="inputCity" class="col-sm-2 control-label">City:</label>
-                        <input type="text"
-                                id="inputCity"
-                                name="inputCity"
-                                ng-model="editingSupplier['City']">
-                    </div>
-                    <div class="form-group">
-                        <label for="inputStateProvince" class="col-sm-2 control-label">State/Province:</label>
-                        <input type="text"
-                                id="inputStateProvince"
-                                name="inputStateProvince"
-                                ng-model="editingSupplier['StateProvince']">
-                    </div>
-                    <div class="form-group">
-                        <label for="inputStateCountry" class="col-sm-2 control-label">Country:</label>
-                        <input type="text"
-                                id="inputStateCountry"
-                                name="inputStateCountry"
-                                ng-model="editingSupplier['Country']">
-                    </div>
-                    <div class="form-group">
-                        <label for="inputZip" class="col-sm-2 control-label">Zip Code:</label>
-                        <input type="text"
-                                id="inputZip"
-                                name="inputZip"
-                                ng-model="editingSupplier['Zipcode']">
-                    </div>
-                    <div class="form-group">
-                        <label for="inputPhone" class="col-sm-2 control-label">Phone:</label>
-                        <input type="text"
-                                id="inputPhone"
-                                name="inputPhone"
-                                ng-model="editingSupplier['Phone']">
-                    </div>
-                    <div class="form-group">
-                        <label for="inputFax" class="col-sm-2 control-label">Fax:</label>
-                        <input type="text"
-                                id="inputFax"
-                                name="inputFax"
-                                ng-model="editingSupplier['Fax']">
-                    </div>
-                    <div class="form-group">
-                        <label for="inputCellular" class="col-sm-2 control-label">Cellular:</label>
-                        <input type="text"
-                                id="inputCellular"
-                                name="inputCellular"
-                                ng-model="editingSupplier['Cellular']">
-                    </div>
-                    <div class="form-group">
-                        <label for="inputContact" class="col-sm-2 control-label">Contact:</label>
-                        <input type="text"
-                                id="inputContact"
-                                name="inputContact"
-                                ng-model="editingSupplier['Contact']">
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" ng-click="editSupplier()">Save</button>
-                <button class="btn btn-default" ng-click="cancel()">Cancel</button>
-            </div>
-        </script>
-
-        <script type="text/ng-template" id="deleteSupplierModal.html">
-            <div class="modal-header">
-                <h3>Delete supplier?</h3>
-            </div>
-            <div class="modal-body">
-                <span>Name: </span>
-                <span>{{deletingSupplier['Name']}}</span>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" ng-click="deleteSupplier()">Delete</button>
-                <button class="btn btn-default" ng-click="cancel()">Cancel</button>
-            </div>
-        </script>
     </div>
 </div>

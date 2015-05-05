@@ -1,17 +1,35 @@
 allControllers.directive(
-        'treeModel', ['$compile', '$http', 'globalServerURL', '$rootScope', '$templateCache', '$timeout', '$parse',
-        function($compile, $http, globalServerURL, $rootScope, $templateCache, $timeout, $parse) {
+        'treeModel', ['$compile', '$http', 'globalServerURL', '$rootScope', '$templateCache', '$timeout', '$parse', 'sharedService',
+        function($compile, $http, globalServerURL, $rootScope, $templateCache, $timeout, $parse, sharedService) {
             // All the functions used for the treeview are in the
             // treeviewFunctionsController controller
             // The treeview html is retrieved from treeview.html and compiled
             return {
                 restrict: 'A',
-                controller: 'treeviewFunctionsController',
+                controller: 'treeviewController',
                 scope: {
                     treeModel:'='
                 },
                 // templateUrl: 'partials/treeview.html',
                 link: function(scope, element, attrs) {
+                    // listening for a node thats been deleted
+                    scope.$on('handleDeletedNode', function(){
+                        if (scope.treeModel){
+                            var nodeid = sharedService.deletedNodeId;
+                            var result = $.grep(scope.treeModel, function(e) {
+                                return e.ID == nodeid;
+                            });
+                            var i = scope.treeModel.indexOf(result[0]);
+                            if (i != -1) {
+                                scope.treeModel.splice(i, 1);
+                                console.log('Success: Item deleted');
+                            }
+                            else{
+                                console.log("id not found");
+                            }
+                        }
+                    });
+
                     $http.get("partials/treeview.html", {cache: $templateCache})
                     .success(function(html) {
                         element.html(html);
@@ -36,18 +54,45 @@ allControllers.directive('treeviewMenu', function($compile) {
 
 // Directive for the custom modals, the html for the relevant modal is loaded
 // from the directive attribute and compiled
-allControllers.directive('customModals', function ($http, $compile) {
+allControllers.directive('customModals', function ($http, $compile, $parse, globalServerURL) {
     return {
         restrict: 'A',
         require: '?ngModel',
         transclude: true,
         scope:{
-            ngModel: '='
+            ngModel: '=',
+            modalSupplierId: '=',
+            modalClientId: '='
         },
         templateUrl: '',
         controller: 'ModalInstanceCtrl',
         link: function(scope, el, attrs, transcludeFn){
-            scope.formData = {'NodeType': attrs.modalType};
+            var supplierid = $parse(attrs.modalSupplierId)(scope);
+            var clientid = $parse(attrs.modalClientId)(scope);
+            if (supplierid){
+                scope.editid = supplierid;
+                var req = {
+                    method: 'GET',
+                    url: globalServerURL + supplierid + '/supplier',
+                };
+                $http(req).success(function(data) {
+                    scope.formData = data;
+                });
+            }
+            else if (clientid){
+                scope.editid = clientid;
+                var req = {
+                    method: 'GET',
+                    url: globalServerURL + clientid + '/client',
+                };
+                $http(req).success(function(data) {
+                    scope.formData = data;
+                });
+            }
+            else {
+                scope.formData = {'NodeType': attrs.modalType};
+            }
+
             $http.get(attrs.modalSrc).success(function (response) {
                 $compile(response)(scope, function(compliledElement, scope){
                     el.append(compliledElement);

@@ -53,36 +53,3 @@ div[data-tree-model] li .selected {
     font-weight: bold;
     padding-right: 5px;
 }
-
-/* Dropdown menu css */
-div[data-tree-model] div.dropdown {
-    display: inline-block;
-}
-
-div[data-tree-model] div.treeview-dropdown a {
-    display: block;
-    cursor: pointer;
-    text-decoration: none;
-    color: #333;
-}
-
-div[data-tree-model] div.treeview-dropdown li:hover {
-    background-color: #e8e8e8;
-}
-
-div[data-tree-model] div.treeview-dropdown a.unselectable {
-    cursor: default;
-    color:gray;
-}
-
-div[data-tree-model] .dropdown-menu {
-    min-width: 140px;
-}
-
-div[data-tree-model] .dropdown-menu li{
-    padding: 0px 0px 0px 10px;
-}
-
-div[data-tree-model] .dropdown-menu .divider{
-    margin: 5px 0px;
-}
