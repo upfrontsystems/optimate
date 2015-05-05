@@ -150,6 +150,33 @@
                 </li>
             </ul>
         </div>
+        <div data-ng-switch-when="Component">
+            <ul class="nav nav-pills no-top-margin">
+                <li>
+                    <a role="button" data-ng-click="copyThisNode(currentNode.ID)"
+                       title="Copy Component">
+                        <i class="fa fa-files-o"></i>
+                    </a>
+                </li>
+                <li>
+                    <a role="button" data-ng-click="pasteThisNode(currentNode.ID)"
+                       title="Paste Component">
+                        <i class="fa fa-clipboard"></i>
+                    </a>
+                </li>
+                <li>
+                    <a role="button" data-ng-click="deleteThisNode(currentNode.ID)"
+                       title="Delete Component">
+                        <i class="fa fa-trash"></i>
+                    </a>
+                </li>
+                <li>
+                    <a title="Selected node information" data-target="#debugProjectModal" 
+                    data-toggle="modal">
+                    <i class="fa fa-gears"></i></a>
+                </li>
+            </ul>        
+        </div>           
         <div data-ng-switch-default>
             <li>
                 <a class="unselectable">Add</a>
