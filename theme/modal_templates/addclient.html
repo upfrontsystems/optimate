@@ -1,47 +1,9 @@
-<nav class="navbar navbar-default navbar-fixed-top action-bar">
-    <div class="container-fluid">
-        <ul class="nav nav-pills">
-            <li>
-                <a title="Add Client" data-target="#addClientModal" data-toggle="modal"><i class="fa fa-plus-square"></i></a>
-            </li>
-            <li ng-show="selectedClientId">
-                <a title="Edit Client" ng-click="getEditClient(selectedClientId)"><i class="fa fa-pencil"></i></a>
-            </li>
-            <li ng-show="selectedClientId">
-                <a title="Delete Client" ng-click="getDeleteClient(selectedClientId)"><i class="fa fa-trash"></i></a>
-            </li>
-        </ul>
-    </div>
-</nav>
-
-<div custom-modals modal-id="addClientModal"
-    modal-type="Client"
-    modal-src="modal_templates/addclient.html">
-</div>
-
-<div class="container-fluid">
-    <div id="clients" class="row">
-
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Address</th>
-                    <th>Phone</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr ng-repeat="obj in jsonclients" ng-click="showActionsFor(obj)" id="client-{{obj.ID}}">
-                    <td>{{obj.Name}}</td>
-                    <td>{{obj.Address}}</td>
-                    <td>{{obj.Phone}}</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <script type="text/ng-template" id="editClientModal.html">
+<div id="addClientModal" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
             <div class="modal-header">
-                <h3>Edit client</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h3 class="modal-title">Add a new client</h3>
             </div>
             <div class="modal-body">
                 <form class="form-horizontal">
@@ -50,7 +12,7 @@
                         <input type="text"
                                 id="inputName"
                                 name="inputName"
-                                ng-model="editingClient['Name']"
+                                ng-model="formData.inputName"
                                 required
                                 autofocus>
                     </div>
@@ -59,7 +21,7 @@
                         <input type="textarea"
                                 id="inputAddress"
                                 name="inputAddress"
-                                ng-model="editingClient['Address']"
+                                ng-model="formData.inputAddress"
                                 style="width: 300px; height: 70px;"
                                 autofocus>
                     </div>
@@ -68,77 +30,63 @@
                         <input type="text"
                                 id="inputCity"
                                 name="inputCity"
-                                ng-model="editingClient['City']">
+                                ng-model="formData.inputCity">
                     </div>
                     <div class="form-group">
                         <label for="inputStateProvince" class="col-sm-2 control-label">State/Province:</label>
                         <input type="text"
                                 id="inputStateProvince"
                                 name="inputStateProvince"
-                                ng-model="editingClient['StateProvince']">
+                                ng-model="formData.inputStateProvince">
                     </div>
                     <div class="form-group">
                         <label for="inputStateCountry" class="col-sm-2 control-label">Country:</label>
                         <input type="text"
                                 id="inputStateCountry"
                                 name="inputStateCountry"
-                                ng-model="editingClient['Country']">
+                                ng-model="formData.inputCountry">
                     </div>
                     <div class="form-group">
                         <label for="inputZip" class="col-sm-2 control-label">Zip Code:</label>
                         <input type="text"
                                 id="inputZip"
                                 name="inputZip"
-                                ng-model="editingClient['Zipcode']">
+                                ng-model="formData.inputZip">
                     </div>
                     <div class="form-group">
                         <label for="inputPhone" class="col-sm-2 control-label">Phone:</label>
                         <input type="text"
                                 id="inputPhone"
                                 name="inputPhone"
-                                ng-model="editingClient['Phone']">
+                                ng-model="formData.inputPhone">
                     </div>
                     <div class="form-group">
                         <label for="inputFax" class="col-sm-2 control-label">Fax:</label>
                         <input type="text"
                                 id="inputFax"
                                 name="inputFax"
-                                ng-model="editingClient['Fax']">
+                                ng-model="formData.inputFax">
                     </div>
                     <div class="form-group">
                         <label for="inputCellular" class="col-sm-2 control-label">Cellular:</label>
                         <input type="text"
                                 id="inputCellular"
                                 name="inputCellular"
-                                ng-model="editingClient['Cellular']">
+                                ng-model="formData.inputCellular">
                     </div>
                     <div class="form-group">
                         <label for="inputContact" class="col-sm-2 control-label">Contact:</label>
                         <input type="text"
                                 id="inputContact"
                                 name="inputContact"
-                                ng-model="editingClient['Contact']">
+                                ng-model="formData.inputContact">
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary" ng-click="editClient()">Save</button>
-                <button class="btn btn-default" ng-click="cancel()">Cancel</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="addClient()">Save</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
             </div>
-        </script>
-
-        <script type="text/ng-template" id="deleteClientModal.html">
-            <div class="modal-header">
-                <h3>Delete client?</h3>
-            </div>
-            <div class="modal-body">
-                <span>Name: </span>
-                <span>{{deletingClient['Name']}}</span>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" ng-click="deleteClient()">Delete</button>
-                <button class="btn btn-default" ng-click="cancel()">Cancel</button>
-            </div>
-        </script>
+        </div>
     </div>
 </div>

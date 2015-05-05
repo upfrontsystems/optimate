@@ -13,102 +13,16 @@
         </ul>
     </div>
 </nav>
-<div id="addSupplierModal" class="modal fade">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title">Add Supplier</h4>
-            </div>
-            <div class="modal-body">
-                <form class="form-horizontal">
-                    <div class="form-group">
-                        <label for="inputName" class="col-sm-2 control-label">Name:</label>
-                        <input type="text"
-                                id="inputName"
-                                name="inputName"
-                                ng-model="formData.inputName"
-                                required
-                                autofocus>
-                    </div>
-                    <div class="form-group">
-                        <label for="inputAddress" class="col-sm-2 control-label">Address:</label>
-                        <input type="textarea"
-                                id="inputAddress"
-                                name="inputAddress"
-                                ng-model="formData.inputAddress"
-                                style="width: 300px; height: 70px;"
-                                autofocus>
-                    </div>
-                    <div class="form-group">
-                        <label for="inputCity" class="col-sm-2 control-label">City:</label>
-                        <input type="text"
-                                id="inputCity"
-                                name="inputCity"
-                                ng-model="formData.inputCity">
-                    </div>
-                    <div class="form-group">
-                        <label for="inputStateProvince" class="col-sm-2 control-label">State/Province:</label>
-                        <input type="text"
-                                id="inputStateProvince"
-                                name="inputStateProvince"
-                                ng-model="formData.inputStateProvince">
-                    </div>
-                    <div class="form-group">
-                        <label for="inputStateCountry" class="col-sm-2 control-label">Country:</label>
-                        <input type="text"
-                                id="inputStateCountry"
-                                name="inputStateCountry"
-                                ng-model="formData.inputCountry">
-                    </div>
-                    <div class="form-group">
-                        <label for="inputZip" class="col-sm-2 control-label">Zip Code:</label>
-                        <input type="text"
-                                id="inputZip"
-                                name="inputZip"
-                                ng-model="formData.inputZip">
-                    </div>
-                    <div class="form-group">
-                        <label for="inputPhone" class="col-sm-2 control-label">Phone:</label>
-                        <input type="text"
-                                id="inputPhone"
-                                name="inputPhone"
-                                ng-model="formData.inputPhone">
-                    </div>
-                    <div class="form-group">
-                        <label for="inputFax" class="col-sm-2 control-label">Fax:</label>
-                        <input type="text"
-                                id="inputFax"
-                                name="inputFax"
-                                ng-model="formData.inputFax">
-                    </div>
-                    <div class="form-group">
-                        <label for="inputCellular" class="col-sm-2 control-label">Cellular:</label>
-                        <input type="text"
-                                id="inputCellular"
-                                name="inputCellular"
-                                ng-model="formData.inputCellular">
-                    </div>
-                    <div class="form-group">
-                        <label for="inputContact" class="col-sm-2 control-label">Contact:</label>
-                        <input type="text"
-                                id="inputContact"
-                                name="inputContact"
-                                ng-model="formData.inputContact">
-                    </div>
-                </form>            
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="addNewSupplier()">Save</button>
-                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-            </div>
-        </div>
-    </div>
+
+<div custom-modals modal-id="addSupplierModal"
+    modal-type="Supplier"
+    modal-src="modal_templates/addsupplier.html">
 </div>
+
 
 <div class="container-fluid">
     <div id="suppliers" class="row">
-    
+
         <table class="table table-hover">
             <thead>
                 <tr>
