@@ -1,25 +1,159 @@
 <div data-ng-show="currentNode">
     <div data-ng-switch="currentNode.NodeType">
         <div data-ng-switch-when="Project">
-            <li><a role="button" data-toggle="modal" data-target="#addbudgetgroup">Add Budget Group</a></li>
-            <li><a role="button" class="close-project" data-id="currentNode.ID">Close Project</a></li>
+            <ul class="nav nav-pills no-top-margin">
+                <li>
+                    <a role="button" class="close-project" data-id="currentNode.ID"
+                       title="Close Project">
+                        <i class="fa fa-times"></i>
+                    </a>
+                </li>              
+                <li>
+                    <a role="button" data-toggle="modal" data-target="#addbudgetgroup" 
+                       title="Add Budget Group">
+                        <i class="fa fa-plus-square"></i> G
+                    </a>
+                </li>
+                <li>
+                    <a role="button" data-ng-click="copyThisNode(currentNode.ID)"
+                       title="Copy Project">
+                        <i class="fa fa-files-o"></i>
+                    </a>
+                </li>
+                <li>
+                    <a role="button" data-ng-click="pasteThisNode(currentNode.ID)"
+                       title="Paste Project">
+                        <i class="fa fa-clipboard"></i>
+                    </a>
+                </li>
+                <li>
+                    <a role="button" data-ng-click="deleteThisNode(currentNode.ID)"
+                       title="Delete Project">
+                        <i class="fa fa-trash"></i>
+                    </a>
+                </li>
+                <li>
+                    <a title="Selected node information" data-target="#debugProjectModal" 
+                    data-toggle="modal">
+                    <i class="fa fa-gears"></i></a>
+                </li>                
+            </ul>
         </div>
         <div data-ng-switch-when="BudgetGroup">
-            <li><a role="button" data-toggle="modal" data-target="#addbudgetgroup">Add Budget Group</a></li>
-            <li><a role="button" data-toggle="modal" data-target="#addbudgetitem">Add Budget Item</a></li>
-            <li><a role="button" data-toggle="modal" data-target="#addcomponent">Add Component</a></li>
-    </div>
+            <ul class="nav nav-pills no-top-margin">
+                <li>
+                    <a role="button" data-toggle="modal" data-target="#addbudgetgroup"
+                       title="Add Budget Group">
+                        <i class="fa fa-plus-square"></i> G
+                    </a>
+                </li>
+                <li>
+                    <a role="button" data-toggle="modal" data-target="#addbudgetitem"
+                       title="Add Budget Item">
+                        <i class="fa fa-plus-square"></i> I
+                    </a>
+                </li>
+                <li>
+                    <a role="button" data-toggle="modal" data-target="#addcomponent"
+                       title="Add Component">
+                        <i class="fa fa-plus-square"></i> C
+                    </a>
+                </li>
+                <li>
+                    <a role="button" data-ng-click="copyThisNode(currentNode.ID)"
+                       title="Copy Budget Group">
+                        <i class="fa fa-files-o"></i>
+                    </a>
+                </li>
+                <li>
+                    <a role="button" data-ng-click="pasteThisNode(currentNode.ID)"
+                       title="Paste Budget Group">
+                        <i class="fa fa-clipboard"></i>
+                    </a>
+                </li>
+                <li>
+                    <a role="button" data-ng-click="deleteThisNode(currentNode.ID)"
+                       title="Delete Budget Group">
+                        <i class="fa fa-trash"></i>
+                    </a>
+                </li>
+                <li>
+                    <a title="Selected node information" data-target="#debugProjectModal" 
+                    data-toggle="modal">
+                    <i class="fa fa-gears"></i></a>
+                </li>
+            </ul>
+        </div>
         <div data-ng-switch-when="BudgetItem">
-            <li><a role="button" data-toggle="modal" data-target="#addcomponent">Add Component</a></li>
+            <ul class="nav nav-pills no-top-margin">
+                <li>
+                    <a role="button" data-toggle="modal" data-target="#addcomponent"
+                       title="Add Component">
+                        <i class="fa fa-plus-square"></i> C
+                    </a>
+                </li>
+                <li>
+                    <a role="button" data-ng-click="copyThisNode(currentNode.ID)"
+                       title="Copy Budget Item">
+                        <i class="fa fa-files-o"></i>
+                    </a>
+                </li>
+                <li>
+                    <a role="button" data-ng-click="pasteThisNode(currentNode.ID)"
+                       title="Paste Budget Item">
+                        <i class="fa fa-clipboard"></i>
+                    </a>
+                </li>
+                <li>
+                    <a role="button" data-ng-click="deleteThisNode(currentNode.ID)"
+                       title="Delete Budget Item">
+                        <i class="fa fa-trash"></i>
+                    </a>
+                </li>
+                <li>
+                    <a title="Selected node information" data-target="#debugProjectModal" 
+                    data-toggle="modal">
+                    <i class="fa fa-gears"></i></a>
+                </li>
+            </ul>
         </div>
         <div data-ng-switch-when="ResourceCategory">
-            <li><a role="button" data-toggle="modal" data-target="#addresource">Add Resource</a></li>
+            <ul class="nav nav-pills no-top-margin">
+                <li>
+                    <a role="button" data-toggle="modal" data-target="#addresource"
+                       title="Add Resource">
+                        <i class="fa fa-plus-square"></i> R
+                    </a>
+                </li>
+                <li>
+                    <a role="button" data-ng-click="copyThisNode(currentNode.ID)"
+                       title="Copy Resource List">
+                        <i class="fa fa-files-o"></i>
+                    </a>
+                </li>
+                <li>
+                    <a role="button" data-ng-click="pasteThisNode(currentNode.ID)"
+                       title="Paste Resource List">
+                        <i class="fa fa-clipboard"></i>
+                    </a>
+                </li>
+                <li>
+                    <a role="button" data-ng-click="deleteThisNode(currentNode.ID)"
+                       title="Delete Resource List">
+                        <i class="fa fa-trash"></i>
+                    </a>
+                </li>
+                <li>
+                    <a title="Selected node information" data-target="#debugProjectModal" 
+                    data-toggle="modal">
+                    <i class="fa fa-gears"></i></a>
+                </li>
+            </ul>
         </div>
         <div data-ng-switch-default>
-        <li><a class="unselectable">Add</a></li>
+            <li>
+                <a class="unselectable">Add</a>
+            </li>
         </div>
-    </div>
-    <li><a role="button" data-ng-click="copyThisNode(currentNode.ID)">Copy</a></li>
-    <li><a role="button" data-ng-click="pasteThisNode(currentNode.ID)">Paste</a></li>
-    <li><a role="button" data-ng-click="deleteThisNode(currentNode.ID)">Delete</a></li>
+    </div>    
 </div>

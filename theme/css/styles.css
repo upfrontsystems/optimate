@@ -17,6 +17,10 @@ body {
     margin-top: 10px;
 }
 
+.no-top-margin {
+    margin-top: 0px !important;
+}
+
 .action-bar {
     top: 50px;
     z-index: 999;
