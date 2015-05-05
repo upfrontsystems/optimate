@@ -13,6 +13,14 @@ allControllers.controller('companyinformationController', ['$scope', '$http', '$
     function($scope, $http, $modal, $log, globalServerURL) {
 
         toggleMenu('setup');
+
+        var req = {
+            method: 'GET',
+            url: globalServerURL +'company_information',
+        };
+        $http(req).success(function(data){
+            $scope.company_information = data;
+        });        
     }
 ]);
 
