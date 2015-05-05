@@ -355,6 +355,7 @@ def pasteitemview(request):
 
         # if the source is to be cut and pasted into the destination
         if "cut" in request.json_body:
+            # set the source parent to the destination parent
             source.ParentID = destinationid
             transaction.commit()
 
