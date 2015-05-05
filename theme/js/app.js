@@ -15,6 +15,10 @@ myApp.config(['$routeProvider',
         templateUrl: 'partials/projects.html',
         controller: 'treeviewController'
       }).
+      when('/company_information', {
+        templateUrl: 'partials/company_information.html',
+        controller: 'companyinformationController'
+      }).      
       when('/clients', {
         templateUrl: 'partials/clients.html',
         controller: 'clientsController'

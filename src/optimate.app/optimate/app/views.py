@@ -399,6 +399,30 @@ def costview(request):
 
         return {'Cost': totalcost}
 
+
+@view_config(route_name="company_information", renderer='json')
+def company_information(request):
+    """ Returns all company information data
+    """
+    if request.method == 'OPTIONS':
+        return {"success": True}
+    else:
+        # XXX get the information from the database        
+        dummy_data = {'Name': 'TETIUS RABE PROPERTY SERVICES',
+                      'Address': '173 KLEINBOS AVENUE, SOMERSET-WEST',
+                      'Tel': '0218511572',
+                      'Fax': '0218511572',
+                      'Cell': '0832742643',
+                      'Company Header': '', 
+                      'Order Header': '',
+                      'Bank name': 'BOE BANK WORCESTER',
+                      'Branch Code': '440-707',
+                      'Account No': '2572658703',
+                      'Account Name': 'TR Property Services',
+                      'Default Taxrate': '14.00'}
+        return dummy_data
+
+
 @view_config(route_name='clientsview', renderer='json')
 def clientsview(request):
     """ The clientview returns a list in json format of all the clients

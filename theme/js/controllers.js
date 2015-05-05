@@ -29,6 +29,22 @@ function toggleMenu(itemclass) {
     $("li."+itemclass).toggleClass("active");
 }
 
+// controller for the Company Information data from the server
+allControllers.controller('companyinformationController', ['$scope', '$http', '$modal', '$log', 'globalServerURL',
+    function($scope, $http, $modal, $log, globalServerURL) {
+
+        toggleMenu('setup');
+
+        var req = {
+            method: 'GET',
+            url: globalServerURL +'company_information',
+        };
+        $http(req).success(function(data){
+            $scope.company_information = data;
+        });        
+    }
+]);
+
 // controller for the Client data from the server
 allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$log', 'globalServerURL', 'sharedService',
     function($scope, $http, $modal, $log, globalServerURL, sharedService) {
@@ -122,6 +138,7 @@ allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$l
                 method: 'DELETE',
                 url: globalServerURL + id + '/client'
             }).success(function () {
+                $("#clients .table tr.ng-scope.active").remove()                
                 console.log("deleted client");
             });
             $modalInstance.close();
@@ -249,6 +266,7 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
                 method: 'DELETE',
                 url: globalServerURL + id + '/supplier'
             }).success(function () {
+                $("#suppliers .table tr.ng-scope.active").remove()                
                 console.log("deleted supplier");
             });
             $modalInstance.close();

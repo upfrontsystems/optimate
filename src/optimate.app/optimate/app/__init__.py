@@ -57,7 +57,8 @@ def main(global_config, **settings):
     config.add_route('pasteview', '/{id}/paste')
     config.add_route('costview', '/{id}/cost')
 
-    # the client and supplier views
+    # the company information, client and supplier views
+    config.add_route('company_information', '/company_information')
     config.add_route('clientsview', '/clients')
     config.add_route('suppliersview', '/suppliers')
     config.add_route('clientview', '/{id}/client')
