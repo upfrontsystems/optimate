@@ -1,0 +1,25 @@
+<div data-ng-show="currentNode">
+    <div data-ng-switch="currentNode.NodeType">
+        <div data-ng-switch-when="Project">
+            <li><a role="button" data-toggle="modal" data-target="#addbudgetgroup">Add Budget Group</a></li>
+            <li><a role="button" class="close-project" data-id="currentNode.ID">Close Project</a></li>
+        </div>
+        <div data-ng-switch-when="BudgetGroup">
+            <li><a role="button" data-toggle="modal" data-target="#addbudgetgroup">Add Budget Group</a></li>
+            <li><a role="button" data-toggle="modal" data-target="#addbudgetitem">Add Budget Item</a></li>
+            <li><a role="button" data-toggle="modal" data-target="#addcomponent">Add Component</a></li>
+    </div>
+        <div data-ng-switch-when="BudgetItem">
+            <li><a role="button" data-toggle="modal" data-target="#addcomponent">Add Component</a></li>
+        </div>
+        <div data-ng-switch-when="ResourceCategory">
+            <li><a role="button" data-toggle="modal" data-target="#addresource">Add Resource</a></li>
+        </div>
+        <div data-ng-switch-default>
+        <li><a class="unselectable">Add</a></li>
+        </div>
+    </div>
+    <li><a role="button" data-ng-click="copyThisNode(currentNode.ID)">Copy</a></li>
+    <li><a role="button" data-ng-click="pasteThisNode(currentNode.ID)">Paste</a></li>
+    <li><a role="button" data-ng-click="deleteThisNode(currentNode.ID)">Delete</a></li>
+</div>

@@ -18,37 +18,6 @@
             data-ng-click="selectNodeLabel(node)">
             {{node.Name}}
         </span>
-        <div class="dropdown" data-ng-show="node.selected">
-            <a id="menu1" data-toggle="dropdown"><span class="caret"></span></a>
-            <ul class="dropdown-menu" role="menu" aria-labelledby="menu1">
-                <div class="treeview-dropdown" data-ng-switch="node.NodeType">
-                    <div data-ng-switch-when="Project">
-                        <li><a role="button" data-toggle="modal" data-target="#addbudgetgroup">Add Budget Group</a></li>
-                        <li><a role="button" class="close-project" data-id="{{node.ID}}">Close Project</a></li>
-                    </div>
-                    <div data-ng-switch-when="BudgetGroup">
-                        <li><a role="button" data-toggle="modal" data-target="#addbudgetgroup">Add Budget Group</a></li>
-                        <li><a role="button" data-toggle="modal" data-target="#addbudgetitem">Add Budget Item</a></li>
-                        <li><a role="button" data-toggle="modal" data-target="#addcomponent">Add Component</a></li>
-                    </div>
-                    <div data-ng-switch-when="BudgetItem">
-                        <li><a role="button" data-toggle="modal" data-target="#addcomponent">Add Component</a></li>
-                    </div>
-                    <div data-ng-switch-when="ResourceCategory">
-                        <li><a role="button" data-toggle="modal" data-target="#addresource">Add Resource</a></li>
-                    </div>
-                    <div data-ng-switch-default>
-                        <li><a class="unselectable">Add</a></li>
-                    </div>
-                </div>
-                <li role="presentation" class="divider"></li>
-                <div class="treeview-dropdown">
-                    <li><a role="button" data-ng-click="copyThisNode(node.ID)">Copy</a></li>
-                    <li><a role="button" data-ng-click="pasteThisNode(node.ID)">Paste</a></li>
-                    <li><a role="button" data-ng-click="deleteThisNode($index)">Delete</a></li>
-                </div>
-            </ul>
-        </div>
         <div data-ng-hide="!node.collapsed"
             data-tree-model="node.Subitem">
         </div>
