@@ -3,13 +3,15 @@
         <div data-ng-switch-when="Project">
             <ul class="nav nav-pills no-top-margin">
                 <li>
-                    <a role="button" class="close-project" data-id="currentNode.ID"
+                    <a role="button" class="close-project"
+                        data-ng-click="closeProject(currentNode.ID)"
                        title="Close Project">
                         <i class="fa fa-times"></i>
                     </a>
-                </li>              
+                </li>
                 <li>
-                    <a role="button" data-toggle="modal" data-target="#addbudgetgroup" 
+                    <a role="button" data-toggle="modal" data-target="#addbudgetgroup"
+                        data-ng-click="changeAddingType('BudgetGroup')"
                        title="Add Budget Group">
                         <i class="fa fa-plus-square"></i> G
                     </a>
@@ -33,28 +35,31 @@
                     </a>
                 </li>
                 <li>
-                    <a title="Selected node information" data-target="#debugProjectModal" 
+                    <a title="Selected node information" data-target="#debugProjectModal"
                     data-toggle="modal">
                     <i class="fa fa-gears"></i></a>
-                </li>                
+                </li>
             </ul>
         </div>
         <div data-ng-switch-when="BudgetGroup">
             <ul class="nav nav-pills no-top-margin">
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addbudgetgroup"
+                        data-ng-click="changeAddingType('BudgetGroup')"
                        title="Add Budget Group">
                         <i class="fa fa-plus-square"></i> G
                     </a>
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addbudgetitem"
+                        data-ng-click="changeAddingType('BudgetItem')"
                        title="Add Budget Item">
                         <i class="fa fa-plus-square"></i> I
                     </a>
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addcomponent"
+                        data-ng-click="changeAddingType('Component')"
                        title="Add Component">
                         <i class="fa fa-plus-square"></i> C
                     </a>
@@ -78,7 +83,7 @@
                     </a>
                 </li>
                 <li>
-                    <a title="Selected node information" data-target="#debugProjectModal" 
+                    <a title="Selected node information" data-target="#debugProjectModal"
                     data-toggle="modal">
                     <i class="fa fa-gears"></i></a>
                 </li>
@@ -88,6 +93,7 @@
             <ul class="nav nav-pills no-top-margin">
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addcomponent"
+                        data-ng-click="changeAddingType('Component')"
                        title="Add Component">
                         <i class="fa fa-plus-square"></i> C
                     </a>
@@ -111,7 +117,7 @@
                     </a>
                 </li>
                 <li>
-                    <a title="Selected node information" data-target="#debugProjectModal" 
+                    <a title="Selected node information" data-target="#debugProjectModal"
                     data-toggle="modal">
                     <i class="fa fa-gears"></i></a>
                 </li>
@@ -121,6 +127,7 @@
             <ul class="nav nav-pills no-top-margin">
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addresource"
+                        data-ng-click="changeAddingType('Resource')"
                        title="Add Resource">
                         <i class="fa fa-plus-square"></i> R
                     </a>
@@ -144,7 +151,7 @@
                     </a>
                 </li>
                 <li>
-                    <a title="Selected node information" data-target="#debugProjectModal" 
+                    <a title="Selected node information" data-target="#debugProjectModal"
                     data-toggle="modal">
                     <i class="fa fa-gears"></i></a>
                 </li>
@@ -171,16 +178,16 @@
                     </a>
                 </li>
                 <li>
-                    <a title="Selected node information" data-target="#debugProjectModal" 
+                    <a title="Selected node information" data-target="#debugProjectModal"
                     data-toggle="modal">
                     <i class="fa fa-gears"></i></a>
                 </li>
-            </ul>        
-        </div>           
+            </ul>
+        </div>
         <div data-ng-switch-default>
             <li>
                 <a class="unselectable">Add</a>
             </li>
         </div>
-    </div>    
+    </div>
 </div>

@@ -2,13 +2,14 @@
     <div class="container-fluid">
         <ul class="nav nav-pills">
             <li>
-                <a title="Open Project" data-target="#selectProjectModal" data-toggle="modal"><i class="fa fa-folder-open"></i></a>
+                <a title="Open Project" data-ng-click="loadProjects()" data-target="#selectProjectModal" data-toggle="modal"><i class="fa fa-folder-open"></i></a>
             </li>
-            <div data-treeview-menu></div>
+            <div ng-include="'partials/treeview_menu.html'"></div>
         </ul>
     </div>
 </nav>
-<div id="selectProjectModal" class="modal fade" ng-controller="projectlistController">
+
+<div id="selectProjectModal" class="modal fade">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -26,7 +27,7 @@
                 </span>
             </div>
             <div class="modal-footer">
-                <button type="select" class="btn btn-primary" id="select-project-submit" data-dismiss="modal">Open</button>
+                <button type="select" class="btn btn-primary" data-ng-click="loadProject()" data-dismiss="modal">Open</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
             </div>
         </div>
@@ -62,19 +63,19 @@
             <div>
                 <!-- div directives for the custom modals -->
                 <div custom-modals modal-id="addbudgetgroup"
-                    modal-type="BudgetGroup"
+                    modal-type="{{addingNodeType}}"
                     modal-src="modal_templates/addbudgetgroup.html">
                 </div>
                 <div custom-modals modal-id="addbudgetitem"
-                    modal-type="BudgetItem"
+                    modal-type="{{addingNodeType}}"
                     modal-src="modal_templates/addbudgetitem.html">
                 </div>
                 <div custom-modals modal-id="addcomponent"
-                    modal-type="Component"
+                    modal-type="{{addingNodeType}}"
                     modal-src="modal_templates/addcomponent.html">
                 </div>
                 <div custom-modals modal-id="addresource"
-                    modal-type="Resource"
+                    modal-type="{{addingNodeType}}"
                     modal-src="modal_templates/addresource.html">
                 </div>
                 <!-- Angular Treeview -->

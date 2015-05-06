@@ -215,7 +215,6 @@ def additemview(request):
     else:
         # Get the parent to add the object to from the path
         parentid = int(request.matchdict['id'])
-
         # Get the data to be added to the new object from the request body
         name = request.json_body['Name']
         objecttype = request.json_body['NodeType']

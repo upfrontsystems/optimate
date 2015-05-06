@@ -4,11 +4,11 @@
             <li>
                 <a title="Add Client" data-target="#addClientModal" data-ng-click="deselect()" data-toggle="modal"><i class="fa fa-plus-square"></i></a>
             </li>
-            <li ng-show="selectedClientId">
+            <li ng-show="selectedClient">
                 <a title="Edit Client" data-target="#editClientModal" data-toggle="modal"><i class="fa fa-pencil"></i></a>
             </li>
-            <li ng-show="selectedClientId">
-                <a title="Delete Client" ng-click="getDeleteClient(selectedClientId)"><i class="fa fa-trash"></i></a>
+            <li ng-show="selectedClient">
+                <a title="Delete Client" data-target="#deleteClientModal" data-toggle="modal"><i class="fa fa-trash"></i></a>
             </li>
         </ul>
     </div>
@@ -21,10 +21,23 @@
 
 <div custom-modals modal-id="editClientModal"
     modal-type="client"
-    modal-selected-id="{{selectedClientId}}"
+    modal-selected-id="{{selectedClient.ID}}"
     modal-src="modal_templates/editclient.html">
 </div>
 
+<div id="deleteClientModal" class="modal sm">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h4>Delete client: {{selectedClient.Name}}</h4>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal" data-ng-click="deleteClient()">Delete</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="container-fluid">
     <div id="clients" class="row">
@@ -45,19 +58,5 @@
                 </tr>
             </tbody>
         </table>
-
-        <script type="text/ng-template" id="deleteClientModal.html">
-            <div class="modal-header">
-                <h3>Delete client?</h3>
-            </div>
-            <div class="modal-body">
-                <span>Name: </span>
-                <span>{{deletingClient['Name']}}</span>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" ng-click="deleteClient()">Delete</button>
-                <button class="btn btn-default" ng-click="cancel()">Cancel</button>
-            </div>
-        </script>
     </div>
 </div>

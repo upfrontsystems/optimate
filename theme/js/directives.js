@@ -42,16 +42,6 @@ allControllers.directive(
 }]);
 
 
-allControllers.directive('treeviewMenu', function($compile) {
-    return {
-        restrict: 'AE',
-        replace: true,
-        scope: true,
-        controller: 'treeviewFunctionsController',
-        templateUrl: 'partials/treeview_menu.html'
-        };
-});
-
 // Directive for the custom modals, the html for the relevant modal is loaded
 // from the directive attribute and compiled
 allControllers.directive('customModals', function ($http, $compile, globalServerURL) {
@@ -63,7 +53,15 @@ allControllers.directive('customModals', function ($http, $compile, globalServer
         controller: 'ModalInstanceCtrl',
         link: function(scope, el, attrs, transcludeFn){
             scope.saveType = attrs.modalType;
+
+            // observe the modal type for changes and set the formdata
+            // this is used for adding nodes in the treeview by their type
+            attrs.$observe('modalType', function(addingtype){
+                scope.formData = {'NodeType': addingtype};
+            })
+
             // observe the selected id for changes and update the formdata
+            // this is used for editing Clients and Suppliers
             attrs.$observe('modalSelectedId', function(selectedid){
                 if (selectedid){
                     scope.editId = selectedid;

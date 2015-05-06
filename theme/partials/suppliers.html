@@ -4,11 +4,11 @@
             <li>
                 <a title="Add Supplier" data-target="#addSupplierModal" data-ng-click="deselect()" data-toggle="modal"><i class="fa fa-plus-square"></i></a>
             </li>
-            <li ng-show="selectedSupplierId">
+            <li ng-show="selectedSupplier">
                 <a title="Edit Supplier" data-target="#editSupplierModal" data-toggle="modal"><i class="fa fa-pencil"></i></a>
             </li>
-            <li ng-show="selectedSupplierId">
-                <a title="Delete Supplier" ng-click="getDeleteSupplier(selectedSupplierId)"><i class="fa fa-trash"></i></a>
+            <li ng-show="selectedSupplier">
+                <a title="Delete Supplier" data-target="#deleteSupplierModal" data-toggle="modal"><i class="fa fa-trash"></i></a>
             </li>
         </ul>
     </div>
@@ -21,14 +21,26 @@
 
 <div custom-modals modal-id="editSupplierModal"
     modal-type="supplier"
-    modal-selected-id="{{selectedSupplierId}}"
+    modal-selected-id="{{selectedSupplier.ID}}"
     modal-src="modal_templates/editsupplier.html">
 </div>
 
+<div id="deleteSupplierModal" class="modal sm">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h4>Delete supplier: {{selectedSupplier.Name}}</h4>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal" data-ng-click="deleteSupplier()">Delete</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="container-fluid">
     <div id="suppliers" class="row">
-
         <table class="table table-hover">
             <thead>
                 <tr>
