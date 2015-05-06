@@ -484,15 +484,15 @@ def clientview(request):
     # if the method is post, add a new client
     elif request.method == 'POST':
         newclient = Client(Name=request.json_body['Name'],
-            Address=request.json_body['Address'],
-            City=request.json_body['City'],
-            StateProvince=request.json_body['StateProvince'],
-            Country=request.json_body['Country'],
-            Zipcode=request.json_body['Zipcode'],
-            Fax=request.json_body['Fax'],
-            Phone=request.json_body['Phone'],
-            Cellular=request.json_body['Cellular'],
-            Contact=request.json_body['Contact'])
+            Address=request.json_body.get('Address', ''),
+            City=request.json_body.get('City', ''),
+            StateProvince=request.json_body.get('StateProvince', ''),
+            Country=request.json_body.get('Country', ''),
+            Zipcode=request.json_body.get('Zipcode', ''),
+            Fax=request.json_body.get('Fax', ''),
+            Phone=request.json_body.get('Phone', ''),
+            Cellular=request.json_body.get('Cellular', ''),
+            Contact=request.json_body.get('Contact', ''))
         DBSession.add(newclient)
         DBSession.flush()
         newid = newclient.ID
@@ -502,15 +502,15 @@ def clientview(request):
         client = DBSession.query(
                     Client).filter_by(ID=request.matchdict['id']).first()
         client.Name=request.json_body['Name']
-        client.Address=request.json_body['Address']
-        client.City=request.json_body['City']
-        client.StateProvince=request.json_body['StateProvince']
-        client.Country=request.json_body['Country']
-        client.Zipcode=request.json_body['Zipcode']
-        client.Fax=request.json_body['Fax']
-        client.Phone=request.json_body['Phone']
-        client.Cellular=request.json_body['Cellular']
-        client.Contact=request.json_body['Contact']
+        client.Address=request.json_body.get('Address', '')
+        client.City=request.json_body.get('City', '')
+        client.StateProvince=request.json_body.get('StateProvince', '')
+        client.Country=request.json_body.get('Country', '')
+        client.Zipcode=request.json_body.get('Zipcode', '')
+        client.Fax=request.json_body.get('Fax', '')
+        client.Phone=request.json_body.get('Phone', '')
+        client.Cellular=request.json_body.get('Cellular', '')
+        client.Contact=request.json_body.get('Contact', '')
 
         transaction.commit()
         return HTTPOk()
@@ -584,15 +584,15 @@ def supplierview(request):
     # if the method is post, add a new supplier
     elif request.method == 'POST':
         newsupplier = Supplier(Name=request.json_body['Name'],
-            Address=request.json_body['Address'],
-            City=request.json_body['City'],
-            StateProvince=request.json_body['StateProvince'],
-            Country=request.json_body['Country'],
-            Zipcode=request.json_body['Zipcode'],
-            Fax=request.json_body['Fax'],
-            Phone=request.json_body['Phone'],
-            Cellular=request.json_body['Cellular'],
-            Contact=request.json_body['Contact'])
+            Address=request.json_body.get('Address', ''),
+            City=request.json_body.get('City', ''),
+            StateProvince=request.json_body.get('StateProvince', ''),
+            Country=request.json_body.get('Country', ''),
+            Zipcode=request.json_body.get('Zipcode', ''),
+            Fax=request.json_body.get('Fax', ''),
+            Phone=request.json_body.get('Phone', ''),
+            Cellular=request.json_body.get('Cellular', ''),
+            Contact=request.json_body.get('Contact', ''))
 
         DBSession.add(newsupplier)
         DBSession.flush()
@@ -603,15 +603,15 @@ def supplierview(request):
         supplier = DBSession.query(
                     Supplier).filter_by(ID=request.matchdict['id']).first()
         supplier.Name=request.json_body['Name']
-        supplier.Address=request.json_body['Address']
-        supplier.City=request.json_body['City']
-        supplier.StateProvince=request.json_body['StateProvince']
-        supplier.Country=request.json_body['Country']
-        supplier.Zipcode=request.json_body['Zipcode']
-        supplier.Fax=request.json_body['Fax']
-        supplier.Phone=request.json_body['Phone']
-        supplier.Cellular=request.json_body['Cellular']
-        supplier.Contact=request.json_body['Contact']
+        supplier.Address=request.json_body.get('Address', '')
+        supplier.City=request.json_body.get('City', '')
+        supplier.StateProvince=request.json_body.get('StateProvince', '')
+        supplier.Country=request.json_body.get('Country', '')
+        supplier.Zipcode=request.json_body.get('Zipcode', '')
+        supplier.Fax=request.json_body.get('Fax', '')
+        supplier.Phone=request.json_body.get('Phone', '')
+        supplier.Cellular=request.json_body.get('Cellular', '')
+        supplier.Contact=request.json_body.get('Contact', '')
 
         transaction.commit()
         return HTTPOk()

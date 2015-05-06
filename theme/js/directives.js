@@ -54,46 +54,38 @@ allControllers.directive('treeviewMenu', function($compile) {
 
 // Directive for the custom modals, the html for the relevant modal is loaded
 // from the directive attribute and compiled
-allControllers.directive('customModals', function ($http, $compile, $parse, globalServerURL) {
+allControllers.directive('customModals', function ($http, $compile, globalServerURL) {
     return {
         restrict: 'A',
         require: '?ngModel',
         transclude: true,
-        scope:{
-            ngModel: '=',
-            modalSupplierId: '=',
-            modalClientId: '='
-        },
         templateUrl: '',
         controller: 'ModalInstanceCtrl',
         link: function(scope, el, attrs, transcludeFn){
-            var supplierid = $parse(attrs.modalSupplierId)(scope);
-            var clientid = $parse(attrs.modalClientId)(scope);
-            if (supplierid){
-                scope.editid = supplierid;
-                var req = {
-                    method: 'GET',
-                    url: globalServerURL + supplierid + '/supplier',
-                };
-                $http(req).success(function(data) {
-                    scope.formData = data;
-                });
-            }
-            else if (clientid){
-                scope.editid = clientid;
-                var req = {
-                    method: 'GET',
-                    url: globalServerURL + clientid + '/client',
-                };
-                $http(req).success(function(data) {
-                    scope.formData = data;
-                });
-            }
-            else {
-                scope.formData = {'NodeType': attrs.modalType};
-            }
+            scope.saveType = attrs.modalType;
+            // observe the selected id for changes and update the formdata
+            attrs.$observe('modalSelectedId', function(selectedid){
+                if (selectedid){
+                    scope.editId = selectedid;
+                    var req = {
+                        method: 'GET',
+                        url: globalServerURL + selectedid + '/' + attrs.modalType,
+                    };
+                    $http(req).success(function(data) {
+                        // use a different variable for the data that is edited
+                        scope.formData = data;
+                    });
+                }
+                else {
+                    // if the selectedid is blank set formdata to only type
+                    scope.editId = selectedid;
+                    scope.formData = {'NodeType': attrs.modalType};
+                }
+            });
 
-            $http.get(attrs.modalSrc).success(function (response) {
+            // get the modal template
+            $http.get(attrs.modalSrc).
+            success(function (response) {
                 $compile(response)(scope, function(compliledElement, scope){
                     el.append(compliledElement);
                 });

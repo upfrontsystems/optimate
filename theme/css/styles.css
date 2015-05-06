@@ -140,11 +140,11 @@ input.editor-text {
     border-radius: 50%;
     width: 12px;
     height: 12px;
-    display: inline-block;    
+    display: inline-block;
     color: #fff;
     padding: 2px 5px 8px 5px;
     margin: 2px;
-    font-style: bold;    
+    font-style: bold;
     font-size: 0.8em;
 }
 

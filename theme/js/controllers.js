@@ -8,17 +8,31 @@ allControllers.factory('sharedService', ['$rootScope',
 
         shared.newClient = '';
         shared.newSupplier = '';
-        // when a new client is added
-        shared.clientAdded = function(postdata){
-            this.newClient = postdata;
-            $rootScope.$broadcast('handleNewClient');
+        // when a new client or supplier is added
+        shared.added = function(postdata, saveType){
+            if (saveType == 'client'){
+                this.newClient = postdata;
+                $rootScope.$broadcast('handleNewClient');
+            }
+            else {
+                this.newSupplier = postdata;
+                $rootScope.$broadcast('handleNewSupplier');
+            }
         }
 
-        shared.supplierAdded = function(postdata){
-            this.newSupplier = postdata;
-            $rootScope.$broadcast('handleNewSupplier');
+        // when a client or supplier is edited
+        shared.edited = function(postdata, saveType){
+            if (saveType == 'client'){
+                this.newClient = postdata;
+                $rootScope.$broadcast('handleEditedClient');
+            }
+            else {
+                this.newSupplier = postdata;
+                $rootScope.$broadcast('handleEditedSupplier');
+            }
         }
 
+        // when a node is deleted from the projects treeview
         shared.nodeDeleted = function(nodeid){
            this.deletedNodeId = nodeid;
            $rootScope.$broadcast('handleDeletedNode');
@@ -78,10 +92,29 @@ allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$l
             console.log ("client added");
         });
 
+        // listening for the handle edit client broadcast
+        $scope.$on('handleEditedClient', function(){
+            var editedclient = sharedService.newClient;
+
+            // search for the client and edit in the list
+            var result = $.grep($scope.jsonclients, function(e) {
+                return e.ID == editedclient.ID;
+            });
+            var i = $scope.jsonclients.indexOf(result[0]);
+            $scope.jsonclients[i] = editedclient;
+
+            console.log ("client edited");
+        });
+
         $scope.showActionsFor = function(obj) {
             $scope.selectedClientId = obj.ID;
             $('#client-'+obj.ID).addClass('active').siblings().removeClass('active');
         };
+
+        $scope.deselect = function (){
+            $('#client-'+$scope.selectedClientId).removeClass('active');
+            $scope.selectedClientId = undefined;
+        }
 
         var ModalInstanceCtrl2 = function ($scope, $modalInstance, deletingClient, id) {
           $scope.deletingClient = deletingClient;
@@ -141,7 +174,7 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
             $scope.jsonsuppliers = data;
         });
 
-        // listening for the handle new client broadcast
+        // listening for the handle new supplier broadcast
         $scope.$on('handleNewSupplier', function(){
             var newsupplier = sharedService.newSupplier;
             $scope.jsonsuppliers.push(newsupplier);
@@ -154,10 +187,29 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
             console.log("supplier added");
         });
 
+        // listening for the handle edit supplier broadcast
+        $scope.$on('handleEditedSupplier', function(){
+            var editedsupplier = sharedService.newSupplier;
+
+            // search for the supplier and edit in the list
+            var result = $.grep($scope.jsonsuppliers, function(e) {
+                return e.ID == editedsupplier.ID;
+            });
+            var i = $scope.jsonsuppliers.indexOf(result[0]);
+            $scope.jsonsuppliers[i] = editedsupplier;
+
+            console.log ("Supplier edited");
+        });
+
         $scope.showActionsFor = function(obj) {
             $scope.selectedSupplierId = obj.ID;
             $('#supplier-'+obj.ID).addClass('active').siblings().removeClass('active');
         };
+
+        $scope.deselect = function (){
+            $('#supplier-'+$scope.selectedSupplierId).removeClass('active');
+            $scope.selectedSupplierId = undefined;
+        }
 
         var ModalInstanceCtrl2 = function ($scope, $modalInstance, deletingSupplier, id) {
           $scope.deletingSupplier = deletingSupplier;
@@ -209,137 +261,29 @@ allControllers.controller('ModalInstanceCtrl',
         $scope.sharedService = sharedService;
         // When the addClient is clicked on the modal a new client is
         // added to the database
-        $scope.addClient = function(){
-            var postdata = {};
-            postdata['Name'] = $scope.formData.inputName;
-            $scope.formData.inputName = "";
-            postdata['Address'] = $scope.formData.inputAddress || "";
-            $scope.formData.inputAddress = "";
-            postdata['City'] = $scope.formData.inputCity || "";
-            $scope.formData.inputCity = "";
-            postdata['StateProvince'] = $scope.formData.inputStateProvince || "";
-            $scope.formData.inputStateProvince = "";
-            postdata['Country'] = $scope.formData.inputCountry || "";
-            $scope.formData.inputCountry = "";
-            postdata['Zipcode'] = $scope.formData.inputZip || "";
-            $scope.formData.inputZip = "";
-            postdata['Fax'] = $scope.formData.inputFax || "";
-            $scope.formData.inputFax = "";
-            postdata['Phone'] = $scope.formData.inputPhone || "";
-            $scope.formData.inputPhone = "";
-            postdata['Cellular'] = $scope.formData.inputCellular || "";
-            $scope.formData.inputCellular = "";
-            postdata['Contact'] = $scope.formData.inputContact || "";
-            $scope.formData.inputContact = "";
-
-            $http({
-                method: 'POST',
-                url: globalServerURL +'0/client',
-                data:postdata
-            }).success(function (response) {
-                postdata['ID'] = response['newid'];
-                // post the new client to the shared service
-                $scope.sharedService.clientAdded(postdata);
-            });
+        $scope.save = function(saveType, editing){
+            if ($scope.editId){
+                $http({
+                    method: 'PUT',
+                    url: globalServerURL + $scope.editId + '/' + $scope.saveType,
+                    data:$scope.formData
+                }).success(function () {
+                    $scope.formData['ID'] = $scope.editId;
+                    $scope.sharedService.edited($scope.formData, $scope.saveType)
+                });
+            }
+            else{
+                $http({
+                    method: 'POST',
+                    url: globalServerURL +'0/' + $scope.saveType,
+                    data:$scope.formData
+                }).success(function (response) {
+                    $scope.formData['ID'] = response['newid'];
+                    // post the new client to the shared service
+                    $scope.sharedService.added($scope.formData, $scope.saveType);
+                });
+            }
         };
-
-      $scope.editClient = function() {
-        var postdata = {};
-            postdata['Name'] = $scope.formData.inputName;
-            $scope.formData.inputName = "";
-            postdata['Address'] = $scope.formData.inputAddress || "";
-            $scope.formData.inputAddress = "";
-            postdata['City'] = $scope.formData.inputCity || "";
-            $scope.formData.inputCity = "";
-            postdata['StateProvince'] = $scope.formData.inputStateProvince || "";
-            $scope.formData.inputStateProvince = "";
-            postdata['Country'] = $scope.formData.inputCountry || "";
-            $scope.formData.inputCountry = "";
-            postdata['Zipcode'] = $scope.formData.inputZip || "";
-            $scope.formData.inputZip = "";
-            postdata['Fax'] = $scope.formData.inputFax || "";
-            $scope.formData.inputFax = "";
-            postdata['Phone'] = $scope.formData.inputPhone || "";
-            $scope.formData.inputPhone = "";
-            postdata['Cellular'] = $scope.formData.inputCellular || "";
-            $scope.formData.inputCellular = "";
-            postdata['Contact'] = $scope.formData.inputContact || "";
-            $scope.formData.inputContact = "";
-
-            $http({
-                method: 'PUT',
-                url: globalServerURL + $scope.editid + '/client',
-                data:postdata
-            }).success(function () {
-                console.log("client edited");
-            });
-        };
-
-        $scope.addSupplier = function(){
-            var postdata = {};
-            postdata['Name'] = $scope.formData.inputName;
-            $scope.formData.inputName = "";
-            postdata['Address'] = $scope.formData.inputAddress || "";
-            $scope.formData.inputAddress = "";
-            postdata['City'] = $scope.formData.inputCity || "";
-            $scope.formData.inputCity = "";
-            postdata['StateProvince'] = $scope.formData.inputStateProvince || "";
-            $scope.formData.inputStateProvince = "";
-            postdata['Country'] = $scope.formData.inputCountry || "";
-            $scope.formData.inputCountry = "";
-            postdata['Zipcode'] = $scope.formData.inputZip || "";
-            $scope.formData.inputZip = "";
-            postdata['Fax'] = $scope.formData.inputFax || "";
-            $scope.formData.inputFax = "";
-            postdata['Phone'] = $scope.formData.inputPhone || "";
-            $scope.formData.inputPhone = "";
-            postdata['Cellular'] = $scope.formData.inputCellular || "";
-            $scope.formData.inputCellular = "";
-            postdata['Contact'] = $scope.formData.inputContact || "";
-            $scope.formData.inputContact = "";
-
-            $http({
-                method: 'POST',
-                url: globalServerURL +'0/supplier',
-                data:postdata
-            }).success(function (response) {
-                postdata['ID'] = response['newid'];
-                $scope.sharedService.supplierAdded(postdata);
-            });
-        };
-
-        $scope.editSupplier = function() {
-            var postdata = {};
-            postdata['Name'] = $scope.formData.inputName;
-            $scope.formData.inputName = "";
-            postdata['Address'] = $scope.formData.inputAddress || "";
-            $scope.formData.inputAddress = "";
-            postdata['City'] = $scope.formData.inputCity || "";
-            $scope.formData.inputCity = "";
-            postdata['StateProvince'] = $scope.formData.inputStateProvince || "";
-            $scope.formData.inputStateProvince = "";
-            postdata['Country'] = $scope.formData.inputCountry || "";
-            $scope.formData.inputCountry = "";
-            postdata['Zipcode'] = $scope.formData.inputZip || "";
-            $scope.formData.inputZip = "";
-            postdata['Fax'] = $scope.formData.inputFax || "";
-            $scope.formData.inputFax = "";
-            postdata['Phone'] = $scope.formData.inputPhone || "";
-            $scope.formData.inputPhone = "";
-            postdata['Cellular'] = $scope.formData.inputCellular || "";
-            $scope.formData.inputCellular = "";
-            postdata['Contact'] = $scope.formData.inputContact || "";
-            $scope.formData.inputContact = "";
-
-            $http({
-                method: 'PUT',
-                url: globalServerURL + $scope.editid + '/supplier',
-                data:postdata
-            }).success(function () {
-                console.log("supplier edited");
-            });
-        };
-
 
         // When the addNode button is clicked on the modal a new node
         // is added to the database
