@@ -57,6 +57,21 @@
         </div>
     </div>
 </div>
+
+<div id="deleteConfirmation" class="modal">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h4>Delete {{currentNode.NodeType}}: {{currentNode.Name}}</h4>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal" data-ng-click="deleteThisNode(currentNode.ID)">Delete</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="container-fluid">
     <div id="costs" class="row">
         <div class="left">
