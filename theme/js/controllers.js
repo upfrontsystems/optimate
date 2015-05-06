@@ -213,6 +213,40 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
 allControllers.controller('ModalInstanceCtrl',
     function ($scope, $rootScope, $http, globalServerURL, sharedService) {
         $scope.sharedService = sharedService;
+
+        // Load the resources the user can select from
+        $scope.loadResources = function(){
+            // Add a loading value to the project list while it loads
+            $scope.resourceList = [{"Name": "Loading..."}];
+            var req = {
+                method: 'GET',
+                url: globalServerURL +'resource_listing',
+            }
+            $http(req).success(function(data) {
+                $scope.resourceList = data;
+                console.log("Resources loaded");
+            });
+        }
+
+        // Load the resources the user can select from the resource list
+        $scope.loadResourceList = function(){
+            // Add a loading value to the project list while it loads
+            $scope.resourceList = [{"Name": "Loading..."}];
+            var req = {
+                method: 'GET',
+                url: globalServerURL +'resource_list/' + $rootScope.currentNode.ID + '/'
+            }
+            $http(req).success(function(data) {
+                $scope.resourceList = data;
+                console.log("Resources loaded");
+            });
+        }
+
+        $scope.selectedResource = function(){
+            var name = $('#resource-select').find(":selected").val()
+            $scope.formData.inputName = name;
+        }
+
         // When the addClient is clicked on the modal a new client is
         // added to the database
         $scope.save = function(saveType, editing){
@@ -248,7 +282,8 @@ allControllers.controller('ModalInstanceCtrl',
                     'Description': $scope.formData.inputDescription || '',
                     'Quantity': $scope.formData.inputQuantity || 0,
                     'Markup': $scope.formData.inputMarkup || 0,
-                    'ComponentType': $scope.formData.inputComponentType || 0}
+                    'ComponentType': $scope.formData.inputComponentType || 0,
+                    'Rate': $scope.formData.inputRate || 0}
 
             $http({
                 method: 'POST',
@@ -258,6 +293,7 @@ allControllers.controller('ModalInstanceCtrl',
                 $scope.formData = {'NodeType':$scope.formData.NodeType};
                 console.log("Node added");
                 $rootScope.addedChild = true;
+                $scope.flag = true;
             });
           };
 });
@@ -408,7 +444,6 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         };
         $scope.roleList = [];
         $scope.preloadProjects(); // check if anything is stored in local storage
-
         $scope.formData = {};
 
         // functions used by the treeview

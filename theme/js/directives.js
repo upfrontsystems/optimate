@@ -57,7 +57,19 @@ allControllers.directive('customModals', function ($http, $compile, globalServer
             // observe the modal type for changes and set the formdata
             // this is used for adding nodes in the treeview by their type
             attrs.$observe('modalType', function(addingtype){
-                scope.formData = {'NodeType': addingtype};
+                if (scope.formData){
+                    scope.formData.NodeType = addingtype;
+                }
+                else {
+                    scope.formData = {'NodeType': attrs.modalType};
+                }
+                // Load the resource listing if the type is Resource or a comp
+                if (addingtype == 'Resource' && attrs.modalSrc == "modal_templates/addResource.html"){
+                    scope.loadResources();
+                }
+                if (addingtype == 'Component' && attrs.modalSrc == "modal_templates/addComponent.html"){
+                    scope.loadResourceList();
+                }
             })
 
             // observe the selected id for changes and update the formdata

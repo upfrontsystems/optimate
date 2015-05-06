@@ -57,7 +57,8 @@ def childview(request):
                 if child.type == 'ResourceCategory':
                     subitem = []
                 else:
-                    childqry = DBSession.query(Node).filter_by(ParentID=child.ID)
+                    childqry = DBSession.query(
+                                    Node).filter_by(ParentID=child.ID)
                     if childqry.count() > 0:
                         subitem = [{'Name': '...'}]
                     else:
@@ -115,6 +116,44 @@ def project_listing(request):
                              'ID': project.ID})
         return sorted(projects, key=lambda k: k['Name'])
 
+@view_config(route_name="resource_list", renderer='json')
+def resource_list(request):
+    """ Returns a list of all the resources in the
+        node's project's resourcecategory
+    """
+    if request.method == 'OPTIONS':
+        return {"success": True}
+    else:
+        nodeid = request.matchdict['id']
+        resourcelist = []
+        # Get the current node
+        currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
+        # Get the parent
+        rootid = currentnode.getProjectID()
+        # Get the resourcecategory whos parent that is
+        resourcecategory = DBSession.query(
+                                ResourceCategory).filter_by(ParentID=rootid).first()
+        # build the list and only get the neccesary values
+        for resource in resourcecategory.Children:
+            if resource.type == 'Resource':
+                resourcelist.append({'Name': resource.Name})
+        return sorted(resourcelist, key=lambda k: k['Name'])
+
+
+@view_config(route_name="resources", renderer='json')
+def resources(request):
+    """ Returns a list of all the unique resources in the database
+    """
+    if request.method == 'OPTIONS':
+        return {"success": True}
+    else:
+        resources = []
+        # Get all the unique Resources in the Resource table
+        qry = DBSession.query(Resource.Name).distinct()
+        # build the list and only get the neccesary values
+        for resource in qry:
+            resources.append({'Name': resource.Name})
+        return sorted(resources, key=lambda k: k['Name'])
 
 @view_config(route_name="projectview", renderer='json')
 def projectview(request):
@@ -218,86 +257,114 @@ def additemview(request):
         # Get the data to be added to the new object from the request body
         name = request.json_body['Name']
         objecttype = request.json_body['NodeType']
+        newid = 0
 
         # Determine the type of object to be added and build it
-        if objecttype == 'Project':
+        if objecttype == 'Resource':
+            rate = request.json_body['Rate']
+            rate = Decimal(rate).quantize(Decimal('.01'))
             desc = request.json_body['Description']
-            newnode = Project(Name=name,
+            newnode = Resource(Name=name,
+                                Description = desc,
+                                  _Rate= rate,
+                                  ParentID=parentid)
+            # check if the resource is not in the resource category
+            resourcecategory = DBSession.query(
+                    ResourceCategory).filter_by(ID=parentid).first()
+            if resourcecategory:
+                if newnode in resourcecategory.Children:
+                    return HTTPInternalServerError()
+            else:
+                return HTTPInternalServerError()
+
+            DBSession.add(newnode)
+            DBSession.flush()
+            newid = newnode.ID
+        elif objecttype == 'ResourceCategory':
+            desc = request.json_body['Description']
+            newnode = ResourceCategory(Name=name,
                               Description=desc,
                               ParentID=parentid)
-        elif objecttype == 'BudgetGroup':
-            desc = request.json_body['Description']
-            newnode = BudgetGroup(Name=name,
+
+            DBSession.add(newnode)
+            DBSession.flush()
+            newid = newnode.ID
+        else:
+            if objecttype == 'Project':
+                desc = request.json_body['Description']
+                newnode = Project(Name=name,
                                   Description=desc,
                                   ParentID=parentid)
-        elif objecttype == 'BudgetItem':
-            quantity = float(request.json_body['Quantity'])
-            desc = request.json_body['Description']
-            markup = float(request.json_body['Markup'])/100.0
-            newnode = BudgetItem(Name=name,
-                                 Description=desc,
-                                 _Quantity = quantity,
-                                 _Markup = markup,
-                                 ParentID=parentid)
-        elif objecttype == 'Component':
-            # Components need to reference a Resource that already exists
-            # in the system
-            parent = DBSession.query(Node).filter_by(ID=parentid).first()
-            rootparentid = parent.getProjectID()
-            resourcecategory = DBSession.query(
-                    ResourceCategory).filter_by(ParentID=rootparentid).first()
-            # if the resourcecategory does not exist create it
-            try:
-                rescatid = resourcecategory.ID
-            except AttributeError, a:
-                resourcecategory = ResourceCategory(Name='Resource List',
-                                            Description='List of Resources',
-                                            ParentID=rootparentid)
-                DBSession.add(resourcecategory)
-                DBSession.flush()
-                rescatid = resourcecategory.ID
+            elif objecttype == 'BudgetGroup':
+                desc = request.json_body['Description']
+                newnode = BudgetGroup(Name=name,
+                                      Description=desc,
+                                      ParentID=parentid)
+            elif objecttype == 'BudgetItem':
+                quantity = float(request.json_body['Quantity'])
+                desc = request.json_body['Description']
+                markup = float(request.json_body['Markup'])/100.0
+                newnode = BudgetItem(Name=name,
+                                     Description=desc,
+                                     _Quantity = quantity,
+                                     _Markup = markup,
+                                     ParentID=parentid)
+            elif objecttype == 'Component':
+                # Components need to reference a Resource that already exists
+                # in the system
+                parent = DBSession.query(Node).filter_by(ID=parentid).first()
+                rootparentid = parent.getProjectID()
+                resourcecategory = DBSession.query(
+                        ResourceCategory).filter_by(
+                        ParentID=rootparentid).first()
+                # if the resourcecategory does not exist create it
+                try:
+                    rescatid = resourcecategory.ID
+                except AttributeError, a:
+                    resourcecategory = ResourceCategory(Name='Resource List',
+                                                Description='List of Resources',
+                                                ParentID=rootparentid)
+                    DBSession.add(resourcecategory)
+                    DBSession.flush()
+                    rescatid = resourcecategory.ID
 
-            # get the resource used by the component
-            resource = DBSession.query(
-                                Resource).filter_by(
-                                ParentID=rescatid, Name=name).first()
-            # the resource does not exists in the resourcecategory
-            if resource == None:
+                # get the resource used by the component
                 resource = DBSession.query(
-                                    Resource).filter_by(Name=name).first()
+                                    Resource).filter_by(
+                                    ParentID=rescatid, Name=name).first()
+                # the resource does not exists in the resourcecategory
                 if resource == None:
-                    return HTTPNotFound("The resource does not exist")
-                else:
-                    newresource = Resource(Name=resource.Name,
+                    resource = DBSession.query(
+                                        Resource).filter_by(Name=name).first()
+                    if resource == None:
+                        return HTTPNotFound("The resource does not exist")
+                    else:
+                        newresource = Resource(Name=resource.Name,
                                             Code=resource.Code,
                                             _Rate = resource.Rate,
                                             Description=resource.Description)
-                    resourcecategory.Children.append(newresource)
-                    DBSession.flush()
-                    resource = newresource
+                        resourcecategory.Children.append(newresource)
+                        DBSession.flush()
+                        resource = newresource
 
-            componenttype = int(request.json_body['ComponentType'])
-            quantity = float(request.json_body['Quantity'])
-            markup = float(request.json_body['Markup'])/100.0
-            newnode = Component(ResourceID=resource.ID,
-                                Type=componenttype,
-                                _Quantity = quantity,
-                                _Markup = markup,
-                                ParentID=parentid)
-        elif objecttype == 'Resource':
-            # do nothing
-            pass
-        else:
-            return HTTPInternalServerError()
+                componenttype = int(request.json_body['ComponentType'])
+                quantity = float(request.json_body['Quantity'])
+                markup = float(request.json_body['Markup'])/100.0
+                newnode = Component(ResourceID=resource.ID,
+                                    Type=componenttype,
+                                    _Quantity = quantity,
+                                    _Markup = markup,
+                                    ParentID=parentid)
+            else:
+                return HTTPInternalServerError()
 
-        DBSession.add(newnode)
-        DBSession.flush()
-        newid = newnode.ID
-
-        # reset the total of the parent
-        if parentid != 0:
-            reset = DBSession.query(Node).filter_by(ID=parentid).first()
-            reset.resetTotal()
+            DBSession.add(newnode)
+            DBSession.flush()
+            newid = newnode.ID
+            # reset the total of the parent
+            if parentid != 0:
+                reset = DBSession.query(Node).filter_by(ID=parentid).first()
+                reset.resetTotal()
 
         # commit the transaction and return ok,
         # along with the id of the new node
@@ -307,7 +374,8 @@ def additemview(request):
 
 @view_config(route_name="deleteview", renderer='json')
 def deleteitemview(request):
-    """ The deleteitemview is called using the address from the node to be deleted.
+    """ The deleteitemview is called using
+        the address from the node to be deleted.
         The node ID is sent in the request, and it is deleted from the tables.
     """
 
@@ -359,7 +427,8 @@ def pasteitemview(request):
             transaction.commit()
 
             if destinationid != 0:
-                reset = DBSession.query(Node).filter_by(ID=destinationid).first()
+                reset = DBSession.query(
+                        Node).filter_by(ID=destinationid).first()
                 reset.resetTotal()
         else:
             dest = DBSession.query(Node).filter_by(ID=destinationid).first()
@@ -375,7 +444,8 @@ def pasteitemview(request):
 
             # Add the new resources to the destinations resource category
             resourcecategory = DBSession.query(
-                            ResourceCategory).filter_by(ParentID=projectid).first()
+                            ResourceCategory).filter_by(
+                            ParentID=projectid).first()
             resourcecategory.addResources(componentlist)
             transaction.commit()
 

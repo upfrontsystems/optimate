@@ -536,6 +536,7 @@ class BudgetItem(Node):
             'id': self.ID,
             'node_type': self.type,
             'markup':self.Markup*100.0,
+            'rate': str(self.Rate),
             'quantity': self.Quantity,
             'budg_cost': str(self.Total),
             'order_cost': str(self.OrderCost.quantize(Decimal('.01'))),
@@ -741,6 +742,7 @@ class Component(Node):
             'node_type': self.type,
             'markup': self.Markup*100.0,
             'quantity': self.Quantity,
+            'rate': str(self.Rate),
             'budg_cost': str(self.Total),
             'order_cost': str(self.OrderCost.quantize(Decimal('.01'))),
             'run_cost': str(self.RunningCost.quantize(Decimal('.01'))),
@@ -841,15 +843,7 @@ class ResourceCategory(Node):
         """
         return {'name': self.Name,
                 'id': self.ID,
-                'node_type': self.type,
-                'budg_cost': '-',
-                'order_cost': '-',
-                'run_cost': '-',
-                'claim_cost': '-',
-                'income_rec': '-',
-                'client_cost': '-',
-                'proj_profit': '-',
-                'act_profit': '-'}
+                'node_type': self.type}
 
     def __repr__(self):
         """Return a representation of this ResourceCategory
@@ -918,15 +912,7 @@ class Resource(Node):
         return {'name': self.Name,
                 'id': self.ID,
                 'node_type': self.type,
-                'rate': str(self.Rate),
-                'budg_cost': '-',
-                'order_cost': '-',
-                'run_cost': '-',
-                'claim_cost': '-',
-                'income_rec': '-',
-                'client_cost': '-',
-                'proj_profit': '-',
-                'act_profit': '-'}
+                'rate': str(self.Rate)}
 
     def __repr__(self):
         """Return a representation of this resource
