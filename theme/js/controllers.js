@@ -38,6 +38,11 @@ allControllers.factory('sharedService', ['$rootScope',
            $rootScope.$broadcast('handleDeletedNode');
         }
 
+        shared.nodeCut = function(nodeid){
+            this.cutNodeId = nodeid;
+            $rootScope.$broadcast('handleCutNode');
+        }
+
         return shared;
 }]);
 
@@ -212,7 +217,6 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
 // Controller for the modals, handles adding new nodes
 allControllers.controller('ModalInstanceCtrl',
     function ($scope, $rootScope, $http, globalServerURL, sharedService) {
-        $scope.sharedService = sharedService;
 
         // Load the resources the user can select from
         $scope.loadResources = function(){
@@ -257,7 +261,7 @@ allControllers.controller('ModalInstanceCtrl',
                     data:$scope.formData
                 }).success(function () {
                     $scope.formData['ID'] = $scope.editId;
-                    $scope.sharedService.edited($scope.formData, $scope.saveType)
+                    sharedService.edited($scope.formData, $scope.saveType)
                 });
             }
             else{
@@ -268,7 +272,7 @@ allControllers.controller('ModalInstanceCtrl',
                 }).success(function (response) {
                     $scope.formData['ID'] = response['newid'];
                     // post the new client to the shared service
-                    $scope.sharedService.added($scope.formData, $scope.saveType);
+                    sharedService.added($scope.formData, $scope.saveType);
                 });
             }
         };
@@ -473,7 +477,21 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             }
             else{
                 $scope.copiedId = cid;
+                $scope.cut = false;
                 console.log("Node id copied: " + cid);
+            }
+        }
+
+        // Function to copy a node
+        $scope.cutThisNode = function(cid) {
+            if ($scope.$parent.copyThisNode) {
+                $scope.$parent.copyThisNode(cid);
+            }
+            else{
+                $scope.copiedId = cid;
+                console.log("Node id copied: " + cid);
+                $scope.cut = true;
+                sharedService.nodeCut(cid);
             }
         }
 
@@ -504,7 +522,8 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                     $http({
                         method: 'POST',
                         url: globalServerURL + nodeid + '/paste',
-                        data:{'ID': cnodeid}
+                        data:{'ID': cnodeid,
+                                'cut': $scope.cut}
                     }).success(function () {
                         console.log('Success: Node pasted');
                         $scope.loadNodeChildren(nodeid);

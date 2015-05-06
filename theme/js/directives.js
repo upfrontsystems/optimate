@@ -2,7 +2,7 @@ allControllers.directive(
         'treeModel', ['$compile', '$http', 'globalServerURL', '$rootScope', '$templateCache', '$timeout', '$parse', 'sharedService',
         function($compile, $http, globalServerURL, $rootScope, $templateCache, $timeout, $parse, sharedService) {
             // All the functions used for the treeview are in the
-            // treeviewFunctionsController controller
+            // treeviewController controller
             // The treeview html is retrieved from treeview.html and compiled
             return {
                 restrict: 'A',
@@ -13,7 +13,7 @@ allControllers.directive(
                 // templateUrl: 'partials/treeview.html',
                 link: function(scope, element, attrs) {
                     // listening for a node thats been deleted
-                    scope.$on('handleDeletedNode', function(){
+                    $rootScope.$on('handleDeletedNode', function(){
                         if (scope.treeModel){
                             var nodeid = sharedService.deletedNodeId;
                             var result = $.grep(scope.treeModel, function(e) {
@@ -29,6 +29,24 @@ allControllers.directive(
                             }
                         }
                     });
+
+                    $rootScope.$on('handleCutNode', function(){
+                        if (scope.treeModel){
+                            var nodeid = sharedService.cutNodeId;
+                            var result = $.grep(scope.treeModel, function(e) {
+                                return e.ID == nodeid;
+                            });
+                            var i = scope.treeModel.indexOf(result[0]);
+                            if (i != -1) {
+                                scope.treeModel.splice(i, 1);
+                                console.log('Success: Item removed');
+                            }
+                            else{
+                                console.log("id not found");
+                            }
+                        }
+                    });
+
 
                     $http.get("partials/treeview.html", {cache: $templateCache})
                     .success(function(html) {

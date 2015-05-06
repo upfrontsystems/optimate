@@ -421,7 +421,7 @@ def pasteitemview(request):
         source = DBSession.query(Node).filter_by(ID=sourceid).first()
 
         # if the source is to be cut and pasted into the destination
-        if "cut" in request.json_body:
+        if request.json_body["cut"]:
             # set the source parent to the destination parent
             source.ParentID = destinationid
             transaction.commit()
