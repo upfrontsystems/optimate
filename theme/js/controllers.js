@@ -38,9 +38,22 @@ allControllers.factory('sharedService', ['$rootScope',
            $rootScope.$broadcast('handleDeletedNode');
         }
 
+        // when a node is cut the node is removed from the treeview
         shared.nodeCut = function(nodeid){
             this.cutNodeId = nodeid;
             $rootScope.$broadcast('handleCutNode');
+        }
+
+        // when a project is added it needs to be be added to the rolelist
+        shared.projectAdded = function(newproject){
+            this.newProject = newproject;
+            $rootScope.$broadcast('handleAddedProject');
+        }
+
+        // delete a project from the rolelist
+        shared.projectDeleted = function(deletedid){
+            this.deletedNodeId = deletedid;
+            $rootScope.$broadcast('handleDeletedProject');
         }
 
         return shared;
@@ -281,6 +294,8 @@ allControllers.controller('ModalInstanceCtrl',
         // is added to the database
         $scope.addNode = function () {
             var currentId = $rootScope.currentNode.ID;
+
+
             inputData = {'Name': $scope.formData.inputName,
                     'NodeType':$scope.formData.NodeType,
                     'Description': $scope.formData.inputDescription || '',
@@ -297,9 +312,25 @@ allControllers.controller('ModalInstanceCtrl',
                 $scope.formData = {'NodeType':$scope.formData.NodeType};
                 console.log("Node added");
                 $rootScope.addedChild = true;
-                $scope.flag = true;
             });
           };
+
+          $scope.addProject = function(){
+            inputData = {'Name': $scope.formData.inputName,
+                    'NodeType':$scope.formData.NodeType,
+                    'Description': $scope.formData.inputDescription || ''}
+
+            $http({
+                method: 'POST',
+                url: globalServerURL + '0' + '/add',
+                data: inputData
+            }).success(function (response) {
+                $scope.formData = {'NodeType':$scope.formData.NodeType};
+                inputData['ID'] = response['ID']
+                sharedService.projectAdded(inputData);
+                console.log("Node added");
+            });
+          }
 });
 
 // Angular function that loads a specific project into the treeview
@@ -309,18 +340,60 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
 
         toggleMenu('projects');
 
-        // load the projects used in the select project modal
-        $scope.loadProjects = function(){
-            // Add a loading value to the project list while it loads
-            $scope.projectsList = [{"Name": "Loading..."}];
-            var req = {
-                method: 'GET',
-                url: globalServerURL +'project_listing',
-            }
-            $http(req).success(function(data) {
-                $scope.projectsList = data;
+        // listening for the handle new project broadcast
+        $scope.$on('handleAddedProject', function(){
+            var newproject = sharedService.newProject;
+            // add the new project to the projects and role list and sort
+
+            $scope.projectsList.push(newproject);
+            $scope.projectsList.sort(function(a, b) {
+                var textA = a.Name.toUpperCase();
+                var textB = b.Name.toUpperCase();
+                return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
             });
-        }
+
+            $scope.roleList.push(newproject);
+            $scope.roleList.sort(function(a, b) {
+                var textA = a.Name.toUpperCase();
+                var textB = b.Name.toUpperCase();
+                return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+            });
+            if (hasStorage) {
+                // add id of project to local storage
+                var open_projects;
+                try {
+                    // attempt to add an id to open_projects storage
+                    open_projects = JSON.parse(localStorage["open_projects"])
+                    open_projects.push(newproject.ID);
+                    localStorage["open_projects"] = JSON.stringify(open_projects);
+                }
+                catch (exception) {
+                    // create a new open_projects storage as one doesnt exist
+                    localStorage.setItem("open_projects", []);
+                    open_projects = []
+                    open_projects.push(newproject.ID);
+                    localStorage["open_projects"] = JSON.stringify(open_projects);
+                }
+            }
+            else {
+                console.log("LOCAL STORAGE NOT SUPPORTED!")
+            }
+        });
+
+        $scope.$on('handleDeletedProject', function(){
+            $scope.closeProject(sharedService.deletedNodeId);
+        });
+
+        // load the projects used in the select project modal
+        // Add a loading value to the project list while it loads
+        $scope.projectsList = [{"Name": "Loading..."}];
+        var req = {
+            method: 'GET',
+            url: globalServerURL +'project_listing'
+        };
+        $http(req).success(function(data) {
+            $scope.projectsList = data;
+        });
 
         // aux function - checks if object is already in list based on ID
         function containsObject(obj, list) {
@@ -466,7 +539,12 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 method: 'POST',
                 url:globalServerURL + nodeid + '/delete'
             }).success(function (response) {
-                sharedService.nodeDeleted(nodeid);
+                if (response['parentid'] == 0){
+                    sharedService.projectDeleted(nodeid);
+                }
+                else{
+                    sharedService.nodeDeleted(nodeid);
+                }
             });
         };
 
@@ -584,86 +662,3 @@ allControllers.controller('treeviewController', ['$http', '$scope', 'globalServe
             $rootScope.currentNode = selectedNode;
         };
 }])
-
-allControllers.controller('treeviewFunctionsController', ['$scope', '$http', 'globalServerURL', '$rootScope', 'sharedService',
-    function($scope, $http, globalServerURL, $rootScope, sharedService) {
-
-        // Deleting a node. It recieves the id of the node
-        // The id is sent to the server to be deleted and the node
-        // removed from the treemodel
-        $scope.deleteThisNode = function ( nodeid ) {
-            $http({
-                method: 'POST',
-                url:globalServerURL + nodeid + '/delete'
-            }).success(function (response) {
-                sharedService.nodeDeleted(nodeid);
-            });
-        };
-
-        // Function to copy a node
-        $scope.copyThisNode = function(cid) {
-            if ($scope.$parent.copyThisNode) {
-                $scope.$parent.copyThisNode(cid);
-            }
-            else{
-                $scope.copiedId = cid;
-                console.log("Node id copied: " + cid);
-            }
-        }
-
-        $scope.getCopiedId = function(){
-            if($scope.copiedId){
-                return $scope.copiedId;
-            }
-            else{
-                if ($scope.$parent.getCopiedId){
-                    return $scope.$parent.getCopiedId();
-                }
-                else {
-                    return undefined;
-                }
-            }
-        }
-
-        // function to paste copied node into another node
-        // the id is sent to the server and the node pasted there
-        // the user cant paste into the same node
-        $scope.pasteThisNode = function(nodeid) {
-            var cnodeid = $scope.getCopiedId();
-            if (cnodeid){
-                if (cnodeid == nodeid){
-                    alert("You can't paste into the same node");
-                }
-                else {
-                    $http({
-                        method: 'POST',
-                        url: globalServerURL + nodeid + '/paste',
-                        data:{'ID': cnodeid}
-                    }).success(function () {
-                        console.log('Success: Node pasted');
-                        $scope.loadNodeChildren(nodeid);
-                    }).error(function(){
-                        console.log("Server error");
-                    });
-                }
-            }
-        }
-
-        // Watch for when a child is added and refresh the treeview
-        $rootScope.$watch('addedChild', function() {
-            if ($rootScope.addedChild){
-                var nodeid = $rootScope.currentNode.ID;
-                $scope.loadNodeChildren(nodeid);
-                $rootScope.addedChild = false;
-            }
-        });
-
-        // Load the children and add to the tree
-        $scope.loadNodeChildren = function(parentid){
-            $http.get(globalServerURL + parentid + '/').success(function(data) {
-                $rootScope.currentNode.Subitem = data;
-                console.log("Children loaded");
-            });
-        }
-    }
-]);

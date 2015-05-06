@@ -82,12 +82,25 @@
                     modal-type="{{addingNodeType}}"
                     modal-src="modal_templates/addResourceCategory.html">
                 </div>
+                <div custom-modals modal-id="addproject"
+                    modal-type="{{addingNodeType}}"
+                    modal-src="modal_templates/addProject.html">
+                </div>
                 <!-- Angular Treeview -->
-                <div
-                    data-angular-treeview="true"
-                    data-tree-model="roleList"
-                    data-copied-id=0
-                    class="angular-treeview">
+                <div class="treeview-styling">
+                    <div
+                        data-angular-treeview="true"
+                        data-tree-model="roleList"
+                        data-copied-id=0
+                        class="angular-treeview">
+                    </div>
+                    <a style="padding-left:20px; cursor:pointer"
+                        role="button" data-toggle="modal"
+                        data-target="#addproject"
+                        data-ng-click="changeAddingType('Project')"
+                        title="Add Project">
+                        <i class="fa fa-plus-square"></i>
+                    </a>
                 </div>
             </div>
         </div>

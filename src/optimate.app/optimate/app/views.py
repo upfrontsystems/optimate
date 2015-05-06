@@ -369,7 +369,7 @@ def additemview(request):
         # commit the transaction and return ok,
         # along with the id of the new node
         transaction.commit()
-        return HTTPOk(str(newid))
+        return {'ID': newid}
 
 
 @view_config(route_name="deleteview", renderer='json')

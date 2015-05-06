@@ -1,5 +1,15 @@
 /*********************************************************************
 /* Treeview model */
+
+.treeview-styling {
+    height: 65vh;
+    padding-top: 10px;
+    overflow:auto;
+    overflow-x:scroll;
+    overflow-y:scroll;
+}
+
+
 div[data-angular-treeview] {
     /* prevent user selection */
     -moz-user-select: -moz-none;

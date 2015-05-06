@@ -8,7 +8,7 @@ body {
     padding: 5px 15px;
 }
 
-/* Fix for cursor point in angular boostrap */
+/* Fix for cursor point in angular bootstrap */
 .nav, .pagination, .carousel, .panel-title a {
     cursor: pointer;
 }
@@ -41,15 +41,6 @@ body {
     display: inline-block;
     vertical-align: top;
     float: right;
-}
-
-/* angular treeview */
-.angular-treeview {
-    height: 65vh;
-    padding-top: 10px;
-    overflow:auto;
-    overflow-x:scroll;
-    overflow-y:scroll;
 }
 
 /* angular treeview info box */
