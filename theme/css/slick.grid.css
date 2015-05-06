@@ -144,6 +144,11 @@ classes should alter those!
     border-style: solid;
 }
 
+.slick-cell.editable .editor-text {
+    text-align: right;
+    cursor: text;
+}
+
 .slick-cell:focus {
     outline: none;
 }
