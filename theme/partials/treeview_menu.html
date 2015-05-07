@@ -28,12 +28,25 @@
                         <i class="fa fa-cut"></i>
                     </a>
                 </li>
-                <li>
-                    <a role="button" data-ng-click="pasteThisNode(currentNode.ID, currentNode.NodeType)"
-                       title="Paste">
-                        <i class="fa fa-clipboard"></i>
-                    </a>
-                </li>
+                <div data-ng-show="copiedNode">
+                    <div data-ng-switch="copiedNode.type">
+                        <div data-ng-switch-when="BudgetGroup">
+                            <li>
+                                <a role="button" data-ng-click="pasteThisNode(currentNode.ID, currentNode.NodeType)"
+                                   title="Paste Budget Group">
+                                    <i class="fa fa-clipboard"></i>
+                                </a>
+                            </li>
+                        </div>
+                        <div data-ng-switch-default>
+                            <li>
+                                <a role="button" style="color: gray;">
+                                    <i class="fa fa-clipboard"></i>
+                                </a>
+                            </li>
+                        </div>
+                    </div>
+                </div>
                 <li>
                     <a role="button" data-target="#deleteConfirmation" data-toggle="modal"
                        title="Delete Project">
@@ -82,12 +95,41 @@
                         <i class="fa fa-cut"></i>
                     </a>
                 </li>
-                <li>
-                    <a role="button" data-ng-click="pasteThisNode(currentNode.ID, currentNode.NodeType)"
-                       title="Paste">
-                        <i class="fa fa-clipboard"></i>
-                    </a>
-                </li>
+                <div data-ng-show="copiedNode">
+                    <div data-ng-switch="copiedNode.type">
+                        <div data-ng-switch-when="BudgetGroup">
+                            <li>
+                                <a role="button" data-ng-click="pasteThisNode(currentNode.ID, currentNode.NodeType)"
+                                   title="Paste Budget Group">
+                                    <i class="fa fa-clipboard"></i>
+                                </a>
+                            </li>
+                        </div>
+                        <div data-ng-switch-when="BudgetItem">
+                            <li>
+                                <a role="button" data-ng-click="pasteThisNode(currentNode.ID, currentNode.NodeType)"
+                                   title="Paste Budget Item">
+                                    <i class="fa fa-clipboard"></i>
+                                </a>
+                            </li>
+                        </div>
+                        <div data-ng-switch-when="Component">
+                            <li>
+                                <a role="button" data-ng-click="pasteThisNode(currentNode.ID, currentNode.NodeType)"
+                                   title="Paste Component">
+                                    <i class="fa fa-clipboard"></i>
+                                </a>
+                            </li>
+                        </div>
+                        <div data-ng-switch-default>
+                            <li>
+                                <a role="button" style="color: gray;">
+                                    <i class="fa fa-clipboard"></i>
+                                </a>
+                            </li>
+                        </div>
+                    </div>
+                </div>
                 <li>
                     <a role="button" data-target="#deleteConfirmation" data-toggle="modal"
                        title="Delete Budget Group">
@@ -122,12 +164,25 @@
                         <i class="fa fa-cut"></i>
                     </a>
                 </li>
-                <li>
-                    <a role="button" data-ng-click="pasteThisNode(currentNode.ID, currentNode.NodeType)"
-                       title="Paste">
-                        <i class="fa fa-clipboard"></i>
-                    </a>
-                </li>
+                <div data-ng-show="copiedNode">
+                    <div data-ng-switch="copiedNode.type">
+                        <div data-ng-switch-when="Component">
+                            <li>
+                                <a role="button" data-ng-click="pasteThisNode(currentNode.ID, currentNode.NodeType)"
+                                   title="Paste Component">
+                                    <i class="fa fa-clipboard"></i>
+                                </a>
+                            </li>
+                        </div>
+                        <div data-ng-switch-default>
+                            <li>
+                                <a role="button" style="color: gray;">
+                                    <i class="fa fa-clipboard"></i>
+                                </a>
+                            </li>
+                        </div>
+                    </div>
+                </div>
                 <li>
                     <a role="button" data-target="#deleteConfirmation" data-toggle="modal"
                        title="Delete Budget Item">
@@ -169,12 +224,33 @@
                         <i class="fa fa-cut"></i>
                     </a>
                 </li>
-                <li>
-                    <a role="button" data-ng-click="pasteThisNode(currentNode.ID, currentNode.NodeType)"
-                       title="Paste">
-                        <i class="fa fa-clipboard"></i>
-                    </a>
-                </li>
+                <div data-ng-show="copiedNode">
+                    <div data-ng-switch="copiedNode.type">
+                        <div data-ng-switch-when="ResourceCategory">
+                            <li>
+                                <a role="button" data-ng-click="pasteThisNode(currentNode.ID, currentNode.NodeType)"
+                                   title="Paste Resource Category">
+                                    <i class="fa fa-clipboard"></i>
+                                </a>
+                            </li>
+                        </div>
+                        <div data-ng-switch-when="Resource">
+                            <li>
+                                <a role="button" data-ng-click="pasteThisNode(currentNode.ID, currentNode.NodeType)"
+                                   title="Paste Resource">
+                                    <i class="fa fa-clipboard"></i>
+                                </a>
+                            </li>
+                        </div>
+                        <div data-ng-switch-default>
+                            <li>
+                                <a role="button" style="color: gray;">
+                                    <i class="fa fa-clipboard"></i>
+                                </a>
+                            </li>
+                        </div>
+                    </div>
+                </div>
                 <li>
                     <a role="button" data-target="#deleteConfirmation" data-toggle="modal"
                        title="Delete Resource List">
@@ -214,11 +290,6 @@
                     <i class="fa fa-gears"></i></a>
                 </li>
             </ul>
-        </div>
-        <div data-ng-switch-default>
-            <li>
-                <a class="unselectable">Add</a>
-            </li>
         </div>
     </div>
 </div>

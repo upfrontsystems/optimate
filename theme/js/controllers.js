@@ -549,48 +549,24 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
 
         // Function to copy a node
         $scope.copyThisNode = function(copiedid, nodetype) {
-            if ($scope.$parent.copyThisNode) {
-                $scope.$parent.copyThisNode(copiedid, nodetype);
-            }
-            else{
-                $scope.copiedNode = {'id': copiedid, 'type': nodetype};
-                $scope.cut = false;
-                console.log("Node id copied: " + copiedid);
-            }
+            $scope.copiedNode = {'id': copiedid, 'type': nodetype};
+            $scope.cut = false;
+            console.log("Node id copied: " + copiedid);
         }
 
         // Function to cut a node
         $scope.cutThisNode = function(cutid, nodetype) {
-            if ($scope.$parent.cutThisNode) {
-                $scope.$parent.cutThisNode(cutid, nodetype);
-            }
-            else{
-                $scope.copiedNode = {'id': cutid, 'type': nodetype};
-                console.log("Node id cut: " + cutid);
-                $scope.cut = true;
-                sharedService.nodeCut(cutid);
-            }
-        }
-
-        $scope.getCopiedId = function(){
-            if($scope.copiedNode){
-                return $scope.copiedNode;
-            }
-            else{
-                if ($scope.$parent.getCopiedId){
-                    return $scope.$parent.getCopiedId();
-                }
-                else {
-                    return undefined;
-                }
-            }
+            $scope.copiedNode = {'id': cutid, 'type': nodetype};
+            console.log("Node id cut: " + cutid);
+            $scope.cut = true;
+            sharedService.nodeCut(cutid);
         }
 
         // function to paste copied node into another node
         // the id is sent to the server and the node pasted there
         // the user cant paste into the same node
         $scope.pasteThisNode = function(nodeid, nodetype) {
-            var cnode = $scope.getCopiedId();
+            var cnode = $scope.copiedNode;
             if (cnode){
                 if (cnode['id'] == nodeid){
                     alert("You can't paste into the same node");
