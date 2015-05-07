@@ -38,6 +38,11 @@ allControllers.factory('sharedService', ['$rootScope',
            $rootScope.$broadcast('handleDeletedNode');
         }
 
+        // when a node is added to the projects treeview
+        shared.nodeAdded = function(){
+           $rootScope.$broadcast('handleAddedNode');
+        }
+
         // when a node is cut the node is removed from the treeview
         shared.nodeCut = function(nodeid){
             this.cutNodeId = nodeid;
@@ -317,7 +322,7 @@ allControllers.controller('ModalInstanceCtrl',
             }).success(function () {
                 $scope.formData = {'NodeType':$scope.formData['NodeType']};
                 console.log("Node added");
-                $rootScope.addedChild = true;
+                sharedService.nodeAdded();
             });
           };
 
@@ -587,50 +592,25 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                     alert("You can't paste into the same node");
                 }
                 else {
-                    var paste = false;
-                    if (nodetype == 'Project' && cnode['type'] == 'BudgetGroup'){
-                        paste == true;
-                    }
-                    else if (nodetype == 'BudgetGroup'){
-                        if (cnode['type'] == 'BudgetGroup'){paste =true;}
-                        if (cnode['type'] == 'BudgetItem'){paste =true;}
-                        if (cnode['type'] == 'Component'){paste =true;}
-                    }
-                    else if (nodetype == 'BudgetItem' && cnode['type'] == 'Component'){
-                        paste = true;
-                    }
-                    else if (nodetype == 'ResourceCategory'){
-                        if (cnode['type'] == 'Resource'){paste =true;}
-                        if (cnode['type'] == 'ResourceCategory'){paste =true;}
-                    }
-
-                    if (paste){
-                        $http({
-                            method: 'POST',
-                            url: globalServerURL + nodeid + '/paste',
-                            data:{'ID': cnode['id'],
-                                    'cut': $scope.cut}
-                        }).success(function () {
-                            console.log('Success: Node pasted');
-                            $scope.loadNodeChildren(nodeid);
-                        }).error(function(){
-                            console.log("Server error");
-                        });
-                    }
-                    else {
-                        console.log("Can't paste " +cnode['type']+ " into " + nodetype);
-                    }
+                    $http({
+                        method: 'POST',
+                        url: globalServerURL + nodeid + '/paste',
+                        data:{'ID': cnode['id'],
+                                'cut': $scope.cut}
+                    }).success(function () {
+                        console.log('Success: Node pasted');
+                        $scope.loadNodeChildren(nodeid);
+                    }).error(function(){
+                        console.log("Server error");
+                    });
                 }
             }
         }
 
         // Watch for when a child is added and refresh the treeview
-        $rootScope.$watch('addedChild', function() {
-            if ($rootScope.addedChild){
-                var nodeid = $rootScope.currentNode.ID;
-                $scope.loadNodeChildren(nodeid);
-                $rootScope.addedChild = false;
-            }
+        $rootScope.$on('handleAddedNode', function() {
+            var nodeid = $rootScope.currentNode.ID;
+            $scope.loadNodeChildren(nodeid);
         });
 
         // Load the children and add to the tree

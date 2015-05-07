@@ -840,6 +840,25 @@ class ResourceCategory(Node):
         else:
             return False
 
+    def copy(self, parentid):
+        """copy returns an exact duplicate of this object,
+        but with the ParentID specified.
+        """
+        copied = ResourceCategory(Name=self.Name,
+                         Description=self.Description,
+                         ParentID=parentid,
+                         _Total = self.Total)
+        return copied
+
+    def paste(self, source, sourcechildren):
+        """ Paste appends a source object to the children of this node,
+            and then recursively does the same
+            with each child of the source object.
+        """
+        self.Children.append(source)
+        for child in sourcechildren:
+            source.paste(child.copy(source.ID), child.Children)
+
     def toDict(self):
         """ Returns a dictionary of this ResourceCategory, which only contains
             its name and a list indicating it has children or not
@@ -912,6 +931,22 @@ class Resource(Node):
             return False
         else:
             return self.Name == other.Name
+
+    def copy(self, parentid):
+        """copy returns an exact duplicate of this object,
+        but with the ParentID specified.
+        """
+        copied = Resource(Name=self.Name,
+                         Description=self.Description,
+                         Code = self.Code,
+                         ParentID=parentid,
+                         _Rate = self.Rate)
+        return copied
+
+    def paste(self, source, sourcechildren):
+        """ Do nothin. Cant paste into a resource
+        """
+        pass
 
     def toDict(self):
         return {'name': self.Name,

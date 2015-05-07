@@ -149,6 +149,9 @@ def resource_list(request):
         # Get the resourcecategory whos parent that is
         resourcecategory = DBSession.query(
                                 ResourceCategory).filter_by(ParentID=rootid).first()
+        # if it doesnt exist return the empty list
+        if not resourcecategory:
+            return resourcelist
         # build the list and only get the neccesary values
         resourcelist = resourcecategory.getResources()
         return sorted(resourcelist, key=lambda k: k['Name'])
@@ -326,25 +329,23 @@ def additemview(request):
                         ResourceCategory).filter_by(
                         ParentID=rootparentid).first()
                 # if the resourcecategory does not exist create it
-                try:
-                    rescatid = resourcecategory.ID
-                except AttributeError, a:
+                if not resourcecategory:
                     resourcecategory = ResourceCategory(Name='Resource List',
                                                 Description='List of Resources',
                                                 ParentID=rootparentid)
                     DBSession.add(resourcecategory)
                     DBSession.flush()
-                    rescatid = resourcecategory.ID
+                rescatid = resourcecategory.ID
 
                 # get the resource used by the component
                 resource = DBSession.query(
                                     Resource).filter_by(
                                     ParentID=rescatid, Name=name).first()
                 # the resource does not exists in the resourcecategory
-                if resource == None:
+                if not resource:
                     resource = DBSession.query(
                                         Resource).filter_by(Name=name).first()
-                    if resource == None:
+                    if not resource:
                         return HTTPNotFound("The resource does not exist")
                     else:
                         newresource = Resource(Name=resource.Name,
@@ -437,26 +438,32 @@ def pasteitemview(request):
                 reset.resetTotal()
         else:
             dest = DBSession.query(Node).filter_by(ID=destinationid).first()
-            # Get a list of the components in the source
-            componentlist = source.getComponents()
 
-            # Get the ID of the project the destination is in
-            projectid = dest.getProjectID()
+            if source.type == 'ResourceCategory':
+                # Paste the source into the destination
+                parentid = dest.ID
+                dest.paste(source.copy(dest.ID), source.Children)
+            else:
+                # Get a list of the components in the source
+                componentlist = source.getComponents()
 
-            # Paste the source into the destination
-            parentid = dest.ID
-            dest.paste(source.copy(dest.ID), source.Children)
+                # Get the ID of the project the destination is in
+                projectid = dest.getProjectID()
 
-            # Add the new resources to the destinations resource category
-            resourcecategory = DBSession.query(
-                            ResourceCategory).filter_by(
-                            ParentID=projectid).first()
-            resourcecategory.addResources(componentlist)
-            transaction.commit()
+                # Paste the source into the destination
+                parentid = dest.ID
+                dest.paste(source.copy(dest.ID), source.Children)
 
-            if parentid != 0:
-                reset = DBSession.query(Node).filter_by(ID=parentid).first()
-                reset.resetTotal()
+                # Add the new resources to the destinations resource category
+                resourcecategory = DBSession.query(
+                                ResourceCategory).filter_by(
+                                ParentID=projectid).first()
+                resourcecategory.addResources(componentlist)
+                transaction.commit()
+
+                if parentid != 0:
+                    reset = DBSession.query(Node).filter_by(ID=parentid).first()
+                    reset.resetTotal()
 
         transaction.commit()
         return HTTPOk()

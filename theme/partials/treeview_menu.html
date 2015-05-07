@@ -17,6 +17,13 @@
                     </a>
                 </li>
                 <li>
+                    <a role="button" data-toggle="modal" data-target="#addResourceCategory"
+                        data-ng-click="changeAddingType('ResourceCategory')"
+                       title="Add Resource Category">
+                        <i class="fa fa-plus-square"></i> L
+                    </a>
+                </li>
+                <li>
                     <a role="button" data-ng-click="copyThisNode(currentNode.ID, currentNode.NodeType)"
                        title="Copy Project">
                         <i class="fa fa-files-o"></i>
@@ -33,6 +40,12 @@
                         role="button"
                         data-ng-click="pasteThisNode(currentNode.ID, currentNode.NodeType)"
                         title="Paste Budget Group">
+                        <i class="fa fa-clipboard"></i>
+                    </a>
+                    <a data-ng-switch-when="ResourceCategory"
+                        role="button"
+                        data-ng-click="pasteThisNode(currentNode.ID, currentNode.NodeType)"
+                        title="Paste Resource Category">
                         <i class="fa fa-clipboard"></i>
                     </a>
                     <a data-ng-switch-default

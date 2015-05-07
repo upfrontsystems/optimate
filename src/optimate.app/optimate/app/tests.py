@@ -624,7 +624,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 1}
         response = self._callFUT(request)
         # assert if the response from the add view is OK
-        self.assertEqual(response.code, 200)
+        self.assertEqual(response.keys(), ['ID'])
 
         # Create another request for the child of the node added to
         request = testing.DummyRequest()
@@ -632,7 +632,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         from .views import childview
         response = childview(request)
         # true if the name of the child added to the node is 'AddingName'
-        self.assertEqual(response[0]['Name'], 'AddingName')
+        self.assertEqual(response[1]['Name'], 'AddingName')
 
     def test_add_component(self):
         _registerRoutes(self.config)
@@ -651,7 +651,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
 
         # assert if the response from the add view is OK
-        self.assertEqual(response.code, 200)
+        self.assertEqual(response.keys(), ['ID'])
 
         # do another test to see if the cost is correct
         request = testing.DummyRequest()
@@ -672,10 +672,10 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         # add it to id:0 the root
         request.matchdict = {'id': 0}
         response = self._callFUT(request)
-        # assert if the response from the add view is OK
-        self.assertEqual(response.code, 200)
+        # assert if the response from the add view has data
+        self.assertEqual(response.keys(), ['ID'])
         # get the id of the new node
-        projectid = int(str(response))
+        projectid = response['ID']
 
         # Add a budgetgroup
         request = testing.DummyRequest(json_body={
@@ -687,9 +687,9 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': projectid}
         response = self._callFUT(request)
         # assert if the response from the add view is OK
-        self.assertEqual(response.code, 200)
+        self.assertEqual(response.keys(), ['ID'])
         # get the id of the new node
-        newid = int(str(response))
+        newid = response['ID']
 
         # Add a budgetitem
         request = testing.DummyRequest(json_body={
@@ -703,9 +703,9 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': newid}
         response = self._callFUT(request)
         # assert if the response from the add view is OK
-        self.assertEqual(response.code, 200)
+        self.assertEqual(response.keys(), ['ID'])
         # get the id of the new node
-        newid = int(str(response))
+        newid = response['ID']
 
         # Add a component
         request = testing.DummyRequest(json_body={
@@ -720,7 +720,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': newid}
         response = self._callFUT(request)
         # assert if the response from the add view is OK
-        self.assertEqual(response.code, 200)
+        self.assertEqual(response.keys(), ['ID'])
 
         # test the total  of the project
         request = testing.DummyRequest()
@@ -794,7 +794,8 @@ class TestPasteviewSuccessCondition(unittest.TestCase):
         # set the default node to be copied
         # which is budgetgroup with id 2
         request = testing.DummyRequest(json_body={
-            'ID': '2'}
+            'ID': '2',
+            'cut': False}
         )
         # set the node to be pasted into
         # which is projectb with id 4
