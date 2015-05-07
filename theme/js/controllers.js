@@ -255,13 +255,13 @@ allControllers.controller('ModalInstanceCtrl',
             }
             $http(req).success(function(data) {
                 $scope.resourceList = data;
-                console.log("Resources loaded");
+                console.log("Resource list loaded");
             });
         }
 
         $scope.selectedResource = function(){
             var name = $('#resource-select').find(":selected").val()
-            $scope.formData.inputName = name;
+            $scope.formData['Name'] = name;
         }
 
         // Saving a new client or supplier or editing an existing one
@@ -294,47 +294,34 @@ allControllers.controller('ModalInstanceCtrl',
         $scope.addNode = function () {
             var currentId = $rootScope.currentNode.ID;
 
-            inputData = {'Name': $scope.formData.inputName,
-                    'NodeType':$scope.formData.NodeType,
-                    'Description': $scope.formData.inputDescription || '',
-                    'Quantity': $scope.formData.inputQuantity || 0,
-                    'Markup': $scope.formData.inputMarkup || 0,
-                    'ComponentType': $scope.formData.inputComponentType || 0,
-                    'Rate': $scope.formData.inputRate || 0}
-
             $http({
                 method: 'POST',
                 url: globalServerURL + currentId + '/add',
-                data: inputData
+                data: $scope.formData
             }).success(function () {
-                $scope.formData = {'NodeType':$scope.formData.NodeType};
+                $scope.formData = {'NodeType':$scope.formData['NodeType']};
                 console.log("Node added");
                 $rootScope.addedChild = true;
             });
           };
 
           $scope.addProject = function(){
-            inputData = {'Name': $scope.formData.inputName,
-                    'NodeType':$scope.formData.NodeType,
-                    'Description': $scope.formData.inputDescription || ''}
-
             $http({
                 method: 'POST',
                 url: globalServerURL + '0' + '/add',
-                data: inputData
+                data: $scope.formData
             }).success(function (response) {
-                $scope.formData = {'NodeType':$scope.formData.NodeType};
-                inputData['ID'] = response['ID']
-                sharedService.projectAdded(inputData);
-                console.log("Node added");
+                $scope.formData['ID'] = response['ID'];
+                sharedService.projectAdded($scope.formData);
+                $scope.formData = {'NodeType':$scope.formData['NodeType']};
             });
           }
 });
 
 // Angular function that loads a specific project into the treeview
 // upon selection from the user
-allControllers.controller('projectsController',['$scope', '$http', 'globalServerURL', '$rootScope', 'sharedService',
-    function($scope, $http, globalServerURL, $rootScope, sharedService) {
+allControllers.controller('projectsController',['$scope', '$http', 'globalServerURL', '$rootScope', 'sharedService', '$timeout',
+    function($scope, $http, globalServerURL, $rootScope, sharedService, $timeout) {
 
         toggleMenu('projects');
 
@@ -387,6 +374,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             else {
                 console.log("LOCAL STORAGE NOT SUPPORTED!")
             }
+            console.log("Project added");
         });
 
         // When a project is deleted close it as well
@@ -526,8 +514,19 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         // --------------------------------------------------------------------
 
         // Setting the type of the node to be added
+        // refresh it if the type is the same
+        // $timeout is used so that the scope is refreshed and the directive
+        // reloaded even if the noe type is the same
         $scope.changeAddingType = function(nodetype){
-            $scope.addingNodeType = nodetype;
+            if ($scope.addingNodeType == nodetype){
+                $scope.addingNodeType = '';
+                $timeout(function(){
+                    $scope.changeAddingType(nodetype);
+                });
+            }
+            else{
+                $scope.addingNodeType = nodetype;
+            }
         }
 
         // Deleting a node. It recieves the id of the node

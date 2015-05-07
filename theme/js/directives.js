@@ -67,7 +67,6 @@ allControllers.directive('customModals', function ($http, $compile, globalServer
         restrict: 'A',
         require: '?ngModel',
         transclude: true,
-        templateUrl: '',
         controller: 'ModalInstanceCtrl',
         link: function(scope, el, attrs, transcludeFn){
             scope.saveType = attrs.modalType;
@@ -75,18 +74,21 @@ allControllers.directive('customModals', function ($http, $compile, globalServer
             // observe the modal type for changes and set the formdata
             // this is used for adding nodes in the treeview by their type
             attrs.$observe('modalType', function(addingtype){
-                if (scope.formData){
-                    scope.formData.NodeType = addingtype;
-                }
-                else {
-                    scope.formData = {'NodeType': attrs.modalType};
-                }
-                // Load the resource listing if the type is Resource or a comp
-                if (addingtype == 'Resource' && attrs.modalSrc == "modal_templates/addResource.html"){
-                    scope.loadResources();
-                }
-                if (addingtype == 'Component' && attrs.modalSrc == "modal_templates/addComponent.html"){
-                    scope.loadResourceList();
+                console.log("type changed: " + addingtype);
+                if (addingtype){
+                    if (scope.formData){
+                        scope.formData['NodeType'] = addingtype;
+                    }
+                    else {
+                        scope.formData = {'NodeType': addingtype};
+                    }
+                    if (addingtype == 'Resource' && attrs.modalSrc == "modal_templates/addResource.html"){
+                        scope.loadResources();
+                    }
+                    if (addingtype == 'Component' && attrs.modalSrc == "modal_templates/addComponent.html"){
+                        console.log("loading list");
+                        scope.loadResourceList();
+                    }
                 }
             })
 
@@ -100,7 +102,7 @@ allControllers.directive('customModals', function ($http, $compile, globalServer
                         url: globalServerURL + selectedid + '/' + attrs.modalType,
                     };
                     $http(req).success(function(data) {
-                        // use a different variable for the data that is edited
+                        // set the formData to the retrieved data
                         scope.formData = data;
                     });
                 }

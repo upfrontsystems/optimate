@@ -1,4 +1,4 @@
-<div id="addbudgetitem" class="modal fade">
+<div id="addBudgetItem" class="modal fade">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -14,7 +14,7 @@
                         <input type="text"
                                 id="inputName"
                                 name="inputName"
-                                ng-model="formData.inputName"
+                                ng-model="formData['Name']"
                                 required
                                 autofocus>
                     </div>
@@ -23,7 +23,7 @@
                         <input type="textarea"
                                 id="inputDescription"
                                 name="inputDescription"
-                                ng-model="formData.inputDescription"
+                                ng-model="formData['Description']"
                                 style="width: 300px; height: 150px;"
                                 autofocus>
                     </div>
@@ -32,7 +32,7 @@
                         <input type="number"
                                 id="inputQuantity"
                                 name="inputQuantity"
-                                ng-model="formData.inputQuantity"
+                                ng-model="formData['Quantity']"
                                 autofocus>
                     </div>
                     <div class="form-group">
@@ -40,7 +40,7 @@
                         <input type="number"
                                 id="inputMarkup"
                                 name="inputMarkup"
-                                ng-model="formData.inputMarkup"
+                                ng-model="formData['Markup']"
                                 autofocus>
                     </div>
                 </form>

@@ -1,4 +1,4 @@
-<div id="addcomponent" class="modal fade">
+<div id="addComponent" class="modal fade">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
@@ -20,7 +20,7 @@
                         <input type="textarea"
                                 id="inputDescription"
                                 name="inputDescription"
-                                ng-model="formData.inputDescription"
+                                ng-model="formData['Description']"
                                 style="width: 300px; height: 150px;"
                                 autofocus>
                     </div>
@@ -29,7 +29,7 @@
                         <input type="number"
                                 id="inputQuantity"
                                 name="inputQuantity"
-                                ng-model="formData.inputQuantity"
+                                ng-model="formData['Quantity']"
                                 autofocus>
                     </div>
                     <div class="form-group">
@@ -37,7 +37,7 @@
                         <input type="number"
                                 id="inputMarkup"
                                 name="inputMarkup"
-                                ng-model="formData.inputMarkup"
+                                ng-model="formData['Markup']"
                                 autofocus>
                     </div>
                     <div class="form-group">
@@ -45,7 +45,7 @@
                         <input type="number"
                                 id="inputType"
                                 name="inputType"
-                                ng-model="formData.inputType"
+                                ng-model="formData['ComponentType']"
                                 autofocus>
                     </div>
                 <form>

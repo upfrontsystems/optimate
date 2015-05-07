@@ -793,6 +793,9 @@ class ResourceCategory(Node):
         'inherit_condition': (ID == Node.ID),
     }
 
+    def resetTotal(self):
+        return Decimal(0.00)
+
     def recalculateTotal(self):
         return Decimal(0.00)
 
@@ -803,6 +806,19 @@ class ResourceCategory(Node):
     @Total.setter
     def Total(self, total):
         pass
+
+    def getResources(self):
+        """ Returns a list of all the resources in this category
+            plus resources in its child categories
+        """
+        rlist = []
+        for child in self.Children:
+            if child.type == 'ResourceCategory':
+                rlist += child.getResources()
+            else:
+                rlist.append({'Name': child.Name})
+
+        return rlist
 
     def addResources(self, componentlist):
         """ Add a list of components to this ResourceCategory.

@@ -45,6 +45,7 @@ def childview(request):
         parentid = request.matchdict['parentid']
 
     childrenlist = []
+    resourcecategories = []
     start = request.params.get('start')
     end = request.params.get('end')
 
@@ -56,6 +57,15 @@ def childview(request):
 
                 if child.type == 'ResourceCategory':
                     subitem = []
+                    nodetypeabbr = 'L'
+                    resourcecategories.append({
+                        'Name': child.Name,
+                        'Description': child.Description,
+                        'ID': child.ID,
+                        'Subitem': subitem,
+                        'NodeType': child.type,
+                        'NodeTypeAbbr' : nodetypeabbr
+                        })
                 else:
                     childqry = DBSession.query(
                                     Node).filter_by(ParentID=child.ID)
@@ -64,42 +74,44 @@ def childview(request):
                     else:
                         subitem = []
 
-                nodetypeabbr = ''
-                if child.type == "Project":
-                    nodetypeabbr = 'P'
-                elif child.type == "Resource":
-                    nodetypeabbr = 'R'
-                elif child.type == "ResourceCategory":
-                    nodetypeabbr = 'L'
-                elif child.type == "BudgetItem":
-                    nodetypeabbr = 'I'
-                elif child.type == "BudgetGroup":
-                    nodetypeabbr = 'G'
-                elif child.type == "Component":
-                    nodetypeabbr = 'C'
+                    nodetypeabbr = ''
+                    if child.type == "Project":
+                        nodetypeabbr = 'P'
+                    elif child.type == "Resource":
+                        nodetypeabbr = 'R'
+                    elif child.type == "BudgetItem":
+                        nodetypeabbr = 'I'
+                    elif child.type == "BudgetGroup":
+                        nodetypeabbr = 'G'
+                    elif child.type == "Component":
+                        nodetypeabbr = 'C'
 
-                childrenlist.append({
-                    'Name': child.Name,
-                    'Description': child.Description,
-                    'ID': child.ID,
-                    'Subitem': subitem,
-                    'NodeType': child.type,
-                    'NodeTypeAbbr' : nodetypeabbr
-                    })
+                    childrenlist.append({
+                        'Name': child.Name,
+                        'Description': child.Description,
+                        'ID': child.ID,
+                        'Subitem': subitem,
+                        'NodeType': child.type,
+                        'NodeTypeAbbr' : nodetypeabbr
+                        })
 
-    # return childrenlist
+    # sort childrenlist
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'])
+    # sort categories
+    sorted_categories = sorted(resourcecategories, key=lambda k: k['Name'])
+
+    completelist = sorted_categories + sorted_childrenlist
 
     try:
         start = int(start)
         end = int(end)
     except Exception:
-        return sorted_childrenlist
+        return completelist
 
     if start >= 0 and end >= 0 and start <= end:
-        return sorted_childrenlist[int(start):int(end)]
+        return completelist[int(start):int(end)]
 
-    return sorted_childrenlist
+    return completelist
 
 
 @view_config(route_name="project_listing", renderer='json')
@@ -137,9 +149,8 @@ def resource_list(request):
         resourcecategory = DBSession.query(
                                 ResourceCategory).filter_by(ParentID=rootid).first()
         # build the list and only get the neccesary values
-        for resource in resourcecategory.Children:
-            if resource.type == 'Resource':
-                resourcelist.append({'Name': resource.Name})
+        resourcelist = resourcecategory.getResources()
+        print resourcelist
         return sorted(resourcelist, key=lambda k: k['Name'])
 
 
@@ -260,14 +271,18 @@ def additemview(request):
         parentid = int(request.matchdict['id'])
         # Get the data to be added to the new object from the request body
         name = request.json_body['Name']
+        desc = request.json_body.get('Description', '')
+        quantity = float(request.json_body.get('Quantity', 0))
+        markup = float(request.json_body.get('Markup', 0))/100.0
+        rate = request.json_body.get('Rate', 0)
+        rate = Decimal(rate).quantize(Decimal('.01'))
+        componenttype = int(request.json_body.get('ComponentType', 0))
+        print type(desc)
         objecttype = request.json_body['NodeType']
         newid = 0
 
         # Determine the type of object to be added and build it
         if objecttype == 'Resource':
-            rate = request.json_body['Rate']
-            rate = Decimal(rate).quantize(Decimal('.01'))
-            desc = request.json_body['Description']
             newnode = Resource(Name=name,
                                 Description = desc,
                                   _Rate= rate,
@@ -284,35 +299,25 @@ def additemview(request):
             DBSession.add(newnode)
             DBSession.flush()
             newid = newnode.ID
-        elif objecttype == 'ResourceCategory':
-            desc = request.json_body['Description']
-            newnode = ResourceCategory(Name=name,
-                              Description=desc,
-                              ParentID=parentid)
-
-            DBSession.add(newnode)
-            DBSession.flush()
-            newid = newnode.ID
         else:
             if objecttype == 'Project':
-                desc = request.json_body['Description']
                 newnode = Project(Name=name,
-                                  Description=desc,
-                                  ParentID=parentid)
+                                Description=desc,
+                                ParentID=parentid)
             elif objecttype == 'BudgetGroup':
-                desc = request.json_body['Description']
                 newnode = BudgetGroup(Name=name,
-                                      Description=desc,
-                                      ParentID=parentid)
+                                Description=desc,
+                                ParentID=parentid)
             elif objecttype == 'BudgetItem':
-                quantity = float(request.json_body['Quantity'])
-                desc = request.json_body['Description']
-                markup = float(request.json_body['Markup'])/100.0
                 newnode = BudgetItem(Name=name,
-                                     Description=desc,
-                                     _Quantity = quantity,
-                                     _Markup = markup,
-                                     ParentID=parentid)
+                                Description=desc,
+                                _Quantity = quantity,
+                                _Markup = markup,
+                                ParentID=parentid)
+            elif objecttype == 'ResourceCategory':
+                newnode = ResourceCategory(Name=name,
+                                Description=desc,
+                                ParentID=parentid)
             elif objecttype == 'Component':
                 # Components need to reference a Resource that already exists
                 # in the system
@@ -351,9 +356,6 @@ def additemview(request):
                         DBSession.flush()
                         resource = newresource
 
-                componenttype = int(request.json_body['ComponentType'])
-                quantity = float(request.json_body['Quantity'])
-                markup = float(request.json_body['Markup'])/100.0
                 newnode = Component(ResourceID=resource.ID,
                                     Type=componenttype,
                                     _Quantity = quantity,
