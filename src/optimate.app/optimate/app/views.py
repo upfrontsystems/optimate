@@ -65,9 +65,11 @@ def childview(request):
                         subitem = []
 
                 nodetypeabbr = ''
-                if child.type == "Resource":
+                if child.type == "Project":
+                    nodetypeabbr = 'P'
+                elif child.type == "Resource":
                     nodetypeabbr = 'R'
-                if child.type == "ResourceCategory":
+                elif child.type == "ResourceCategory":
                     nodetypeabbr = 'L'
                 elif child.type == "BudgetItem":
                     nodetypeabbr = 'I'
@@ -116,6 +118,7 @@ def project_listing(request):
                              'ID': project.ID})
         return sorted(projects, key=lambda k: k['Name'])
 
+
 @view_config(route_name="resource_list", renderer='json')
 def resource_list(request):
     """ Returns a list of all the resources in the
@@ -154,6 +157,7 @@ def resources(request):
         for resource in qry:
             resources.append({'Name': resource.Name})
         return sorted(resources, key=lambda k: k['Name'])
+
 
 @view_config(route_name="projectview", renderer='json')
 def projectview(request):
