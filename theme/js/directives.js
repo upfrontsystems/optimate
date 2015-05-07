@@ -74,7 +74,6 @@ allControllers.directive('customModals', function ($http, $compile, globalServer
             // observe the modal type for changes and set the formdata
             // this is used for adding nodes in the treeview by their type
             attrs.$observe('modalType', function(addingtype){
-                console.log("type changed: " + addingtype);
                 if (addingtype){
                     if (scope.formData){
                         scope.formData['NodeType'] = addingtype;
@@ -97,6 +96,7 @@ allControllers.directive('customModals', function ($http, $compile, globalServer
             attrs.$observe('modalSelectedId', function(selectedid){
                 if (selectedid){
                     scope.editId = selectedid;
+                    scope.modalState = "Edit";
                     var req = {
                         method: 'GET',
                         url: globalServerURL + selectedid + '/' + attrs.modalType,
@@ -110,6 +110,7 @@ allControllers.directive('customModals', function ($http, $compile, globalServer
                     // if the selectedid is blank set formdata to only type
                     scope.editId = selectedid;
                     scope.formData = {'NodeType': attrs.modalType};
+                    scope.modalState = "Add";
                 }
             });
 

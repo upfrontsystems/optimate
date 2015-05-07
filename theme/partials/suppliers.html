@@ -2,10 +2,10 @@
     <div class="container-fluid">
         <ul class="nav nav-pills">
             <li>
-                <a title="Add Supplier" data-target="#addSupplierModal" data-ng-click="deselect()" data-toggle="modal"><i class="fa fa-plus-square"></i></a>
+                <a title="Add Supplier" data-target="#supplierModal" data-ng-click="deselect()" data-toggle="modal"><i class="fa fa-plus-square"></i></a>
             </li>
             <li ng-show="selectedSupplier">
-                <a title="Edit Supplier" data-target="#editSupplierModal" data-toggle="modal"><i class="fa fa-pencil"></i></a>
+                <a title="Edit Supplier" data-target="#supplierModal" data-toggle="modal"><i class="fa fa-pencil"></i></a>
             </li>
             <li ng-show="selectedSupplier">
                 <a title="Delete Supplier" data-target="#deleteSupplierModal" data-toggle="modal"><i class="fa fa-trash"></i></a>
@@ -14,15 +14,10 @@
     </div>
 </nav>
 
-<div custom-modals modal-id="addSupplierModal"
-    modal-type="supplier"
-    modal-src="modal_templates/addsupplier.html">
-</div>
-
-<div custom-modals modal-id="editSupplierModal"
+<div custom-modals modal-id="supplierModal"
     modal-type="supplier"
     modal-selected-id="{{selectedSupplier.ID}}"
-    modal-src="modal_templates/editsupplier.html">
+    modal-src="modal_templates/supplierModal.html">
 </div>
 
 <div id="deleteSupplierModal" class="modal">

@@ -132,8 +132,10 @@ allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$l
 
         // Deselect the selected client and remove the css
         $scope.deselect = function (){
-            $('#client-'+$scope.selectedClient.ID).removeClass('active');
-            $scope.selectedClient = undefined;
+            if ($scope.selectedClient){
+                $('#client-'+$scope.selectedClient.ID).removeClass('active');
+                $scope.selectedClient = undefined;
+            }
         }
 
         // Delete client and remove from the clients list
@@ -204,8 +206,10 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
 
         // Deselect the selected supplier and remove the css
         $scope.deselect = function (){
-            $('#supplier-'+$scope.selectedSupplier.ID).removeClass('active');
-            $scope.selectedSupplier = undefined;
+            if ($scope.selectedSupplier){
+                $('#supplier-'+$scope.selectedSupplier.ID).removeClass('active');
+                $scope.selectedSupplier = undefined;
+            }
         }
 
         // Delete supplier and remove from the supplier list
@@ -274,6 +278,7 @@ allControllers.controller('ModalInstanceCtrl',
                 }).success(function () {
                     $scope.formData['ID'] = $scope.editId;
                     sharedService.edited($scope.formData, $scope.saveType)
+                    $scope.formData = {'NodeType': $scope.saveType};
                 });
             }
             else{
@@ -285,6 +290,7 @@ allControllers.controller('ModalInstanceCtrl',
                     $scope.formData['ID'] = response['newid'];
                     // post the new client to the shared service
                     sharedService.added($scope.formData, $scope.saveType);
+                    $scope.formData = {'NodeType': $scope.saveType};
                 });
             }
         };
@@ -305,7 +311,7 @@ allControllers.controller('ModalInstanceCtrl',
             });
           };
 
-          $scope.addProject = function(){
+        $scope.addProject = function(){
             $http({
                 method: 'POST',
                 url: globalServerURL + '0' + '/add',
