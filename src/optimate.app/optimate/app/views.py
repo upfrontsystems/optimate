@@ -7,6 +7,7 @@ import transaction
 from pyramid.view import view_config
 from decimal import Decimal
 import timeit
+from sqlalchemy.sql import collate
 
 from pyramid.httpexceptions import (
     HTTPOk,
@@ -150,7 +151,6 @@ def resource_list(request):
                                 ResourceCategory).filter_by(ParentID=rootid).first()
         # build the list and only get the neccesary values
         resourcelist = resourcecategory.getResources()
-        print resourcelist
         return sorted(resourcelist, key=lambda k: k['Name'])
 
 
@@ -277,7 +277,6 @@ def additemview(request):
         rate = request.json_body.get('Rate', 0)
         rate = Decimal(rate).quantize(Decimal('.01'))
         componenttype = int(request.json_body.get('ComponentType', 0))
-        print type(desc)
         objecttype = request.json_body['NodeType']
         newid = 0
 
@@ -517,7 +516,7 @@ def clientsview(request):
     if request.method == 'OPTIONS':
         return {"success": True}
     else:
-        qry = DBSession.query(Client).order_by(Client.Name).all()
+        qry = DBSession.query(Client).order_by(collate(Client.Name, 'NOCASE')).all()
         clientlist = []
 
         for client in qry:
@@ -617,7 +616,7 @@ def suppliersview(request):
     if request.method == 'OPTIONS':
         return {"success": True}
     else:
-        qry = DBSession.query(Supplier).order_by(Supplier.Name).all()
+        qry = DBSession.query(Supplier).order_by(collate(Supplier.Name, 'NOCASE')).all()
         supplierlist = []
 
         for supplier in qry:

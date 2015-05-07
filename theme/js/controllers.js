@@ -120,6 +120,11 @@ allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$l
             });
             var i = $scope.jsonclients.indexOf(result[0]);
             $scope.jsonclients[i] = editedclient;
+            $scope.jsonclients.sort(function(a, b) {
+                var textA = a.Name.toUpperCase();
+                var textB = b.Name.toUpperCase();
+                return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+            });
 
             console.log ("client edited");
         });
@@ -194,6 +199,11 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
             });
             var i = $scope.jsonsuppliers.indexOf(result[0]);
             $scope.jsonsuppliers[i] = editedsupplier;
+            $scope.jsonsuppliers.sort(function(a, b) {
+                var textA = a.Name.toUpperCase();
+                var textB = b.Name.toUpperCase();
+                return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+            });
 
             console.log ("Supplier edited");
         });

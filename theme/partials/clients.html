@@ -2,10 +2,10 @@
     <div class="container-fluid">
         <ul class="nav nav-pills">
             <li>
-                <a title="Add Client" data-target="#clientModal" data-ng-click="deselect()" data-toggle="modal"><i class="fa fa-plus-square"></i></a>
+                <a title="Add Client" data-target="#saveModal" data-ng-click="deselect()" data-toggle="modal"><i class="fa fa-plus-square"></i></a>
             </li>
             <li ng-show="selectedClient">
-                <a title="Edit Client" data-target="#clientModal" data-toggle="modal"><i class="fa fa-pencil"></i></a>
+                <a title="Edit Client" data-target="#saveModal" data-toggle="modal"><i class="fa fa-pencil"></i></a>
             </li>
             <li ng-show="selectedClient">
                 <a title="Delete Client" data-target="#deleteClientModal" data-toggle="modal"><i class="fa fa-trash"></i></a>
@@ -14,10 +14,10 @@
     </div>
 </nav>
 
-<div custom-modals modal-id="clientModal"
+<div custom-modals modal-id="saveModal"
     modal-type="client"
     modal-selected-id="{{selectedClient.ID}}"
-    modal-src="modal_templates/clientModal.html">
+    modal-src="modal_templates/saveModal.html">
 </div>
 
 <div id="deleteClientModal" class="modal">
