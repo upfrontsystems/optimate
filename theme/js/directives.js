@@ -180,8 +180,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', function(glob
 
             // show tooltips on hover if the cellsize is so small, that an ellipsis
             // '...' is being shown.
-            autotooltips_plugin = new Slick.AutoTooltips({enableForHeaderCells: true})
-            grid.registerPlugin(autotooltips_plugin);
+            //autotooltips_plugin = new Slick.AutoTooltips({enableForHeaderCells: true})
+            //grid.registerPlugin(autotooltips_plugin);
 
             dataView.onRowCountChanged.subscribe(function (e, args) {
               grid.updateRowCount();
