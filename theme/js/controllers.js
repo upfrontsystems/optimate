@@ -41,6 +41,7 @@ allControllers.factory('sharedService', ['$rootScope',
         // when a node is added to the projects treeview
         shared.nodeAdded = function(){
            $rootScope.$broadcast('handleAddedNode');
+           this.reloadSlickgrid();
         }
 
         // when a node is cut the node is removed from the treeview
@@ -59,6 +60,11 @@ allControllers.factory('sharedService', ['$rootScope',
         shared.projectDeleted = function(deletedid){
             this.deletedNodeId = deletedid;
             $rootScope.$broadcast('handleDeletedProject');
+        }
+
+        shared.reloadSlickgrid = function(){
+            this.reloadId = $rootScope.currentNode.ID;
+            $rootScope.$broadcast('handleReloadSlickgrid');
         }
 
         return shared;
@@ -333,6 +339,7 @@ allControllers.controller('ModalInstanceCtrl',
                 data: $scope.formData
             }).success(function (response) {
                 $scope.formData['ID'] = response['ID'];
+                $scope.formData['NodeTypeAbbr'] = 'P';
                 sharedService.projectAdded($scope.formData);
                 $scope.formData = {'NodeType':$scope.formData['NodeType']};
             });
@@ -599,6 +606,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                                 'cut': $scope.cut}
                     }).success(function () {
                         console.log('Success: Node pasted');
+                        sharedService.reloadSlickgrid(nodeid);
                         $scope.loadNodeChildren(nodeid);
                     }).error(function(){
                         console.log("Server error");

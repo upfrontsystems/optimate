@@ -126,7 +126,8 @@ allControllers.directive('customModals', function ($http, $compile, globalServer
 });
 
 // Directive for the slickgrid
-allControllers.directive('projectslickgridjs', ['globalServerURL', function(globalServerURL) {
+allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedService',
+    function(globalServerURL, sharedService) {
     return {
         require: '?ngModel',
         restrict: 'E',
@@ -226,6 +227,105 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', function(glob
                 grid.render();
             });
 
+            function loadSlickgrid(response){
+                var newcolumns = [];
+                var data = response['list'];
+                // Get the value that indicated
+                // whether there are empty columns
+                var emptycolumns = response['emptycolumns'];
+                if (data.length > 0){
+                    if (data[0]['node_type'] == 'Resource'){
+                        newcolumns = [
+                            {id: "name", name: "Name", field: "name",
+                             width: cell_large, cssClass: "cell-title non-editable-column"},
+                            {id: "rate", name: "Rate", field: "rate", cssClass: "cell editable-column",
+                             width: cell_small, formatter: CurrencyFormatter, editor: Slick.Editors.Float},
+                        ];
+
+                        grid.setColumns(newcolumns);
+                        dataView.beginUpdate();
+                        dataView.setItems(data);
+                        dataView.endUpdate();
+                        grid.render();
+                    }
+                    else {
+                        // if there will be empty columns remove them
+                        if (emptycolumns){
+                            newcolumns = [
+                                {id: "name", name: "Name", field: "name",
+                                 width: cell_large, cssClass: "cell-title non-editable-column"},
+                                {id: "budg_cost", name: "Total", field: "budg_cost",
+                                 width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                                {id: "order_cost", name: "Order Cost", field: "order_cost",
+                                 width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                                {id: "run_cost", name: "Run Cost", field: "run_cost",
+                                 width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                                {id: "claim_cost", name: "Claim Cost", field: "claim_cost",
+                                 width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                                {id: "income_rec", name: "Income Rec", field: "income_rec",
+                                 width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                                {id: "client_cost", name: "Client Cost", field: "client_cost",
+                                 width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                                {id: "proj_profit", name: "Proj. Profit", field: "proj_profit",
+                                 width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                                {id: "act_profit", name: "Act. Profit", field: "act_profit",
+                                 width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                            ];
+
+                            grid.setColumns(newcolumns);
+                            dataView.beginUpdate();
+                            dataView.setItems(data);
+                            dataView.endUpdate();
+                            grid.render();
+                        }
+                        // otherwise loop through the data and grey out
+                        // uneditable columns
+                        else {
+                            newcolumns = columns;
+
+                            grid.setColumns(newcolumns);
+                            dataView.beginUpdate();
+                            dataView.setItems(data);
+                            dataView.endUpdate();
+
+                            for (var i=0; i < data.length; i++){
+                                if (data[i]['node_type'] == 'BudgetGroup'){
+                                    grid.setCellCssStyles("non-editable-cell", {
+                                       i: {
+                                            quantity: 'cell non-editable-column',
+                                            markup: 'cell non-editable-column'
+                                           },
+                                    });
+                                }
+                            }
+                            grid.render();
+                        }
+                    }
+                }
+                else {
+                    newcolumns = columns;
+                    grid.setColumns(newcolumns);
+                    dataView.beginUpdate();
+                    dataView.setItems(data);
+                    dataView.endUpdate();
+                    grid.render();
+                }
+                console.log("Slickgrid data loaded");
+            }
+
+            // listening for the handle to reload the slickgrid
+            $scope.$on('handleReloadSlickgrid', function(){
+                var nodeid = sharedService.reloadId;
+                var url = globalServerURL +'nodegridview/' + nodeid + '/'
+                $.ajax({
+                    url: url,
+                    dataType: "json",
+                    success: function(response) {
+                        loadSlickgrid(response);
+                    }
+                });
+            });
+
             // eventhandler to update grid data when a tree node is clicked
             $( document ).on( "click", ".treenode", function( e ) {
                 var nodeid = $(this).attr('ID');
@@ -234,95 +334,22 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', function(glob
                     url: url,
                     dataType: "json",
                     success: function(response) {
-                        var newcolumns = [];
-                        var data = response['list'];
-                        // Get the value that indicated
-                        // whether there are empty columns
-                        var emptycolumns = response['emptycolumns'];
-                        if (data.length > 0){
-                            if (data[0]['node_type'] == 'Resource'){
-                                newcolumns = [
-                                    {id: "name", name: "Name", field: "name",
-                                     width: cell_large, cssClass: "cell-title non-editable-column"},
-                                    {id: "rate", name: "Rate", field: "rate", cssClass: "cell editable-column",
-                                     width: cell_small, formatter: CurrencyFormatter, editor: Slick.Editors.Float},
-                                ];
-
-                                grid.setColumns(newcolumns);
-                                dataView.beginUpdate();
-                                dataView.setItems(data);
-                                dataView.endUpdate();
-                                grid.render();
-                            }
-                            else {
-                                // if there will be empty columns remove them
-                                if (emptycolumns){
-                                    newcolumns = [
-                                        {id: "name", name: "Name", field: "name",
-                                         width: cell_large, cssClass: "cell-title non-editable-column"},
-                                        {id: "budg_cost", name: "Total", field: "budg_cost",
-                                         width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                                        {id: "order_cost", name: "Order Cost", field: "order_cost",
-                                         width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                                        {id: "run_cost", name: "Run Cost", field: "run_cost",
-                                         width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                                        {id: "claim_cost", name: "Claim Cost", field: "claim_cost",
-                                         width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                                        {id: "income_rec", name: "Income Rec", field: "income_rec",
-                                         width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                                        {id: "client_cost", name: "Client Cost", field: "client_cost",
-                                         width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                                        {id: "proj_profit", name: "Proj. Profit", field: "proj_profit",
-                                         width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                                        {id: "act_profit", name: "Act. Profit", field: "act_profit",
-                                         width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                                    ];
-
-                                    grid.setColumns(newcolumns);
-                                    dataView.beginUpdate();
-                                    dataView.setItems(data);
-                                    dataView.endUpdate();
-                                    grid.render();
-                                }
-                                // otherwise loop through the data and grey out
-                                // uneditable columns
-                                else {
-                                    newcolumns = columns;
-
-                                    grid.setColumns(newcolumns);
-                                    dataView.beginUpdate();
-                                    dataView.setItems(data);
-                                    dataView.endUpdate();
-
-                                    for (var i=0; i < data.length; i++){
-                                        if (data[i]['node_type'] == 'BudgetGroup'){
-                                            grid.setCellCssStyles("non-editable-cell", {
-                                               i: {
-                                                    quantity: 'cell non-editable-column',
-                                                    markup: 'cell non-editable-column'
-                                                   },
-                                            });
-                                        }
-                                    }
-                                    grid.render();
-                                }
-                            }
-                        }
-                        else {
-                            newcolumns = columns;
-                            grid.setColumns(newcolumns);
-                            dataView.beginUpdate();
-                            dataView.setItems(data);
-                            dataView.endUpdate();
-                            grid.render();
-                        }
-                        console.log("Slickgrid data loaded");
+                        loadSlickgrid(response);
                     }
                 });
             });
 
             // eventhandler to blank grid data when a project is closed
             $( document ).on( "click", ".close-project", function( e ) {
+                dataView.beginUpdate();
+                dataView.setItems([]);
+                dataView.endUpdate();
+                grid.render();
+            });
+
+            // eventhandler to blank grid data when a node is deleted
+            $( document ).on( "click", ".delete-node", function( e ) {
+                console.log("clearing slickgrid");
                 dataView.beginUpdate();
                 dataView.setItems([]);
                 dataView.endUpdate();
