@@ -237,7 +237,7 @@ allControllers.controller('ModalInstanceCtrl',
             $scope.resourceList = [{"Name": "Loading..."}];
             var req = {
                 method: 'GET',
-                url: globalServerURL +'resource_listing',
+                url: globalServerURL +'resources',
             }
             $http(req).success(function(data) {
                 $scope.resourceList = data;
@@ -264,8 +264,7 @@ allControllers.controller('ModalInstanceCtrl',
             $scope.formData.inputName = name;
         }
 
-        // When the addClient is clicked on the modal a new client is
-        // added to the database
+        // Saving a new client or supplier or editing an existing one
         $scope.save = function(saveType, editing){
             if ($scope.editId){
                 $http({
@@ -294,7 +293,6 @@ allControllers.controller('ModalInstanceCtrl',
         // is added to the database
         $scope.addNode = function () {
             var currentId = $rootScope.currentNode.ID;
-
 
             inputData = {'Name': $scope.formData.inputName,
                     'NodeType':$scope.formData.NodeType,
@@ -340,6 +338,17 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
 
         toggleMenu('projects');
 
+        // load the projects used in the select project modal
+        // Add a loading value to the project list while it loads
+        $scope.projectsList = [{"Name": "Loading..."}];
+        var req = {
+            method: 'GET',
+            url: globalServerURL +'project_listing'
+        };
+        $http(req).success(function(data) {
+            $scope.projectsList = data;
+        });
+
         // listening for the handle new project broadcast
         $scope.$on('handleAddedProject', function(){
             var newproject = sharedService.newProject;
@@ -380,19 +389,9 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             }
         });
 
+        // When a project is deleted close it as well
         $scope.$on('handleDeletedProject', function(){
             $scope.closeProject(sharedService.deletedNodeId);
-        });
-
-        // load the projects used in the select project modal
-        // Add a loading value to the project list while it loads
-        $scope.projectsList = [{"Name": "Loading..."}];
-        var req = {
-            method: 'GET',
-            url: globalServerURL +'project_listing'
-        };
-        $http(req).success(function(data) {
-            $scope.projectsList = data;
         });
 
         // aux function - checks if object is already in list based on ID
@@ -549,33 +548,33 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         };
 
         // Function to copy a node
-        $scope.copyThisNode = function(cid) {
+        $scope.copyThisNode = function(copiedid, nodetype) {
             if ($scope.$parent.copyThisNode) {
-                $scope.$parent.copyThisNode(cid);
+                $scope.$parent.copyThisNode(copiedid, nodetype);
             }
             else{
-                $scope.copiedId = cid;
+                $scope.copiedNode = {'id': copiedid, 'type': nodetype};
                 $scope.cut = false;
-                console.log("Node id copied: " + cid);
+                console.log("Node id copied: " + copiedid);
             }
         }
 
-        // Function to copy a node
-        $scope.cutThisNode = function(cid) {
-            if ($scope.$parent.copyThisNode) {
-                $scope.$parent.copyThisNode(cid);
+        // Function to cut a node
+        $scope.cutThisNode = function(cutid, nodetype) {
+            if ($scope.$parent.cutThisNode) {
+                $scope.$parent.cutThisNode(cutid, nodetype);
             }
             else{
-                $scope.copiedId = cid;
-                console.log("Node id copied: " + cid);
+                $scope.copiedNode = {'id': cutid, 'type': nodetype};
+                console.log("Node id cut: " + cutid);
                 $scope.cut = true;
-                sharedService.nodeCut(cid);
+                sharedService.nodeCut(cutid);
             }
         }
 
         $scope.getCopiedId = function(){
-            if($scope.copiedId){
-                return $scope.copiedId;
+            if($scope.copiedNode){
+                return $scope.copiedNode;
             }
             else{
                 if ($scope.$parent.getCopiedId){
@@ -590,24 +589,46 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         // function to paste copied node into another node
         // the id is sent to the server and the node pasted there
         // the user cant paste into the same node
-        $scope.pasteThisNode = function(nodeid) {
-            var cnodeid = $scope.getCopiedId();
-            if (cnodeid){
-                if (cnodeid == nodeid){
+        $scope.pasteThisNode = function(nodeid, nodetype) {
+            var cnode = $scope.getCopiedId();
+            if (cnode){
+                if (cnode['id'] == nodeid){
                     alert("You can't paste into the same node");
                 }
                 else {
-                    $http({
-                        method: 'POST',
-                        url: globalServerURL + nodeid + '/paste',
-                        data:{'ID': cnodeid,
-                                'cut': $scope.cut}
-                    }).success(function () {
-                        console.log('Success: Node pasted');
-                        $scope.loadNodeChildren(nodeid);
-                    }).error(function(){
-                        console.log("Server error");
-                    });
+                    var paste = false;
+                    if (nodetype == 'Project' && cnode['type'] == 'BudgetGroup'){
+                        paste == true;
+                    }
+                    else if (nodetype == 'BudgetGroup'){
+                        if (cnode['type'] == 'BudgetGroup'){paste =true;}
+                        if (cnode['type'] == 'BudgetItem'){paste =true;}
+                        if (cnode['type'] == 'Component'){paste =true;}
+                    }
+                    else if (nodetype == 'BudgetItem' && cnode['type'] == 'Component'){
+                        paste = true;
+                    }
+                    else if (nodetype == 'ResourceCategory'){
+                        if (cnode['type'] == 'Resource'){paste =true;}
+                        if (cnode['type'] == 'ResourceCategory'){paste =true;}
+                    }
+
+                    if (paste){
+                        $http({
+                            method: 'POST',
+                            url: globalServerURL + nodeid + '/paste',
+                            data:{'ID': cnode['id'],
+                                    'cut': $scope.cut}
+                        }).success(function () {
+                            console.log('Success: Node pasted');
+                            $scope.loadNodeChildren(nodeid);
+                        }).error(function(){
+                            console.log("Server error");
+                        });
+                    }
+                    else {
+                        console.log("Can't paste " +cnode['type']+ " into " + nodetype);
+                    }
                 }
             }
         }
