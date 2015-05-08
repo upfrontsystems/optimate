@@ -1,34 +1,46 @@
-$(document).on('shown.bs.modal', function(){    
-
-    $('#addProject').on('shown.bs.modal', function(){
+$(document).on('shown.bs.modal', function(){
+    if ( $('#saveModal').length && $('#saveModal').is(":visible") ) {
         $('input#inputName').val('');
-        $('input#inputDescription').val('');
-        $('input#inputName').focus()
-    });
-    $('#addBudgetItem').on('shown.bs.modal', function(){
+        $('textarea#inputAddress').val('');
+        $('input#inputCity').val('');
+        $('input#inputStateProvince').val('');
+        $('input#inputStateCountry').val('');
+        $('input#inputZip').val('');
+        $('input#inputPhone').val('');
+        $('input#inputFax').val('');
+        $('input#inputCellular').val('');
+        $('input#inputContact').val('');
+        $('input#inputName').focus();
+    }
+    else if ($('#addProject').length ) {
         $('input#inputName').val('');
-        $('input#inputDescription').val('');
+        $('textarea#inputDescription').val('');
+        $('input#inputName').focus();
+    }
+    else if ($('#addBudgetItem').length ) {
+        $('input#inputName').val('');
+        $('textarea#inputDescription').val('');
         $('input#inputQuantity').val('');
         $('input#inputMarkup').val('');
-        $('input#inputName').focus()
-    });
-    $('#addBudgetGroup').on('shown.bs.modal', function(){
+        $('input#inputName').focus();
+    }
+    else if ($('#addBudgetGroup').length ) {
         $('input#inputName').val('');
-        $('input#inputDescription').val('');
-        $('input#inputName').focus()
-    });
-    $('#addResource').on('shown.bs.modal', function(){
+        $('textarea#inputDescription').val('');
+        $('input#inputName').focus();
+    }
+    else if ($('#addResource').length ) {
         $('input#inputName').val('');
-        $('input#inputDescription').val('');
+        $('textarea#inputDescription').val('');
         $('input#inputRate').val('');
-    });
-    $('#addResourceCategory').on('shown.bs.modal', function(){
+    }
+    else if ($('#addResourceCategory').length ) {
         $('input#inputName').val('');
-        $('input#inputDescription').val('');
-        $('input#inputName').focus()
-    });
-    $('#addComponent').on('shown.bs.modal', function(){
-        $('input#inputDescription').val('');
+        $('textarea#inputDescription').val('');
+        $('input#inputName').focus();
+    }
+    else if ($('#addComponent').length ) {
+        $('textarea#inputDescription').val('');
         $('input#inputQuantity').val('');
         $('input#inputMarkup').val('');
         $('input#inputType').val('');
@@ -38,5 +50,5 @@ $(document).on('shown.bs.modal', function(){
             var finder = new ContentFinder('#'+$(this).attr('id'), url, true);
             finder.listdir(url);
         });
-    });
+    }
 });
