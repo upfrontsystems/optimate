@@ -53,11 +53,13 @@ def childview(request):
     qry = DBSession.query(Node).filter_by(ID=parentid).first()
     # build the list and only get the neccesary values
     if qry != None:
-        if qry.type != 'ResourceCategory':
-            for child in qry.Children:
-
+        for child in qry.Children:
+            if child.type != 'Resource':
                 if child.type == 'ResourceCategory':
                     subitem = []
+                    if len(child.Children) > 0:
+                        subitem = [{'Name': '...'}]
+
                     nodetypeabbr = 'C'
                     resourcecategories.append({
                         'Name': child.Name,
@@ -184,13 +186,10 @@ def projectview(request):
     qry = DBSession.query(Project).filter_by(ID=projectid).first()
     # build the list and only get the neccesary values
     if qry != None:
-        subitem = []
-        if len(qry.Children)>0:
-            subitem = [{'Name': '...'}]
         project.append({'Name': qry.Name,
                         'Description': qry.Description,
                         'ID': qry.ID,
-                        'Subitem': subitem,
+                        'Subitem': [{'Name': '...'}],
                         'NodeType': qry.type,
                         'NodeTypeAbbr' : 'P'
                         })
@@ -304,12 +303,21 @@ def additemview(request):
             DBSession.add(newnode)
             DBSession.flush()
             newid = newnode.ID
+        elif objecttype == 'Project':
+            newnode = Project(Name=name,
+                            Description=desc,
+                            ParentID=parentid)
+            DBSession.add(newnode)
+            DBSession.flush()
+            newid = newnode.ID
+            # Automaticcaly add a Resource Category to a new Project
+            newresourcecat = ResourceCategory(Name='Resource List',
+                                            Description='List of Resources',
+                                            ParentID=newid)
+            DBSession.add(newresourcecat)
+            DBSession.flush()
         else:
-            if objecttype == 'Project':
-                newnode = Project(Name=name,
-                                Description=desc,
-                                ParentID=parentid)
-            elif objecttype == 'BudgetGroup':
+            if objecttype == 'BudgetGroup':
                 newnode = BudgetGroup(Name=name,
                                 Description=desc,
                                 ParentID=parentid)

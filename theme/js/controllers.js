@@ -551,6 +551,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             }).success(function (response) {
                 $scope.formData['ID'] = response['ID'];
                 $scope.formData['NodeTypeAbbr'] = 'P';
+                $scope.formData['Subitem'] = [{'Name': '...'}];
                 sharedService.projectAdded($scope.formData);
                 $scope.formData = {'NodeType':$scope.formData['NodeType']};
             });
