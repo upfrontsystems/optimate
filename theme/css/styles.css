@@ -150,22 +150,46 @@ input.editor-text {
     background: #00c752;
 }
 
+a.project-button {
+    color: #00c752;
+}
+
 .circle.BudgetGroup {
     background: #39a8ee;
+}
+
+a.budget-group-button {
+    color: #39a8ee;
 }
 
 .circle.BudgetItem {
     background: #b75eea;
 }
 
+a.budget-item-button {
+    color: #b75eea;
+}
+
 .circle.Component {
     background: #4dd0e2;
+}
+
+a.component-button {
+    color: #4dd0e2;
 }
 
 .circle.Resource {
     background: #f06292;
 }
 
+a.resource-button {
+    color: #f06292;
+}
+
 .circle.ResourceCategory {
     background: #a9385e;
+}
+
+a.resource-category-button {
+    color: #a9385e;
 }

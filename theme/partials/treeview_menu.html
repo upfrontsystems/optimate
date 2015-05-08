@@ -14,9 +14,16 @@
                     </span>
                 </li>
                 <li>
+                    <a role="button" data-toggle="modal" data-target="#addResourceCategory"
+                        data-ng-click="changeAddingType('ResourceCategory')"
+                       title="Add Resource Category" class="resource-category-button">
+                        <i class="fa fa-plus-square"></i> C
+                    </a>
+                </li>
+                <li>
                     <a role="button" data-toggle="modal" data-target="#addBudgetGroup"
                         data-ng-click="changeAddingType('BudgetGroup')"
-                       title="Add Budget Group">
+                       title="Add Budget Group" class="budget-group-button">
                         <i class="fa fa-plus-square"></i> G
                     </a>
                 </li>
@@ -42,7 +49,7 @@
                     <a data-ng-switch-when="ResourceCategory"
                         role="button"
                         data-ng-click="pasteThisNode(currentNode.ID, currentNode.NodeType)"
-                        title="Paste Resource Category">
+                        title="Paste Resource Category" class="resource-category-button">
                         <i class="fa fa-clipboard"></i>
                     </a>
                     <a data-ng-switch-default
@@ -74,21 +81,21 @@
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addBudgetGroup"
                         data-ng-click="changeAddingType('BudgetGroup')"
-                       title="Add Budget Group">
+                       title="Add Budget Group" class="budget-group-button">
                         <i class="fa fa-plus-square"></i> G
                     </a>
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addBudgetItem"
                         data-ng-click="changeAddingType('BudgetItem')"
-                       title="Add Budget Item">
+                       title="Add Budget Item" class="budget-item-button">
                         <i class="fa fa-plus-square"></i> I
                     </a>
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addComponent"
                         data-ng-click="changeAddingType('Component'); loadResourceList()"
-                       title="Add Component">
+                       title="Add Component" class="component-button">
                         <i class="fa fa-plus-square"></i> C
                     </a>
                 </li>
@@ -150,14 +157,14 @@
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addBudgetItem"
                         data-ng-click="changeAddingType('BudgetItem')"
-                       title="Add Budget Item">
+                       title="Add Budget Item" class="budget-item-button">
                         <i class="fa fa-plus-square"></i> I
                     </a>
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addComponent"
                         data-ng-click="changeAddingType('Component'); loadResourceList()"
-                       title="Add Component">
+                       title="Add Component" class="component-button">
                         <i class="fa fa-plus-square"></i> C
                     </a>
                 </li>
@@ -212,17 +219,17 @@
                     </span>
                 </li>
                 <li>
-                    <a role="button" data-toggle="modal" data-target="#addResource"
-                        data-ng-click="changeAddingType('Resource')"
-                       title="Add Resource">
-                        <i class="fa fa-plus-square"></i> R
+                    <a role="button" data-toggle="modal" data-target="#addResourceCategory"
+                        data-ng-click="changeAddingType('ResourceCategory')"
+                       title="Add Resource Category" class="resource-category-button">
+                        <i class="fa fa-plus-square"></i> C
                     </a>
                 </li>
                 <li>
-                    <a role="button" data-toggle="modal" data-target="#addResourceCategory"
-                        data-ng-click="changeAddingType('ResourceCategory')"
-                       title="Add Resource Category">
-                        <i class="fa fa-plus-square"></i> L
+                    <a role="button" data-toggle="modal" data-target="#addResource"
+                        data-ng-click="changeAddingType('Resource')"
+                       title="Add Resource" class="resource-button">
+                        <i class="fa fa-plus-square"></i> R
                     </a>
                 </li>
                 <li>
