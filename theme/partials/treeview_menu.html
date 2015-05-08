@@ -21,13 +21,6 @@
                     </a>
                 </li>
                 <li>
-                    <a role="button" data-toggle="modal" data-target="#addResourceCategory"
-                        data-ng-click="changeAddingType('ResourceCategory')"
-                       title="Add Resource Category">
-                        <i class="fa fa-plus-square"></i> L
-                    </a>
-                </li>
-                <li>
                     <a role="button" data-ng-click="copyThisNode(currentNode.ID, currentNode.NodeType)"
                        title="Copy Project">
                         <i class="fa fa-files-o"></i>
@@ -94,7 +87,7 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addComponent"
-                        data-ng-click="changeAddingType('Component')"
+                        data-ng-click="changeAddingType('Component'); loadResourceList()"
                        title="Add Component">
                         <i class="fa fa-plus-square"></i> C
                     </a>
@@ -163,7 +156,7 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addComponent"
-                        data-ng-click="changeAddingType('Component')"
+                        data-ng-click="changeAddingType('Component'); loadResourceList()"
                        title="Add Component">
                         <i class="fa fa-plus-square"></i> C
                     </a>

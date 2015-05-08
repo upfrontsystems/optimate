@@ -6,20 +6,6 @@ allControllers.factory('sharedService', ['$rootScope',
     function($rootScope){
         var shared = {};
 
-        shared.newClient = '';
-        shared.newSupplier = '';
-        // when a new client or supplier is added
-        shared.added = function(postdata, saveType){
-            if (saveType == 'client'){
-                this.newClient = postdata;
-                $rootScope.$broadcast('handleNewClient');
-            }
-            else {
-                this.newSupplier = postdata;
-                $rootScope.$broadcast('handleNewSupplier');
-            }
-        }
-
         // when a client or supplier is edited
         shared.edited = function(postdata, saveType){
             if (saveType == 'client'){
@@ -40,7 +26,6 @@ allControllers.factory('sharedService', ['$rootScope',
 
         // when a node is added to the projects treeview
         shared.nodeAdded = function(){
-           $rootScope.$broadcast('handleAddedNode');
            this.reloadSlickgrid();
         }
 
@@ -62,6 +47,7 @@ allControllers.factory('sharedService', ['$rootScope',
             $rootScope.$broadcast('handleDeletedProject');
         }
 
+        // reload the slickgrid
         shared.reloadSlickgrid = function(){
             this.reloadId = $rootScope.currentNode.ID;
             $rootScope.$broadcast('handleReloadSlickgrid');
@@ -70,6 +56,7 @@ allControllers.factory('sharedService', ['$rootScope',
         return shared;
 }]);
 
+// set the global server url
 allControllers.value('globalServerURL', 'http://127.0.0.1:8100/');
 
 function toggleMenu(itemclass) {
@@ -94,8 +81,8 @@ allControllers.controller('companyinformationController', ['$scope', '$http', '$
 ]);
 
 // controller for the Client data from the server
-allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$log', 'globalServerURL', 'sharedService',
-    function($scope, $http, $modal, $log, globalServerURL, sharedService) {
+allControllers.controller('clientsController', ['$scope', '$http', 'globalServerURL',
+    function($scope, $http, globalServerURL) {
 
         toggleMenu('setup');
 
@@ -107,9 +94,34 @@ allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$l
             $scope.jsonclients = data;
         });
 
-        // listening for the handle new client broadcast
-        $scope.$on('handleNewClient', function(){
-            var newclient = sharedService.newClient;
+        // Adding or editing a client
+        $scope.save = function(){
+            if ($scope.modalState == 'Edit'){
+                $http({
+                    method: 'PUT',
+                    url: globalServerURL + $scope.formData['ID'] + '/' + $scope.formData['NodeType'],
+                    data:$scope.formData
+                }).success(function () {
+                    $scope.handleEdited($scope.formData);
+                    $scope.formData = {'NodeType': $scope.formData['NodeType']};
+                });
+            }
+            else{
+                $http({
+                    method: 'POST',
+                    url: globalServerURL +'0/' + $scope.formData['NodeType'],
+                    data:$scope.formData
+                }).success(function (response) {
+                    $scope.formData['ID'] = response['newid'];
+                    // post the new client to the shared service
+                    $scope.handleNew($scope.formData);
+                    $scope.formData = {'NodeType': $scope.formData['NodeType']};
+                });
+            }
+        };
+
+        // add a new client to the list and sort
+        $scope.handleNew = function(newclient){
             // the new client is added to the list
             $scope.jsonclients.push(newclient);
             // sort alphabetically by client name
@@ -118,13 +130,11 @@ allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$l
                 var textB = b.Name.toUpperCase();
                 return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
             });
-            console.log ("client added");
-        });
+            console.log ("Client added");
+        }
 
         // listening for the handle edit client broadcast
-        $scope.$on('handleEditedClient', function(){
-            var editedclient = sharedService.newClient;
-
+        $scope.handleEdited = function(editedclient){
             // search for the client and edit in the list
             var result = $.grep($scope.jsonclients, function(e) {
                 return e.ID == editedclient.ID;
@@ -136,9 +146,8 @@ allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$l
                 var textB = b.Name.toUpperCase();
                 return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
             });
-
-            console.log ("client edited");
-        });
+            console.log ("Client edited");
+        };
 
         // Set the selected client and change the css
         $scope.showActionsFor = function(obj) {
@@ -146,18 +155,32 @@ allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$l
             $('#client-'+obj.ID).addClass('active').siblings().removeClass('active');
         };
 
-        // Deselect the selected client and remove the css
-        $scope.deselect = function (){
+        // When the Add button is pressed change the state and form data
+        $scope.addingState = function (){
+            $scope.modalState = "Add";
+            $scope.formData = {'NodeType': 'client'};
             if ($scope.selectedClient){
                 $('#client-'+$scope.selectedClient.ID).removeClass('active');
                 $scope.selectedClient = undefined;
             }
         }
 
+        // When the edit button is pressed change the state and set the data
+        $scope.editingState = function (){
+            $scope.modalState = "Edit";
+            $http({
+                method: 'GET',
+                url: globalServerURL + $scope.selectedClient.ID + '/client'
+            }).success(function(response){
+                $scope.formData = response;
+                $scope.formData['NodeType'] = 'client';
+            })
+        }
+
         // Delete client and remove from the clients list
         $scope.deleteClient = function() {
             var deleteid = $scope.selectedClient.ID;
-            $scope.deselect();
+            $scope.selectedClient = undefined;
             $http({
                 method: 'DELETE',
                 url: globalServerURL + deleteid + '/client'
@@ -167,15 +190,15 @@ allControllers.controller('clientsController', ['$scope', '$http', '$modal', '$l
                 });
                 var i = $scope.jsonclients.indexOf(result[0]);
                 $scope.jsonclients.splice(i, 1);
-                console.log("deleted client");
+                console.log("Deleted client");
             });
         };
     }
 ]);
 
 // Controller for the suppliers page
-allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '$log', 'globalServerURL', 'sharedService',
-    function($scope, $http, $modal, $log, globalServerURL, sharedService) {
+allControllers.controller('suppliersController', ['$scope', '$http', 'globalServerURL',
+    function($scope, $http, globalServerURL) {
 
         toggleMenu('setup');
 
@@ -187,9 +210,35 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
             $scope.jsonsuppliers = data;
         });
 
-        // listening for the handle new supplier broadcast
-        $scope.$on('handleNewSupplier', function(){
-            var newsupplier = sharedService.newSupplier;
+        // Adding or editing a supplier
+        $scope.save = function(){
+            if ($scope.modalState == 'Edit'){
+                $http({
+                    method: 'PUT',
+                    url: globalServerURL + $scope.formData['ID'] + '/' + $scope.formData['NodeType'],
+                    data:$scope.formData
+                }).success(function () {
+                    $scope.handleEdited($scope.formData);
+                    $scope.formData = {'NodeType': $scope.formData['NodeType']};
+                });
+            }
+            else{
+                $http({
+                    method: 'POST',
+                    url: globalServerURL +'0/' + $scope.formData['NodeType'],
+                    data:$scope.formData
+                }).success(function (response) {
+                    $scope.formData['ID'] = response['newid'];
+                    // post the new supplier
+                    $scope.handleNew($scope.formData);
+                    $scope.formData = {'NodeType': $scope.formData['NodeType']};
+                });
+            }
+        };
+
+        // add a new supplier to the list and sort
+        $scope.handleNew = function(newsupplier){
+            // the new supplier is added to the list
             $scope.jsonsuppliers.push(newsupplier);
             // sort alphabetically by supplier name
             $scope.jsonsuppliers.sort(function(a, b) {
@@ -197,13 +246,11 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
                 var textB = b.Name.toUpperCase();
                 return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
             });
-            console.log("supplier added");
-        });
+            console.log ("Supplier added");
+        }
 
-        // listening for the handle edit supplier broadcast
-        $scope.$on('handleEditedSupplier', function(){
-            var editedsupplier = sharedService.newSupplier;
-
+        // edit a supplier in the list
+        $scope.handleEdited = function(editedsupplier){
             // search for the supplier and edit in the list
             var result = $.grep($scope.jsonsuppliers, function(e) {
                 return e.ID == editedsupplier.ID;
@@ -215,9 +262,8 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
                 var textB = b.Name.toUpperCase();
                 return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
             });
-
             console.log ("Supplier edited");
-        });
+        };
 
         // Set the selected supplier and change the css
         $scope.showActionsFor = function(obj) {
@@ -225,18 +271,31 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
             $('#supplier-'+obj.ID).addClass('active').siblings().removeClass('active');
         };
 
-        // Deselect the selected supplier and remove the css
-        $scope.deselect = function (){
+        // When the Add button is pressed change the state and form data
+        $scope.addingState = function (){
+            $scope.modalState = "Add";
+            $scope.formData = {'NodeType': 'supplier'};
             if ($scope.selectedSupplier){
                 $('#supplier-'+$scope.selectedSupplier.ID).removeClass('active');
                 $scope.selectedSupplier = undefined;
             }
         }
 
+        // When the edit button is pressed change the state and set the data
+        $scope.editingState = function (){
+            $scope.modalState = "Edit";
+            $http({
+                method: 'GET',
+                url: globalServerURL + $scope.selectedSupplier.ID + '/supplier'
+            }).success(function(response){
+                $scope.formData = response;
+                $scope.formData['NodeType'] = 'supplier';
+            })
+        }
+
         // Delete supplier and remove from the supplier list
         $scope.deleteSupplier = function() {
             var deleteid = $scope.selectedSupplier.ID;
-            $scope.deselect();
             $http({
                 method: 'DELETE',
                 url: globalServerURL + deleteid + '/supplier'
@@ -246,107 +305,11 @@ allControllers.controller('suppliersController', ['$scope', '$http', '$modal', '
                 });
                 var i = $scope.jsonsuppliers.indexOf(result[0]);
                 $scope.jsonsuppliers.splice(i, 1);
-                console.log("deleted supplier");
+                console.log("Deleted supplier");
             });
         };
     }
 ]);
-
-// Controller for the modals, handles adding new nodes
-allControllers.controller('ModalInstanceCtrl',
-    function ($scope, $rootScope, $http, globalServerURL, sharedService) {
-
-        // Load the resources the user can select from
-        $scope.loadResources = function(){
-            // Add a loading value to the project list while it loads
-            $scope.resourceList = [{"Name": "Loading..."}];
-            var req = {
-                method: 'GET',
-                url: globalServerURL +'resources',
-            }
-            $http(req).success(function(data) {
-                $scope.resourceList = data;
-                console.log("Resources loaded");
-                $('select#resource-select').focus();
-            });
-        }
-
-        // Load the resources the user can select from the resource list
-        $scope.loadResourceList = function(){
-            // Add a loading value to the project list while it loads
-            $scope.resourceList = [{"Name": "Loading..."}];
-            var req = {
-                method: 'GET',
-                url: globalServerURL +'resource_list/' + $rootScope.currentNode.ID + '/'
-            }
-            $http(req).success(function(data) {
-                $scope.resourceList = data;
-                console.log("Resource list loaded");
-                $('select#resource-select').focus();
-            });
-        }
-
-        $scope.selectedResource = function(){
-            var name = $('#resource-select').find(":selected").val()
-            $scope.formData['Name'] = name;
-        }
-
-        // Saving a new client or supplier or editing an existing one
-        $scope.save = function(saveType, editing){
-            if ($scope.editId){
-                $http({
-                    method: 'PUT',
-                    url: globalServerURL + $scope.editId + '/' + $scope.saveType,
-                    data:$scope.formData
-                }).success(function () {
-                    $scope.formData['ID'] = $scope.editId;
-                    sharedService.edited($scope.formData, $scope.saveType)
-                    $scope.formData = {'NodeType': $scope.saveType};
-                });
-            }
-            else{
-                $http({
-                    method: 'POST',
-                    url: globalServerURL +'0/' + $scope.saveType,
-                    data:$scope.formData
-                }).success(function (response) {
-                    $scope.formData['ID'] = response['newid'];
-                    // post the new client to the shared service
-                    sharedService.added($scope.formData, $scope.saveType);
-                    $scope.formData = {'NodeType': $scope.saveType};
-                });
-            }
-        };
-
-        // When the addNode button is clicked on the modal a new node
-        // is added to the database
-        $scope.addNode = function () {
-            var currentId = $rootScope.currentNode.ID;
-
-            $http({
-                method: 'POST',
-                url: globalServerURL + currentId + '/add',
-                data: $scope.formData
-            }).success(function () {
-                $scope.formData = {'NodeType':$scope.formData['NodeType']};
-                console.log("Node added");
-                sharedService.nodeAdded();
-            });
-          };
-
-        $scope.addProject = function(){
-            $http({
-                method: 'POST',
-                url: globalServerURL + '0' + '/add',
-                data: $scope.formData
-            }).success(function (response) {
-                $scope.formData['ID'] = response['ID'];
-                $scope.formData['NodeTypeAbbr'] = 'P';
-                sharedService.projectAdded($scope.formData);
-                $scope.formData = {'NodeType':$scope.formData['NodeType']};
-            });
-          }
-});
 
 // Angular function that loads a specific project into the treeview
 // upon selection from the user
@@ -538,15 +501,65 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         };
         $scope.roleList = [];
         $scope.preloadProjects(); // check if anything is stored in local storage
-        $scope.formData = {};
 
         // functions used by the treeview
         // --------------------------------------------------------------------
 
+        // Load the resources the user can select from the resource list
+        $scope.loadResourceList = function(){
+            // Add a loading value to the project list while it loads
+            $scope.resourceList = [{"Name": "Loading..."}];
+            var req = {
+                method: 'GET',
+                url: globalServerURL +'resource_list/' + $rootScope.currentNode.ID + '/'
+            }
+            $http(req).success(function(data) {
+                $scope.resourceList = data;
+                console.log("Resource list loaded");
+                $('select#resource-select').focus();
+            });
+        };
+
+        $scope.selectedResource = function(){
+            var name = $('#resource-select').find(":selected").val()
+            $scope.formData['Name'] = name;
+        };
+
+        // When the addNode button is clicked on the modal a new node
+        // is added to the database
+        $scope.addNode = function () {
+            var currentId = $rootScope.currentNode.ID;
+            $http({
+                method: 'POST',
+                url: globalServerURL + currentId + '/add',
+                data: $scope.formData
+            }).success(function () {
+                $scope.formData = {'NodeType':$scope.formData['NodeType']};
+                var nodeid = $rootScope.currentNode.ID;
+                sharedService.nodeAdded();
+                $scope.loadNodeChildren(nodeid);
+                console.log("Node added");
+            });
+        };
+
+        // Add a project to the tree and reload the projectlist
+        $scope.addProject = function(){
+            $http({
+                method: 'POST',
+                url: globalServerURL + '0' + '/add',
+                data: $scope.formData
+            }).success(function (response) {
+                $scope.formData['ID'] = response['ID'];
+                $scope.formData['NodeTypeAbbr'] = 'P';
+                sharedService.projectAdded($scope.formData);
+                $scope.formData = {'NodeType':$scope.formData['NodeType']};
+            });
+        };
         // Setting the type of the node to be added
         // refresh it if the type is the same
         // $timeout is used so that the scope is refreshed and the directive
-        // reloaded even if the noe type is the same
+        // reloaded even if the node type is the same
+        // reset the formdata to the type
         $scope.changeAddingType = function(nodetype){
             if ($scope.addingNodeType == nodetype){
                 $scope.addingNodeType = '';
@@ -557,6 +570,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             else{
                 $scope.addingNodeType = nodetype;
             }
+            $scope.formData = {'NodeType': nodetype};
         }
 
         // Deleting a node. It recieves the id of the node
@@ -584,6 +598,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         }
 
         // Function to cut a node
+        // the node is removed from the tree (but not deleted)
         $scope.cutThisNode = function(cutid, nodetype) {
             $scope.copiedNode = {'id': cutid, 'type': nodetype};
             console.log("Node id cut: " + cutid);
@@ -593,7 +608,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
 
         // function to paste copied node into another node
         // the id is sent to the server and the node pasted there
-        // the user cant paste into the same node
+        // the user can't paste into the same node
         $scope.pasteThisNode = function(nodeid, nodetype) {
             var cnode = $scope.copiedNode;
             if (cnode){
@@ -617,12 +632,6 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             }
         }
 
-        // Watch for when a child is added and refresh the treeview
-        $rootScope.$on('handleAddedNode', function() {
-            var nodeid = $rootScope.currentNode.ID;
-            $scope.loadNodeChildren(nodeid);
-        });
-
         // Load the children and add to the tree
         $scope.loadNodeChildren = function(parentid){
             $http.get(globalServerURL + parentid + '/').success(function(data) {
@@ -632,6 +641,8 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         }
 }])
 
+// Controller for the treeview. Handles expanding and collapsing the tree and
+// setting the currentNode in the root
 allControllers.controller('treeviewController', ['$http', '$scope', 'globalServerURL', '$rootScope', 'sharedService',
     function($http, $scope, globalServerURL, $rootScope, sharedService){
         // if node head clicks, get the children of the node

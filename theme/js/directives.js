@@ -67,52 +67,17 @@ allControllers.directive('customModals', function ($http, $compile, globalServer
         restrict: 'A',
         require: '?ngModel',
         transclude: true,
-        controller: 'ModalInstanceCtrl',
+        // controller: 'ModalInstanceCtrl',
         link: function(scope, el, attrs, transcludeFn){
-            scope.saveType = attrs.modalType;
+            scope.formData = {'NodeType': attrs.modalType};
 
             // observe the modal type for changes and set the formdata
             // this is used for adding nodes in the treeview by their type
             attrs.$observe('modalType', function(addingtype){
                 if (addingtype){
-                    if (scope.formData){
-                        scope.formData['NodeType'] = addingtype;
-                    }
-                    else {
-                        scope.formData = {'NodeType': addingtype};
-                    }
-                    if (addingtype == 'Resource' && attrs.modalSrc == "modal_templates/addResource.html"){
-                        scope.loadResources();
-                    }
-                    if (addingtype == 'Component' && attrs.modalSrc == "modal_templates/addComponent.html"){
-                        console.log("loading list");
-                        scope.loadResourceList();
-                    }
+                    scope.formData = {'NodeType': attrs.modalType};
                 }
             })
-
-            // observe the selected id for changes and update the formdata
-            // this is used for editing Clients and Suppliers
-            attrs.$observe('modalSelectedId', function(selectedid){
-                if (selectedid){
-                    scope.editId = selectedid;
-                    scope.modalState = "Edit";
-                    var req = {
-                        method: 'GET',
-                        url: globalServerURL + selectedid + '/' + attrs.modalType,
-                    };
-                    $http(req).success(function(data) {
-                        // set the formData to the retrieved data
-                        scope.formData = data;
-                    });
-                }
-                else {
-                    // if the selectedid is blank set formdata to only type
-                    scope.editId = selectedid;
-                    scope.formData = {'NodeType': attrs.modalType};
-                    scope.modalState = "Add";
-                }
-            });
 
             // get the modal template
             $http.get(attrs.modalSrc).

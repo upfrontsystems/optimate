@@ -184,10 +184,13 @@ def projectview(request):
     qry = DBSession.query(Project).filter_by(ID=projectid).first()
     # build the list and only get the neccesary values
     if qry != None:
+        subitem = []
+        if len(qry.Children)>0:
+            subitem = [{'Name': '...'}]
         project.append({'Name': qry.Name,
                         'Description': qry.Description,
                         'ID': qry.ID,
-                        'Subitem': [{'Name': '...'}],
+                        'Subitem': subitem,
                         'NodeType': qry.type,
                         'NodeTypeAbbr' : 'P'
                         })
