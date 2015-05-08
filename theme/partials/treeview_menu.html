@@ -143,6 +143,13 @@
         <div data-ng-switch-when="BudgetItem">
             <ul class="nav nav-pills no-top-margin">
                 <li>
+                    <a role="button" data-toggle="modal" data-target="#addBudgetItem"
+                        data-ng-click="changeAddingType('BudgetItem')"
+                       title="Add Budget Item">
+                        <i class="fa fa-plus-square"></i> I
+                    </a>
+                </li>
+                <li>
                     <a role="button" data-toggle="modal" data-target="#addComponent"
                         data-ng-click="changeAddingType('Component')"
                        title="Add Component">
@@ -162,6 +169,12 @@
                     </a>
                 </li>
                 <li data-ng-show="copiedNode" data-ng-switch="copiedNode.type">
+                    <a data-ng-switch-when="BudgetItem"
+                        role="button"
+                        data-ng-click="pasteThisNode(currentNode.ID, currentNode.NodeType)"
+                        title="Paste BudgetItem">
+                        <i class="fa fa-clipboard"></i>
+                    </a>
                     <a data-ng-switch-when="Component"
                         role="button"
                         data-ng-click="pasteThisNode(currentNode.ID, currentNode.NodeType)"
