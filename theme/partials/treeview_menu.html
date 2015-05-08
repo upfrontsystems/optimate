@@ -6,8 +6,12 @@
                     <a role="button" class="close-project"
                         data-ng-click="closeProject(currentNode.ID)"
                        title="Close Project">
-                        <i class="fa fa-times"></i>
+                        <i class="fa fa-folder"></i>
                     </a>
+                </li>
+                <li>
+                    <span role="button" class="separator">|
+                    </span>
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addBudgetGroup"
@@ -70,6 +74,10 @@
         </div>
         <div data-ng-switch-when="BudgetGroup">
             <ul class="nav nav-pills no-top-margin">
+                <li>
+                    <span role="button" class="separator">|
+                    </span>
+                </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addBudgetGroup"
                         data-ng-click="changeAddingType('BudgetGroup')"
@@ -143,6 +151,10 @@
         <div data-ng-switch-when="BudgetItem">
             <ul class="nav nav-pills no-top-margin">
                 <li>
+                    <span role="button" class="separator">|
+                    </span>
+                </li>
+                <li>
                     <a role="button" data-toggle="modal" data-target="#addBudgetItem"
                         data-ng-click="changeAddingType('BudgetItem')"
                        title="Add Budget Item">
@@ -203,6 +215,10 @@
         <div data-ng-switch-when="ResourceCategory">
             <ul class="nav nav-pills no-top-margin">
                 <li>
+                    <span role="button" class="separator">|
+                    </span>
+                </li>
+                <li>
                     <a role="button" data-toggle="modal" data-target="#addResource"
                         data-ng-click="changeAddingType('Resource')"
                        title="Add Resource">
@@ -261,6 +277,10 @@
         </div>
         <div data-ng-switch-when="Component">
             <ul class="nav nav-pills no-top-margin">
+                <li>
+                    <span role="button" class="separator">|
+                    </span>
+                </li>
                 <li>
                     <a role="button" data-ng-click="copyThisNode(currentNode.ID, currentNode.NodeType)"
                        title="Copy Component">

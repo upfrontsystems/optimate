@@ -348,6 +348,9 @@ ContentFinder.prototype.resize = function() {
         "top": dd_top + "px"
     });
 };
+
+// XXX This function most likely is no longer needed here as we will only use
+//     the reference widget in the add component modal - but leaving it here just in case
 $(document).ready(function () {
     $('.finder').each(function() {
         var url = $(this).attr('data-url');

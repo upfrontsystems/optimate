@@ -267,6 +267,7 @@ allControllers.controller('ModalInstanceCtrl',
             $http(req).success(function(data) {
                 $scope.resourceList = data;
                 console.log("Resources loaded");
+                $('select#resource-select').focus();
             });
         }
 
@@ -281,6 +282,7 @@ allControllers.controller('ModalInstanceCtrl',
             $http(req).success(function(data) {
                 $scope.resourceList = data;
                 console.log("Resource list loaded");
+                $('select#resource-select').focus();
             });
         }
 

@@ -8,6 +8,13 @@ body {
     padding: 5px 15px;
 }
 
+.nav > li > .separator {
+    padding: 5px 15px;
+    color: #428bca;
+    display: block;
+    position: relative;    
+}
+
 /* Fix for cursor point in angular bootstrap */
 .nav, .pagination, .carousel, .panel-title a {
     cursor: pointer;

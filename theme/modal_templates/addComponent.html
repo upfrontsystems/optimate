@@ -17,37 +17,60 @@
                     </div>
                     <div class="form-group">
                         <label for="inputDescription" class="col-sm-2 control-label">Description:</label>
-                        <input type="textarea"
-                                id="inputDescription"
-                                name="inputDescription"
-                                ng-model="formData['Description']"
-                                style="width: 300px; height: 150px;"
-                                autofocus>
+                        <textarea id="inputDescription"
+                                  name="inputDescription"
+                                  ng-model="formData['Description']"
+                                  rows="5" cols="40">
+                        </textarea>
                     </div>
                     <div class="form-group">
                         <label for="inputQuantity" class="col-sm-2 control-label">Quantity:</label>
                         <input type="number"
-                                id="inputQuantity"
-                                name="inputQuantity"
-                                ng-model="formData['Quantity']"
-                                autofocus>
+                               id="inputQuantity"
+                               name="inputQuantity"
+                               ng-model="formData['Quantity']"
+                               autofocus>
                     </div>
                     <div class="form-group">
                         <label for="inputMarkup" class="col-sm-2 control-label">Markup:</label>
                         <input type="number"
-                                id="inputMarkup"
-                                name="inputMarkup"
-                                ng-model="formData['Markup']"
-                                autofocus>
+                               id="inputMarkup"
+                               name="inputMarkup"
+                               ng-model="formData['Markup']"
+                               autofocus>
                     </div>
                     <div class="form-group">
                         <label for="inputType" class="col-sm-2 control-label">Type:</label>
                         <input type="number"
-                                id="inputType"
-                                name="inputType"
-                                ng-model="formData['ComponentType']"
-                                autofocus>
+                               id="inputType"
+                               name="inputType"
+                               ng-model="formData['ComponentType']"
+                               autofocus>
                     </div>
+
+                   <!-- <div id="content">
+                        <div id="related_items_finder" class="finder icons-on" style="width: 300px;" 
+                             data-url="http://localhost:8080/Plone">
+                            <ul class="finder-choices">
+                                <li class="search-field">
+                                    <input type="text" style="width: 172px;" autocomplete="off" 
+                                           class="default" 
+                                           data-placeholder="Click to search or browse">
+                                </li>
+                            </ul>
+                            <div style="left: -9000px; width: 99.9%; top: 29px;" class="finder-dropdown">
+                                <div class="finder-pathbar">
+                                    <strong>You are here:</strong>
+                                    <span class="internalpath">
+                                        <span>Home</span>
+                                    </span>
+                                </div>
+                                <ul class="finder-results">
+                                </ul>
+                            </div>
+                        </div>
+                    </div> -->
+
                 <form>
             </div>
             <div class="modal-footer">
