@@ -58,7 +58,7 @@ def childview(request):
 
                 if child.type == 'ResourceCategory':
                     subitem = []
-                    nodetypeabbr = 'L'
+                    nodetypeabbr = 'C'
                     resourcecategories.append({
                         'Name': child.Name,
                         'Description': child.Description,
