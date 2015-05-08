@@ -12,34 +12,34 @@ $(document).on('shown.bs.modal', function(){
         $('input#inputContact').val('');
         $('input#inputName').focus();
     }
-    else if ($('#addProject').length ) {
+    else if ($('#addProject').length  && $('#addProject').is(":visible") ) {
         $('input#inputName').val('');
         $('textarea#inputDescription').val('');
         $('input#inputName').focus();
     }
-    else if ($('#addBudgetItem').length ) {
+    else if ($('#addBudgetItem').length && $('#addBudgetItem').is(":visible") ) {
         $('input#inputName').val('');
         $('textarea#inputDescription').val('');
         $('input#inputQuantity').val('');
         $('input#inputMarkup').val('');
         $('input#inputName').focus();
     }
-    else if ($('#addBudgetGroup').length ) {
+    else if ($('#addBudgetGroup').length && $('#addBudgetGroup').is(":visible") ) {
         $('input#inputName').val('');
         $('textarea#inputDescription').val('');
         $('input#inputName').focus();
     }
-    else if ($('#addResource').length ) {
+    else if ($('#addResource').length && $('#addResource').is(":visible") ) {
         $('input#inputName').val('');
         $('textarea#inputDescription').val('');
         $('input#inputRate').val('');
     }
-    else if ($('#addResourceCategory').length ) {
+    else if ($('#addResourceCategory').length && $('#addResourceCategory').is(":visible") ) {
         $('input#inputName').val('');
         $('textarea#inputDescription').val('');
         $('input#inputName').focus();
     }
-    else if ($('#addComponent').length ) {
+    else if ($('#addComponent').length && $('#addComponent').is(":visible") ) {
         $('textarea#inputDescription').val('');
         $('input#inputQuantity').val('');
         $('input#inputMarkup').val('');
