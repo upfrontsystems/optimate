@@ -295,13 +295,17 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             $( document ).on( "click", ".treenode", function( e ) {
                 var nodeid = $(this).attr('ID');
                 var url = globalServerURL +'nodegridview/' + nodeid + '/'
+                var target = document.getElementsByClassName('slick-viewport');
+                var spinner = new Spinner().spin(target[0]);
+
                 $.ajax({
                     url: url,
                     dataType: "json",
                     success: function(response) {
+                        spinner.stop(); // stop the spinner - ajax call complete
                         loadSlickgrid(response);
                     }
-                });
+                });                
             });
 
             // eventhandler to blank grid data when a project is closed
