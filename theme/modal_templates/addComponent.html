@@ -11,7 +11,7 @@
                 <form class="form-horizontal">
                     <div class="form-group">
                         <label for="inputName" class="col-sm-2 control-label">Name:</label>
-                        <select id="resource-select">
+                        <select id="resource-select" autofocus>
                             <option ng-repeat="name in resourceList" value="{{name.Name}}">{{name.Name}}</option>
                         </select>
                     </div>
@@ -28,24 +28,21 @@
                         <input type="number"
                                id="inputQuantity"
                                name="inputQuantity"
-                               ng-model="formData['Quantity']"
-                               autofocus>
+                               ng-model="formData['Quantity']">
                     </div>
                     <div class="form-group">
                         <label for="inputMarkup" class="col-sm-2 control-label">Markup:</label>
                         <input type="number"
                                id="inputMarkup"
                                name="inputMarkup"
-                               ng-model="formData['Markup']"
-                               autofocus>
+                               ng-model="formData['Markup']">
                     </div>
                     <div class="form-group">
                         <label for="inputType" class="col-sm-2 control-label">Type:</label>
                         <input type="number"
                                id="inputType"
                                name="inputType"
-                               ng-model="formData['ComponentType']"
-                               autofocus>
+                               ng-model="formData['ComponentType']">
                     </div>
 
                     <div id="content">
