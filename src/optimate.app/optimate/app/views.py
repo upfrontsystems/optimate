@@ -159,6 +159,47 @@ def resource_list(request):
         return sorted(resourcelist, key=lambda k: k['Name'])
 
 
+@view_config(route_name="related_list", renderer='json')
+def related_list(request):
+    """ Returns a list of all the resources in the
+        node's project's resourcecategory in a format that the related items widget can read
+    """
+    if request.method == 'OPTIONS':
+        return {"success": True}
+    else:
+        resourcelist = {
+                        "http://127.0.0.1:8100": {
+                            "parent_url": "",
+                            "path": [
+                                {"url": "http://127.0.0.1:8100"}
+                                ],
+                            "upload_allowed": 'false',
+                            "items": [
+                                {
+                                    "uid": "81",
+                                    "title": "Item1",
+                                    "normalized_type": "document" 
+                                },
+                                {
+                                    "uid": "82",
+                                    "title": "Item2",
+                                    "normalized_type": "document" 
+                                },
+                                {
+                                    "uid": "83",
+                                    "title": "Item3",
+                                    "normalized_type": "document" 
+                                },
+                                {
+                                    "uid": "84",
+                                    "title": "Item4",
+                                    "normalized_type": "document" 
+                                },                                
+                            ]
+                        }}
+        return resourcelist
+
+
 @view_config(route_name="resources", renderer='json')
 def resources(request):
     """ Returns a list of all the unique resources in the database

@@ -50,6 +50,7 @@ def main(global_config, **settings):
     config.add_route('childview', '/{parentid}/')
     config.add_route('project_listing', '/project_listing')
     config.add_route('resource_list', '/resource_list/{id}/')
+    config.add_route('related_list', '/related_list/{id}/')
     config.add_route('resources', '/resources')
     config.add_route('projectview', 'projectview/{projectid}/')
     config.add_route('nodegridview', '/nodegridview/{parentid}/')

@@ -534,6 +534,25 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             });
         };
 
+        $scope.loadRelatedList = function(){
+            var req = {
+                method: 'GET',
+                url: globalServerURL +'related_list/' + $rootScope.currentNode.ID + '/'
+            }
+            $http(req).success(function(data) {
+                //$scope.relatedList = data;
+                finderdata = data
+                console.log($scope.relatedList)
+                // instantiate the related items widget
+                $('.finder').each(function() {
+                    var url = $(this).attr('data-url');
+                    var finder = new ContentFinder('#'+$(this).attr('id'), url, true);
+                    finder.listdir(url);
+                });
+                console.log("Related list loaded");
+            });
+        };        
+
         $scope.selectedResource = function(){
             var name = $('#resource-select').find(":selected").val()
             $scope.formData['Name'] = name;
