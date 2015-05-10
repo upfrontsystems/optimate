@@ -1,4 +1,6 @@
-/*global finderdata:false*/
+/*global finderdata:false*/ /* <- not sure if this is still valid */
+
+var finderdata = {}
 
 var ContentFinder = function(id, path, multiselect) {
     var self = this;
@@ -126,8 +128,6 @@ ContentFinder.prototype.listdir = function(path) {
         html = [],
         selected, result, len;
 
-    console.log(path)
-    console.log(finderdata[path])
     self.data = finderdata[path];
     // create the list of items to choose from
     for (var i=0; i<self.data.items.length; i++) {
