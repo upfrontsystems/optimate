@@ -44,30 +44,26 @@
                                name="inputType"
                                ng-model="formData['ComponentType']">
                     </div>
+                    <div class="form-group">
+                        <label for="inputResources" class="col-sm-2 control-label">Resource(s):</label>
 
-                    <div id="content">
-                        <div id="related_items_finder" class="finder icons-on" style="width: 300px;"
-                             data-url="http://localhost:8080/Plone">
-                            <ul class="finder-choices">
-                                <li class="search-field">
-                                    <input type="text" style="width: 172px;" autocomplete="off"
-                                           class="default"
-                                           data-placeholder="Click to search or browse">
-                                </li>
-                            </ul>
-                            <div style="left: -9000px; width: 99.9%; top: 29px;" class="finder-dropdown">
-                                <div class="finder-pathbar">
-                                    <strong>You are here:</strong>
-                                    <span class="internalpath">
-                                        <span>Home</span>
-                                    </span>
-                                </div>
-                                <ul class="finder-results">
+                        <div id="content">
+                            <div id="related_items_finder" class="finder icons-on" style="width: 300px;"
+                                 data-url="http://127.0.0.1:8100">
+                                <ul class="finder-choices">
+                                    <li class="search-field">
+                                        <input type="text" style="width: 172px;" autocomplete="off"
+                                               class="default" id="inputResources"
+                                               data-placeholder="Click to search or browse">
+                                    </li>
                                 </ul>
+                                <div style="left: -9000px; width: 99.9%; top: 29px;" class="finder-dropdown">
+                                    <ul class="finder-results">
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
+                        </div>                               
                     </div>
-
                 <form>
             </div>
             <div class="modal-footer">
