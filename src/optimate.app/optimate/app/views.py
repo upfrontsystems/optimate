@@ -167,36 +167,27 @@ def related_list(request):
     if request.method == 'OPTIONS':
         return {"success": True}
     else:
-        resourcelist = {
-                        "http://127.0.0.1:8100": {
+        nodeid = request.matchdict['id']
+        relatedlist = []
+        # Get the current node
+        currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
+        # Get the parent
+        rootid = currentnode.getProjectID()
+        # Get the resourcecategory whos parent that is
+        resourcecategory = DBSession.query(
+                                ResourceCategory).filter_by(ParentID=rootid).first()
+        # if it doesnt exist return the empty list
+        if not resourcecategory:
+            return relatedlist
+
+        data = resourcecategory.getResourcesDetail()
+        resourcelist = {"http://127.0.0.1:8100": {
                             "parent_url": "",
-                            "path": [
-                                {"url": "http://127.0.0.1:8100"}
-                                ],
+                            "path": [ {"url": "http://127.0.0.1:8100"} ],
                             "upload_allowed": 'false',
-                            "items": [
-                                {
-                                    "uid": "81",
-                                    "title": "Item1",
-                                    "normalized_type": "document" 
-                                },
-                                {
-                                    "uid": "82",
-                                    "title": "Item2",
-                                    "normalized_type": "document" 
-                                },
-                                {
-                                    "uid": "83",
-                                    "title": "Item3",
-                                    "normalized_type": "document" 
-                                },
-                                {
-                                    "uid": "84",
-                                    "title": "Item4",
-                                    "normalized_type": "document" 
-                                },                                
-                            ]
-                        }}
+                            "items": sorted(data, key=lambda k: k['title'])
+                            }
+                        }
         return resourcelist
 
 

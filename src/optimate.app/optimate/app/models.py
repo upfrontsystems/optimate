@@ -825,6 +825,21 @@ class ResourceCategory(Node):
 
         return rlist
 
+    def getResourcesDetail(self):
+        """ Returns a list of all the resources in this category
+            plus resources in its child categories
+        """
+        rlist = []
+        for child in self.Children:
+            if child.type == 'ResourceCategory':
+                rlist += child.getResourcesDetail()
+            else:
+                rlist.append({'title': str(child.Name), 
+                              'uid': str(child.ID), 
+                              'normalized_type': 'document' })
+
+        return rlist        
+
     def addResources(self, componentlist):
         """ Add a list of components to this ResourceCategory.
             The Resource is extracted from the component, tested if it is in

@@ -540,9 +540,8 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 url: globalServerURL +'related_list/' + $rootScope.currentNode.ID + '/'
             }
             $http(req).success(function(data) {
-                //$scope.relatedList = data;
                 finderdata = data
-                console.log($scope.relatedList)
+                console.log(finderdata)
                 // instantiate the related items widget
                 $('.finder').each(function() {
                     var url = $(this).attr('data-url');
