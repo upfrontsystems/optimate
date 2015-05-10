@@ -1,5 +1,12 @@
 var finderdata = {
     "http://127.0.0.1:8100": {
+        "parent_url": "",
+        "path": [
+            {"url": "http://127.0.0.1:8100",
+            "icon": null,
+            "title": "Home"}
+            ],
+        "upload_allowed": false,
         "items": [
             {
                 "description": "1st Item",
