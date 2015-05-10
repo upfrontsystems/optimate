@@ -38,6 +38,13 @@
                                ng-model="formData['Markup']">
                     </div>
                     <div class="form-group">
+                        <label for="inputUnit" class="col-sm-2 control-label">Unit:</label>
+                        <input type="text"
+                               id="inputUnit"
+                               name="inputUnit"
+                               ng-model="formData['Unit']">
+                    </div>
+                    <div class="form-group">
                         <label for="inputType" class="col-sm-2 control-label">Type:</label>
                         <input type="number"
                                id="inputType"
@@ -62,12 +69,12 @@
                                     </ul>
                                 </div>
                             </div>
-                        </div>                               
+                        </div>
                     </div>
                 <form>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary" ng-click="disableButton(); selectedResource(); addNode()" ng-disabled="isDisabled" data-dismiss="modal">Save</button>
+                <button class="btn btn-primary" data-dismiss="modal" ng-click="disableButton(); selectedResource(); addNode()">Save</button>
                 <button class="btn btn-default" ng-click="cancel()" data-dismiss="modal">Cancel</button>
             </div>
         </div>

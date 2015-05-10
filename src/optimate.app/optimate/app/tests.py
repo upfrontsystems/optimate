@@ -51,6 +51,7 @@ def _initTestingDB():
         budgetitem = BudgetItem(Name='TestBIName',
                         ID=3,
                         Description='TestBIDesc',
+                        Unit='cm',
                         _Quantity=5.0,
                         _Markup=0.1,
                         ParentID=budgetgroup.ID)
@@ -74,12 +75,14 @@ def _initTestingDB():
                         ResourceID = res.ID,
                         _Quantity=5.0,
                         _Markup=0.05,
+                        Unit='mm',
                         Type=1,
                         ParentID=budgetitem.ID)
         compa = Component(ID=11,
                         ResourceID=resa.ID,
                         _Quantity=7.0,
                         _Markup=0.01,
+                        Unit='mm',
                         Type=1,
                         ParentID=budgetitem.ID)
         comptype = ComponentType(ID=1, Name='type')
@@ -97,6 +100,7 @@ def _initTestingDB():
                         ID=6,
                         _Quantity=10.0,
                         _Markup=0.5,
+                        Unit='hour',
                         Description='TestBBIDesc',
                         ParentID=budgetgroupb.ID)
         rescatb = ResourceCategory(Name='Resource List',
@@ -119,6 +123,7 @@ def _initTestingDB():
                         ResourceID=resb.ID,
                         _Quantity=5.0,
                         _Markup=0.1,
+                        Unit='day',
                         Type=1,
                         ParentID=budgetitemb.ID)
         budgetitemc = BudgetItem(Name='TestCBIName',
@@ -131,6 +136,7 @@ def _initTestingDB():
                         ResourceID=resduplicate.ID,
                         _Quantity=8.0,
                         _Markup=0.2,
+                        Unit='min',
                         Type=1,
                         ParentID=budgetitemc.ID)
 
@@ -150,6 +156,7 @@ def _initTestingDB():
                         ID=22,
                         _Quantity=39.0,
                         _Markup=0.15,
+                        Unit='tonnes',
                         Description='TestDBIDesc',
                         ParentID=budgetgroupd.ID)
         budgetiteme = BudgetItem(Name='TestEBIName',
@@ -173,12 +180,14 @@ def _initTestingDB():
                         _Quantity=7.01,
                         _Markup=0.9,
                         Type=1,
+                        Unit='gram',
                         ParentID=budgetitemd.ID)
         compe = Component(ID=27,
                         ResourceID=resbduplicate.ID,
                         _Quantity=15.0,
                         _Markup=0.25,
                         Type=1,
+                        Unit='gram',
                         ParentID=budgetiteme.ID)
 
         client = Client (Name='TestClientName')
@@ -643,6 +652,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
             'Description': 'Test resource',
             'Quantity': 4,
             'Markup': 15,
+            'Unit': 'hour',
             'NodeType': 'Component',
             'ComponentType': 1
         })
@@ -696,6 +706,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
             'Name': 'AddingBI',
             'Description': 'Adding test item',
             'NodeType': 'BudgetItem',
+            'Unit': 'day',
             'Quantity': 10.0,
             'Markup': 3,
         })
