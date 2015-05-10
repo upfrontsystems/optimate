@@ -85,6 +85,11 @@ allControllers.controller('clientsController', ['$scope', '$http', 'globalServer
     function($scope, $http, globalServerURL) {
 
         toggleMenu('setup');
+        $scope.isDisabled = false;
+        // disables the modal submit button on click
+        $scope.disableButton = function(){
+            $scope.isDisabled = true;
+        }
 
         var req = {
             method: 'GET',
@@ -157,6 +162,7 @@ allControllers.controller('clientsController', ['$scope', '$http', 'globalServer
 
         // When the Add button is pressed change the state and form data
         $scope.addingState = function (){
+            $scope.isDisabled = false;
             $scope.modalState = "Add";
             $scope.formData = {'NodeType': 'client'};
             if ($scope.selectedClient){
@@ -167,6 +173,7 @@ allControllers.controller('clientsController', ['$scope', '$http', 'globalServer
 
         // When the edit button is pressed change the state and set the data
         $scope.editingState = function (){
+            $scope.isDisabled = false;
             $scope.modalState = "Edit";
             $http({
                 method: 'GET',
@@ -201,6 +208,11 @@ allControllers.controller('suppliersController', ['$scope', '$http', 'globalServ
     function($scope, $http, globalServerURL) {
 
         toggleMenu('setup');
+        $scope.isDisabled = false;
+        // disables the modal submit button on click
+        $scope.disableButton = function(){
+            $scope.isDisabled = true;
+        }
 
         var req = {
             method: 'GET',
@@ -273,6 +285,7 @@ allControllers.controller('suppliersController', ['$scope', '$http', 'globalServ
 
         // When the Add button is pressed change the state and form data
         $scope.addingState = function (){
+            $scope.isDisabled = false;
             $scope.modalState = "Add";
             $scope.formData = {'NodeType': 'supplier'};
             if ($scope.selectedSupplier){
@@ -283,6 +296,7 @@ allControllers.controller('suppliersController', ['$scope', '$http', 'globalServ
 
         // When the edit button is pressed change the state and set the data
         $scope.editingState = function (){
+            $scope.isDisabled = false;
             $scope.modalState = "Edit";
             $http({
                 method: 'GET',
@@ -317,6 +331,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
     function($scope, $http, globalServerURL, $rootScope, sharedService, $timeout) {
 
         toggleMenu('projects');
+        $scope.isDisabled = false;
 
         // load the projects used in the select project modal
         // Add a loading value to the project list while it loads
@@ -330,8 +345,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         });
 
         // listening for the handle new project broadcast
-        $scope.$on('handleAddedProject', function(){
-            var newproject = sharedService.newProject;
+        $scope.handleAddedProject = function(newproject){
             // add the new project to the projects and role list and sort
 
             $scope.projectsList.push(newproject);
@@ -368,12 +382,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 console.log("LOCAL STORAGE NOT SUPPORTED!")
             }
             console.log("Project added");
-        });
-
-        // When a project is deleted close it as well
-        $scope.$on('handleDeletedProject', function(){
-            $scope.closeProject(sharedService.deletedNodeId);
-        });
+        };
 
         // aux function - checks if object is already in list based on ID
         function containsObject(obj, list) {
@@ -505,6 +514,11 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         // functions used by the treeview
         // --------------------------------------------------------------------
 
+        // disables the modal submit button on click
+        $scope.disableButton = function(){
+            $scope.isDisabled = true;
+        }
+
         // Load the resources the user can select from the resource list
         $scope.loadResourceList = function(){
             // Add a loading value to the project list while it loads
@@ -552,10 +566,11 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 $scope.formData['ID'] = response['ID'];
                 $scope.formData['NodeTypeAbbr'] = 'P';
                 $scope.formData['Subitem'] = [{'Name': '...'}];
-                sharedService.projectAdded($scope.formData);
+                $scope.handleAddedProject($scope.formData);
                 $scope.formData = {'NodeType':$scope.formData['NodeType']};
             });
         };
+
         // Setting the type of the node to be added
         // refresh it if the type is the same
         // $timeout is used so that the scope is refreshed and the directive
@@ -571,6 +586,8 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             else{
                 $scope.addingNodeType = nodetype;
             }
+            $scope.isDisabled = false;
+            console.log("enabled");
             $scope.formData = {'NodeType': nodetype};
         }
 
@@ -583,7 +600,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 url:globalServerURL + nodeid + '/delete'
             }).success(function (response) {
                 if (response['parentid'] == 0){
-                    sharedService.projectDeleted(nodeid);
+                    $scope.closeProject(nodeid);
                 }
                 else{
                     sharedService.nodeDeleted(nodeid);

@@ -282,6 +282,7 @@ def additemview(request):
         rate = request.json_body.get('Rate', 0)
         rate = Decimal(rate).quantize(Decimal('.01'))
         componenttype = int(request.json_body.get('ComponentType', 0))
+        unit = request.json_body.get('Unit', '')
         objecttype = request.json_body['NodeType']
         newid = 0
 
@@ -324,6 +325,7 @@ def additemview(request):
             elif objecttype == 'BudgetItem':
                 newnode = BudgetItem(Name=name,
                                 Description=desc,
+                                Unit=unit,
                                 _Quantity = quantity,
                                 _Markup = markup,
                                 ParentID=parentid)
@@ -369,6 +371,7 @@ def additemview(request):
 
                 newnode = Component(ResourceID=resource.ID,
                                     Type=componenttype,
+                                    Unit=unit,
                                     _Quantity = quantity,
                                     _Markup = markup,
                                     ParentID=parentid)

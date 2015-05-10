@@ -116,6 +116,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                      width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                     {id: "markup", name: "Markup", field: "markup", cssClass: "cell  editable-column",
                      width: cell_medium, formatter: MarkupFormatter, editor: Slick.Editors.CustomEditor},
+                    {id: "unit", name: "Unit", field: "unit",
+                     width: cell_medium, cssClass: "cell  non-editable-column"},
                     {id: "order_cost", name: "Order Cost", field: "order_cost",
                      width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                     {id: "run_cost", name: "Run Cost", field: "run_cost",

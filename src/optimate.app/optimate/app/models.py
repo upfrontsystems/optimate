@@ -321,6 +321,7 @@ class BudgetGroup(Node):
             subitem = [{'Name':''}]
         return {'name': self.Name,
                 'budg_cost': self.Total,
+                'unit': self.Unit,
                 'order_cost': self.OrderCost,
                 'run_cost': self.RunningCost,
                 'claim_cost': self.ClaimedCost,
@@ -520,6 +521,7 @@ class BudgetItem(Node):
             subitem = [{'Name':''}]
         return {'name': self.Name,
                 'budg_cost': self.Total,
+                'unit': self.Unit,
                 'order_cost': self.OrderCost,
                 'run_cost': self.RunningCost,
                 'claim_cost': self.ClaimedCost,
@@ -538,6 +540,7 @@ class BudgetItem(Node):
             'markup':self.Markup*100.0,
             'rate': str(self.Rate),
             'quantity': self.Quantity,
+            'unit': self.Unit,
             'budg_cost': str(self.Total),
             'order_cost': str(self.OrderCost.quantize(Decimal('.01'))),
             'run_cost': str(self.RunningCost.quantize(Decimal('.01'))),
@@ -726,6 +729,7 @@ class Component(Node):
         """
         return {'name': self.Name,
                 'budg_cost': self.Total,
+                'unit': self.Unit,
                 'order_cost': self.OrderCost,
                 'run_cost': self.RunningCost,
                 'claim_cost': self.ClaimedCost,
@@ -744,6 +748,7 @@ class Component(Node):
             'quantity': self.Quantity,
             'rate': str(self.Rate),
             'budg_cost': str(self.Total),
+            'unit': self.Unit,
             'order_cost': str(self.OrderCost.quantize(Decimal('.01'))),
             'run_cost': str(self.RunningCost.quantize(Decimal('.01'))),
             'claim_cost': str(self.ClaimedCost.quantize(Decimal('.01'))),
