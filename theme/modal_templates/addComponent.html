@@ -16,14 +16,6 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="inputDescription" class="col-sm-2 control-label">Description:</label>
-                        <textarea id="inputDescription"
-                                  name="inputDescription"
-                                  ng-model="formData['Description']"
-                                  rows="5" cols="40">
-                        </textarea>
-                    </div>
-                    <div class="form-group">
                         <label for="inputQuantity" class="col-sm-2 control-label">Quantity:</label>
                         <input type="number"
                                id="inputQuantity"
@@ -55,7 +47,7 @@
                         <label for="inputResources" class="col-sm-2 control-label">Resource(s):</label>
 
                         <div id="content">
-                            <div id="related_items_finder" 
+                            <div id="related_items_finder"
                                  class="finder icons-on" style="width: 640px;"
                                  data-url="http://127.0.0.1:8100">
                                 <ul class="finder-choices">
@@ -70,12 +62,13 @@
                                     </ul>
                                 </div>
                             </div>
-                        </div>                           
+                        </div>
                     </div>
                 <form>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary" data-dismiss="modal" ng-click="disableButton(); selectedResource(); addNode()">Save</button>
+                <button class="btn btn-primary" data-ng-show="!isDisabled" data-dismiss="modal" ng-click="disableButton(); selectedResource(); addNode()" data-ng-disabled="isDisabled">Save</button>
+                <button class="btn btn-success" data-ng-show="isDisabled" data-dismiss="modal" ng-click="cancel">Done</button>
                 <button class="btn btn-default" ng-click="cancel()" data-dismiss="modal">Cancel</button>
             </div>
         </div>

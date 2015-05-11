@@ -550,8 +550,9 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 });
                 console.log("Related list loaded");
             });
-        };        
+        };
 
+        // Add the selected resource from the list to the form data as name
         $scope.selectedResource = function(){
             var name = $('#resource-select').find(":selected").val()
             $scope.formData['Name'] = name;
@@ -666,6 +667,17 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                     });
                 }
             }
+        }
+
+        // edit a component
+        $scope.editComponent = function(nodeid, nodetype){
+            $http({
+                method: 'GET',
+                url: globalServerURL + 'node/' + nodeid + '/'
+            }).success(function(response){
+                $scope.formData = response;
+                $scope.formData['NodeType'] = nodetype;
+            })
         }
 
         // Load the children and add to the tree

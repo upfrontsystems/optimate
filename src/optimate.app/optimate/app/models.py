@@ -725,18 +725,19 @@ class Component(Node):
         return []
 
     def toDict(self):
-        """ Return a dictionary of all the attributes of this Components
+        """ Return a dictionary of all the attributes of this Component
         """
-        return {'name': self.Name,
-                'budg_cost': self.Total,
-                'unit': self.Unit,
-                'order_cost': self.OrderCost,
-                'run_cost': self.RunningCost,
-                'claim_cost': self.ClaimedCost,
-                'income_rec': self.IncomeRecieved,
-                'client_cost': self.ClientCost,
-                'proj_profit': self.ProjectedProfit,
-                'act_profit': self.ActualProfit}
+        return {'Name': self.Name,
+                'Unit': self.Unit,
+                'Quantity': self.Quantity,
+                'ID':self.ID,
+                'order_cost': str(self.OrderCost),
+                'run_cost': str(self.RunningCost),
+                'claim_cost': str(self.ClaimedCost),
+                'income_rec': str(self.IncomeRecieved),
+                'client_cost': str(self.ClientCost),
+                'proj_profit': str(self.ProjectedProfit),
+                'act_profit': str(self.ActualProfit)}
 
     def getGridData(self):
         """ Return a dictionary of all the data needed for the slick grid
@@ -760,8 +761,8 @@ class Component(Node):
     def __repr__(self):
         """ return a representation of this component
         """
-        return '<Co(Name="%s", ID="%s", ParentID="%s")>' % (
-            self.Name, self.ID, self.ParentID)
+        return '<Co(Name="%s", Quantity="%d", ID="%s", ParentID="%s")>' % (
+            self.Name, self.Quantity, self.ID, self.ParentID)
 
 
 class ComponentType(Base):
@@ -834,11 +835,11 @@ class ResourceCategory(Node):
             if child.type == 'ResourceCategory':
                 rlist += child.getResourcesDetail()
             else:
-                rlist.append({'title': str(child.Name), 
-                              'uid': str(child.ID), 
+                rlist.append({'title': str(child.Name),
+                              'uid': str(child.ID),
                               'normalized_type': 'document' })
 
-        return rlist        
+        return rlist
 
     def addResources(self, componentlist):
         """ Add a list of components to this ResourceCategory.

@@ -48,6 +48,7 @@ def main(global_config, **settings):
     # the optimate data views
     config.add_route('rootview', '/')
     config.add_route('childview', '/{parentid}/')
+    config.add_route('getitem', 'node/{id}/')
     config.add_route('project_listing', '/project_listing')
     config.add_route('resource_list', '/resource_list/{id}/')
     config.add_route('related_list', '/related_list/{id}/')

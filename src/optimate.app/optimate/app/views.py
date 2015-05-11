@@ -41,10 +41,10 @@ def childview(request):
         adds it to a list and returns it to the JSON renderer
         in a format that is acceptable to angular.treeview
     """
+
     parentid = 0
     if 'parentid' in request.matchdict:
         parentid = request.matchdict['parentid']
-
     childrenlist = []
     resourcecategories = []
     start = request.params.get('start')
@@ -115,6 +115,17 @@ def childview(request):
         return completelist[int(start):int(end)]
 
     return completelist
+
+@view_config(route_name="getitem", renderer='json')
+def getitem(request):
+    """ Retrieves and returns all the information of a single item
+    """
+    if request.method == 'OPTIONS':
+        return {"success": True}
+    else:
+        nodeid = parentid = request.matchdict['id']
+        qry = DBSession.query(Node).filter_by(ID=nodeid).first()
+        return qry.toDict()
 
 
 @view_config(route_name="project_listing", renderer='json')
@@ -317,6 +328,7 @@ def additemview(request):
         unit = request.json_body.get('Unit', '')
         objecttype = request.json_body['NodeType']
         newid = 0
+        newnode = None
 
         # Determine the type of object to be added and build it
         if objecttype == 'Resource':
@@ -366,53 +378,80 @@ def additemview(request):
                                 Description=desc,
                                 ParentID=parentid)
             elif objecttype == 'Component':
-                # Components need to reference a Resource that already exists
-                # in the system
-                parent = DBSession.query(Node).filter_by(ID=parentid).first()
-                rootparentid = parent.getProjectID()
-                resourcecategory = DBSession.query(
-                        ResourceCategory).filter_by(
-                        ParentID=rootparentid).first()
-                # if the resourcecategory does not exist create it
-                if not resourcecategory:
-                    resourcecategory = ResourceCategory(Name='Resource List',
-                                                Description='List of Resources',
-                                                ParentID=rootparentid)
-                    DBSession.add(resourcecategory)
+                # check if the data has an ID key
+                # this signals that an existing Component is being edited
+                if 'ID' in request.json_body:
+                    editedcomp = DBSession.query(Component).filter_by(ID=request.json_body['ID']).first()
+                    # if the name is diffrent get the new resource
+                    if editedcomp.Name != name:
+                        rootparentid = editedcomp.getProjectID()
+                        resourcecategory = DBSession.query(
+                            ResourceCategory).filter_by(
+                            ParentID=rootparentid).first()
+                        rescatid = resourcecategory.ID
+
+                        # get the resource used by the component
+                        resource = DBSession.query(
+                                        Resource).filter_by(
+                                        ParentID=rescatid, Name=name).first()
+
+                        editedcomp.Resource = resource
+                    editedcomp.Type=componenttype
+                    editedcomp.Unit=unit
+                    editedcomp.Quantity=quantity
+                    editedcomp.Markup=markup
+                    newid = editedcomp.ID
                     DBSession.flush()
-                rescatid = resourcecategory.ID
+                else:
+                    # Components need to reference a Resource that already exists
+                    # in the system
 
-                # get the resource used by the component
-                resource = DBSession.query(
-                                    Resource).filter_by(
-                                    ParentID=rescatid, Name=name).first()
-                # the resource does not exists in the resourcecategory
-                if not resource:
-                    resource = DBSession.query(
-                                        Resource).filter_by(Name=name).first()
-                    if not resource:
-                        return HTTPNotFound("The resource does not exist")
-                    else:
-                        newresource = Resource(Name=resource.Name,
-                                            Code=resource.Code,
-                                            _Rate = resource.Rate,
-                                            Description=resource.Description)
-                        resourcecategory.Children.append(newresource)
+                    parent = DBSession.query(Node).filter_by(ID=parentid).first()
+                    rootparentid = parent.getProjectID()
+                    resourcecategory = DBSession.query(
+                            ResourceCategory).filter_by(
+                            ParentID=rootparentid).first()
+                    # if the resourcecategory does not exist create it
+                    if not resourcecategory:
+                        resourcecategory = ResourceCategory(Name='Resource List',
+                                                    Description='List of Resources',
+                                                    ParentID=rootparentid)
+                        DBSession.add(resourcecategory)
                         DBSession.flush()
-                        resource = newresource
+                    rescatid = resourcecategory.ID
 
-                newnode = Component(ResourceID=resource.ID,
-                                    Type=componenttype,
-                                    Unit=unit,
-                                    _Quantity = quantity,
-                                    _Markup = markup,
-                                    ParentID=parentid)
+                    # get the resource used by the component
+                    resource = DBSession.query(
+                                        Resource).filter_by(
+                                        ParentID=rescatid, Name=name).first()
+                    # the resource does not exists in the resourcecategory
+                    if not resource:
+                        resource = DBSession.query(
+                                            Resource).filter_by(Name=name).first()
+                        if not resource:
+                            return HTTPNotFound("The resource does not exist")
+                        else:
+                            newresource = Resource(Name=resource.Name,
+                                                Code=resource.Code,
+                                                _Rate = resource.Rate,
+                                                Description=resource.Description)
+                            resourcecategory.Children.append(newresource)
+                            DBSession.flush()
+                            resource = newresource
+
+                    newnode = Component(ResourceID=resource.ID,
+                                        Type=componenttype,
+                                        Unit=unit,
+                                        _Quantity = quantity,
+                                        _Markup = markup,
+                                        ParentID=parentid)
             else:
                 return HTTPInternalServerError()
 
-            DBSession.add(newnode)
-            DBSession.flush()
-            newid = newnode.ID
+            if newnode:
+                DBSession.add(newnode)
+                DBSession.flush()
+                newid = newnode.ID
             # reset the total of the parent
             if parentid != 0:
                 reset = DBSession.query(Node).filter_by(ID=parentid).first()

@@ -36,7 +36,8 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary" data-dismiss="modal" ng-click="disableButton(); addNode()">Save</button>
+                <button class="btn btn-primary" data-ng-show="!isDisabled" data-dismiss="modal" ng-click="disableButton(); addNode()" data-ng-disabled="isDisabled">Save</button>
+                <button class="btn btn-success" data-ng-show="isDisabled" data-dismiss="modal" ng-click="cancel">Done</button>
                 <button class="btn btn-default" ng-click="cancel()" data-dismiss="modal">Cancel</button>
             </div>
         </div>
