@@ -30,24 +30,6 @@ allControllers.directive(
                         }
                     });
 
-                    $rootScope.$on('handleCutNode', function(){
-                        if (scope.treeModel){
-                            var nodeid = sharedService.cutNodeId;
-                            var result = $.grep(scope.treeModel, function(e) {
-                                return e.ID == nodeid;
-                            });
-                            var i = scope.treeModel.indexOf(result[0]);
-                            if (i != -1) {
-                                scope.treeModel.splice(i, 1);
-                                console.log('Success: Item removed');
-                            }
-                            else{
-                                console.log("id not found");
-                            }
-                        }
-                    });
-
-
                     $http.get("partials/treeview.html", {cache: $templateCache})
                     .success(function(html) {
                         element.html(html);
@@ -307,20 +289,11 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                         spinner.stop(); // stop the spinner - ajax call complete
                         loadSlickgrid(response);
                     }
-                });                
+                });
             });
 
-            // eventhandler to blank grid data when a project is closed
-            $( document ).on( "click", ".close-project", function( e ) {
-                dataView.beginUpdate();
-                dataView.setItems([]);
-                dataView.endUpdate();
-                grid.render();
-            });
-
-            // eventhandler to blank grid data when a node is deleted
-            $( document ).on( "click", ".delete-node", function( e ) {
-                console.log("clearing slickgrid");
+            // Listen for the call to clear the slickgrid
+            $scope.$on('handleClearSlickgrid', function(){
                 dataView.beginUpdate();
                 dataView.setItems([]);
                 dataView.endUpdate();

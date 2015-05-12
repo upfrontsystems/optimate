@@ -6,51 +6,23 @@ allControllers.factory('sharedService', ['$rootScope',
     function($rootScope){
         var shared = {};
 
-        // when a client or supplier is edited
-        shared.edited = function(postdata, saveType){
-            if (saveType == 'client'){
-                this.newClient = postdata;
-                $rootScope.$broadcast('handleEditedClient');
-            }
-            else {
-                this.newSupplier = postdata;
-                $rootScope.$broadcast('handleEditedSupplier');
-            }
-        }
-
         // when a node is deleted from the projects treeview
+        // the treeview should be reloaded in the directive
         shared.nodeDeleted = function(nodeid){
            this.deletedNodeId = nodeid;
+           this.clearSlickgrid();
            $rootScope.$broadcast('handleDeletedNode');
         }
 
         // when a node is added to the projects treeview
+        // the slickgrid should be reloaded
         shared.nodeAdded = function(){
-           this.reloadSlickgrid();
-        }
-
-        // when a node is cut the node is removed from the treeview
-        shared.nodeCut = function(nodeid){
-            this.cutNodeId = nodeid;
-            $rootScope.$broadcast('handleCutNode');
-        }
-
-        // when a project is added it needs to be be added to the rolelist
-        shared.projectAdded = function(newproject){
-            this.newProject = newproject;
-            $rootScope.$broadcast('handleAddedProject');
-        }
-
-        // delete a project from the rolelist
-        shared.projectDeleted = function(deletedid){
-            this.deletedNodeId = deletedid;
-            $rootScope.$broadcast('handleDeletedProject');
-        }
-
-        // reload the slickgrid
-        shared.reloadSlickgrid = function(){
             this.reloadId = $rootScope.currentNode.ID;
             $rootScope.$broadcast('handleReloadSlickgrid');
+        }
+
+        shared.clearSlickgrid = function(){
+            $rootScope.$broadcast('handleClearSlickgrid');
         }
 
         return shared;
@@ -86,10 +58,6 @@ allControllers.controller('clientsController', ['$scope', '$http', 'globalServer
 
         toggleMenu('setup');
         $scope.isDisabled = false;
-        // disables the modal submit button on click
-        $scope.disableButton = function(){
-            $scope.isDisabled = true;
-        }
 
         var req = {
             method: 'GET',
@@ -101,27 +69,31 @@ allControllers.controller('clientsController', ['$scope', '$http', 'globalServer
 
         // Adding or editing a client
         $scope.save = function(){
-            if ($scope.modalState == 'Edit'){
-                $http({
-                    method: 'PUT',
-                    url: globalServerURL + $scope.formData['ID'] + '/' + $scope.formData['NodeType'],
-                    data:$scope.formData
-                }).success(function () {
-                    $scope.handleEdited($scope.formData);
-                    $scope.formData = {'NodeType': $scope.formData['NodeType']};
-                });
-            }
-            else{
-                $http({
-                    method: 'POST',
-                    url: globalServerURL +'0/' + $scope.formData['NodeType'],
-                    data:$scope.formData
-                }).success(function (response) {
-                    $scope.formData['ID'] = response['newid'];
-                    // post the new client to the shared service
-                    $scope.handleNew($scope.formData);
-                    $scope.formData = {'NodeType': $scope.formData['NodeType']};
-                });
+            // check if saving is disabled, if not disable it and save
+            if (!$scope.isDisabled){
+                $scope.isDisabled = true;
+                if ($scope.modalState == 'Edit'){
+                    $http({
+                        method: 'PUT',
+                        url: globalServerURL + $scope.formData['ID'] + '/' + $scope.formData['NodeType'],
+                        data:$scope.formData
+                    }).success(function () {
+                        $scope.handleEdited($scope.formData);
+                        $scope.formData = {'NodeType': $scope.formData['NodeType']};
+                    });
+                }
+                else{
+                    $http({
+                        method: 'POST',
+                        url: globalServerURL +'0/' + $scope.formData['NodeType'],
+                        data:$scope.formData
+                    }).success(function (response) {
+                        $scope.formData['ID'] = response['newid'];
+                        // post the new client to the shared service
+                        $scope.handleNew($scope.formData);
+                        $scope.formData = {'NodeType': $scope.formData['NodeType']};
+                    });
+                }
             }
         };
 
@@ -209,10 +181,6 @@ allControllers.controller('suppliersController', ['$scope', '$http', 'globalServ
 
         toggleMenu('setup');
         $scope.isDisabled = false;
-        // disables the modal submit button on click
-        $scope.disableButton = function(){
-            $scope.isDisabled = true;
-        }
 
         var req = {
             method: 'GET',
@@ -224,27 +192,31 @@ allControllers.controller('suppliersController', ['$scope', '$http', 'globalServ
 
         // Adding or editing a supplier
         $scope.save = function(){
-            if ($scope.modalState == 'Edit'){
-                $http({
-                    method: 'PUT',
-                    url: globalServerURL + $scope.formData['ID'] + '/' + $scope.formData['NodeType'],
-                    data:$scope.formData
-                }).success(function () {
-                    $scope.handleEdited($scope.formData);
-                    $scope.formData = {'NodeType': $scope.formData['NodeType']};
-                });
-            }
-            else{
-                $http({
-                    method: 'POST',
-                    url: globalServerURL +'0/' + $scope.formData['NodeType'],
-                    data:$scope.formData
-                }).success(function (response) {
-                    $scope.formData['ID'] = response['newid'];
-                    // post the new supplier
-                    $scope.handleNew($scope.formData);
-                    $scope.formData = {'NodeType': $scope.formData['NodeType']};
-                });
+            // check if saving is disabled, if not disable it and save
+            if (!$scope.isDisabled){
+                $scope.isDisabled = true;
+                if ($scope.modalState == 'Edit'){
+                    $http({
+                        method: 'PUT',
+                        url: globalServerURL + $scope.formData['ID'] + '/' + $scope.formData['NodeType'],
+                        data:$scope.formData
+                    }).success(function () {
+                        $scope.handleEdited($scope.formData);
+                        $scope.formData = {'NodeType': $scope.formData['NodeType']};
+                    });
+                }
+                else{
+                    $http({
+                        method: 'POST',
+                        url: globalServerURL +'0/' + $scope.formData['NodeType'],
+                        data:$scope.formData
+                    }).success(function (response) {
+                        $scope.formData['ID'] = response['newid'];
+                        // post the new supplier
+                        $scope.handleNew($scope.formData);
+                        $scope.formData = {'NodeType': $scope.formData['NodeType']};
+                    });
+                }
             }
         };
 
@@ -451,6 +423,8 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
 
         // Close a project and remove it from the tree
         $scope.closeProject = function (project_id) {
+            // clear the slickgrid
+            sharedService.clearSlickgrid();
             var result = $.grep($scope.roleList, function(e) {
                 return e.ID == project_id;
             });
@@ -514,11 +488,6 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         // functions used by the treeview
         // --------------------------------------------------------------------
 
-        // disables the modal submit button on click
-        $scope.disableButton = function(){
-            $scope.isDisabled = true;
-        }
-
         // Load the resources the user can select from the resource list
         $scope.loadResourceList = function(){
             // Add a loading value to the project list while it loads
@@ -561,33 +530,41 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         // When the addNode button is clicked on the modal a new node
         // is added to the database
         $scope.addNode = function () {
-            var currentId = $rootScope.currentNode.ID;
-            $http({
-                method: 'POST',
-                url: globalServerURL + currentId + '/add',
-                data: $scope.formData
-            }).success(function () {
-                $scope.formData = {'NodeType':$scope.formData['NodeType']};
-                var nodeid = $rootScope.currentNode.ID;
-                sharedService.nodeAdded();
-                $scope.loadNodeChildren(nodeid);
-                console.log("Node added");
-            });
+            // check if adding is disabled, if not disable it and add the node
+            if (!$scope.isDisabled){
+                $scope.isDisabled = true;
+                var currentId = $rootScope.currentNode.ID;
+                $http({
+                    method: 'POST',
+                    url: globalServerURL + currentId + '/add',
+                    data: $scope.formData
+                }).success(function () {
+                    $scope.formData = {'NodeType':$scope.formData['NodeType']};
+                    var nodeid = $rootScope.currentNode.ID;
+                    sharedService.nodeAdded();
+                    $scope.loadNodeChildren(nodeid);
+                    console.log("Node added");
+                });
+            }
         };
 
         // Add a project to the tree and reload the projectlist
         $scope.addProject = function(){
-            $http({
-                method: 'POST',
-                url: globalServerURL + '0' + '/add',
-                data: $scope.formData
-            }).success(function (response) {
-                $scope.formData['ID'] = response['ID'];
-                $scope.formData['NodeTypeAbbr'] = 'P';
-                $scope.formData['Subitem'] = [{'Name': '...'}];
-                $scope.handleAddedProject($scope.formData);
-                $scope.formData = {'NodeType':$scope.formData['NodeType']};
-            });
+            // check if adding is disabled, if not disable it and add the node
+            if (!$scope.isDisabled){
+                $scope.isDisabled = true;
+                $http({
+                    method: 'POST',
+                    url: globalServerURL + '0' + '/add',
+                    data: $scope.formData
+                }).success(function (response) {
+                    $scope.formData['ID'] = response['ID'];
+                    $scope.formData['NodeTypeAbbr'] = 'P';
+                    $scope.formData['Subitem'] = [{'Name': '...'}];
+                    $scope.handleAddedProject($scope.formData);
+                    $scope.formData = {'NodeType':$scope.formData['NodeType']};
+                });
+            }
         };
 
         // Setting the type of the node to be added
@@ -606,7 +583,6 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 $scope.addingNodeType = nodetype;
             }
             $scope.isDisabled = false;
-            console.log("enabled");
             $scope.formData = {'NodeType': nodetype};
         }
 
@@ -640,7 +616,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             $scope.copiedNode = {'id': cutid, 'type': nodetype};
             console.log("Node id cut: " + cutid);
             $scope.cut = true;
-            sharedService.nodeCut(cutid);
+            sharedService.nodeDeleted(cutid);
         }
 
         // function to paste copied node into another node
