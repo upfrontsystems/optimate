@@ -901,6 +901,16 @@ class ResourceCategory(Node):
                 'id': self.ID,
                 'node_type': self.type}
 
+    # functions to make the resource list iterable
+    def __getitem__(self, index):
+        return self.Children[index]
+
+    def __setitem__(self, index, value):
+        self.Children[index] = value
+
+    def __delitem__(self, index):
+        del self.Children[index]
+
     def __repr__(self):
         """Return a representation of this ResourceCategory
         """
@@ -985,6 +995,9 @@ class Resource(Node):
                 'id': self.ID,
                 'node_type': self.type,
                 'rate': str(self.Rate)}
+
+    def __getitem__(self, index):
+        return self.Name[index].lower()
 
     def __repr__(self):
         """Return a representation of this resource

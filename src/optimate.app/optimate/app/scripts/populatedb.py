@@ -582,6 +582,7 @@ if __name__ == '__main__':
                 sleep(1)
 
             code = int(sheet.cell(x, codeindex).value)
+            measureunit = sheet.cell(x, unitindex).value
             try:
                 name = sheet.cell(x, nameindex).value
                 name = name.encode('ascii')
@@ -598,7 +599,6 @@ if __name__ == '__main__':
                 cotype = int(sheet.cell(x, typeindex).value)
             except ValueError, v:
                 cotype = 1
-            measureunit = sheet.cell(x, unitindex).value
             try:
                 budgetcost = Decimal(sheet.cell(x,
                     budgetcostindex).value).quantize(Decimal('.01'))

@@ -30,6 +30,20 @@ from .models import (
     Supplier,
 )
 
+# the categories the resources fall into
+resourcecatlist = {"A-B": ("A-B"),
+                    "C-D": ("C-D"),
+                    "E-F": ("E-F"),
+                    "G-H": ("G-H"),
+                    "I-J": ("I-J"),
+                    "K-L": ("K-L"),
+                    "M-N": ("M-N"),
+                    "O-P": ("O-P"),
+                    "Q-R": ("Q-R"),
+                    "S-T": ("S-T"),
+                    "U-V": ("U-V"),
+                    "W-X-Y-Z": ("W-X-Y-Z")}
+
 
 @view_config(route_name="rootview", renderer='json')
 @view_config(route_name="childview", renderer='json')
