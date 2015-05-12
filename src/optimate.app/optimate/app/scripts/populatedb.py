@@ -12,6 +12,7 @@ from optimate.app.models import (
     BudgetItem,
     Component,
     ComponentType,
+    Unit,
     ResourceCategory,
     Resource,
     Client,
@@ -519,6 +520,18 @@ if __name__ == '__main__':
         transaction.commit()
         stdout.write('\n')
 
+        # build the unit table
+        unitbook = xlrd.open_workbook(exceldatapath + 'Unit.xls')
+        sheet = unitbook.sheet_by_index(0)
+        unitindex = 0
+
+        for x in range(1, sheet.nrows):
+            measureunit = sheet.cell(x, unitindex).value
+            newunit = Unit(Name=measureunit)
+            DBSession.add(newunit)
+
+        transaction.commit()
+
         # build the components
         componentbook = xlrd.open_workbook(exceldatapath + 'Components.xls')
         sheet = componentbook.sheet_by_index(0)
@@ -716,6 +729,7 @@ if __name__ == '__main__':
                             newresource = Resource(ID=resourceid,
                                             Name=resource.Name,
                                             Code=resource.Code,
+                                            Unit=measureunit,
                                             _Rate=resource._Rate,
                                             Description=resource.Description)
 
@@ -741,7 +755,6 @@ if __name__ == '__main__':
                                         _Total = budgetcost,
                                         _Quantity = quantity,
                                         Type=cotype,
-                                        Unit=measureunit,
                                         ParentID=parentcode,
                                         OrderCost=ordercost,
                                         RunningCost=running,
@@ -758,7 +771,6 @@ if __name__ == '__main__':
                                     _Total = budgetcost,
                                     _Quantity = quantity,
                                     Type=cotype,
-                                    Unit=measureunit,
                                     ParentID=parentcode,
                                     OrderCost=ordercost,
                                     RunningCost=running,

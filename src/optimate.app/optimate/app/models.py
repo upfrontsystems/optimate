@@ -570,7 +570,6 @@ class Component(Node):
                 primary_key=True)
     ResourceID = Column(Integer, ForeignKey('Resource.ID'))
     Type = Column(Integer, ForeignKey('ComponentType.ID'))
-    Unit = Column(Text)
     _Quantity = Column('Quantity', Float, default=0.0)
     _Total = Column('Total', Numeric)
     _Markup = Column('Markup', Float, default=0.0)
@@ -691,6 +690,20 @@ class Component(Node):
         # change the total when the quantity changes
         self.Total = (1.0+self.Markup) * self.Quantity * float(self.Rate)
 
+    @hybrid_property
+    def Unit(self):
+        """ Get the component's Unit, the Unit of this resource is returned
+        """
+        return self.Resource.Unit
+
+    @Unit.setter
+    def Unit(self, unit):
+        """ The Unit of the component is set by its resource
+            It triggers a reset of the total
+        """
+        # change the total when the rate changes
+        self.Resource.Unit = unit
+
     def copy(self, parentid):
         """ copy returns an exact duplicate of this object,
             but with the ParentID specified.
@@ -780,6 +793,19 @@ class ComponentType(Base):
     def __repr__(self):
         return '<ComponentType(Name="%s", ID="%s")>' % (
             self.Name, self.ID)
+
+class Unit(Base):
+    """ Unit defines a unit used by a Resource
+    """
+    __tablename__ = 'Unit'
+    Name = Column(Text, primary_key=True)
+
+    Resources = relationship('Resource',
+                              backref=backref('UnitName'))
+
+    def __repr__(self):
+        return '<Unit(Unit="%s")>' % (
+            self.Unit)
 
 
 class ResourceCategory(Node):
@@ -933,6 +959,7 @@ class Resource(Node):
     Code = Column(Text)
     Name = Column(Text)
     Description = Column(Text)
+    Unit = Column(Text, ForeignKey('Unit.Name'))
     _Rate = Column('Rate', Numeric, default=Decimal(0.00))
 
     __mapper_args__ = {
@@ -993,6 +1020,7 @@ class Resource(Node):
     def getGridData(self):
         return {'name': self.Name,
                 'id': self.ID,
+                'unit': self.Unit,
                 'node_type': self.type,
                 'rate': str(self.Rate)}
 
@@ -1010,7 +1038,7 @@ class Client(Base):
     """A table containing the data relavent to a client of Optimate
     """
     __tablename__ = 'Client'
-    ID = Column(Integer, primary_key=True)
+    ID = Column(Integer, primary_key=True, index=True)
     Name = Column(Text)
     Address = Column(Text)
     City = Column(Text)
@@ -1033,7 +1061,7 @@ class Supplier(Base):
     """A table containing the data relavent to a supplier of Optimate
     """
     __tablename__ = 'Supplier'
-    ID = Column(Integer, primary_key=True)
+    ID = Column(Integer, primary_key=True, index=True)
     Name = Column(Text)
     Address = Column(Text)
     City = Column(Text)

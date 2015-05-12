@@ -348,6 +348,7 @@ def additemview(request):
         if objecttype == 'Resource':
             newnode = Resource(Name=name,
                                 Description = desc,
+                                Unit=unit,
                                   _Rate= rate,
                                   ParentID=parentid)
             # check if the resource is not in the resource category
@@ -411,7 +412,6 @@ def additemview(request):
 
                         editedcomp.Resource = resource
                     editedcomp.Type=componenttype
-                    editedcomp.Unit=unit
                     editedcomp.Quantity=quantity
                     editedcomp.Markup=markup
                     newid = editedcomp.ID
@@ -448,6 +448,7 @@ def additemview(request):
                             newresource = Resource(Name=resource.Name,
                                                 Code=resource.Code,
                                                 _Rate = resource.Rate,
+                                                Unit = resource.Unit,
                                                 Description=resource.Description)
                             resourcecategory.Children.append(newresource)
                             DBSession.flush()
@@ -455,7 +456,6 @@ def additemview(request):
 
                     newnode = Component(ResourceID=resource.ID,
                                         Type=componenttype,
-                                        Unit=unit,
                                         _Quantity = quantity,
                                         _Markup = markup,
                                         ParentID=parentid)
