@@ -521,6 +521,26 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             });
         };
 
+        // Load a list of the units in the database
+        $scope.loadUnitList = function(){
+            $scope.unitList = [{"Name": "Loading..."}];
+            var req = {
+                method: 'GET',
+                url: globalServerURL +'unit_list'
+            }
+            $http(req).success(function(data) {
+                $scope.unitList = data;
+                console.log("Unit list loaded");
+                $('select#unit-select').focus();
+            });
+        }
+
+        // Add the selected unit from the list to the form data as unit
+        $scope.selectedUnit = function(){
+            var unit = $('#unit-select').find(":selected").val()
+            $scope.formData['Unit'] = unit;
+        };
+
         // Add the selected resource from the list to the form data as name
         $scope.selectedResource = function(){
             var name = $('#resource-select').find(":selected").val()

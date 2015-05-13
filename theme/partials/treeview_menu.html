@@ -220,7 +220,7 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addResource"
-                        data-ng-click="changeAddingType('Resource')"
+                        data-ng-click="changeAddingType('Resource'); loadUnitList()"
                        title="Add Resource" class="resource-button">
                         <i class="fa fa-plus-square"></i> R
                     </a>
@@ -296,6 +296,43 @@
                 <li>
                     <a role="button" data-target="#deleteConfirmation" data-toggle="modal"
                        title="Delete Component">
+                        <i class="fa fa-trash"></i>
+                    </a>
+                </li>
+                <li>
+                    <a title="Selected node information" data-target="#debugProjectModal"
+                    data-toggle="modal">
+                    <i class="fa fa-gears"></i></a>
+                </li>
+            </ul>
+        </div>
+        <div data-ng-switch-when="Resource">
+            <ul class="nav nav-pills no-top-margin">
+                <li>
+                    <span role="button" class="separator">|
+                    </span>
+                </li>
+                <li>
+                    <a role="button" data-ng-click="copyThisNode(currentNode.ID, currentNode.NodeType)"
+                       title="Copy Resource">
+                        <i class="fa fa-files-o"></i>
+                    </a>
+                </li>
+                <li>
+                    <a role="button" data-ng-click="cutThisNode(currentNode.ID, currentNode.NodeType)"
+                       title="Cut Resource">
+                        <i class="fa fa-cut"></i>
+                    </a>
+                </li>
+                <li data-ng-show="copiedNode">
+                    <a data-ng-switch-default
+                        role="button" style="color: gray;">
+                        <i class="fa fa-clipboard"></i>
+                    </a>
+                </li>
+                <li>
+                    <a role="button" data-target="#deleteConfirmation" data-toggle="modal"
+                       title="Delete Resource">
                         <i class="fa fa-trash"></i>
                     </a>
                 </li>

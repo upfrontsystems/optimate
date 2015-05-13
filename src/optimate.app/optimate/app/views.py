@@ -26,6 +26,7 @@ from .models import (
     ComponentType,
     ResourceCategory,
     Resource,
+    Unit,
     Client,
     Supplier,
 )
@@ -230,6 +231,22 @@ def resources(request):
         for resource in qry:
             resources.append({'Name': resource.Name})
         return sorted(resources, key=lambda k: k['Name'])
+
+
+@view_config(route_name="units", renderer='json')
+def units(request):
+    """ Returns a list of all units in the database
+    """
+    if request.method == 'OPTIONS':
+        return {"success": True}
+    else:
+        unitlist = []
+        # Get all the unique Resources in the Resource table
+        qry = DBSession.query(Unit).all()
+        # build the list and only get the neccesary values
+        for unit in qry:
+            unitlist.append({'Name': unit.Name})
+        return sorted(unitlist, key=lambda k: k['Name'])
 
 
 @view_config(route_name="projectview", renderer='json')

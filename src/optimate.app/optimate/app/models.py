@@ -804,8 +804,8 @@ class Unit(Base):
                               backref=backref('UnitName'))
 
     def __repr__(self):
-        return '<Unit(Unit="%s")>' % (
-            self.Unit)
+        return '<Unit(Name="%s")>' % (
+            self.Name)
 
 
 class ResourceCategory(Node):
