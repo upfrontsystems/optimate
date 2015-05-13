@@ -27,6 +27,7 @@ from .models import (
     ResourceCategory,
     Resource,
     Unit,
+    Overhead,
     Client,
     Supplier,
 )
@@ -176,7 +177,8 @@ def resource_list(request):
         rootid = currentnode.getProjectID()
         # Get the resourcecategory whos parent that is
         resourcecategory = DBSession.query(
-                                ResourceCategory).filter_by(ParentID=rootid).first()
+                                ResourceCategory).filter_by(
+                                ParentID=rootid).first()
         # if it doesnt exist return the empty list
         if not resourcecategory:
             return resourcelist
@@ -188,7 +190,8 @@ def resource_list(request):
 @view_config(route_name="related_list", renderer='json')
 def related_list(request):
     """ Returns a list of all the resources in the
-        node's project's resourcecategory in a format that the related items widget can read
+        node's project's resourcecategory in a format
+        that the related items widget can read
     """
     if request.method == 'OPTIONS':
         return {"success": True}
@@ -201,7 +204,8 @@ def related_list(request):
         rootid = currentnode.getProjectID()
         # Get the resourcecategory whos parent that is
         resourcecategory = DBSession.query(
-                                ResourceCategory).filter_by(ParentID=rootid).first()
+                                ResourceCategory).filter_by(
+                                ParentID=rootid).first()
         # if it doesnt exist return the empty list
         if not resourcecategory:
             return relatedlist
@@ -263,6 +267,69 @@ def units(request):
         for unit in qry:
             unitlist.append({'Name': unit.Name})
         return sorted(unitlist, key=lambda k: k['Name'])
+
+@view_config(route_name="component_overheads", renderer='json')
+def componentoverheads(request):
+    """ Get a list of the Overheads a component can use
+    """
+    if request.method == 'OPTIONS':
+        return {"success": True}
+    else:
+        nodeid = request.matchdict['id']
+
+        currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
+        projectid = currentnode.getProjectID()
+        overheads = DBSession.query(
+                    Overhead).filter_by(ProjectID=projectid).all()
+        overheadlist = []
+        for overhead in overheads:
+            overheadlist.append({'Name': overhead.Name,
+                                'ID': overhead.ID,
+                                'selected': False})
+        return sorted(overheadlist, key=lambda k: k['Name'])
+
+@view_config(route_name="overhead_list", renderer='json')
+def overheadlist(request):
+    """ Perform operations on the Overhead table table depending on the method
+    """
+    if request.method == 'OPTIONS':
+        return {"success": True}
+    else:
+        if request.method == 'GET':
+            projectid = request.matchdict['id']
+            overheadlist = []
+            # Get all the unique Resources in the Resource table
+            qry = DBSession.query(Overhead).filter_by(ProjectID=projectid)
+            # build the list and only get the neccesary values
+            for overhead in qry:
+                overheadlist.append({'Name': overhead.Name,
+                                'Percentage': overhead.Percentage*100.0,
+                                'ID': overhead.ID})
+            return sorted(overheadlist, key=lambda k: k['Name'])
+        elif request.method == 'DELETE':
+            deleteid = request.matchdict['id']
+            # Deleting it from the table deleted the object
+            deletethis = DBSession.query(
+                Overhead).filter_by(ID=deleteid).first()
+            qry = DBSession.delete(deletethis)
+
+            if qry == 0:
+                return HTTPNotFound()
+            transaction.commit()
+
+            return HTTPOk()
+        elif request.method == 'POST':
+            projectid = request.matchdict['id']
+            name = request.json_body['Name']
+            perc = (float(request.json_body.get('Percentage', 0)))/100.0
+            # Build a new overhead with the data
+            newoverhead = Overhead(Name = name,
+                                    Percentage = perc,
+                                    ProjectID =projectid)
+            DBSession.add(newoverhead)
+            transaction.commit()
+            return HTTPOk()
+
 
 
 @view_config(route_name="projectview", renderer='json')
@@ -409,6 +476,86 @@ def additemview(request):
                                             ParentID=newid)
             DBSession.add(newresourcecat)
             DBSession.flush()
+        elif objecttype == 'Component':
+            # check if the data has an ID key
+            # this signals that an existing Component is being edited
+            if 'ID' in request.json_body:
+                editedcomp = DBSession.query(Component).filter_by(
+                            ID=request.json_body['ID']).first()
+                # if the name is diffrent get the new resource
+                if editedcomp.Name != name:
+                    rootparentid = editedcomp.getProjectID()
+                    resourcecategory = DBSession.query(
+                        ResourceCategory).filter_by(
+                        ParentID=rootparentid).first()
+                    rescatid = resourcecategory.ID
+
+                    # get the resource used by the component
+                    resource = DBSession.query(
+                                    Resource).filter_by(
+                                    ParentID=rescatid, Name=name).first()
+
+                    editedcomp.Resource = resource
+                editedcomp.Type=componenttype
+                editedcomp.Quantity=quantity
+                editedcomp.Markup=markup
+                newid = editedcomp.ID
+                DBSession.flush()
+            else:
+                # Components need to reference a Resource
+                # that already exists in the system
+                parent = DBSession.query(Node).filter_by(
+                        ID=parentid).first()
+                rootparentid = parent.getProjectID()
+                resourcecategory = DBSession.query(
+                        ResourceCategory).filter_by(
+                        ParentID=rootparentid).first()
+                # if the resourcecategory does not exist create it
+                if not resourcecategory:
+                    resourcecategory = ResourceCategory(
+                                            Name='Resource List',
+                                            Description='List of Resources',
+                                            ParentID=rootparentid)
+                    DBSession.add(resourcecategory)
+                    DBSession.flush()
+                rescatid = resourcecategory.ID
+
+                # get the resource used by the component
+                resource = DBSession.query(
+                                    Resource).filter_by(
+                                    ParentID=rescatid, Name=name).first()
+                # the resource does not exists in the resourcecategory
+                if not resource:
+                    resource = DBSession.query(
+                                    Resource).filter_by(Name=name).first()
+                    if not resource:
+                        return HTTPNotFound("The resource does not exist")
+                    else:
+                        newresource = Resource(Name=resource.Name,
+                                        Code=resource.Code,
+                                        _Rate = resource.Rate,
+                                        Unit = resource.Unit,
+                                        Description=resource.Description)
+                        resourcecategory.Children.append(newresource)
+                        DBSession.flush()
+                        resource = newresource
+
+                newcomp = Component(ResourceID=resource.ID,
+                                    Type=componenttype,
+                                    _Quantity = quantity,
+                                    ParentID=parentid)
+
+                DBSession.add(newcomp)
+                DBSession.flush()
+
+                # get the list of overheads used in the checkboxes
+                checklist = request.json_body['OverheadList']
+                for record in checklist:
+                    if record['selected']:
+                        overheadid = record['ID']
+                        overhead = DBSession.query(
+                                    Overhead).filter_by(ID=overheadid).first()
+                        newcomp.Overheads.append(overhead)
         else:
             if objecttype == 'BudgetGroup':
                 newnode = BudgetGroup(Name=name,
@@ -419,79 +566,11 @@ def additemview(request):
                                 Description=desc,
                                 Unit=unit,
                                 _Quantity = quantity,
-                                _Markup = markup,
                                 ParentID=parentid)
             elif objecttype == 'ResourceCategory':
                 newnode = ResourceCategory(Name=name,
                                 Description=desc,
                                 ParentID=parentid)
-            elif objecttype == 'Component':
-                # check if the data has an ID key
-                # this signals that an existing Component is being edited
-                if 'ID' in request.json_body:
-                    editedcomp = DBSession.query(Component).filter_by(ID=request.json_body['ID']).first()
-                    # if the name is diffrent get the new resource
-                    if editedcomp.Name != name:
-                        rootparentid = editedcomp.getProjectID()
-                        resourcecategory = DBSession.query(
-                            ResourceCategory).filter_by(
-                            ParentID=rootparentid).first()
-                        rescatid = resourcecategory.ID
-
-                        # get the resource used by the component
-                        resource = DBSession.query(
-                                        Resource).filter_by(
-                                        ParentID=rescatid, Name=name).first()
-
-                        editedcomp.Resource = resource
-                    editedcomp.Type=componenttype
-                    editedcomp.Quantity=quantity
-                    editedcomp.Markup=markup
-                    newid = editedcomp.ID
-                    DBSession.flush()
-                else:
-                    # Components need to reference a Resource that already exists
-                    # in the system
-
-                    parent = DBSession.query(Node).filter_by(ID=parentid).first()
-                    rootparentid = parent.getProjectID()
-                    resourcecategory = DBSession.query(
-                            ResourceCategory).filter_by(
-                            ParentID=rootparentid).first()
-                    # if the resourcecategory does not exist create it
-                    if not resourcecategory:
-                        resourcecategory = ResourceCategory(Name='Resource List',
-                                                    Description='List of Resources',
-                                                    ParentID=rootparentid)
-                        DBSession.add(resourcecategory)
-                        DBSession.flush()
-                    rescatid = resourcecategory.ID
-
-                    # get the resource used by the component
-                    resource = DBSession.query(
-                                        Resource).filter_by(
-                                        ParentID=rescatid, Name=name).first()
-                    # the resource does not exists in the resourcecategory
-                    if not resource:
-                        resource = DBSession.query(
-                                            Resource).filter_by(Name=name).first()
-                        if not resource:
-                            return HTTPNotFound("The resource does not exist")
-                        else:
-                            newresource = Resource(Name=resource.Name,
-                                                Code=resource.Code,
-                                                _Rate = resource.Rate,
-                                                Unit = resource.Unit,
-                                                Description=resource.Description)
-                            resourcecategory.Children.append(newresource)
-                            DBSession.flush()
-                            resource = newresource
-
-                    newnode = Component(ResourceID=resource.ID,
-                                        Type=componenttype,
-                                        _Quantity = quantity,
-                                        _Markup = markup,
-                                        ParentID=parentid)
             else:
                 return HTTPInternalServerError()
 
@@ -655,7 +734,8 @@ def clientsview(request):
     if request.method == 'OPTIONS':
         return {"success": True}
     else:
-        qry = DBSession.query(Client).order_by(collate(Client.Name, 'NOCASE')).all()
+        qry = DBSession.query(Client).order_by(
+            collate(Client.Name, 'NOCASE')).all()
         clientlist = []
 
         for client in qry:
@@ -757,7 +837,8 @@ def suppliersview(request):
     if request.method == 'OPTIONS':
         return {"success": True}
     else:
-        qry = DBSession.query(Supplier).order_by(collate(Supplier.Name, 'NOCASE')).all()
+        qry = DBSession.query(Supplier).order_by(
+            collate(Supplier.Name, 'NOCASE')).all()
         supplierlist = []
 
         for supplier in qry:

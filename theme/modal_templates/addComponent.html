@@ -18,18 +18,16 @@
                     <div class="form-group">
                         <label for="inputQuantity" class="col-sm-2 control-label">Quantity:</label>
                         <input type="number"
-                               class="col-sm-7"                        
+                               class="col-sm-7"
                                id="inputQuantity"
                                name="inputQuantity"
                                ng-model="formData['Quantity']">
                     </div>
                     <div class="form-group">
-                        <label for="inputMarkup" class="col-sm-2 control-label">Markup:</label>
-                        <input type="number"
-                               class="col-sm-7"                        
-                               id="inputMarkup"
-                               name="inputMarkup"
-                               ng-model="formData['Markup']">
+                        <label class="col-sm-2 control-label" style="display: block;" ng-repeat="overhead in componentOverheadList">
+                            <input type="checkbox" value="{{overhead.Name}}" ng-model="overhead.selected">
+                             {{overhead.Name}}
+                        </label>
                     </div>
                     <div class="form-group">
                         <label for="inputType" class="col-sm-2 control-label">Type:</label>
@@ -57,7 +55,7 @@
                                         <span class="internalpath">
                                             <span>Home</span>
                                         </span>
-                                    </div>                                
+                                    </div>
                                     <ul class="finder-results">
                                     </ul>
                                 </div>

@@ -55,7 +55,10 @@ class Node(Base):
 
     __tablename__ = 'Node'
     ID = Column(Integer, primary_key=True)
-    ParentID = Column(Integer, ForeignKey('Node.ID', ondelete='CASCADE'), index=True)
+    ParentID = Column(
+                    Integer,
+                    ForeignKey('Node.ID', ondelete='CASCADE'),
+                    index=True)
     OrderCost = Column(Numeric(12, 2), default=Decimal(0.00))
     ClaimedCost = Column(Numeric(12, 2), default=Decimal(0.00))
     RunningCost=Column(Numeric(12, 2), default=Decimal(0.00))
@@ -76,14 +79,17 @@ class Node(Base):
     }
 
     def getProjectID(self):
+        """ Recursively calls the parent of this node until it finds the project
+            whose parent is the root
+        """
         parent = self.Parent
         if parent.ID == 0:
             return self.ID
         else:
             return parent.getProjectID()
 
-    def __repr__(self):
-        return '<Node(ID="%s", ParentID="%s")>' % (self.ID, self.ParentID)
+        def __repr__(self):
+            return '<Node(ID="%s", ParentID="%s")>' % (self.ID, self.ParentID)
 
 
 class Project(Node):
@@ -101,6 +107,9 @@ class Project(Node):
     Name = Column(Text)
     Description = Column(Text)
     _Total = Column('Total', Numeric)
+
+    OverheadList = relationship('Overhead',
+                                backref='Project')
 
     __mapper_args__ = {
         'polymorphic_identity': 'Project',
@@ -364,7 +373,6 @@ class BudgetItem(Node):
     _Quantity = Column('Quantity', Float, default=0.0)
     _Rate = Column('Rate', Numeric)
     _Total = Column('Total', Numeric)
-    _Markup = Column('Markup', Float, default=0.0)
 
     __mapper_args__ = {
         'polymorphic_identity': 'BudgetItem',
@@ -428,14 +436,15 @@ class BudgetItem(Node):
     def Markup(self):
         """ Get the markup of this budgetitem
         """
-        return self._Markup
+        # return self._Markup
+        return 0.0
 
     @Markup.setter
     def Markup(self, markup):
         """ Set the markup value, and change the total accordingly
         """
-        self._Markup = markup
-        self.Total = (1.0+markup) * self.Quantity * float(self.Rate)
+        # self._Markup = markup
+        self.Total = (1.0+self.Markup) * self.Quantity * float(self.Rate)
 
     @hybrid_property
     def Rate(self):
@@ -478,7 +487,6 @@ class BudgetItem(Node):
                             _Quantity=self._Quantity,
                             _Rate=self._Rate,
                             _Total=self._Total,
-                            _Markup=self._Markup,
                             OrderCost=self.OrderCost,
                             ClaimedCost=self.ClaimedCost,
                             RunningCost=self.RunningCost,
@@ -556,6 +564,12 @@ class BudgetItem(Node):
         return '<BudgetItem(Name="%s", ID="%s", ParentID="%s")>' % (
             self.Name, self.ID, self.ParentID)
 
+# Association table for the many-to-many relationship between Component
+# and Overhead
+association_table = Table('ComponentOverheadAssociation', Base.metadata,
+    Column('ComponentID', Integer, ForeignKey('Component.ID')),
+    Column('OverheadID', Integer, ForeignKey('Overhead.ID'))
+)
 
 class Component(Node):
     """A component represents a unique component in the project.
@@ -572,11 +586,14 @@ class Component(Node):
     Type = Column(Integer, ForeignKey('ComponentType.ID'))
     _Quantity = Column('Quantity', Float, default=0.0)
     _Total = Column('Total', Numeric)
-    _Markup = Column('Markup', Float, default=0.0)
 
     Resource = relationship('Resource',
                             foreign_keys='Component.ResourceID',
                             backref='Components')
+
+    Overheads = relationship('Overhead',
+                    secondary=association_table,
+                    backref='Components')
 
     __mapper_args__ = {
         'polymorphic_identity': 'Component',
@@ -652,14 +669,18 @@ class Component(Node):
     @hybrid_property
     def Markup(self):
         """ Get the markup of this component
+            It is a composite of all the Overhead percentages
         """
-        return self._Markup
+        composite = 0.0
+        for overhead in self.Overheads:
+            composite+=overhead.Percentage
+        return composite
 
     @Markup.setter
     def Markup(self, markup):
         """ Set the markup value, and change the total accordingly
         """
-        self._Markup = markup
+        # self._Markup = markup
         self.Total = (1.0+self.Markup) * self.Quantity * float(self.Rate)
 
     @hybrid_property
@@ -714,7 +735,6 @@ class Component(Node):
                             ParentID=parentid,
                             _Quantity=self._Quantity,
                             _Total=self._Total,
-                            _Markup=self._Markup,
                             OrderCost=self.OrderCost,
                             ClaimedCost=self.ClaimedCost,
                             RunningCost=self.RunningCost,
@@ -776,6 +796,21 @@ class Component(Node):
         """
         return '<Co(Name="%s", Quantity="%d", ID="%s", ParentID="%s")>' % (
             self.Name, self.Quantity, self.ID, self.ParentID)
+
+class Overhead(Base):
+    """ A Table for the overheads a project incurs
+    """
+    __tablename__ = 'Overhead'
+    ID = Column(Integer, primary_key=True)
+    Name = Column(Text)
+    Percentage = Column(Float, default=0.0)
+    ProjectID = Column(Integer, ForeignKey('Project.ID'))
+
+    def __repr__(self):
+        """Return a representation of this overhead
+        """
+        return '<Overhead(Name="%s", Percentage="%f", ID="%s")>' % (
+            self.Name, self.Percentage, self.ID)
 
 
 class ComponentType(Base):

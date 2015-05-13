@@ -63,6 +63,13 @@
                     data-toggle="modal">
                     <i class="fa fa-gears"></i></a>
                 </li>
+                <li>
+                    <a title="Overheads"
+                    data-ng-click="loadOverheads(currentNode.ID)"
+                    data-target="#openOverheads"
+                    data-toggle="modal">
+                    <i class="fa fa-bar-chart"></i></a>
+                </li>
             </ul>
         </div>
         <div data-ng-switch-when="BudgetGroup">
@@ -87,7 +94,7 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addComponent"
-                        data-ng-click="changeAddingType('Component'); loadResourceList(); loadRelatedList();"
+                        data-ng-click="changeAddingType('Component'); loadResourceList(); loadRelatedList(); loadComponentOverheads(currentNode.ID)"
                        title="Add Component" class="component-button">
                         <i class="fa fa-plus-square"></i> C
                     </a>
@@ -156,7 +163,7 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addComponent"
-                        data-ng-click="changeAddingType('Component'); loadResourceList(); loadRelatedList();"
+                        data-ng-click="changeAddingType('Component'); loadResourceList(); loadRelatedList(); loadComponentOverheads(currentNode.ID)"
                        title="Add Component" class="component-button">
                         <i class="fa fa-plus-square"></i> C
                     </a>

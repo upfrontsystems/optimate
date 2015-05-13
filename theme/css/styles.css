@@ -12,7 +12,7 @@ body {
     padding: 5px 15px;
     color: #428bca;
     display: block;
-    position: relative;    
+    position: relative;
 }
 
 /* Fix for cursor point in angular bootstrap */
@@ -196,5 +196,5 @@ a.resource-category-button {
 
 .col-sm-7 {
     padding-left: 0px !important;
-    padding-right: 0px !important;    
+    padding-right: 0px !important;
 }

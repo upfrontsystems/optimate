@@ -487,6 +487,63 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
 
         // functions used by the treeview
         // --------------------------------------------------------------------
+        $scope.overheadList = [];
+        // Load the resources the user can select from the resource list
+        $scope.loadOverheads = function(projectid){
+            var req = {
+                method: 'GET',
+                url: globalServerURL +'overhead_list/' + projectid + '/'
+            }
+            $http(req).success(function(data) {
+                $scope.overheadList = data;
+                console.log("Overhead list loaded");
+            });
+        };
+
+        // load the overheads a component can use
+        $scope.loadComponentOverheads = function(nodeid){
+            var req = {
+                method: 'GET',
+                url: globalServerURL +'component_overheads/' + nodeid + '/'
+            }
+            $http(req).success(function(data) {
+                $scope.componentOverheadList = data;
+                console.log("Overhead list loaded");
+            });
+        }
+
+        // delete an overhead by id
+        $scope.deleteOverhead = function(overheadid, index){
+            var req = {
+                method: 'DELETE',
+                url: globalServerURL +'overhead_list/' + overheadid + '/'
+            }
+            $http(req).success(function() {
+                $scope.overheadList.splice(index, 1);
+                console.log("Overhead deleted");
+            });
+        }
+
+        // add an overhead with the project id
+        $scope.addOverhead = function(projectid){
+            if ($scope.newOverhead){
+                var req = {
+                    method: 'POST',
+                    url: globalServerURL +'overhead_list/' + projectid + '/',
+                    data: {'Name':$scope.newOverhead.Name,
+                            'Percentage': $scope.newOverhead.Percentage}
+                }
+                $http(req).success(function() {
+                    $scope.clearInput();
+                    $scope.loadOverheads(projectid);
+                    console.log("Overhead added");
+                });
+            }
+        }
+
+        $scope.clearInput = function(){
+            $scope.newOverhead = undefined;
+        }
 
         // Load the resources the user can select from the resource list
         $scope.loadResourceList = function(){
@@ -574,6 +631,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             if (!$scope.isDisabled){
                 $scope.isDisabled = true;
                 var currentId = $rootScope.currentNode.ID;
+                $scope.formData['OverheadList'] = $scope.componentOverheadList
                 $http({
                     method: 'POST',
                     url: globalServerURL + currentId + '/add',

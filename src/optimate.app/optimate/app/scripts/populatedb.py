@@ -13,6 +13,7 @@ from optimate.app.models import (
     Component,
     ComponentType,
     Unit,
+    Overhead,
     ResourceCategory,
     Resource,
     Client,
@@ -41,6 +42,8 @@ from sys import stdout
 from time import sleep
 import unicodedata
 from decimal import *
+from itertools import groupby
+from operator import itemgetter
 
 resourcecodeno = 0
 
@@ -194,6 +197,12 @@ if __name__ == '__main__':
                               ProjectedProfit=projprofit,
                               ActualProfit=actprofit)
             DBSession.add(project)
+            DBSession.flush()
+
+            # add a default overhead to the project
+            defoverhead = Overhead(Name="Default",
+                                Percentage=0.0, ProjectID=project.ID)
+            DBSession.add(defoverhead)
 
         transaction.commit()
 
@@ -824,10 +833,62 @@ if __name__ == '__main__':
 
         transaction.commit()
 
-        print 'Deleting error node'
+        print '\nDeleting error node'
         deletethis = DBSession.query(Node).filter_by(ID=149999).first()
         DBSession.delete(deletethis)
         transaction.commit()
+
+        print "Reorganising the Resources"
+        # define the categories
+        resourcecatlist = {"A-B": ("A-B"),
+                            "C-D": ("C-D"),
+                            "E-F": ("E-F"),
+                            "G-H": ("G-H"),
+                            "I-J": ("I-J"),
+                            "K-L": ("K-L"),
+                            "M-N": ("M-N"),
+                            "O-P": ("O-P"),
+                            "Q-R": ("Q-R"),
+                            "S-T": ("S-T"),
+                            "U-V": ("U-V"),
+                            "W-X-Y-Z": ("W-X-Y-Z")}
+
+        # iterate through all the resource categories
+        qry = DBSession.query(ResourceCategory).all()
+        for rc in qry:
+            childlist = rc.Children
+            childlist = list(childlist)
+            if len(childlist)>0:
+                childlist = sorted(childlist, key=lambda k: k.Name.lower())
+                value = None
+                newid = None
+                other = ResourceCategory(Name="Other",
+                                        Description="Other Resources",
+                                        ParentID=rc.ID)
+                DBSession.add(other)
+                DBSession.flush()
+                otherid = other.ID
+                # iterate through the alphabetical grouping of the resources
+                for letter, grouping in groupby(childlist, key=itemgetter(0)):
+                    letter = letter.upper()
+                    try:
+                        # get the category the resource falls in
+                        result = next(v for (k,v) in
+                            resourcecatlist.iteritems() if letter in k)
+                        if result != value:
+                            value = result
+                            newcat = ResourceCategory(Name=value,
+                                        Description="Resources from " + value,
+                                        ParentID=rc.ID)
+                            DBSession.add(newcat)
+                            DBSession.flush()
+                            newid = newcat.ID
+                        # add the resources to the category
+                        for resource in grouping:
+                            resource.ParentID = newid
+                    except StopIteration:
+                        for resource in grouping:
+                            resource.ParentID = otherid
 
         # Client.__table__.drop(engine)
         # transaction.commit()
