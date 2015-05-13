@@ -233,6 +233,22 @@ def resources(request):
         return sorted(resources, key=lambda k: k['Name'])
 
 
+@view_config(route_name="componenttypes", renderer='json')
+def componenttypes(request):
+    """ Returns a list of all the component types in the database
+    """
+    if request.method == 'OPTIONS':
+        return {"success": True}
+    else:
+        cotypelist = []
+        # Get all the unique Resources in the Resource table
+        qry = DBSession.query(ComponentType).all()
+        # build the list and only get the neccesary values
+        for cotype in qry:
+            cotypelist.append({'Name': cotype.Name, 'ID': cotype.ID})
+        return sorted(cotypelist, key=lambda k: k['Name'])
+
+
 @view_config(route_name="units", renderer='json')
 def units(request):
     """ Returns a list of all units in the database

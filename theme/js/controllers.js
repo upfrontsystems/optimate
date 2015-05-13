@@ -503,7 +503,21 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             });
         };
 
+        // Loads a list of the resources and list of the component types
         $scope.loadRelatedList = function(){
+            // load the component types
+            $scope.cotypeList = [{"Name": "Loading..."}];
+            var req = {
+                method: 'GET',
+                url: globalServerURL +'component_types'
+            }
+            $http(req).success(function(data) {
+                $scope.cotypeList = data;
+                console.log("Component Type list loaded");
+                $('select#type-select').focus();
+            });
+
+            // load the related list
             var req = {
                 method: 'GET',
                 url: globalServerURL +'related_list/' + $rootScope.currentNode.ID + '/'
@@ -535,15 +549,21 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             });
         }
 
+        // Add the selected type from the list to the form data as its id
+        $scope.selectedType = function(){
+            var cotype = $('#type-select').find(":selected").val();
+            $scope.formData['ComponentType'] = cotype;
+        };
+
         // Add the selected unit from the list to the form data as unit
         $scope.selectedUnit = function(){
-            var unit = $('#unit-select').find(":selected").val()
+            var unit = $('#unit-select').find(":selected").val();
             $scope.formData['Unit'] = unit;
         };
 
         // Add the selected resource from the list to the form data as name
         $scope.selectedResource = function(){
-            var name = $('#resource-select').find(":selected").val()
+            var name = $('#resource-select').find(":selected").val();
             $scope.formData['Name'] = name;
         };
 
