@@ -806,6 +806,24 @@ if __name__ == '__main__':
 
         transaction.commit()
 
+        print 'Recalculating the totals of the projects'
+        projectlist = DBSession.query(Project).all()
+        length = float(len(projectlist))
+        percentile = length / 100.0
+        print 'Percentage done: '
+        counter = 2
+        x = 0
+        for project in projectlist:
+            if x == int(percentile * counter):
+                counter += 1
+                stdout.write('\r%d' % counter + '%')
+                stdout.flush()
+                sleep(1)
+            project.recalculateTotal()
+            x+=1
+
+        transaction.commit()
+
         print 'Deleting error node'
         deletethis = DBSession.query(Node).filter_by(ID=149999).first()
         DBSession.delete(deletethis)
@@ -907,24 +925,6 @@ if __name__ == '__main__':
                             Fax=fax,
                             Contact=contact)
             DBSession.add(supplier)
-
-        transaction.commit()
-
-        print 'Recalculating the totals of the projects'
-        projectlist = DBSession.query(Project).all()
-        length = float(len(projectlist))
-        percentile = length / 100.0
-        print 'Percentage done: '
-        counter = 2
-        x = 0
-        for project in projectlist:
-            if x == int(percentile * counter):
-                counter += 1
-                stdout.write('\r%d' % counter + '%')
-                stdout.flush()
-                sleep(1)
-            project.recalculateTotal()
-            x+=1
 
         transaction.commit()
 

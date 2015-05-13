@@ -1049,6 +1049,8 @@ class Client(Base):
     Fax = Column(Text)
     Cellular = Column(Text)
     Contact = Column(Text)
+    VAT = Column(Text)
+    RegNo = Column(Text)
 
     def __repr__(self):
         """Return a representation of this client

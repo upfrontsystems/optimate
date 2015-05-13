@@ -669,7 +669,9 @@ def clientsview(request):
                                 'Phone': client.Phone,
                                 'Fax': client.Fax,
                                 'Cellular': client.Cellular,
-                                'Contact': client.Contact})
+                                'Contact': client.Contact,
+                                'VAT': client.VAT,
+                                'RegNo': client.RegNo})
         return clientlist
 
 
