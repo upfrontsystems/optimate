@@ -11,13 +11,14 @@
                 <form class="form-horizontal">
                     <div class="form-group">
                         <label for="inputName" class="col-sm-2 control-label">Name:</label>
-                        <select id="resource-select" autofocus>
+                        <select id="resource-select" autofocus class="col-sm-7">
                             <option ng-repeat="name in resourceList" value="{{name.Name}}">{{name.Name}}</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="inputQuantity" class="col-sm-2 control-label">Quantity:</label>
                         <input type="number"
+                               class="col-sm-7"                        
                                id="inputQuantity"
                                name="inputQuantity"
                                ng-model="formData['Quantity']">
@@ -25,13 +26,14 @@
                     <div class="form-group">
                         <label for="inputMarkup" class="col-sm-2 control-label">Markup:</label>
                         <input type="number"
+                               class="col-sm-7"                        
                                id="inputMarkup"
                                name="inputMarkup"
                                ng-model="formData['Markup']">
                     </div>
                     <div class="form-group">
                         <label for="inputType" class="col-sm-2 control-label">Type:</label>
-                        <select id="type-select">
+                        <select id="type-select" class="col-sm-7">
                             <option ng-repeat="name in cotypeList" value="{{name.ID}}">{{name.Name}}</option>
                         </select>
                     </div>
@@ -40,7 +42,7 @@
 
                         <div id="content">
                             <div id="related_items_finder"
-                                 class="finder icons-on" style="width: 640px;"
+                                 class="finder icons-on col-sm-7"
                                  data-url="http://127.0.0.1:8100">
                                 <ul class="finder-choices">
                                     <li class="search-field">

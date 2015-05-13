@@ -193,3 +193,8 @@ a.resource-button {
 a.resource-category-button {
     color: #a9385e;
 }
+
+.col-sm-7 {
+    padding-left: 0px !important;
+    padding-right: 0px !important;    
+}
