@@ -10,34 +10,9 @@
             <div class="modal-body">
                 <form class="form-horizontal">
                     <div class="form-group">
-                        <label for="inputName" class="col-sm-2 control-label">Name:</label>
-                        <select id="resource-select" autofocus class="col-sm-7">
-                            <option ng-repeat="name in resourceList" value="{{name.Name}}">{{name.Name}}</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="inputQuantity" class="col-sm-2 control-label">Quantity:</label>
-                        <input type="number"
-                               class="col-sm-7"
-                               id="inputQuantity"
-                               name="inputQuantity"
-                               ng-model="formData['Quantity']">
-                    </div>
-                    <div class="form-group">
-                        <label class="col-sm-2 control-label" style="display: block;" ng-repeat="overhead in componentOverheadList">
-                            <input type="checkbox" value="{{overhead.Name}}" ng-model="overhead.selected">
-                             {{overhead.Name}}
+                        <label for="inputResources" 
+                               class="col-sm-2 control-label">Resource:
                         </label>
-                    </div>
-                    <div class="form-group">
-                        <label for="inputType" class="col-sm-2 control-label">Type:</label>
-                        <select id="type-select" class="col-sm-7">
-                            <option ng-repeat="name in cotypeList" value="{{name.ID}}">{{name.Name}}</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="inputResources" class="col-sm-2 control-label">Resource(s):</label>
-
                         <div id="content">
                             <div id="related_items_finder"
                                  class="finder icons-on col-sm-7"
@@ -55,12 +30,42 @@
                                         <span class="internalpath">
                                             <span>Home</span>
                                         </span>
-                                    </div>
+                                    </div>                                
                                     <ul class="finder-results">
                                     </ul>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputName" class="col-sm-2 control-label">Name:</label>
+                        <select id="resource-select" autofocus class="col-sm-7">
+                            <option ng-repeat="name in resourceList" value="{{name.Name}}">{{name.Name}}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputQuantity" class="col-sm-2 control-label">Quantity:</label>
+                        <input type="number"
+                               class="col-sm-7"
+                               id="inputQuantity"
+                               name="inputQuantity"
+                               ng-model="formData['Quantity']">
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" style="display: block;" >Overhead:
+                        </label>
+                        <div ng-repeat="overhead in componentOverheadList">
+                            <span>{{overhead.Name}}</span><span>
+                            <input  type="checkbox" value="{{overhead.Name}}" ng-model="overhead.selected">
+                            </span>
+
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputType" class="col-sm-2 control-label">Type:</label>
+                        <select id="type-select" class="col-sm-7">
+                            <option ng-repeat="name in cotypeList" value="{{name.ID}}">{{name.Name}}</option>
+                        </select>
                     </div>
                 <form>
             </div>
