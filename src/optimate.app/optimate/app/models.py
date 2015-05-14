@@ -642,6 +642,12 @@ class Component(Node):
             else:
                 parent.Total = parent.Total + difference
 
+    def Subtotal(self):
+        """ Subtotal returns the total of the Component with the Overhead
+            costs removed
+        """
+        return (self.Total/Decimal(1+self.Markup)).quantize(Decimal('.01'))
+
     @hybrid_property
     def Name(self):
         """ Get this Components Name, which returns the Resource's Name
@@ -787,6 +793,7 @@ class Component(Node):
             'quantity': self.Quantity,
             'rate': str(self.Rate),
             'budg_cost': str(self.Total),
+            'sub_cost':str(self.Subtotal()),
             'unit': self.Unit,
             'order_cost': str(self.OrderCost.quantize(Decimal('.01'))),
             'run_cost': str(self.RunningCost.quantize(Decimal('.01'))),
