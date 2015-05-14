@@ -62,7 +62,19 @@ allControllers.controller('companyinformationController', ['$scope', '$http', '$
             }).success(function(response){
                 $scope.formData = response;            
             })
-        }        
+        }
+
+        // editing company information data
+        $scope.save = function(){
+            $http({
+                method: 'PUT',
+                url: globalServerURL + 'company_information',
+                data:$scope.formData
+            }).success(function (data) {
+                $scope.company_information = $scope.formData                
+            });
+        };
+
     }
 ]);
 
