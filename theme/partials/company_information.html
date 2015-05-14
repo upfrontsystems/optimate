@@ -1,9 +1,19 @@
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div class="container-fluid">
         <ul class="nav nav-pills">
+            <li>
+                <a title="Edit Company Information" data-ng-click="editingState()" 
+                   data-target="#editCompanyInformation" data-toggle="modal">
+                    <i class="fa fa-pencil"></i>
+                </a>
+            </li>        
         </ul>
     </div>
 </nav>
+
+<div custom-modals modal-id="editCompanyInformation"
+    modal-src="modal_templates/editCompanyInformation.html">
+</div>
 
 <div class="container-fluid">
     <div>COMPANY INFORMATION</div>

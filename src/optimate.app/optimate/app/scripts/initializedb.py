@@ -17,7 +17,7 @@ from pyramid.paster import (
     setup_logging,
 )
 
-from ..models import (
+from optimate.app.models import (
     DBSession,
     Node,
     Project,
@@ -28,6 +28,7 @@ from ..models import (
     ResourceCategory,
     Resource,
     Base,
+    CompanyInformation,    
 )
 
 
