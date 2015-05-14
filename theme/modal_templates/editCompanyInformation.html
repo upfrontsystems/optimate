@@ -1,0 +1,105 @@
+<div id="editCompanyInformation" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" 
+                        aria-hidden="true">&times;
+                </button>
+                <h3 class="modal-title">Edit Company Information</h3>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal">
+                    <div class="form-group">
+                        <label for="inputName" class="col-sm-3 control-label">Name:</label>
+                        <input type="text"
+                               class="col-sm-7"
+                               id="inputName"
+                               name="inputName"
+                               ng-model="formData['Name']"
+                               required
+                               autofocus>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputAddress" class="col-sm-3 control-label">Address:</label>
+                        <textarea id="inputAddress"
+                                  class="col-sm-7"                        
+                                  name="inputAddress"
+                                  ng-model="formData['Address']"
+                                  rows="5" cols="40">
+                        </textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputTel" class="col-sm-3 control-label">Tel:</label>
+                        <input type="text"
+                               class="col-sm-7"                        
+                               id="inputTel"
+                               name="inputTel"
+                               ng-model="formData['Tel']">
+                    </div>
+                    <div class="form-group">
+                        <label for="inputFax" class="col-sm-3 control-label">Fax:</label>
+                        <input type="text"
+                               class="col-sm-7"                        
+                               id="inputFax"
+                               name="inputFax"
+                               ng-model="formData['Fax']">
+                    </div>                    
+                    <div class="form-group">
+                        <label for="inputCell" class="col-sm-3 control-label">Cell:</label>
+                        <input type="text"
+                               class="col-sm-7"                        
+                               id="inputCell"
+                               name="inputCell"
+                               ng-model="formData['Cell']">
+                    </div>
+                    <!--  'Company Header': '', -->
+                    <!--  'Order Header': '', -->
+                    <div class="form-group">
+                        <label for="inputBankName" class="col-sm-3 control-label">Bank Name:</label>
+                        <input type="text"
+                               class="col-sm-7"                        
+                               id="inputBankName"
+                               name="inputBankName"
+                               ng-model="formData['BankName']">
+                    </div>
+                    <div class="form-group">
+                        <label for="inputBranchCode" class="col-sm-3 control-label">Branch Code:</label>
+                        <input type="text"
+                               class="col-sm-7"                        
+                               id="inputBanchCode"
+                               name="inputBranchCode"
+                               ng-model="formData['BranchCode']">
+                    </div>
+                    <div class="form-group">
+                        <label for="inputAccountNo" class="col-sm-3 control-label">Account No:</label>
+                        <input type="text"
+                               class="col-sm-7"                        
+                               id="inputAccountNo"
+                               name="inputAccountNo"
+                               ng-model="formData['AccountNo']">
+                    </div>
+                    <div class="form-group">
+                        <label for="inputAccountName" class="col-sm-3 control-label">Account Name:</label>
+                        <input type="text"
+                               class="col-sm-7"                        
+                               id="inputAccountName"
+                               name="inputAccountName"
+                               ng-model="formData['AccountName']">
+                    </div>                    
+                    <div class="form-group">
+                        <label for="inputDefaultTaxrate" class="col-sm-3 control-label">Default Taxrate:</label>
+                        <input type="text"
+                               class="col-sm-7"                        
+                               id="inputDefaultTaxrate"
+                               name="inputDefaultTaxrate"
+                               ng-model="formData['DefaultTaxrate']">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="disableButton(); save()">Save</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>

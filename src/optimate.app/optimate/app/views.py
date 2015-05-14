@@ -30,6 +30,7 @@ from .models import (
     Overhead,
     Client,
     Supplier,
+    CompanyInformation,
 )
 
 # the categories the resources fall into
@@ -268,6 +269,7 @@ def units(request):
             unitlist.append({'Name': unit.Name})
         return sorted(unitlist, key=lambda k: k['Name'])
 
+
 @view_config(route_name="component_overheads", renderer='json')
 def componentoverheads(request):
     """ Get a list of the Overheads a component can use
@@ -287,6 +289,7 @@ def componentoverheads(request):
                                 'ID': overhead.ID,
                                 'selected': False})
         return sorted(overheadlist, key=lambda k: k['Name'])
+
 
 @view_config(route_name="overhead_list", renderer='json')
 def overheadlist(request):
@@ -718,20 +721,39 @@ def company_information(request):
     if request.method == 'OPTIONS':
         return {"success": True}
     else:
-        # XXX get the information from the database
-        dummy_data = {'Name': 'TETIUS RABE PROPERTY SERVICES',
-                      'Address': '173 KLEINBOS AVENUE, SOMERSET-WEST',
-                      'Tel': '0218511572',
-                      'Fax': '0218511572',
-                      'Cell': '0832742643',
-                      'Company Header': '',
-                      'Order Header': '',
-                      'Bank name': 'BOE BANK WORCESTER',
-                      'Branch Code': '440-707',
-                      'Account No': '2572658703',
-                      'Account Name': 'TR Property Services',
-                      'Default Taxrate': '14.00'}
-        return dummy_data
+        qry = DBSession.query(CompanyInformation).filter_by(ID=0).first()
+        if qry == None:
+            company_information = CompanyInformation(ID=0,
+                                     Name='TETIUS RABE PROPERTY SERVICES',
+                                     Address='173 KLEINBOS AVENUE, SOMERSET-WEST',
+                                     Tel='0218511572',
+                                     Fax='0218511572',
+                                     Cell='0832742643',
+                                     #CompanyHeader='',
+                                     #Order Header'='',
+                                     BankName='BOE BANK WORCESTER',
+                                     BranchCode='440707',
+                                     AccountNo='2572658703',
+                                     AccountName='TR Property Services',
+                                     DefaultTaxrate='14.00')
+            DBSession.add(company_information)
+            DBSession.flush()
+            transaction.commit()
+            qry = DBSession.query(CompanyInformation).filter_by(ID=0).first()
+
+        data = {'Name': qry.Name,
+                'Address': qry.Address,
+                'Tel': qry.Tel,
+                'Fax': qry.Fax,
+                'Cell': qry.Cell,
+                'Company Header': '',
+                'Order Header': '',
+                'Bank name': qry.BankName,
+                'Branch Code': qry.BranchCode,
+                'Account No': qry.AccountNo,
+                'Account Name': qry.AccountName,
+                'Default Taxrate': qry.DefaultTaxrate}
+        return data        
 
 
 @view_config(route_name='clientsview', renderer='json')
