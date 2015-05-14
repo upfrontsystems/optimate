@@ -436,7 +436,6 @@ if __name__ == '__main__':
             except UnicodeEncodeError, u:
                 description = unicodedata.normalize('NFKD',
                                     description).encode('ascii', 'ignore')
-            measureunit = sheet.cell(x, unitindex).value
             # set the costs to 0 if theres a problem
             try:
                 budgetcost = Decimal(sheet.cell(x,
@@ -517,7 +516,6 @@ if __name__ == '__main__':
                             _Total=budgetcost,
                             _Quantity=quantity,
                             _Rate=rate,
-                            Unit=measureunit,
                             OrderCost=ordercost,
                             RunningCost=running,
                             ClaimedCost=claimedcost,
