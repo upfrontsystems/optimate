@@ -48,11 +48,21 @@ allControllers.controller('companyinformationController', ['$scope', '$http', '$
 
         var req = {
             method: 'GET',
-            url: globalServerURL +'company_information',
+            url: globalServerURL + 'company_information',
         };
         $http(req).success(function(data){
             $scope.company_information = data;
         });
+
+        // When the edit button is pressed change the state and set the data
+        $scope.editingState = function (){            
+            $http({
+                method: 'GET',
+                url: globalServerURL + 'company_information',
+            }).success(function(response){
+                $scope.formData = response;            
+            })
+        }        
     }
 ]);
 
