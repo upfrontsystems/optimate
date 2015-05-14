@@ -571,14 +571,12 @@ class Component(Node):
        It can be the child of a budgetitem
        It has a many-to-one relationship with Resource, which
        defines its Name, Description, and Rate.
-       It has a column name Type defined by the table ComponentType.
     """
     __tablename__ = 'Component'
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'),
                 primary_key=True)
     ResourceID = Column(Integer, ForeignKey('Resource.ID'))
-    Type = Column(Integer, ForeignKey('ComponentType.ID'))
     _Quantity = Column('Quantity', Float, default=0.0)
     _Total = Column('Total', Numeric)
 
@@ -729,7 +727,6 @@ class Component(Node):
             but with the ParentID specified.
         """
         copied = Component(ResourceID=self.ResourceID,
-                            Type=self.Type,
                             Unit=self.Unit,
                             ParentID=parentid,
                             _Quantity=self._Quantity,
@@ -817,22 +814,6 @@ class Overhead(Base):
         return '<Overhead(Name="%s", Percentage="%f", ID="%s")>' % (
             self.Name, self.Percentage, self.ID)
 
-
-class ComponentType(Base):
-    """ ComponentType defines the different type of component
-        It only has a unique ID and a name, it does not inherit from Node
-        or form path of the project hierarchy
-    """
-    __tablename__ = 'ComponentType'
-    ID = Column(Integer, primary_key=True)
-    Name = Column(Text)
-
-    Components = relationship('Component',
-                              backref=backref('TypeOf'))
-
-    def __repr__(self):
-        return '<ComponentType(Name="%s", ID="%s")>' % (
-            self.Name, self.ID)
 
 class Unit(Base):
     """ Unit defines a unit used by a Resource
@@ -984,6 +965,22 @@ class ResourceCategory(Node):
             self.Name, self.ID)
 
 
+class ResourceType(Base):
+    """ ResourceType defines the different type of resource
+        It only has a unique name, it does not inherit from Node
+        or form path of the project hierarchy
+    """
+    __tablename__ = 'ResourceType'
+    Name = Column(Text, primary_key=True)
+
+    Resources = relationship('Resource',
+                              backref=backref('ResourceType'))
+
+    def __repr__(self):
+        return '<ResourceType(Name="%s")>' % (
+            self.Name)
+
+
 class Resource(Node):
     """ Resource represents a specific resource used in Optimate
         Each resource is unique and can be referenced by multiple Components
@@ -991,6 +988,7 @@ class Resource(Node):
         as it's parent.
         It has a _Rate attribute with a Rate property, when the Rate changes
         the component's Totals change as well
+        It has a column name Type defined by the table ResourceType.
     """
     __tablename__ = 'Resource'
     ID = Column(Integer,
@@ -1000,6 +998,7 @@ class Resource(Node):
     Name = Column(Text)
     Description = Column(Text)
     Unit = Column(Text, ForeignKey('Unit.Name'))
+    Type = Column(Integer, ForeignKey('ResourceType.Name'))
     _Rate = Column('Rate', Numeric, default=Decimal(0.00))
 
     __mapper_args__ = {
@@ -1036,6 +1035,7 @@ class Resource(Node):
         """
         copied = Resource(Name=self.Name,
                          Description=self.Description,
+                         Type=self.Type,
                          Code = self.Code,
                          ParentID=parentid,
                          _Rate = self.Rate)
@@ -1132,7 +1132,7 @@ class CompanyInformation(Base):
     Tel = Column(Text)
     Fax = Column(Text)
     Cell = Column(Text)
-    #CompanyHeader = 
+    #CompanyHeader =
     #OrderHeader =
     BankName = Column(Text)
     BranchCode = Column(Text)

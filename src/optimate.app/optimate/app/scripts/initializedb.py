@@ -24,11 +24,11 @@ from optimate.app.models import (
     BudgetGroup,
     BudgetItem,
     Component,
-    ComponentType,
+    ResourceType,
     ResourceCategory,
     Resource,
     Base,
-    CompanyInformation,    
+    CompanyInformation,
 )
 
 

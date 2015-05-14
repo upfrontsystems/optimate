@@ -12,7 +12,7 @@
                     <div class="form-group">
                         <label for="inputName" class="col-sm-2 control-label">Name:</label>
                         <input type="text"
-                               class="col-sm-7"                        
+                               class="col-sm-7"
                                id="inputName"
                                name="inputName"
                                ng-model="formData['Name']"
@@ -22,7 +22,7 @@
                     <div class="form-group">
                         <label for="inputDescription" class="col-sm-2 control-label">Description:</label>
                         <textarea id="inputDescription"
-                                  class="col-sm-7"                        
+                                  class="col-sm-7"
                                   name="inputDescription"
                                   ng-model="formData['Description']"
                                   rows="5" cols="40">
@@ -31,7 +31,7 @@
                     <div class="form-group">
                         <label for="inputRate" class="col-sm-2 control-label">Rate:</label>
                         <input type="number"
-                               class="col-sm-7"                        
+                               class="col-sm-7"
                                id="inputRate"
                                name="inputRate"
                                ng-model="formData['Rate']">
@@ -40,6 +40,12 @@
                         <label for="inputUnit" class="col-sm-2 control-label">Unit:</label>
                         <select id="unit-select" class="col-sm-7">
                             <option ng-repeat="name in unitList" value="{{name.Name}}">{{name.Name}}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputType" class="col-sm-2 control-label">Type:</label>
+                        <select id="type-select" class="col-sm-7">
+                            <option ng-repeat="name in restypeList" value="{{name.Name}}">{{name.Name}}</option>
                         </select>
                     </div>
                 </form>

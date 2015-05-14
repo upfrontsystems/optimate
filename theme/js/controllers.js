@@ -567,18 +567,6 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
 
         // Loads a list of the resources and list of the component types
         $scope.loadRelatedList = function(){
-            // load the component types
-            $scope.cotypeList = [{"Name": "Loading..."}];
-            var req = {
-                method: 'GET',
-                url: globalServerURL +'component_types'
-            }
-            $http(req).success(function(data) {
-                $scope.cotypeList = data;
-                console.log("Component Type list loaded");
-                $('select#type-select').focus();
-            });
-
             // load the related list
             var req = {
                 method: 'GET',
@@ -615,8 +603,21 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             })
         }
 
-        // Load a list of the units in the database
-        $scope.loadUnitList = function(){
+        // Load a list of the fields used in adding a resource
+        $scope.loadResourceRelatedList = function(){
+            // load the resource types
+            $scope.restypeList = [{"Name": "Loading..."}];
+            var req = {
+                method: 'GET',
+                url: globalServerURL +'resource_types'
+            }
+            $http(req).success(function(data) {
+                $scope.restypeList = data;
+                console.log("Resource Type list loaded");
+                $('select#type-select').focus();
+            });
+
+            // load the unit list
             $scope.unitList = [{"Name": "Loading..."}];
             var req = {
                 method: 'GET',
@@ -631,8 +632,8 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
 
         // Add the selected type from the list to the form data as its id
         $scope.selectedType = function(){
-            var cotype = $('#type-select').find(":selected").val();
-            $scope.formData['ComponentType'] = cotype;
+            var restype = $('#type-select').find(":selected").val();
+            $scope.formData['ResourceType'] = restype;
         };
 
         // Add the selected unit from the list to the form data as unit

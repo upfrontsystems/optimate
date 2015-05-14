@@ -55,7 +55,7 @@ def main(global_config, **settings):
     config.add_route('overhead_list', '/overhead_list/{id}/')
     config.add_route('component_overheads', '/component_overheads/{id}/')
     config.add_route('units', '/unit_list')
-    config.add_route('componenttypes', '/component_types')
+    config.add_route('resourcetypes', '/resource_types')
     config.add_route('resources', '/resources')
     config.add_route('projectview', 'projectview/{projectid}/')
     config.add_route('nodegridview', '/nodegridview/{parentid}/')
@@ -70,7 +70,7 @@ def main(global_config, **settings):
     config.add_route('suppliersview', '/suppliers')
     config.add_route('clientview', '/{id}/client')
     config.add_route('supplierview', '/{id}/supplier')
-    config.add_route('company_information', '/company_information')    
+    config.add_route('company_information', '/company_information')
 
     config.scan()
     return config.make_wsgi_app()

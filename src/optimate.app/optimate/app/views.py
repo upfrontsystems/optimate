@@ -23,7 +23,7 @@ from .models import (
     BudgetGroup,
     BudgetItem,
     Component,
-    ComponentType,
+    ResourceType,
     ResourceCategory,
     Resource,
     Unit,
@@ -234,20 +234,20 @@ def resources(request):
         return sorted(resources, key=lambda k: k['Name'].upper())
 
 
-@view_config(route_name="componenttypes", renderer='json')
-def componenttypes(request):
-    """ Returns a list of all the component types in the database
+@view_config(route_name="resourcetypes", renderer='json')
+def resourcetypes(request):
+    """ Returns a list of all the resource types in the database
     """
     if request.method == 'OPTIONS':
         return {"success": True}
     else:
-        cotypelist = []
+        restypelist = []
         # Get all the unique Resources in the Resource table
-        qry = DBSession.query(ComponentType).all()
+        qry = DBSession.query(ResourceType).all()
         # build the list and only get the neccesary values
-        for cotype in qry:
-            cotypelist.append({'Name': cotype.Name, 'ID': cotype.ID})
-        return sorted(cotypelist, key=lambda k: k['Name'].upper())
+        for restype in qry:
+            restypelist.append({'Name': restype.Name})
+        return sorted(restypelist, key=lambda k: k['Name'].upper())
 
 
 @view_config(route_name="units", renderer='json')
@@ -442,7 +442,7 @@ def additemview(request):
         quantity = float(request.json_body.get('Quantity', 0))
         rate = request.json_body.get('Rate', 0)
         rate = Decimal(rate).quantize(Decimal('.01'))
-        componenttype = int(request.json_body.get('ComponentType', 0))
+        resourcetype = request.json_body.get('ResourceType', '')
         unit = request.json_body.get('Unit', '')
         objecttype = request.json_body['NodeType']
         newid = 0
@@ -453,6 +453,7 @@ def additemview(request):
             newnode = Resource(Name=name,
                                 Description = desc,
                                 Unit=unit,
+                                Type=resourcetype,
                                   _Rate= rate,
                                   ParentID=parentid)
             # check if the resource is not in the resource category
@@ -500,7 +501,6 @@ def additemview(request):
                                     ParentID=rescatid, Name=name).first()
 
                     editedcomp.Resource = resource
-                editedcomp.Type=componenttype
                 editedcomp.Quantity=quantity
                 editedcomp.Overheads[:] = []
                 newid = editedcomp.ID
@@ -555,7 +555,6 @@ def additemview(request):
                         resource = newresource
 
                 newcomp = Component(ResourceID=resource.ID,
-                                    Type=componenttype,
                                     _Quantity = quantity,
                                     ParentID=parentid)
 

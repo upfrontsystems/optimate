@@ -11,13 +11,14 @@ from optimate.app.models import (
     BudgetGroup,
     BudgetItem,
     Component,
-    ComponentType,
+    ResourceType,
     Unit,
     Overhead,
     ResourceCategory,
     Resource,
     Client,
-    Supplier
+    Supplier,
+    CompanyInformation
 )
 
 from sqlalchemy import (
@@ -618,10 +619,6 @@ if __name__ == '__main__':
                 description = unicodedata.normalize('NFKD',
                                     description).encode('ascii', 'ignore')
             try:
-                cotype = int(sheet.cell(x, typeindex).value)
-            except ValueError, v:
-                cotype = 1
-            try:
                 budgetcost = Decimal(sheet.cell(x,
                     budgetcostindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
@@ -763,7 +760,6 @@ if __name__ == '__main__':
                                         ResourceID=resourceid,
                                         _Total = budgetcost,
                                         _Quantity = quantity,
-                                        Type=cotype,
                                         ParentID=parentcode,
                                         OrderCost=ordercost,
                                         RunningCost=running,
@@ -779,7 +775,6 @@ if __name__ == '__main__':
                                     ResourceID=resource.ID,
                                     _Total = budgetcost,
                                     _Quantity = quantity,
-                                    Type=cotype,
                                     ParentID=parentcode,
                                     OrderCost=ordercost,
                                     RunningCost=running,
@@ -794,24 +789,13 @@ if __name__ == '__main__':
         transaction.commit()
         stdout.write('\n')
 
-        cotypebook = xlrd.open_workbook(exceldatapath + 'CompTypes.xls')
-        sheet = cotypebook.sheet_by_index(0)
-        codeindex = 0
-        nameindex = 1
-
-        print 'Converting Component Type table'
-        # build the componenttypes
-        for x in range(1, sheet.nrows):
-            code = int(sheet.cell(x, codeindex).value)
-            try:
-                name = sheet.cell(x, nameindex).value
-                name = name.encode('ascii')
-            except UnicodeEncodeError, u:
-                name = unicodedata.normalize('NFKD',
-                                    name).encode('ascii', 'ignore')
-
-            cotype = ComponentType(ID=code, Name=name)
-            DBSession.add(cotype)
+        print 'Converting Resource Type table'
+        labtype = ResourceType(Name='Labour')
+        DBSession.add(labtype)
+        mattype = ResourceType(Name='Material')
+        DBSession.add(mattype)
+        subtype = ResourceType(Name='Subcontractor')
+        DBSession.add(subtype)
 
         transaction.commit()
 

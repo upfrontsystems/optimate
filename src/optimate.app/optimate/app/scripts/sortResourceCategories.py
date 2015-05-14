@@ -11,7 +11,7 @@ from optimate.app.models import (
     BudgetGroup,
     BudgetItem,
     Component,
-    ComponentType,
+    ResourceType,
     ResourceCategory,
     Resource,
     Client,
