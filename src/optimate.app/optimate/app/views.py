@@ -435,7 +435,6 @@ def additemview(request):
         name = request.json_body['Name']
         desc = request.json_body.get('Description', '')
         quantity = float(request.json_body.get('Quantity', 0))
-        markup = float(request.json_body.get('Markup', 0))/100.0
         rate = request.json_body.get('Rate', 0)
         rate = Decimal(rate).quantize(Decimal('.01'))
         componenttype = int(request.json_body.get('ComponentType', 0))
@@ -470,7 +469,7 @@ def additemview(request):
             DBSession.add(newnode)
             DBSession.flush()
             newid = newnode.ID
-            # Automaticcaly add a Resource Category to a new Project
+            # Automatically add a Resource Category to a new Project
             newresourcecat = ResourceCategory(Name='Resource List',
                                             Description='List of Resources',
                                             ParentID=newid)
@@ -498,8 +497,18 @@ def additemview(request):
                     editedcomp.Resource = resource
                 editedcomp.Type=componenttype
                 editedcomp.Quantity=quantity
-                editedcomp.Markup=markup
+                editedcomp.Overheads[:] = []
                 newid = editedcomp.ID
+                DBSession.flush()
+
+                # get the list of overheads used in the checkboxes
+                checklist = request.json_body['OverheadList']
+                for record in checklist:
+                    if record['selected']:
+                        overheadid = record['ID']
+                        overhead = DBSession.query(
+                                    Overhead).filter_by(ID=overheadid).first()
+                        editedcomp.Overheads.append(overhead)
                 DBSession.flush()
             else:
                 # Components need to reference a Resource

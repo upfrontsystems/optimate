@@ -541,6 +541,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             }
         }
 
+        // clear the overhead modal input fields
         $scope.clearInput = function(){
             $scope.newOverhead = undefined;
         }
@@ -591,6 +592,24 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 console.log("Related list loaded");
             });
         };
+
+        // edit a component
+        $scope.editComponent = function(nodeid, nodetype){
+            $http({
+                method: 'GET',
+                url: globalServerURL + 'node/' + nodeid + '/'
+            }).success(function(response){
+                var overheadlist = response['overheadlist'];
+                var arrayLength = $scope.componentOverheadList.length;
+                for (var i = 0; i < arrayLength; i++) {
+                    if (overheadlist.indexOf($scope.componentOverheadList[i].ID) != -1){
+                        $scope.componentOverheadList[i].selected = true;
+                    }
+                }
+                $scope.formData = response;
+                $scope.formData['NodeType'] = nodetype;
+            })
+        }
 
         // Load a list of the units in the database
         $scope.loadUnitList = function(){
@@ -741,17 +760,6 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                     });
                 }
             }
-        }
-
-        // edit a component
-        $scope.editComponent = function(nodeid, nodetype){
-            $http({
-                method: 'GET',
-                url: globalServerURL + 'node/' + nodeid + '/'
-            }).success(function(response){
-                $scope.formData = response;
-                $scope.formData['NodeType'] = nodetype;
-            })
         }
 
         // Load the children and add to the tree

@@ -692,7 +692,7 @@ class Component(Node):
     @Rate.setter
     def Rate(self, rate):
         """ The rate of the component is set by its resource
-            It triggers a reset of the total
+            So it cant be set from the component
         """
         # change the total when the rate changes
         self.Total = (1.0+self.Markup) * self.Quantity * float(rate)
@@ -759,11 +759,16 @@ class Component(Node):
 
     def toDict(self):
         """ Return a dictionary of all the attributes of this Component
+            Also returns a list of the Overhead ID's used by this component
         """
+        overheadlist = []
+        for overhead in self.Overheads:
+            overheadlist.append(overhead.ID)
         return {'Name': self.Name,
                 'Unit': self.Unit,
                 'Quantity': self.Quantity,
                 'ID':self.ID,
+                'overheadlist': overheadlist,
                 'order_cost': str(self.OrderCost),
                 'run_cost': str(self.RunningCost),
                 'claim_cost': str(self.ClaimedCost),
