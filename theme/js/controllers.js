@@ -17,12 +17,16 @@ allControllers.factory('sharedService', ['$rootScope',
         // when a node is added to the projects treeview
         // the slickgrid should be reloaded
         shared.nodeAdded = function(){
-            this.reloadId = $rootScope.currentNode.ID;
-            $rootScope.$broadcast('handleReloadSlickgrid');
+            this.reloadSlickgrid($rootScope.currentNode.ID);
         }
 
         shared.clearSlickgrid = function(){
             $rootScope.$broadcast('handleClearSlickgrid');
+        }
+
+        shared.reloadSlickgrid = function(nodeid){
+            this.reloadId = nodeid;
+            $rootScope.$broadcast('handleReloadSlickgrid');
         }
 
         return shared;
