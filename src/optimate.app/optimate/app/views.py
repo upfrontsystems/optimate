@@ -952,11 +952,11 @@ def company_information(request):
                 'Tel': qry.Tel,
                 'Fax': qry.Fax,
                 'Cell': qry.Cell,
-                'Company Header': '',
-                'Order Header': '',
-                'Bank name': qry.BankName,
-                'Branch Code': qry.BranchCode,
-                'Account No': qry.AccountNo,
-                'Account Name': qry.AccountName,
-                'Default Taxrate': qry.DefaultTaxrate}
+                'CompanyHeader': '',
+                'OrderHeader': '',
+                'BankName': qry.BankName,
+                'BranchCode': qry.BranchCode,
+                'AccountNo': qry.AccountNo,
+                'AccountName': qry.AccountName,
+                'DefaultTaxrate': qry.DefaultTaxrate}
         return data
