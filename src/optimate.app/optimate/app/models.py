@@ -1128,3 +1128,27 @@ class Supplier(Base):
         return '<Supplier(Name="%s", ID="%s")>' % (
             self.Name, self.ID)
 
+
+class CompanyInformation(Base):
+    """A table containing the company information data of Optimate
+    """
+    __tablename__ = 'CompanyInformation'
+    ID = Column(Integer, primary_key=True)
+    Name = Column(Text)
+    Address = Column(Text)
+    Tel = Column(Text)
+    Fax = Column(Text)
+    Cell = Column(Text)
+    #CompanyHeader = 
+    #OrderHeader =
+    BankName = Column(Text)
+    BranchCode = Column(Text)
+    AccountNo = Column(Text)
+    AccountName = Column(Text)
+    DefaultTaxrate = Column(Text)
+
+    def __repr__(self):
+        """Return a representation of this company information
+        """
+        return '<CompanyInformation(Name="%s", Address="%s")>' % (
+            self.Name, self.Address)
