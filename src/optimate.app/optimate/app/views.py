@@ -925,9 +925,29 @@ def company_information(request):
     """
     if request.method == 'OPTIONS':
         return {"success": True}
+    # if the method is put, edit the company information data
+    elif request.method == 'PUT':
+        company_information = DBSession.query(CompanyInformation).filter_by(ID=0).first()
+        company_information.Name=request.json_body.get('Name', '')
+        company_information.Address=request.json_body.get('Address', '')
+        company_information.Tel=request.json_body.get('Tel', '')
+        company_information.Fax=request.json_body.get('Fax', '')
+        company_information.Cell=request.json_body.get('Cell', '')
+         # XXX add CompanyHeader and Order Header here
+        company_information.BankName=request.json_body.get('BankName', '')
+        company_information.BranchCode=request.json_body.get('BranchCode', '')
+        company_information.AccountNo=request.json_body.get('AccountNo', '')
+        company_information.AccountName=request.json_body.get('AccountName', '')
+        company_information.DefaultTaxrate=request.json_body.get('DefaultTaxrate', '')
+
+        DBSession.flush()
+        transaction.commit()
+        return HTTPOk()
+    # otherwise return the company information data
     else:
         qry = DBSession.query(CompanyInformation).filter_by(ID=0).first()
         if qry == None:
+            # if the company information has never been entered, supply these defaults
             company_information = CompanyInformation(ID=0,
                                      Name='TETIUS RABE PROPERTY SERVICES',
                                      Address='173 KLEINBOS AVENUE, SOMERSET-WEST',
