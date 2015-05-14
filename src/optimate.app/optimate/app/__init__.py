@@ -66,12 +66,11 @@ def main(global_config, **settings):
     config.add_route('costview', '/{id}/cost')
 
     # the company information, client and supplier views
-    config.add_route('company_information', '/company_information')
     config.add_route('clientsview', '/clients')
     config.add_route('suppliersview', '/suppliers')
     config.add_route('clientview', '/{id}/client')
     config.add_route('supplierview', '/{id}/supplier')
+    config.add_route('company_information', '/company_information')    
 
     config.scan()
     return config.make_wsgi_app()
-
