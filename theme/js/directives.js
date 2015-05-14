@@ -185,19 +185,39 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 // whether there are empty columns
                 var emptycolumns = response['emptycolumns'];
                 if (data.length > 0){
-                    if (data[0]['node_type'] == 'Resource'){
+                    // If the grid is only showing resources or resourcecategories
+                    var secondtype = data[0]['node_type']
+                    if ((secondtype == 'Resource') || (secondtype == 'ResourceCategory')){
+                        if (data.length>1){
+                            secondtype = data[1]['node_type']
+                        }
+                    }
+                    if ((secondtype == 'Resource') || (secondtype == 'ResourceCategory')){
                         newcolumns = [
                             {id: "name", name: "Name", field: "name",
                              width: cell_large, cssClass: "cell-title non-editable-column"},
                             {id: "rate", name: "Rate", field: "rate", cssClass: "cell editable-column",
                              width: cell_small, formatter: CurrencyFormatter, editor: Slick.Editors.Float},
                              {id: "unit", name: "Unit", field: "unit",
-                            width: cell_medium, cssClass: "cell  non-editable-column"},
+                            width: cell_medium, cssClass: "cell non-editable-column"},
                         ];
 
                         grid.setColumns(newcolumns);
                         dataView.beginUpdate();
                         dataView.setItems(data);
+                        dataView.endUpdate();
+
+                        // Grey out ResourceCategory rate columns
+                        for (var i=0; i < data.length; i++){
+                            if (data[i]['node_type'] == 'ResourceCategory'){
+                                grid.setCellCssStyles("non-editable-cell", {
+                                   i: {
+                                        "rate": "cell non-editable-column",
+                                       },
+                                });
+                            }
+                        }
+                        dataView.beginUpdate();
                         dataView.endUpdate();
                         grid.render();
                     }
@@ -253,6 +273,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                     });
                                 }
                             }
+                            dataView.beginUpdate();
+                            dataView.endUpdate();
                             grid.render();
                         }
                     }
@@ -313,6 +335,10 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     data: item,
                     dataType: "json",
                     success: function(data) {
+                        if (data){
+                            item.budg_cost = data['total'];
+                            dataView.updateItem(item.id, item);
+                        }
                         console.log('id_'+ item.id + ' updated')
                     },
                 });

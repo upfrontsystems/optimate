@@ -330,7 +330,6 @@ class BudgetGroup(Node):
             subitem = [{'Name':''}]
         return {'name': self.Name,
                 'budg_cost': self.Total,
-                'unit': self.Unit,
                 'order_cost': self.OrderCost,
                 'run_cost': self.RunningCost,
                 'claim_cost': self.ClaimedCost,
@@ -369,7 +368,6 @@ class BudgetItem(Node):
                 primary_key=True)
     Description = Column(Text)
     Name = Column(Text)
-    Unit = Column(Text)
     _Quantity = Column('Quantity', Float, default=0.0)
     _Rate = Column('Rate', Numeric)
     _Total = Column('Total', Numeric)
@@ -482,7 +480,6 @@ class BudgetItem(Node):
         """
         copied = BudgetItem(Name=self.Name,
                             Description=self.Description,
-                            Unit=self.Unit,
                             ParentID=parentid,
                             _Quantity=self._Quantity,
                             _Rate=self._Rate,
@@ -529,7 +526,6 @@ class BudgetItem(Node):
             subitem = [{'Name':''}]
         return {'name': self.Name,
                 'budg_cost': self.Total,
-                'unit': self.Unit,
                 'order_cost': self.OrderCost,
                 'run_cost': self.RunningCost,
                 'claim_cost': self.ClaimedCost,
@@ -548,7 +544,6 @@ class BudgetItem(Node):
             'markup':self.Markup*100.0,
             'rate': str(self.Rate),
             'quantity': self.Quantity,
-            'unit': self.Unit,
             'budg_cost': str(self.Total),
             'order_cost': str(self.OrderCost.quantize(Decimal('.01'))),
             'run_cost': str(self.RunningCost.quantize(Decimal('.01'))),
@@ -726,10 +721,8 @@ class Component(Node):
     @Unit.setter
     def Unit(self, unit):
         """ The Unit of the component is set by its resource
-            It triggers a reset of the total
         """
-        # change the total when the rate changes
-        self.Resource.Unit = unit
+        pass
 
     def copy(self, parentid):
         """ copy returns an exact duplicate of this object,

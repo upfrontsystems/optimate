@@ -70,54 +70,50 @@ def childview(request):
     # build the list and only get the neccesary values
     if qry != None:
         for child in qry.Children:
-            if child.type != 'Resource':
-                if child.type == 'ResourceCategory':
-                    subitem = []
-                    if len(child.Children) > 0:
-                        subitem = [{'Name': '...'}]
+            if child.type == 'ResourceCategory':
+                subitem = []
+                if len(child.Children) > 0:
+                    subitem = [{'Name': '...'}]
 
+                nodetypeabbr = 'C'
+                resourcecategories.append({
+                    'Name': child.Name,
+                    'Description': child.Description,
+                    'ID': child.ID,
+                    'Subitem': subitem,
+                    'NodeType': child.type,
+                    'NodeTypeAbbr' : nodetypeabbr
+                    })
+            else:
+                subitem = []
+                if len(child.Children) > 0:
+                    subitem = [{'Name': '...'}]
+
+                nodetypeabbr = ''
+                if child.type == "Project":
+                    nodetypeabbr = 'P'
+                elif child.type == "Resource":
+                    nodetypeabbr = 'R'
+                elif child.type == "BudgetItem":
+                    nodetypeabbr = 'I'
+                elif child.type == "BudgetGroup":
+                    nodetypeabbr = 'G'
+                elif child.type == "Component":
                     nodetypeabbr = 'C'
-                    resourcecategories.append({
-                        'Name': child.Name,
-                        'Description': child.Description,
-                        'ID': child.ID,
-                        'Subitem': subitem,
-                        'NodeType': child.type,
-                        'NodeTypeAbbr' : nodetypeabbr
-                        })
-                else:
-                    childqry = DBSession.query(
-                                    Node).filter_by(ParentID=child.ID)
-                    if childqry.count() > 0:
-                        subitem = [{'Name': '...'}]
-                    else:
-                        subitem = []
 
-                    nodetypeabbr = ''
-                    if child.type == "Project":
-                        nodetypeabbr = 'P'
-                    elif child.type == "Resource":
-                        nodetypeabbr = 'R'
-                    elif child.type == "BudgetItem":
-                        nodetypeabbr = 'I'
-                    elif child.type == "BudgetGroup":
-                        nodetypeabbr = 'G'
-                    elif child.type == "Component":
-                        nodetypeabbr = 'C'
-
-                    childrenlist.append({
-                        'Name': child.Name,
-                        'Description': child.Description,
-                        'ID': child.ID,
-                        'Subitem': subitem,
-                        'NodeType': child.type,
-                        'NodeTypeAbbr' : nodetypeabbr
-                        })
+                childrenlist.append({
+                    'Name': child.Name,
+                    'Description': child.Description,
+                    'ID': child.ID,
+                    'Subitem': subitem,
+                    'NodeType': child.type,
+                    'NodeTypeAbbr' : nodetypeabbr
+                    })
 
     # sort childrenlist
-    sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'])
+    sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'].upper())
     # sort categories
-    sorted_categories = sorted(resourcecategories, key=lambda k: k['Name'])
+    sorted_categories = sorted(resourcecategories, key=lambda k: k['Name'].upper())
 
     completelist = sorted_categories + sorted_childrenlist
 
@@ -158,7 +154,7 @@ def project_listing(request):
         for project in qry:
             projects.append({'Name': project.Name,
                              'ID': project.ID})
-        return sorted(projects, key=lambda k: k['Name'])
+        return sorted(projects, key=lambda k: k['Name'].upper())
 
 
 @view_config(route_name="resource_list", renderer='json')
@@ -184,7 +180,7 @@ def resource_list(request):
             return resourcelist
         # build the list and only get the neccesary values
         resourcelist = resourcecategory.getResources()
-        return sorted(resourcelist, key=lambda k: k['Name'])
+        return sorted(resourcelist, key=lambda k: k['Name'].upper())
 
 
 @view_config(route_name="related_list", renderer='json')
@@ -215,7 +211,7 @@ def related_list(request):
                             "parent_url": "",
                             "path": [ {"url": "http://127.0.0.1:8100"} ],
                             "upload_allowed": 'false',
-                            "items": sorted(data, key=lambda k: k['title'])
+                            "items": sorted(data, key=lambda k: k['title'].upper())
                             }
                         }
         return resourcelist
@@ -234,7 +230,7 @@ def resources(request):
         # build the list and only get the neccesary values
         for resource in qry:
             resources.append({'Name': resource.Name})
-        return sorted(resources, key=lambda k: k['Name'])
+        return sorted(resources, key=lambda k: k['Name'].upper())
 
 
 @view_config(route_name="componenttypes", renderer='json')
@@ -250,7 +246,7 @@ def componenttypes(request):
         # build the list and only get the neccesary values
         for cotype in qry:
             cotypelist.append({'Name': cotype.Name, 'ID': cotype.ID})
-        return sorted(cotypelist, key=lambda k: k['Name'])
+        return sorted(cotypelist, key=lambda k: k['Name'].upper())
 
 
 @view_config(route_name="units", renderer='json')
@@ -266,7 +262,7 @@ def units(request):
         # build the list and only get the neccesary values
         for unit in qry:
             unitlist.append({'Name': unit.Name})
-        return sorted(unitlist, key=lambda k: k['Name'])
+        return sorted(unitlist, key=lambda k: k['Name'].upper())
 
 @view_config(route_name="component_overheads", renderer='json')
 def componentoverheads(request):
@@ -286,7 +282,7 @@ def componentoverheads(request):
             overheadlist.append({'Name': overhead.Name,
                                 'ID': overhead.ID,
                                 'selected': False})
-        return sorted(overheadlist, key=lambda k: k['Name'])
+        return sorted(overheadlist, key=lambda k: k['Name'].upper())
 
 @view_config(route_name="overhead_list", renderer='json')
 def overheadlist(request):
@@ -305,7 +301,7 @@ def overheadlist(request):
                 overheadlist.append({'Name': overhead.Name,
                                 'Percentage': overhead.Percentage*100.0,
                                 'ID': overhead.ID})
-            return sorted(overheadlist, key=lambda k: k['Name'])
+            return sorted(overheadlist, key=lambda k: k['Name'].upper())
         elif request.method == 'DELETE':
             deleteid = request.matchdict['id']
             # Deleting it from the table deleted the object
@@ -377,11 +373,19 @@ def nodegridview(request):
                                             Node.type != 'Component').all()
     emptycolumns = len(emptyresult) == len(qry)
 
+    # put the ResourceCategories in another list that is appended first
+    rescatlist = []
+
     # Get the griddata dict from each child and add it to the list
     for child in qry:
-        childrenlist.append(child.getGridData())
+        if child.type == 'ResourceCategory':
+            rescatlist.append(child.getGridData())
+        else:
+            childrenlist.append(child.getGridData())
 
-    sorted_childrenlist = sorted(childrenlist, key=lambda k: k['name'])
+    sorted_childrenlist = sorted(childrenlist, key=lambda k: k['name'].upper())
+    sorted_rescatlist = sorted(rescatlist, key=lambda k: k['name'].upper())
+    sorted_childrenlist = sorted_rescatlist+sorted_childrenlist
     return {'list':sorted_childrenlist, 'emptycolumns': emptycolumns}
 
 
@@ -410,11 +414,9 @@ def update_value(request):
         if request.params.get('quantity') != None:
             try:
                 result.Quantity = float(request.params.get('quantity'))
-            except ValueError:
-                pass # do not do anything
-        if request.params.get('markup') != None:
-            try:
-                result.Markup = (float(request.params.get('markup')))/100.0
+                newtotal = str(result.Total)
+                # return the new total
+                return {'total': newtotal}
             except ValueError:
                 pass # do not do anything
 
@@ -573,7 +575,6 @@ def additemview(request):
             elif objecttype == 'BudgetItem':
                 newnode = BudgetItem(Name=name,
                                 Description=desc,
-                                Unit=unit,
                                 _Quantity = quantity,
                                 ParentID=parentid)
             elif objecttype == 'ResourceCategory':
