@@ -38,20 +38,28 @@
                     </div>
                     <div class="form-group">
                         <label for="inputUnit" class="col-sm-2 control-label">Unit:</label>
-                        <select id="unit-select" class="col-sm-7">
-                            <option ng-repeat="unit in unitList" value="{{unit.ID}}">{{unit.Name}}</option>
+                        <select class="col-sm-7"
+                                id="inputUnit"
+                                name="inputUnit"
+                                data-ng-model="formData['Unit']"
+                                data-ng-options="unit.ID as unit.Name for unit in unitList">
+                            <option value="">Select a unit</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label for="inputType" class="col-sm-2 control-label">Type:</label>
-                        <select id="type-select" class="col-sm-7">
-                            <option ng-repeat="name in restypeList" value="{{name.Name}}">{{name.Name}}</option>
+                        <select class="col-sm-7"
+                                id="inputType"
+                                name="inputType"
+                                data-ng-model="formData['ResourceType']"
+                                data-ng-options="type.Name as type.Name for type in restypeList">
+                            <option value="">Select a type</option>
                         </select>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary" data-dismiss="modal" ng-click="selectedUnit(); addNode()">Save</button>
+                <button class="btn btn-primary" data-dismiss="modal" ng-click="addNode()">Save</button>
                 <button class="btn btn-default" ng-click="cancel()" data-dismiss="modal">Cancel</button>
             </div>
         </div>

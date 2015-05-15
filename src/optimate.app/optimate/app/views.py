@@ -192,22 +192,6 @@ def resource_list(request):
         return resourcelist
 
 
-@view_config(route_name="resources", renderer='json')
-def resources(request):
-    """ Returns a list of all the unique resources in the database
-    """
-    if request.method == 'OPTIONS':
-        return {"success": True}
-    else:
-        resources = []
-        # Get all the unique Resources in the Resource table
-        qry = DBSession.query(Resource.Name).distinct()
-        # build the list and only get the neccesary values
-        for resource in qry:
-            resources.append({'Name': resource.Name})
-        return sorted(resources, key=lambda k: k['Name'].upper())
-
-
 @view_config(route_name="resourcetypes", renderer='json')
 def resourcetypes(request):
     """ Returns a list of all the resource types in the database
@@ -654,8 +638,7 @@ def clientsview(request):
     if request.method == 'OPTIONS':
         return {"success": True}
     else:
-        qry = DBSession.query(Client).order_by(
-            collate(Client.Name, 'NOCASE')).all()
+        qry = DBSession.query(Client).all()
         clientlist = []
 
         for client in qry:
@@ -672,7 +655,7 @@ def clientsview(request):
                                 'Contact': client.Contact,
                                 'VAT': client.VAT,
                                 'RegNo': client.RegNo})
-        return clientlist
+        return sorted(clientlist, key=lambda k: k['Name'].upper())
 
 
 @view_config(route_name='clientview', renderer='json')
@@ -757,8 +740,7 @@ def suppliersview(request):
     if request.method == 'OPTIONS':
         return {"success": True}
     else:
-        qry = DBSession.query(Supplier).order_by(
-            collate(Supplier.Name, 'NOCASE')).all()
+        qry = DBSession.query(Supplier).all()
         supplierlist = []
 
         for supplier in qry:
@@ -773,7 +755,7 @@ def suppliersview(request):
                                 'Fax': supplier.Fax,
                                 'Cellular': supplier.Cellular,
                                 'Contact': supplier.Contact})
-        return supplierlist
+        return sorted(supplierlist, key=lambda k: k['Name'].upper())
 
 
 @view_config(route_name='supplierview', renderer='json')
@@ -914,14 +896,13 @@ def unitsview(request):
     if request.method == 'OPTIONS':
         return {"success": True}
     else:
-        qry = DBSession.query(Unit).order_by(
-                collate(Unit.Name, 'NOCASE')).all()
+        qry = DBSession.query(Unit).all()
         unitlist = []
 
         for unit in qry:
             unitlist.append({'Name': unit.Name,
                                 'ID': unit.ID})
-        return unitlist
+        return sorted(unitlist, key=lambda k: k['Name'].upper())
 
 @view_config(route_name='unitview', renderer='json')
 def unitview(request):

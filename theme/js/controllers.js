@@ -637,7 +637,6 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             $http(req).success(function(data) {
                 $scope.restypeList = data;
                 console.log("Resource Type list loaded");
-                $('select#type-select').focus();
             });
 
             // load the unit list
@@ -649,21 +648,8 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             $http(req).success(function(data) {
                 $scope.unitList = data;
                 console.log("Unit list loaded");
-                $('select#unit-select').focus();
             });
         }
-
-        // Add the selected type from the list to the form data
-        $scope.selectedType = function(){
-            var restype = $('#type-select').find(":selected").val();
-            $scope.formData['ResourceType'] = restype;
-        };
-
-        // Add the selected unit from the list to the form data as unit
-        $scope.selectedUnit = function(){
-            var unitid = $('#unit-select').find(":selected").val();
-            $scope.formData['Unit'] = unitid;
-        };
 
         // Add the selected resource from the list to the form data as name
         $scope.selectedResource = function(){

@@ -54,7 +54,6 @@ def main(global_config, **settings):
     config.add_route('overhead_list', '/overhead_list/{id}/')
     config.add_route('component_overheads', '/component_overheads/{id}/')
     config.add_route('resourcetypes', '/resource_types')
-    config.add_route('resources', '/resources')
     config.add_route('projectview', 'projectview/{projectid}/')
     config.add_route('nodegridview', '/nodegridview/{parentid}/')
     config.add_route('update_value', '/update_value/{id}/')
