@@ -644,7 +644,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             $scope.unitList = [{"Name": "Loading..."}];
             var req = {
                 method: 'GET',
-                url: globalServerURL +'unit_list'
+                url: globalServerURL +'units'
             }
             $http(req).success(function(data) {
                 $scope.unitList = data;
@@ -661,8 +661,8 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
 
         // Add the selected unit from the list to the form data as unit
         $scope.selectedUnit = function(){
-            var unit = $('#unit-select').find(":selected").val();
-            $scope.formData['Unit'] = unit;
+            var unitid = $('#unit-select').find(":selected").val();
+            $scope.formData['Unit'] = unitid;
         };
 
         // Add the selected resource from the list to the form data as name

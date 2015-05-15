@@ -529,6 +529,7 @@ if __name__ == '__main__':
         stdout.write('\n')
 
         # build the unit table
+        print 'Converting Unit table'
         unitbook = xlrd.open_workbook(exceldatapath + 'Unit.xls')
         sheet = unitbook.sheet_by_index(0)
         unitindex = 0
@@ -541,6 +542,7 @@ if __name__ == '__main__':
         transaction.commit()
 
         # build the components
+        print 'Converting Components table'
         componentbook = xlrd.open_workbook(exceldatapath + 'Components.xls')
         sheet = componentbook.sheet_by_index(0)
         codeindex = 0
@@ -588,7 +590,6 @@ if __name__ == '__main__':
                 newcode += 1
                 changedcocodes[code] = newcode
 
-        print 'Converting Components table'
         # build the components
         # =====================================================================
         length = float(sheet.nrows)
@@ -730,10 +731,17 @@ if __name__ == '__main__':
                         if resource != None:
                             newcode += 1
                             resourceid = newcode
+                            # get the id of the unit the resource is using
+                            qry = DBSession.query(Unit).filter_by(
+                                    Name=measureunit).first()
+                            if qry:
+                                measureunit = qry.ID
+                            else:
+                                measureunit = None
                             newresource = Resource(ID=resourceid,
                                             Name=resource.Name,
                                             Code=resource.Code,
-                                            Unit=measureunit,
+                                            UnitID=measureunit,
                                             _Rate=resource._Rate,
                                             Description=resource.Description)
 
@@ -747,10 +755,18 @@ if __name__ == '__main__':
                         newcode += 1
                         resourceid = newcode
                         resourcecode = generateResourceCode(checkname)
+                        # get the unit id
+                        qry = DBSession.query(Unit).filter_by(
+                                    Name=measureunit).first()
+                        if qry:
+                            measureunit = qry.ID
+                        else:
+                            measureunit = None
                         resource = Resource(ID=resourceid,
                                         Code=resourcecode,
                                         Name=checkname,
                                         Description=description,
+                                        UnitID=measureunit,
                                         _Rate = rate,
                                         ParentID=resourcecategory.ID)
                         DBSession.add(resource)

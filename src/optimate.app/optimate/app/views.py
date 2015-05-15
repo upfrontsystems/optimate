@@ -224,22 +224,6 @@ def resourcetypes(request):
         return sorted(restypelist, key=lambda k: k['Name'].upper())
 
 
-@view_config(route_name="units", renderer='json')
-def units(request):
-    """ Returns a list of all units in the database
-    """
-    if request.method == 'OPTIONS':
-        return {"success": True}
-    else:
-        unitlist = []
-        # Get all the unique Resources in the Resource table
-        qry = DBSession.query(Unit).all()
-        # build the list and only get the neccesary values
-        for unit in qry:
-            unitlist.append({'Name': unit.Name})
-        return sorted(unitlist, key=lambda k: k['Name'].upper())
-
-
 @view_config(route_name="component_overheads", renderer='json')
 def componentoverheads(request):
     """ Get a list of the Overheads a component can use
@@ -426,7 +410,7 @@ def additemview(request):
         if objecttype == 'Resource':
             newnode = Resource(Name=name,
                                 Description = desc,
-                                Unit=unit,
+                                UnitID=unit,
                                 Type=resourcetype,
                                   _Rate= rate,
                                   ParentID=parentid)
@@ -800,7 +784,7 @@ def supplierview(request):
 
     if request.method == 'OPTIONS':
         return {"success": True}
-    # if the method is delete, delete the client
+    # if the method is delete, delete the supplier
     elif request.method == 'DELETE':
         deleteid = request.matchdict['id']
 
@@ -830,7 +814,7 @@ def supplierview(request):
         DBSession.flush()
         newid = newsupplier.ID
         return {'newid':newid}
-    # if the method is put, edit an existing client
+    # if the method is put, edit an existing supplier
     elif request.method == 'PUT':
         supplier = DBSession.query(
                     Supplier).filter_by(ID=request.matchdict['id']).first()
@@ -847,7 +831,7 @@ def supplierview(request):
 
         transaction.commit()
         return HTTPOk()
-    # otherwise return the selected client
+    # otherwise return the selected supplier
     else:
         supplierid = request.matchdict['id']
         supplier = DBSession.query(Supplier).filter_by(ID=supplierid).first()
@@ -921,3 +905,66 @@ def company_information(request):
                 'AccountName': qry.AccountName,
                 'DefaultTaxrate': qry.DefaultTaxrate}
         return data
+
+@view_config(route_name='unitsview', renderer='json')
+def unitsview(request):
+    """ The unitsview returns a list in json format of all the units
+        in the server database
+    """
+    if request.method == 'OPTIONS':
+        return {"success": True}
+    else:
+        qry = DBSession.query(Unit).order_by(
+                collate(Unit.Name, 'NOCASE')).all()
+        unitlist = []
+
+        for unit in qry:
+            unitlist.append({'Name': unit.Name,
+                                'ID': unit.ID})
+        return unitlist
+
+@view_config(route_name='unitview', renderer='json')
+def unitview(request):
+    """ The unitview handles different cases for units
+        depending on the http method
+    """
+
+    if request.method == 'OPTIONS':
+        return {"success": True}
+    # if the method is delete, delete the unit
+    elif request.method == 'DELETE':
+        deleteid = request.matchdict['id']
+
+        # Deleting it from the node table deletes the object
+        deletethis = DBSession.query(Unit).filter_by(ID=deleteid).first()
+        qry = DBSession.delete(deletethis)
+
+        if qry == 0:
+            return HTTPNotFound()
+        transaction.commit()
+
+        return HTTPOk()
+    # if the method is post, add a new unit
+    elif request.method == 'POST':
+        newunit = Unit(Name=request.json_body['Name'])
+
+        DBSession.add(newunit)
+        DBSession.flush()
+        newid = newunit.ID
+        return {'newid':newid}
+    # if the method is put, edit an existing unit
+    elif request.method == 'PUT':
+        unit = DBSession.query(
+                    Unit).filter_by(Name=request.matchdict['id']).first()
+        unit.Name=request.json_body['Name']
+
+        transaction.commit()
+        return HTTPOk()
+    # otherwise return the selected unit
+    else:
+        unitid = request.matchdict['id']
+        unit = DBSession.query(Unit).filter_by(ID=unitid).first()
+
+        unitdict = {'Name': unit.Name,
+                        'ID': unit.ID}
+        return unitdict

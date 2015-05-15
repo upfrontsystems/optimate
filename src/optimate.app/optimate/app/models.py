@@ -714,7 +714,8 @@ class Component(Node):
     def Unit(self):
         """ Get the component's Unit, the Unit of this resource is returned
         """
-        return self.Resource.Unit
+        if self.Resource:
+            return self.Resource.unitName()
 
     @Unit.setter
     def Unit(self, unit):
@@ -727,7 +728,7 @@ class Component(Node):
             but with the ParentID specified.
         """
         copied = Component(ResourceID=self.ResourceID,
-                            Unit=self.Unit,
+                            UnitID=self.UnitID,
                             ParentID=parentid,
                             _Quantity=self._Quantity,
                             _Total=self._Total,
@@ -819,14 +820,15 @@ class Unit(Base):
     """ Unit defines a unit used by a Resource
     """
     __tablename__ = 'Unit'
-    Name = Column(Text, primary_key=True)
+    ID = Column(Integer, primary_key=True)
+    Name = Column(Text)
 
     Resources = relationship('Resource',
-                              backref=backref('UnitName'))
+                              backref=backref('Unit'))
 
     def __repr__(self):
-        return '<Unit(Name="%s")>' % (
-            self.Name)
+        return '<Unit(Name="%s", ID="%d")>' % (
+            self.Name, self.ID)
 
 
 class ResourceCategory(Node):
@@ -997,7 +999,7 @@ class Resource(Node):
     Code = Column(Text)
     Name = Column(Text)
     Description = Column(Text)
-    Unit = Column(Text, ForeignKey('Unit.Name'))
+    UnitID = Column(Text, ForeignKey('Unit.ID'))
     Type = Column(Integer, ForeignKey('ResourceType.Name'))
     _Rate = Column('Rate', Numeric, default=Decimal(0.00))
 
@@ -1021,13 +1023,9 @@ class Resource(Node):
         for comp in self.Components:
             comp.Rate = self._Rate
 
-    def __eq__(self, other):
-        """Test for equality, for now testing based on the name
-        """
-        if other == None:
-            return False
-        else:
-            return self.Name == other.Name
+    def unitName(self):
+        if self.Unit:
+            return self.Unit.Name
 
     def copy(self, parentid):
         """copy returns an exact duplicate of this object,
@@ -1060,9 +1058,17 @@ class Resource(Node):
     def getGridData(self):
         return {'name': self.Name,
                 'id': self.ID,
-                'unit': self.Unit,
+                'unit': self.unitName(),
                 'node_type': self.type,
                 'rate': str(self.Rate)}
+
+    def __eq__(self, other):
+        """Test for equality, for now testing based on the name
+        """
+        if other == None:
+            return False
+        else:
+            return self.Name == other.Name
 
     def __getitem__(self, index):
         return self.Name[index].lower()
