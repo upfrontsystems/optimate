@@ -684,6 +684,11 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                     url: globalServerURL + currentId + '/add',
                     data: $scope.formData
                 }).success(function () {
+                    // check if the current node is edited
+                    if ($scope.formData['ID'] == $rootScope.currentNode.ID){
+                        // update the node with the name in the form
+                        $rootScope.currentNode.Name = $scope.formData['Name'];
+                    }
                     $scope.formData = {'NodeType':$scope.formData['NodeType']};
                     var nodeid = $rootScope.currentNode.ID;
                     sharedService.nodeAdded();
