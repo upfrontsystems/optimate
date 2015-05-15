@@ -574,25 +574,9 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
 
         // Load the resources the user can select from the resource list
         $scope.loadResourceList = function(){
-            // Add a loading value to the project list while it loads
-            $scope.resourceList = [{"Name": "Loading..."}];
             var req = {
                 method: 'GET',
                 url: globalServerURL +'resource_list/' + $rootScope.currentNode.ID + '/'
-            }
-            $http(req).success(function(data) {
-                $scope.resourceList = data;
-                console.log("Resource list loaded");
-                $('select#resource-select').focus();
-            });
-        };
-
-        // Loads a list of the resources and list of the component types
-        $scope.loadRelatedList = function(){
-            // load the related list
-            var req = {
-                method: 'GET',
-                url: globalServerURL +'related_list/' + $rootScope.currentNode.ID + '/'
             }
             $http(req).success(function(data) {
                 finderdata = data
@@ -603,7 +587,15 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                     var finder = new ContentFinder('#'+$(this).attr('id'), url, true);
                     finder.listdir(url);
                 });
-                console.log("Related list loaded");
+                console.log("Resource list loaded");
+                // remove any old remember choices from last time
+                $('.search-choice').remove(); 
+                // close the widget if it was left open last time
+                $('.finder-dropdown').attr('style','left: -9000px; width: 99.9%; top: 29px;');
+                // set the text in case it is blank
+                $('#inputResources').val('Click to search or browse');
+                $('#inputResources').focus();
+                
             });
         };
 
@@ -666,7 +658,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
 
         // Add the selected resource from the list to the form data as name
         $scope.selectedResource = function(){
-            var name = $('#resource-select').find(":selected").val();
+            var name = $('#related_items_finder .finder-choices .search-choice .selected-resource').html();
             $scope.formData['Name'] = name;
         };
 

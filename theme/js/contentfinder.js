@@ -284,7 +284,7 @@ ContentFinder.prototype.result_click = function(item) {
     // add selections to search input
     for (i=0; i < this.selecteditems.length; i++) {
         item = this.selecteditems[i];
-        html.push('<li class="search-choice" title="' + item.url + '"><span>' + item.title + '</span><a href="javascript:void(0)" class="search-choice-close" rel="3" data-uid="' + item.uid + '"></a></li>');
+        html.push('<li class="search-choice" title="' + item.url + '"><span class="selected-resource">' + item.title + '</span><a href="javascript:void(0)" class="search-choice-close" rel="3" data-uid="' + item.uid + '"></a></li>');        
     }
     $('.search-choice', self.choices).remove();
     self.choices.prepend(html.join(''));

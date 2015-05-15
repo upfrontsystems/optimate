@@ -161,32 +161,6 @@ def project_listing(request):
 @view_config(route_name="resource_list", renderer='json')
 def resource_list(request):
     """ Returns a list of all the resources in the
-        node's project's resourcecategory
-    """
-    if request.method == 'OPTIONS':
-        return {"success": True}
-    else:
-        nodeid = request.matchdict['id']
-        resourcelist = []
-        # Get the current node
-        currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
-        # Get the parent
-        rootid = currentnode.getProjectID()
-        # Get the resourcecategory whos parent that is
-        resourcecategory = DBSession.query(
-                                ResourceCategory).filter_by(
-                                ParentID=rootid).first()
-        # if it doesnt exist return the empty list
-        if not resourcecategory:
-            return resourcelist
-        # build the list and only get the neccesary values
-        resourcelist = resourcecategory.getResources()
-        return sorted(resourcelist, key=lambda k: k['Name'].upper())
-
-
-@view_config(route_name="related_list", renderer='json')
-def related_list(request):
-    """ Returns a list of all the resources in the
         node's project's resourcecategory in a format
         that the related items widget can read
     """

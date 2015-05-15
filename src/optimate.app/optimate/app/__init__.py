@@ -51,7 +51,6 @@ def main(global_config, **settings):
     config.add_route('getitem', 'node/{id}/')
     config.add_route('project_listing', '/project_listing')
     config.add_route('resource_list', '/resource_list/{id}/')
-    config.add_route('related_list', '/related_list/{id}/')
     config.add_route('overhead_list', '/overhead_list/{id}/')
     config.add_route('component_overheads', '/component_overheads/{id}/')
     config.add_route('units', '/unit_list')
