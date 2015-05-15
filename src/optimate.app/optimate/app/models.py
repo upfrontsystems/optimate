@@ -106,7 +106,15 @@ class Project(Node):
                 primary_key=True)
     Name = Column(Text)
     Description = Column(Text)
+    ClientID = Column(Integer, ForeignKey('Client.ID'))
+    City = Column(Text, ForeignKey('Client.City'))
+    SiteAddress = Column(Text)
+    FileNumber = Column(Text)
     _Total = Column('Total', Numeric)
+
+    Clients = relationship('Client',
+                            foreign_keys='Project.ClientID',
+                            backref='Project')
 
     OverheadList = relationship('Overhead',
                                 backref='Project')
@@ -155,6 +163,10 @@ class Project(Node):
         copied = Project(Name=self.Name,
                          Description=self.Description,
                          ParentID=parentid,
+                         ClientID=self.ClientID,
+                         CityID=self.CityID,
+                         SiteAddress=self.SiteAddress,
+                         FileNumber=self.FileNumber,
                          _Total = self.Total,
                          OrderCost=self.OrderCost,
                          ClaimedCost=self.ClaimedCost,
