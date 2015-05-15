@@ -467,13 +467,10 @@ def additemview(request):
                     resourcecategory = DBSession.query(
                         ResourceCategory).filter_by(
                         ParentID=rootparentid).first()
-                    rescatid = resourcecategory.ID
-
+                    reslist = resourcecategory.getResources()
+                    new_list = [x for x in reslist if x.Name == name]
                     # get the resource used by the component
-                    resource = DBSession.query(
-                                    Resource).filter_by(
-                                    ParentID=rescatid, Name=name).first()
-
+                    resource = new_list[0]
                     editedcomp.Resource = resource
                 editedcomp.Quantity=quantity
                 editedcomp.Overheads[:] = []
@@ -498,35 +495,11 @@ def additemview(request):
                 resourcecategory = DBSession.query(
                         ResourceCategory).filter_by(
                         ParentID=rootparentid).first()
-                # if the resourcecategory does not exist create it
-                if not resourcecategory:
-                    resourcecategory = ResourceCategory(
-                                            Name='Resource List',
-                                            Description='List of Resources',
-                                            ParentID=rootparentid)
-                    DBSession.add(resourcecategory)
-                    DBSession.flush()
-                rescatid = resourcecategory.ID
 
+                reslist = resourcecategory.getResources()
+                new_list = [x for x in reslist if x.Name == name]
                 # get the resource used by the component
-                resource = DBSession.query(
-                                    Resource).filter_by(
-                                    ParentID=rescatid, Name=name).first()
-                # the resource does not exists in the resourcecategory
-                if not resource:
-                    resource = DBSession.query(
-                                    Resource).filter_by(Name=name).first()
-                    if not resource:
-                        return HTTPNotFound("The resource does not exist")
-                    else:
-                        newresource = Resource(Name=resource.Name,
-                                        Code=resource.Code,
-                                        _Rate = resource.Rate,
-                                        Unit = resource.Unit,
-                                        Description=resource.Description)
-                        resourcecategory.Children.append(newresource)
-                        DBSession.flush()
-                        resource = newresource
+                resource = new_list[0]
 
                 newcomp = Component(ResourceID=resource.ID,
                                     _Quantity = quantity,

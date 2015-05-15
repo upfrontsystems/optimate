@@ -55,12 +55,12 @@ allControllers.controller('companyinformationController', ['$scope', '$http', '$
         });
 
         // When the edit button is pressed change the state and set the data
-        $scope.editingState = function (){            
+        $scope.editingState = function (){
             $http({
                 method: 'GET',
                 url: globalServerURL + 'company_information',
             }).success(function(response){
-                $scope.formData = response;            
+                $scope.formData = response;
             })
         }
 
@@ -71,7 +71,7 @@ allControllers.controller('companyinformationController', ['$scope', '$http', '$
                 url: globalServerURL + 'company_information',
                 data:$scope.formData
             }).success(function (data) {
-                $scope.company_information = $scope.formData                
+                $scope.company_information = $scope.formData
             });
         };
 
@@ -589,32 +589,41 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 });
                 console.log("Resource list loaded");
                 // remove any old remember choices from last time
-                $('.search-choice').remove(); 
+                $('.search-choice').remove();
                 // close the widget if it was left open last time
                 $('.finder-dropdown').attr('style','left: -9000px; width: 99.9%; top: 29px;');
                 // set the text in case it is blank
                 $('#inputResources').val('Click to search or browse');
                 $('#inputResources').focus();
-                
+
             });
         };
 
-        // edit a component
+        // edit a component. load the overhead list followed by
+        // data needed for the form
         $scope.editComponent = function(nodeid, nodetype){
-            $http({
+            var req = {
                 method: 'GET',
-                url: globalServerURL + 'node/' + nodeid + '/'
-            }).success(function(response){
-                var overheadlist = response['overheadlist'];
-                var arrayLength = $scope.componentOverheadList.length;
-                for (var i = 0; i < arrayLength; i++) {
-                    if (overheadlist.indexOf($scope.componentOverheadList[i].ID) != -1){
-                        $scope.componentOverheadList[i].selected = true;
+                url: globalServerURL +'component_overheads/' + nodeid + '/'
+            }
+            $http(req).success(function(data) {
+                $scope.componentOverheadList = data;
+
+                $http({
+                    method: 'GET',
+                    url: globalServerURL + 'node/' + nodeid + '/'
+                }).success(function(response){
+                    var overheadlist = response['overheadlist'];
+                    var arrayLength = $scope.componentOverheadList.length;
+                    for (var i = 0; i < arrayLength; i++) {
+                        if (overheadlist.indexOf($scope.componentOverheadList[i].ID) != -1){
+                            $scope.componentOverheadList[i].selected = true;
+                        }
                     }
-                }
-                $scope.formData = response;
-                $scope.formData['NodeType'] = nodetype;
-            })
+                    $scope.formData = response;
+                    $scope.formData['NodeType'] = nodetype;
+                })
+            });
         }
 
         // Load a list of the fields used in adding a resource
@@ -644,7 +653,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             });
         }
 
-        // Add the selected type from the list to the form data as its id
+        // Add the selected type from the list to the form data
         $scope.selectedType = function(){
             var restype = $('#type-select').find(":selected").val();
             $scope.formData['ResourceType'] = restype;

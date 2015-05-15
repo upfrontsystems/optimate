@@ -869,7 +869,7 @@ class ResourceCategory(Node):
             if child.type == 'ResourceCategory':
                 rlist += child.getResources()
             else:
-                rlist.append({'Name': child.Name})
+                rlist.append(child)
 
         return rlist
 
