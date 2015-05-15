@@ -907,7 +907,6 @@ def company_information(request):
         company_information.Tel=request.json_body.get('Tel', '')
         company_information.Fax=request.json_body.get('Fax', '')
         company_information.Cell=request.json_body.get('Cell', '')
-         # XXX add CompanyHeader and Order Header here
         company_information.BankName=request.json_body.get('BankName', '')
         company_information.BranchCode=request.json_body.get('BranchCode', '')
         company_information.AccountNo=request.json_body.get('AccountNo', '')
@@ -928,8 +927,6 @@ def company_information(request):
                                      Tel='0218511572',
                                      Fax='0218511572',
                                      Cell='0832742643',
-                                     #CompanyHeader='',
-                                     #Order Header'='',
                                      BankName='BOE BANK WORCESTER',
                                      BranchCode='440707',
                                      AccountNo='2572658703',
@@ -945,8 +942,6 @@ def company_information(request):
                 'Tel': qry.Tel,
                 'Fax': qry.Fax,
                 'Cell': qry.Cell,
-                'CompanyHeader': '',
-                'OrderHeader': '',
                 'BankName': qry.BankName,
                 'BranchCode': qry.BranchCode,
                 'AccountNo': qry.AccountNo,
