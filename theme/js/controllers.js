@@ -605,7 +605,36 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         // clear the overhead modal input fields
         $scope.clearInput = function(){
             $scope.newOverhead = undefined;
+            $scope.newUnit = undefined;
         }
+
+        $scope.unitList = [];
+        $scope.loadUnits = function(){
+            var req = {
+                method: 'GET',
+                url: globalServerURL +'units'
+            }
+            $http(req).success(function(data) {
+                $scope.unitList = data;
+                console.log("Unit list loaded");
+            });
+        };
+
+        // add an unit
+        $scope.addUnit= function(){
+            if ($scope.newUnit){
+                var req = {
+                    method: 'POST',
+                    url: globalServerURL +'unitview',
+                    data: {'Name':$scope.newUnit.Name}
+                }
+                $http(req).success(function() {
+                    $scope.clearInput();
+                    $scope.loadUnits();
+                    console.log("Unit added");
+                });
+            }
+        }        
 
         // Load the resources the user can select from the resource list
         $scope.loadResourceList = function(){
@@ -683,7 +712,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             $http(req).success(function(data) {
                 $scope.clientList = data;
                 console.log("Client list loaded");
-            });            
+            });
         }        
 
         // Load a list of the fields used in adding a resource

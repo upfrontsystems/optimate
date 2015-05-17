@@ -915,20 +915,16 @@ def unitview(request):
     # if the method is delete, delete the unit
     elif request.method == 'DELETE':
         deleteid = request.matchdict['id']
-
         # Deleting it from the node table deletes the object
         deletethis = DBSession.query(Unit).filter_by(ID=deleteid).first()
         qry = DBSession.delete(deletethis)
-
         if qry == 0:
             return HTTPNotFound()
         transaction.commit()
-
         return HTTPOk()
     # if the method is post, add a new unit
     elif request.method == 'POST':
         newunit = Unit(Name=request.json_body['Name'])
-
         DBSession.add(newunit)
         DBSession.flush()
         newid = newunit.ID
@@ -938,16 +934,14 @@ def unitview(request):
         unit = DBSession.query(
                     Unit).filter_by(Name=request.matchdict['id']).first()
         unit.Name=request.json_body['Name']
-
         transaction.commit()
         return HTTPOk()
     # otherwise return the selected unit
     else:
         unitid = request.matchdict['id']
         unit = DBSession.query(Unit).filter_by(ID=unitid).first()
-
         unitdict = {'Name': unit.Name,
-                        'ID': unit.ID}
+                    'ID': unit.ID}
         return unitdict
 
 
