@@ -846,6 +846,18 @@ class Unit(Base):
             self.Name, self.ID)
 
 
+class City(Base):
+    """ City defines a city used by a Project
+    """
+    __tablename__ = 'City'
+    ID = Column(Integer, primary_key=True)
+    Name = Column(Text)
+
+    def __repr__(self):
+        return '<City(Name="%s", ID="%d")>' % (
+            self.Name, self.ID)
+
+
 class ResourceCategory(Node):
     """ ResourceCategory represents a unique set of resources used in a project
     """

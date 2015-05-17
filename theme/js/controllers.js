@@ -329,6 +329,14 @@ allControllers.controller('citiesController', ['$scope', '$http', '$modal', '$lo
 
         toggleMenu('setup');
 
+        var req = {
+            method: 'GET',
+            url: globalServerURL +'cities'
+        };
+        $http(req).success(function(data){
+            $scope.cityList = data;
+        });        
+
     }
 ]);
 
@@ -337,6 +345,14 @@ allControllers.controller('unitsController', ['$scope', '$http', '$modal', '$log
     function($scope, $http, $modal, $log, globalServerURL) {
 
         toggleMenu('setup');
+
+        var req = {
+            method: 'GET',
+            url: globalServerURL +'units'
+        };
+        $http(req).success(function(data){
+            $scope.unitList = data;
+        });
 
     }
 ]);

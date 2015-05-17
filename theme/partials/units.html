@@ -1,0 +1,23 @@
+<nav class="navbar navbar-default navbar-fixed-top action-bar">
+    <div class="container-fluid">
+        <ul class="nav nav-pills">
+        </ul>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div id="units" class="row">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="obj in unitList" id="unit-{{obj.ID}}">
+                    <td>{{obj.Name}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

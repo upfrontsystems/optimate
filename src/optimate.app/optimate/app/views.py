@@ -27,6 +27,7 @@ from .models import (
     ResourceCategory,
     Resource,
     Unit,
+    City,
     Overhead,
     Client,
     Supplier,
@@ -168,7 +169,7 @@ def resource_list(request):
         return {"success": True}
     else:
         nodeid = request.matchdict['id']
-        relatedlist = []
+        resourcelist = []
         # Get the current node
         currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
         # Get the parent
@@ -179,7 +180,7 @@ def resource_list(request):
                                 ParentID=rootid).first()
         # if it doesnt exist return the empty list
         if not resourcecategory:
-            return relatedlist
+            return resourcelist
 
         data = resourcecategory.getResourcesDetail()
         resourcelist = {"http://127.0.0.1:8100": {
@@ -270,7 +271,6 @@ def overheadlist(request):
             DBSession.add(newoverhead)
             transaction.commit()
             return HTTPOk()
-
 
 
 @view_config(route_name="projectview", renderer='json')
@@ -888,6 +888,7 @@ def company_information(request):
                 'DefaultTaxrate': qry.DefaultTaxrate}
         return data
 
+
 @view_config(route_name='unitsview', renderer='json')
 def unitsview(request):
     """ The unitsview returns a list in json format of all the units
@@ -898,18 +899,17 @@ def unitsview(request):
     else:
         qry = DBSession.query(Unit).all()
         unitlist = []
-
         for unit in qry:
             unitlist.append({'Name': unit.Name,
                                 'ID': unit.ID})
         return sorted(unitlist, key=lambda k: k['Name'].upper())
+
 
 @view_config(route_name='unitview', renderer='json')
 def unitview(request):
     """ The unitview handles different cases for units
         depending on the http method
     """
-
     if request.method == 'OPTIONS':
         return {"success": True}
     # if the method is delete, delete the unit
@@ -949,3 +949,59 @@ def unitview(request):
         unitdict = {'Name': unit.Name,
                         'ID': unit.ID}
         return unitdict
+
+
+@view_config(route_name='citiesview', renderer='json')
+def citiesview(request):
+    """ The citiesview returns a list in json format of all the units
+        in the server database
+    """
+    if request.method == 'OPTIONS':
+        return {"success": True}
+    else:
+        qry = DBSession.query(City).all()
+        citylist = []
+        for city in qry:
+            citylist.append({'Name': city.Name,
+                                'ID': city.ID})
+        return sorted(citylist, key=lambda k: k['Name'].upper())
+
+
+@view_config(route_name='cityview', renderer='json')
+def cityview(request):
+    """ The cityview handles different cases for cities
+        depending on the http method
+    """
+    if request.method == 'OPTIONS':
+        return {"success": True}
+    # if the method is delete, delete the city
+    elif request.method == 'DELETE':
+        deleteid = request.matchdict['id']
+        # Deleting it from the node table deletes the object
+        deletethis = DBSession.query(City).filter_by(ID=deleteid).first()
+        qry = DBSession.delete(deletethis)
+        if qry == 0:
+            return HTTPNotFound()
+        transaction.commit()
+        return HTTPOk()
+    # if the method is post, add a new city
+    elif request.method == 'POST':
+        newcity = City(Name=request.json_body['Name'])
+        DBSession.add(newcity)
+        DBSession.flush()
+        newid = newcity.ID
+        return {'newid':newid}
+    # if the method is put, edit an existing city
+    elif request.method == 'PUT':
+        city = DBSession.query(
+                    City).filter_by(Name=request.matchdict['id']).first()
+        city.Name=request.json_body['Name']
+        transaction.commit()
+        return HTTPOk()
+    # otherwise return the selected city
+    else:
+        cityid = request.matchdict['id']
+        city = DBSession.query(City).filter_by(ID=cityid).first()
+        citydict = {'Name': city.Name,
+                    'ID': city.ID}
+        return citydict

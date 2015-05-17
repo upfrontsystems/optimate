@@ -13,6 +13,7 @@ from optimate.app.models import (
     Component,
     ResourceType,
     Unit,
+    City,
     Overhead,
     ResourceCategory,
     Resource,
