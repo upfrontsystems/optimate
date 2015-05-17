@@ -323,6 +323,25 @@ allControllers.controller('suppliersController', ['$scope', '$http', 'globalServ
     }
 ]);
 
+// controller for the Cities data
+allControllers.controller('citiesController', ['$scope', '$http', '$modal', '$log', 'globalServerURL',
+    function($scope, $http, $modal, $log, globalServerURL) {
+
+        toggleMenu('setup');
+
+    }
+]);
+
+// controller for the Units data
+allControllers.controller('unitsController', ['$scope', '$http', '$modal', '$log', 'globalServerURL',
+    function($scope, $http, $modal, $log, globalServerURL) {
+
+        toggleMenu('setup');
+
+    }
+]);
+
+
 // Angular function that loads a specific project into the treeview
 // upon selection from the user
 allControllers.controller('projectsController',['$scope', '$http', 'globalServerURL', '$rootScope', 'sharedService', '$timeout',

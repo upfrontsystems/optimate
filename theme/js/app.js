@@ -26,5 +26,13 @@ myApp.config(['$routeProvider',
       when('/suppliers', {
         templateUrl: 'partials/suppliers.html',
         controller: 'suppliersController'
-      })
+      }).
+      when('/cities', {
+        templateUrl: 'partials/cities.html',
+        controller: 'citiesController'
+      }).
+      when('/units', {
+        templateUrl: 'partials/units.html',
+        controller: 'unitsController'
+      })      
   }]);
