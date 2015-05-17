@@ -661,6 +661,31 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             });
         }
 
+        // Load a list of the fields used in adding a project
+        $scope.loadProjectRelatedList = function(){
+            // load the city list
+            $scope.cityList = [{"Name": "Loading..."}];
+            var req = {
+                method: 'GET',
+                url: globalServerURL +'cities'
+            }
+            $http(req).success(function(data) {
+                $scope.cityList = data;
+                console.log("City list loaded");
+            });
+
+            // load the client list
+            $scope.clientList = [{"Name": "Loading..."}];
+            var req = {
+                method: 'GET',
+                url: globalServerURL +'clients'
+            }
+            $http(req).success(function(data) {
+                $scope.clientList = data;
+                console.log("Client list loaded");
+            });            
+        }        
+
         // Load a list of the fields used in adding a resource
         $scope.loadResourceRelatedList = function(){
             // load the resource types
