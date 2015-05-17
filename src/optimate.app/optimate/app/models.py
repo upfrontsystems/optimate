@@ -571,12 +571,14 @@ class BudgetItem(Node):
         return '<BudgetItem(Name="%s", ID="%s", ParentID="%s")>' % (
             self.Name, self.ID, self.ParentID)
 
+
 # Association table for the many-to-many relationship between Component
 # and Overhead
 association_table = Table('ComponentOverheadAssociation', Base.metadata,
     Column('ComponentID', Integer, ForeignKey('Component.ID')),
     Column('OverheadID', Integer, ForeignKey('Overhead.ID'))
 )
+
 
 class Component(Node):
     """A component represents a unique component in the project.
@@ -811,6 +813,7 @@ class Component(Node):
         """
         return '<Co(Name="%s", Quantity="%d", ID="%s", ParentID="%s")>' % (
             self.Name, self.Quantity, self.ID, self.ParentID)
+
 
 class Overhead(Base):
     """ A Table for the overheads a project incurs

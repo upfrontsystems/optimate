@@ -588,7 +588,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                     finder.listdir(url);
                 });
                 console.log("Resource list loaded");
-                // remove any old remember choices from last time
+                // remove any old remembered choices from last time
                 $('.search-choice').remove();
                 // close the widget if it was left open last time
                 $('.finder-dropdown').attr('style','left: -9000px; width: 99.9%; top: 29px;');
