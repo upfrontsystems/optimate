@@ -107,7 +107,7 @@ class Project(Node):
     Name = Column(Text)
     Description = Column(Text)
     ClientID = Column(Integer, ForeignKey('Client.ID'))
-    City = Column(Text, ForeignKey('Client.City'))
+    CityID = Column(Text, ForeignKey('City.ID'))
     SiteAddress = Column(Text)
     FileNumber = Column(Text)
     _Total = Column('Total', Numeric)
@@ -837,9 +837,6 @@ class Unit(Base):
     __tablename__ = 'Unit'
     ID = Column(Integer, primary_key=True)
     Name = Column(Text)
-
-    Resources = relationship('Resource',
-                              backref=backref('Unit'))
 
     def __repr__(self):
         return '<Unit(Name="%s", ID="%d")>' % (
