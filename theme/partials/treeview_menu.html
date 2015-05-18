@@ -105,7 +105,7 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addComponent"
-                        data-ng-click="changeAddingType('Component'); loadResourceList(); loadComponentOverheads(currentNode.ID)"
+                        data-ng-click="changeAddingType('Component'); loadResourceList('add'); loadComponentOverheads(currentNode.ID)"
                        title="Add Component" class="component-button">
                         <i class="fa fa-plus-square"></i> C
                     </a>
@@ -184,7 +184,7 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addComponent"
-                        data-ng-click="changeAddingType('Component'); loadResourceList(); loadComponentOverheads(currentNode.ID)"
+                        data-ng-click="changeAddingType('Component'); loadResourceList('add'); loadComponentOverheads(currentNode.ID)"
                        title="Add Component" class="component-button">
                         <i class="fa fa-plus-square"></i> C
                     </a>
@@ -324,7 +324,7 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addComponent"
-                        data-ng-click="loadResourceList(); editComponent(currentNode.ID, currentNode.NodeType)"
+                        data-ng-click="loadResourceList('edit'); editComponent(currentNode.ID, currentNode.NodeType)"
                         title="Edit Component">
                         <i class="fa fa-pencil"></i>
                     </a>

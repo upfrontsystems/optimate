@@ -87,7 +87,7 @@ allControllers.controller('clientsController', ['$scope', '$http', 'globalServer
 
         var req = {
             method: 'GET',
-            url: globalServerURL +'clients',
+            url: globalServerURL + 'clients',
         };
         $http(req).success(function(data){
             $scope.jsonclients = data;
@@ -111,7 +111,7 @@ allControllers.controller('clientsController', ['$scope', '$http', 'globalServer
                 else{
                     $http({
                         method: 'POST',
-                        url: globalServerURL +'0/' + $scope.formData['NodeType'],
+                        url: globalServerURL + '0/' + $scope.formData['NodeType'],
                         data:$scope.formData
                     }).success(function (response) {
                         $scope.formData['ID'] = response['newid'];
@@ -210,7 +210,7 @@ allControllers.controller('suppliersController', ['$scope', '$http', 'globalServ
 
         var req = {
             method: 'GET',
-            url: globalServerURL +'suppliers'
+            url: globalServerURL + 'suppliers'
         };
         $http(req).success(function(data){
             $scope.jsonsuppliers = data;
@@ -234,7 +234,7 @@ allControllers.controller('suppliersController', ['$scope', '$http', 'globalServ
                 else{
                     $http({
                         method: 'POST',
-                        url: globalServerURL +'0/' + $scope.formData['NodeType'],
+                        url: globalServerURL + '0/' + $scope.formData['NodeType'],
                         data:$scope.formData
                     }).success(function (response) {
                         $scope.formData['ID'] = response['newid'];
@@ -331,7 +331,7 @@ allControllers.controller('citiesController', ['$scope', '$http', '$modal', '$lo
 
         var req = {
             method: 'GET',
-            url: globalServerURL +'cities'
+            url: globalServerURL + 'cities'
         };
         $http(req).success(function(data){
             $scope.cityList = data;
@@ -346,7 +346,7 @@ allControllers.controller('citiesController', ['$scope', '$http', '$modal', '$lo
         $scope.loadCities = function(){
             var req = {
                 method: 'GET',
-                url: globalServerURL +'cities'
+                url: globalServerURL + 'cities'
             }
             $http(req).success(function(data) {
                 $scope.cityList = data;
@@ -395,7 +395,7 @@ allControllers.controller('unitsController', ['$scope', '$http', '$modal', '$log
 
         var req = {
             method: 'GET',
-            url: globalServerURL +'units'
+            url: globalServerURL + 'units'
         };
         $http(req).success(function(data){
             $scope.unitList = data;
@@ -410,7 +410,7 @@ allControllers.controller('unitsController', ['$scope', '$http', '$modal', '$log
         $scope.loadUnits = function(){
             var req = {
                 method: 'GET',
-                url: globalServerURL +'units'
+                url: globalServerURL + 'units'
             }
             $http(req).success(function(data) {
                 $scope.unitList = data;
@@ -465,7 +465,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         $scope.projectsList = [{"Name": "Loading..."}];
         var req = {
             method: 'GET',
-            url: globalServerURL +'project_listing'
+            url: globalServerURL + 'project_listing'
         };
         $http(req).success(function(data) {
             $scope.projectsList = data;
@@ -537,7 +537,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         // load the project that has been selected into the tree
         $scope.loadProject = function () {
             var id = $('#project-select').find(":selected").val()
-            var url = globalServerURL +'projectview/' + id + '/'
+            var url = globalServerURL + 'projectview/' + id + '/'
             var req = {
                 method: 'GET',
                 url: url,
@@ -616,7 +616,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                     var templist = []
                     for (i = 0; i < open_projects.length; i++) {
                         var id = open_projects[i];
-                        var url = globalServerURL +'projectview/' + id + '/'
+                        var url = globalServerURL + 'projectview/' + id + '/'
                         var req = {
                             method: 'GET',
                             url: url,
@@ -647,7 +647,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         $scope.loadOverheads = function(projectid){
             var req = {
                 method: 'GET',
-                url: globalServerURL +'overhead_list/' + projectid + '/'
+                url: globalServerURL + 'overhead_list/' + projectid + '/'
             }
             $http(req).success(function(data) {
                 $scope.overheadList = data;
@@ -659,7 +659,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         $scope.loadComponentOverheads = function(nodeid){
             var req = {
                 method: 'GET',
-                url: globalServerURL +'component_overheads/' + nodeid + '/'
+                url: globalServerURL + 'component_overheads/' + nodeid + '/'
             }
             $http(req).success(function(data) {
                 $scope.componentOverheadList = data;
@@ -671,7 +671,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         $scope.deleteOverhead = function(overheadid, index){
             var req = {
                 method: 'DELETE',
-                url: globalServerURL +'overhead_list/' + overheadid + '/'
+                url: globalServerURL + 'overhead_list/' + overheadid + '/'
             }
             $http(req).success(function() {
                 $scope.overheadList.splice(index, 1);
@@ -684,7 +684,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             if ($scope.newOverhead){
                 var req = {
                     method: 'POST',
-                    url: globalServerURL +'overhead_list/' + projectid + '/',
+                    url: globalServerURL + 'overhead_list/' + projectid + '/',
                     data: {'Name':$scope.newOverhead.Name,
                             'Percentage': $scope.newOverhead.Percentage}
                 }
@@ -702,10 +702,10 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         }
 
         // Load the resources the user can select from the resource list
-        $scope.loadResourceList = function(){
+        $scope.loadResourceList = function(state){
             var req = {
                 method: 'GET',
-                url: globalServerURL +'resource_list/' + $rootScope.currentNode.ID + '/'
+                url: globalServerURL + 'resource_list/' + $rootScope.currentNode.ID + '/'
             }
             $http(req).success(function(data) {
                 finderdata = data
@@ -717,14 +717,16 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                     finder.listdir(url);
                 });
                 console.log("Resource list loaded");
-                // remove any old remembered choices from last time
-                $('.search-choice').remove();
+                console.log(state)
+                if ( state == 'add' ) {
+                    // remove any old remembered choices from last time
+                    $('.search-choice').remove();
+                }
                 // close the widget if it was left open last time
                 $('.finder-dropdown').attr('style','left: -9000px; width: 99.9%; top: 29px;');
                 // set the text in case it is blank
-                $('#inputResources').val('Click to search or browse');
+                $('#inputResources').val('Click to search or browse');                
                 $('#inputResources').focus();
-
             });
         };
 
@@ -733,7 +735,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         $scope.editComponent = function(nodeid, nodetype){
             var req = {
                 method: 'GET',
-                url: globalServerURL +'component_overheads/' + nodeid + '/'
+                url: globalServerURL + 'component_overheads/' + nodeid + '/'
             }
             $http(req).success(function(data) {
                 $scope.componentOverheadList = data;
@@ -761,7 +763,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             $scope.cityList = [{"Name": "Loading..."}];
             var req = {
                 method: 'GET',
-                url: globalServerURL +'cities'
+                url: globalServerURL + 'cities'
             }
             $http(req).success(function(data) {
                 $scope.cityList = data;
@@ -772,7 +774,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             $scope.clientList = [{"Name": "Loading..."}];
             var req = {
                 method: 'GET',
-                url: globalServerURL +'clients'
+                url: globalServerURL + 'clients'
             }
             $http(req).success(function(data) {
                 $scope.clientList = data;
@@ -786,7 +788,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             $scope.restypeList = [{"Name": "Loading..."}];
             var req = {
                 method: 'GET',
-                url: globalServerURL +'resource_types'
+                url: globalServerURL + 'resource_types'
             }
             $http(req).success(function(data) {
                 $scope.restypeList = data;
@@ -797,7 +799,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             $scope.unitList = [{"Name": "Loading..."}];
             var req = {
                 method: 'GET',
-                url: globalServerURL +'units'
+                url: globalServerURL + 'units'
             }
             $http(req).success(function(data) {
                 $scope.unitList = data;
