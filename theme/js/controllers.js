@@ -355,7 +355,7 @@ allControllers.controller('citiesController', ['$scope', '$http', '$modal', '$lo
         };
 
         // delete a city by id
-        $scope.deleteUnit = function(unitid, index){
+        $scope.deleteCity = function(cityid, index){
             var req = {
                 method: 'DELETE',
                 url: globalServerURL + cityid + '/city',
