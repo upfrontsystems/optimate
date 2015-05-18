@@ -901,7 +901,7 @@ def unitsview(request):
         unitlist = []
         for unit in qry:
             unitlist.append({'Name': unit.Name,
-                                'ID': unit.ID})
+                             'ID': unit.ID})
         return sorted(unitlist, key=lambda k: k['Name'].upper())
 
 
