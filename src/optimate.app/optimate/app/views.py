@@ -925,10 +925,15 @@ def unitview(request):
     # if the method is post, add a new unit
     elif request.method == 'POST':
         newunit = Unit(Name=request.json_body['Name'])
-        DBSession.add(newunit)
-        DBSession.flush()
-        newid = newunit.ID
-        return {'newid':newid}
+        qry = DBSession.query(Unit).all()
+        existing_unitlist = []
+        for unit in qry:
+            existing_unitlist.append(str(unit.Name).upper())
+        if str(request.json_body['Name']).upper() not in existing_unitlist:
+            DBSession.add(newunit)
+            DBSession.flush()
+            return {'newid': newunit.ID}
+        return
     # if the method is put, edit an existing unit
     elif request.method == 'PUT':
         unit = DBSession.query(
@@ -981,10 +986,15 @@ def cityview(request):
     # if the method is post, add a new city
     elif request.method == 'POST':
         newcity = City(Name=request.json_body['Name'])
-        DBSession.add(newcity)
-        DBSession.flush()
-        newid = newcity.ID
-        return {'newid':newid}
+        qry = DBSession.query(City).all()
+        existing_citylist = []
+        for city in qry:
+            existing_citylist.append(str(city.Name).upper())
+        if str(request.json_body['Name']).upper() not in existing_citylist:
+            DBSession.add(newcity)
+            DBSession.flush()
+            return {'newid': newcity.ID}
+        return
     # if the method is put, edit an existing city
     elif request.method == 'PUT':
         city = DBSession.query(
