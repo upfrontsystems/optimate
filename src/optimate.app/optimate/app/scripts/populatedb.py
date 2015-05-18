@@ -854,7 +854,17 @@ if __name__ == '__main__':
 
         # iterate through all the resource categories
         qry = DBSession.query(ResourceCategory).all()
+        length = len(qry)
+        percentile = length/100.0
+        x = 1
+        print "Percentage done: "
         for rc in qry:
+            if x == int(percentile * counter):
+                counter += 1
+                stdout.write('\r%d' % counter + '%')
+                stdout.flush()
+                sleep(1)
+            x+=1
             childlist = rc.Children
             childlist = list(childlist)
             if len(childlist)>0:
@@ -888,6 +898,8 @@ if __name__ == '__main__':
                     except StopIteration:
                         for resource in grouping:
                             resource.ParentID = otherid
+
+        stdout.write('\n')
 
         # Client.__table__.drop(engine)
         # transaction.commit()

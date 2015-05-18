@@ -340,7 +340,7 @@ allControllers.controller('citiesController', ['$scope', '$http', '$modal', '$lo
         // clear the city input fields
         $scope.clearInput = function(){
             $scope.newCity = undefined;
-        }        
+        }
 
         $scope.cityList = [];
         $scope.loadCities = function(){
@@ -366,7 +366,7 @@ allControllers.controller('citiesController', ['$scope', '$http', '$modal', '$lo
                     console.log("City deleted");
                 }
             });
-        }        
+        }
 
         // add a city
         $scope.addCity = function(){
@@ -404,7 +404,7 @@ allControllers.controller('unitsController', ['$scope', '$http', '$modal', '$log
         // clear the unit input fields
         $scope.clearInput = function(){
             $scope.newUnit = undefined;
-        }        
+        }
 
         $scope.unitList = [];
         $scope.loadUnits = function(){
@@ -725,7 +725,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 // close the widget if it was left open last time
                 $('.finder-dropdown').attr('style','left: -9000px; width: 99.9%; top: 29px;');
                 // set the text in case it is blank
-                $('#inputResources').val('Click to search or browse');                
+                $('#inputResources').val('Click to search or browse');
                 $('#inputResources').focus();
             });
         };
@@ -780,7 +780,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 $scope.clientList = data;
                 console.log("Client list loaded");
             });
-        }        
+        }
 
         // Load a list of the fields used in adding a resource
         $scope.loadResourceRelatedList = function(){
@@ -1015,7 +1015,7 @@ allControllers.controller('treeviewController', ['$http', '$scope', 'globalServe
             e.preventDefault(); // Necessary. Allows us to drop.
           }
 
-          e.dataTransfer.dropEffect = 'move';  // See the section on the DataTransfer object.
+          e.dataTransfer.dropEffect = 'move';
 
           return false;
         }

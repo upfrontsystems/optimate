@@ -396,8 +396,8 @@ def additemview(request):
                                 Description = desc,
                                 UnitID=unit,
                                 Type=resourcetype,
-                                  _Rate= rate,
-                                  ParentID=parentid)
+                                _Rate= rate,
+                                ParentID=parentid)
             # check if the resource is not in the resource category
             resourcecategory = DBSession.query(
                     ResourceCategory).filter_by(ID=parentid).first()
@@ -456,7 +456,7 @@ def additemview(request):
                 DBSession.flush()
             else:
                 # Components need to reference a Resource
-                # that already exists in the system
+                # that already exists in the resource category
                 parent = DBSession.query(Node).filter_by(
                         ID=parentid).first()
                 rootparentid = parent.getProjectID()
@@ -505,10 +505,11 @@ def additemview(request):
                 DBSession.add(newnode)
                 DBSession.flush()
                 newid = newnode.ID
-            # reset the total of the parent
-            if parentid != 0:
-                reset = DBSession.query(Node).filter_by(ID=parentid).first()
-                reset.resetTotal()
+
+        # reset the total of the parent
+        if parentid != 0:
+            reset = DBSession.query(Node).filter_by(ID=parentid).first()
+            reset.resetTotal()
 
         # commit the transaction and return ok,
         # along with the id of the new node

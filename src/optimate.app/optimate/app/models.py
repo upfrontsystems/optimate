@@ -107,8 +107,7 @@ class Project(Node):
     Name = Column(Text)
     Description = Column(Text)
     ClientID = Column(Integer, ForeignKey('Client.ID'))
-#    CityID = Column(Text, ForeignKey('City.ID'))    
-    City = Column(Text, ForeignKey('Client.City'))
+    CityID = Column(Text, ForeignKey('City.ID'))
     SiteAddress = Column(Text)
     FileNumber = Column(Text)
     _Total = Column('Total', Numeric)
@@ -234,6 +233,19 @@ class Project(Node):
         return '<Project(Name="%s", ID="%s", ParentID="%s")>' % (
             self.Name, self.ID, self.ParentID)
 
+class City(Base):
+    """ City defines a city used by a Project
+    """
+    __tablename__ = 'City'
+    ID = Column(Integer, primary_key=True)
+    Name = Column(Text)
+
+    Projects = relationship('Project',
+                         backref=backref('City'))
+
+    def __repr__(self):
+        return '<City(Name="%s", ID="%d")>' % (
+            self.Name, self.ID)
 
 class BudgetGroup(Node):
     """ A table representing a BudgetGroup in Optimate, it has an ID, Name,
@@ -372,8 +384,8 @@ class BudgetGroup(Node):
 
 
 class BudgetItem(Node):
-    """A table representing a BudgetItem in Optimate, it has an ID, Name,
-       Description, Quantity, Rate and ParentID that is the ID of its parent.
+    """ A table representing a BudgetItem in Optimate, it has an ID, Name,
+        Description, Quantity, Rate and ParentID that is the ID of its parent.
     """
     __tablename__ = 'BudgetItem'
     ID = Column(Integer,
@@ -582,10 +594,10 @@ association_table = Table('ComponentOverheadAssociation', Base.metadata,
 
 
 class Component(Node):
-    """A component represents a unique component in the project.
-       It can be the child of a budgetitem
-       It has a many-to-one relationship with Resource, which
-       defines its Name, Description, and Rate.
+    """ A component represents a unique component in the project.
+        It can be the child of a budgetitem
+        It has a many-to-one relationship with Resource, which
+        defines its Name, Description, and Rate.
     """
     __tablename__ = 'Component'
     ID = Column(Integer,
@@ -685,10 +697,10 @@ class Component(Node):
         """ Get the markup of this component
             It is a composite of all the Overhead percentages
         """
-        composite = 0.0
+        composite = 1.0
         for overhead in self.Overheads:
-            composite+=overhead.Percentage
-        return composite
+            composite = composite*(overhead.Percentage+1.0)
+        return composite-1
 
     @Markup.setter
     def Markup(self, markup):
@@ -743,7 +755,6 @@ class Component(Node):
             but with the ParentID specified.
         """
         copied = Component(ResourceID=self.ResourceID,
-                            UnitID=self.UnitID,
                             ParentID=parentid,
                             _Quantity=self._Quantity,
                             _Total=self._Total,
@@ -830,36 +841,6 @@ class Overhead(Base):
         """
         return '<Overhead(Name="%s", Percentage="%f", ID="%s")>' % (
             self.Name, self.Percentage, self.ID)
-
-
-class Unit(Base):
-    """ Unit defines a unit used by a Resource
-    """
-    __tablename__ = 'Unit'
-    ID = Column(Integer, primary_key=True)
-    Name = Column(Text)
-
-    Resources = relationship('Resource',
-                              backref=backref('Unit'))
-
-    def __repr__(self):
-        return '<Unit(Name="%s", ID="%d")>' % (
-            self.Name, self.ID)
-
-
-class City(Base):
-    """ City defines a city used by a Project
-    """
-    __tablename__ = 'City'
-    ID = Column(Integer, primary_key=True)
-    Name = Column(Text)
-
-#    Projects = relationship('Project',
-#                          backref=backref('City'))
-
-    def __repr__(self):
-        return '<City(Name="%s", ID="%d")>' % (
-            self.Name, self.ID)
 
 
 class ResourceCategory(Node):
@@ -1109,6 +1090,21 @@ class Resource(Node):
         """
         return '<Resource(Name="%s", Code="%s", Rate="%f", ID="%s")>' % (
             self.Name, self.Code, self.Rate, self.ID)
+
+
+class Unit(Base):
+    """ Unit defines a unit used by a Resource
+    """
+    __tablename__ = 'Unit'
+    ID = Column(Integer, primary_key=True)
+    Name = Column(Text)
+
+    Resources = relationship('Resource',
+                              backref=backref('Unit'))
+
+    def __repr__(self):
+        return '<Unit(Name="%s", ID="%d")>' % (
+            self.Name, self.ID)
 
 
 class Client(Base):
