@@ -982,7 +982,7 @@ def cityview(request):
         # Deleting it from the node table deletes the object
         deletethis = DBSession.query(City).filter_by(ID=deleteid).first()
         # only delete if this City is not in use by any Project
-        if len(deletethis.Cities) == 0:
+        if len(deletethis.Projects) == 0:
             qry = DBSession.delete(deletethis)
             if qry == 0:
                 return HTTPNotFound()
