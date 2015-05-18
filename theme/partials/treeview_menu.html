@@ -22,6 +22,16 @@
                     </a>
                 </li>
                 <li>
+                    <span role="button" class="separator">|
+                    </span>
+                </li>
+                <li>
+                    <a role="button" data-toggle="modal"
+                       title="Edit Project">
+                        <i class="fa fa-pencil"></i>
+                    </a>
+                </li>
+                <li>
                     <a role="button" data-ng-click="copyThisNode(currentNode.ID, currentNode.NodeType)"
                        title="Copy Project">
                         <i class="fa fa-files-o"></i>
@@ -95,9 +105,19 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addComponent"
-                        data-ng-click="changeAddingType('Component'); loadResourceList(); loadComponentOverheads(currentNode.ID)"
+                        data-ng-click="changeAddingType('Component'); loadResourceList('add'); loadComponentOverheads(currentNode.ID)"
                        title="Add Component" class="component-button">
                         <i class="fa fa-plus-square"></i> C
+                    </a>
+                </li>
+                <li>
+                    <span role="button" class="separator">|
+                    </span>
+                </li>
+                <li>
+                    <a role="button" data-toggle="modal"
+                       title="Edit Budget Group">
+                        <i class="fa fa-pencil"></i>
                     </a>
                 </li>
                 <li>
@@ -164,9 +184,19 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addComponent"
-                        data-ng-click="changeAddingType('Component'); loadResourceList(); loadComponentOverheads(currentNode.ID)"
+                        data-ng-click="changeAddingType('Component'); loadResourceList('add'); loadComponentOverheads(currentNode.ID)"
                        title="Add Component" class="component-button">
                         <i class="fa fa-plus-square"></i> C
+                    </a>
+                </li>
+                <li>
+                    <span role="button" class="separator">|
+                    </span>
+                </li>
+                <li>
+                    <a role="button" data-toggle="modal"
+                       title="Edit Budget Item">
+                        <i class="fa fa-pencil"></i>
                     </a>
                 </li>
                 <li>
@@ -234,6 +264,16 @@
                     </a>
                 </li>
                 <li>
+                    <span role="button" class="separator">|
+                    </span>
+                </li>
+                <li>
+                    <a role="button" data-toggle="modal"
+                       title="Edit Resource List">
+                        <i class="fa fa-pencil"></i>
+                    </a>
+                </li>
+                <li>
                     <a role="button" data-ng-click="copyThisNode(currentNode.ID, currentNode.NodeType)"
                        title="Copy Resource List">
                         <i class="fa fa-files-o"></i>
@@ -284,7 +324,7 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addComponent"
-                        data-ng-click="loadResourceList(); editComponent(currentNode.ID, currentNode.NodeType)"
+                        data-ng-click="loadResourceList('edit'); editComponent(currentNode.ID, currentNode.NodeType)"
                         title="Edit Component">
                         <i class="fa fa-pencil"></i>
                     </a>
@@ -319,6 +359,12 @@
                 <li>
                     <span role="button" class="separator">|
                     </span>
+                </li>
+                <li>
+                    <a role="button" data-toggle="modal"
+                       title="Edit Resource">
+                        <i class="fa fa-pencil"></i>
+                    </a>
                 </li>
                 <li>
                     <a role="button" data-ng-click="copyThisNode(currentNode.ID, currentNode.NodeType)"

@@ -28,6 +28,43 @@
                                   rows="5" cols="40">
                         </textarea>
                     </div>
+                    <div class="form-group">
+                        <label for="inputClient" class="col-sm-2 control-label">Client:</label>
+                        <select class="col-sm-7"
+                                id="inputClient"
+                                name="inputClient"
+                                data-ng-model="formData['Client']"
+                                data-ng-options="client.ID as client.Name for client in clientList">
+                            <option value="">Select a client</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputCity" class="col-sm-2 control-label">City:</label>
+                        <select class="col-sm-7"
+                                id="inputCity"
+                                name="inputCity"
+                                data-ng-model="formData['City']"
+                                data-ng-options="city.Name as city.Name for city in cityList">
+                            <option value="">Select a city</option>
+                        </select>
+                    </div>                    
+                    <div class="form-group">
+                        <label for="inputSiteAddress" class="col-sm-2 control-label">Site Address:</label>
+                        <textarea id="inputSiteAddress"
+                                  class="col-sm-7"                        
+                                  name="inputSiteAddress"
+                                  ng-model="formData['SiteAddress']"
+                                  rows="5" cols="40">
+                        </textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputFileNumber" class="col-sm-2 control-label">File Number:</label>
+                        <input type="text"
+                               class="col-sm-7"                        
+                               id="inputFileNumber"
+                               name="inputFileNumber"
+                               ng-model="formData['FileNumber']">
+                    </div>                                        
                 </form>
             </div>
             <div class="modal-footer">

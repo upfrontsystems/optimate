@@ -27,6 +27,7 @@ from .models import (
     ResourceCategory,
     Resource,
     Unit,
+    City,
     Overhead,
     Client,
     Supplier,
@@ -168,7 +169,7 @@ def resource_list(request):
         return {"success": True}
     else:
         nodeid = request.matchdict['id']
-        relatedlist = []
+        resourcelist = []
         # Get the current node
         currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
         # Get the parent
@@ -179,7 +180,7 @@ def resource_list(request):
                                 ParentID=rootid).first()
         # if it doesnt exist return the empty list
         if not resourcecategory:
-            return relatedlist
+            return resourcelist
 
         data = resourcecategory.getResourcesDetail()
         resourcelist = {"http://127.0.0.1:8100": {
@@ -270,7 +271,6 @@ def overheadlist(request):
             DBSession.add(newoverhead)
             transaction.commit()
             return HTTPOk()
-
 
 
 @view_config(route_name="projectview", renderer='json')
@@ -888,6 +888,7 @@ def company_information(request):
                 'DefaultTaxrate': qry.DefaultTaxrate}
         return data
 
+
 @view_config(route_name='unitsview', renderer='json')
 def unitsview(request):
     """ The unitsview returns a list in json format of all the units
@@ -898,54 +899,119 @@ def unitsview(request):
     else:
         qry = DBSession.query(Unit).all()
         unitlist = []
-
         for unit in qry:
             unitlist.append({'Name': unit.Name,
-                                'ID': unit.ID})
+                             'ID': unit.ID})
         return sorted(unitlist, key=lambda k: k['Name'].upper())
+
 
 @view_config(route_name='unitview', renderer='json')
 def unitview(request):
     """ The unitview handles different cases for units
         depending on the http method
     """
-
     if request.method == 'OPTIONS':
         return {"success": True}
-    # if the method is delete, delete the unit
+    # if the method is delete, delete the unit, granted it is not in use by any resources
     elif request.method == 'DELETE':
         deleteid = request.matchdict['id']
-
         # Deleting it from the node table deletes the object
         deletethis = DBSession.query(Unit).filter_by(ID=deleteid).first()
-        qry = DBSession.delete(deletethis)
-
-        if qry == 0:
-            return HTTPNotFound()
-        transaction.commit()
-
-        return HTTPOk()
+        # only delete if this Unit is not in use by any Resource
+        if len(deletethis.Resources) == 0:
+            qry = DBSession.delete(deletethis)
+            if qry == 0:
+                return HTTPNotFound()
+            transaction.commit()
+            return {'status': 'remove'}
+        return {'status': 'keep'}
     # if the method is post, add a new unit
     elif request.method == 'POST':
         newunit = Unit(Name=request.json_body['Name'])
-
-        DBSession.add(newunit)
-        DBSession.flush()
-        newid = newunit.ID
-        return {'newid':newid}
+        qry = DBSession.query(Unit).all()
+        existing_unitlist = []
+        for unit in qry:
+            existing_unitlist.append(str(unit.Name).upper())
+        if str(request.json_body['Name']).upper() not in existing_unitlist:
+            DBSession.add(newunit)
+            DBSession.flush()
+            return {'newid': newunit.ID}
+        return
     # if the method is put, edit an existing unit
     elif request.method == 'PUT':
         unit = DBSession.query(
                     Unit).filter_by(Name=request.matchdict['id']).first()
         unit.Name=request.json_body['Name']
-
         transaction.commit()
         return HTTPOk()
     # otherwise return the selected unit
     else:
         unitid = request.matchdict['id']
         unit = DBSession.query(Unit).filter_by(ID=unitid).first()
-
         unitdict = {'Name': unit.Name,
-                        'ID': unit.ID}
+                    'ID': unit.ID}
         return unitdict
+
+
+@view_config(route_name='citiesview', renderer='json')
+def citiesview(request):
+    """ The citiesview returns a list in json format of all the units
+        in the server database
+    """
+    if request.method == 'OPTIONS':
+        return {"success": True}
+    else:
+        qry = DBSession.query(City).all()
+        citylist = []
+        for city in qry:
+            citylist.append({'Name': city.Name,
+                             'ID': city.ID})
+        return sorted(citylist, key=lambda k: k['Name'].upper())
+
+
+@view_config(route_name='cityview', renderer='json')
+def cityview(request):
+    """ The cityview handles different cases for cities
+        depending on the http method
+    """
+    if request.method == 'OPTIONS':
+        return {"success": True}
+    # if the method is delete, delete the city
+    elif request.method == 'DELETE':
+        deleteid = request.matchdict['id']
+        # Deleting it from the node table deletes the object
+        deletethis = DBSession.query(City).filter_by(ID=deleteid).first()
+        # only delete if this City is not in use by any Project
+        if len(deletethis.Projects) == 0:
+            qry = DBSession.delete(deletethis)
+            if qry == 0:
+                return HTTPNotFound()
+            transaction.commit()
+            return {'status': 'remove'}
+        return {'status': 'keep'}
+    # if the method is post, add a new city
+    elif request.method == 'POST':
+        newcity = City(Name=request.json_body['Name'])
+        qry = DBSession.query(City).all()
+        existing_citylist = []
+        for city in qry:
+            existing_citylist.append(str(city.Name).upper())
+        if str(request.json_body['Name']).upper() not in existing_citylist:
+            DBSession.add(newcity)
+            DBSession.flush()
+            return {'newid': newcity.ID}
+        return
+    # if the method is put, edit an existing city
+    elif request.method == 'PUT':
+        city = DBSession.query(
+                    City).filter_by(Name=request.matchdict['id']).first()
+        city.Name=request.json_body['Name']
+        transaction.commit()
+        return HTTPOk()
+    # otherwise return the selected city
+    else:
+        cityid = request.matchdict['id']
+        city = DBSession.query(City).filter_by(ID=cityid).first()
+        citydict = {'Name': city.Name,
+                    'ID': city.ID}
+        return citydict

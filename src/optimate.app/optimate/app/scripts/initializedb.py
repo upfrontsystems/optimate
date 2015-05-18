@@ -24,6 +24,8 @@ from optimate.app.models import (
     BudgetGroup,
     BudgetItem,
     Component,
+    Unit,
+    City,
     ResourceType,
     ResourceCategory,
     Resource,

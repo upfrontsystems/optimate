@@ -107,6 +107,7 @@ class Project(Node):
     Name = Column(Text)
     Description = Column(Text)
     ClientID = Column(Integer, ForeignKey('Client.ID'))
+#    CityID = Column(Text, ForeignKey('City.ID'))    
     City = Column(Text, ForeignKey('Client.City'))
     SiteAddress = Column(Text)
     FileNumber = Column(Text)
@@ -571,12 +572,14 @@ class BudgetItem(Node):
         return '<BudgetItem(Name="%s", ID="%s", ParentID="%s")>' % (
             self.Name, self.ID, self.ParentID)
 
+
 # Association table for the many-to-many relationship between Component
 # and Overhead
 association_table = Table('ComponentOverheadAssociation', Base.metadata,
     Column('ComponentID', Integer, ForeignKey('Component.ID')),
     Column('OverheadID', Integer, ForeignKey('Overhead.ID'))
 )
+
 
 class Component(Node):
     """A component represents a unique component in the project.
@@ -812,6 +815,7 @@ class Component(Node):
         return '<Co(Name="%s", Quantity="%d", ID="%s", ParentID="%s")>' % (
             self.Name, self.Quantity, self.ID, self.ParentID)
 
+
 class Overhead(Base):
     """ A Table for the overheads a project incurs
     """
@@ -840,6 +844,21 @@ class Unit(Base):
 
     def __repr__(self):
         return '<Unit(Name="%s", ID="%d")>' % (
+            self.Name, self.ID)
+
+
+class City(Base):
+    """ City defines a city used by a Project
+    """
+    __tablename__ = 'City'
+    ID = Column(Integer, primary_key=True)
+    Name = Column(Text)
+
+#    Projects = relationship('Project',
+#                          backref=backref('City'))
+
+    def __repr__(self):
+        return '<City(Name="%s", ID="%d")>' % (
             self.Name, self.ID)
 
 

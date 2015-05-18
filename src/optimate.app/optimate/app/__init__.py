@@ -70,6 +70,8 @@ def main(global_config, **settings):
     config.add_route('company_information', '/company_information')
     config.add_route('unitsview', '/units')
     config.add_route('unitview', '/{id}/unit')
+    config.add_route('citiesview', '/cities')
+    config.add_route('cityview', '/{id}/city')
 
     config.scan()
     return config.make_wsgi_app()
