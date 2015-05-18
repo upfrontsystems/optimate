@@ -854,8 +854,8 @@ class City(Base):
     ID = Column(Integer, primary_key=True)
     Name = Column(Text)
 
-    Cities = relationship('Project',
-                              backref=backref('City'))
+#    Projects = relationship('Project',
+#                          backref=backref('City'))
 
     def __repr__(self):
         return '<City(Name="%s", ID="%d")>' % (
