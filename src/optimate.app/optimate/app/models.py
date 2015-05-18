@@ -628,10 +628,12 @@ class Component(Node):
         return self._Total
 
     def resetTotal(self):
-        """The total of a component is based on its rate and quantity
+        """ The total of a component is based on its rate and quantity
         """
+        # After the total is set the total property is updated
         self._Total = Decimal((1.0+self.Markup) *
             self.Quantity * float(self.Rate)).quantize(Decimal('.01'))
+        self.Total = self._Total
 
     @hybrid_property
     def Total(self):
@@ -1047,12 +1049,13 @@ class Resource(Node):
                          Description=self.Description,
                          Type=self.Type,
                          Code = self.Code,
+                         UnitID = self.UnitID,
                          ParentID=parentid,
                          _Rate = self.Rate)
         return copied
 
     def paste(self, source, sourcechildren):
-        """ Do nothin. Cant paste into a resource
+        """ Do nothing. Cant paste into a resource
         """
         pass
 

@@ -447,12 +447,15 @@ def additemview(request):
 
                 # get the list of overheads used in the checkboxes
                 checklist = request.json_body['OverheadList']
+                newoverheads = []
                 for record in checklist:
                     if record['selected']:
                         overheadid = record['ID']
                         overhead = DBSession.query(
                                     Overhead).filter_by(ID=overheadid).first()
-                        editedcomp.Overheads.append(overhead)
+                        newoverheads.append(overhead)
+                editedcomp.Overheads = newoverheads
+                editedcomp.resetTotal()
                 DBSession.flush()
             else:
                 # Components need to reference a Resource
@@ -578,7 +581,7 @@ def pasteitemview(request):
         else:
             dest = DBSession.query(Node).filter_by(ID=destinationid).first()
 
-            if source.type == 'ResourceCategory':
+            if (source.type == 'ResourceCategory' or source.type == 'Resource'):
                 # Paste the source into the destination
                 parentid = dest.ID
                 dest.paste(source.copy(dest.ID), source.Children)
