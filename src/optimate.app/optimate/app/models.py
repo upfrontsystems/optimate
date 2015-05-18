@@ -839,6 +839,9 @@ class Unit(Base):
     ID = Column(Integer, primary_key=True)
     Name = Column(Text)
 
+    Resources = relationship('Resource',
+                              backref=backref('Unit'))
+
     def __repr__(self):
         return '<Unit(Name="%s", ID="%d")>' % (
             self.Name, self.ID)
@@ -850,6 +853,9 @@ class City(Base):
     __tablename__ = 'City'
     ID = Column(Integer, primary_key=True)
     Name = Column(Text)
+
+    Cities = relationship('Project',
+                              backref=backref('City'))
 
     def __repr__(self):
         return '<City(Name="%s", ID="%d")>' % (
