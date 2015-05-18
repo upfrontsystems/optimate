@@ -6,6 +6,16 @@
 </nav>
 
 <div class="container-fluid">
+    <div>
+        <td>
+            <input type="text" ng-model="newCity.Name" placeholder="Name">
+        </td>
+        <td>
+            <button data-ng-click="addCity()" title="Add a City">
+                <i class="fa fa-plus"></i>
+            </button>
+        </td>
+    </div>
     <div id="cities" class="row">
         <table class="table table-hover">
             <thead>
@@ -14,7 +24,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr ng-repeat="obj in cityList" id="unit-{{obj.ID}}">
+                <tr ng-repeat="obj in cityList" id="city-{{obj.ID}}">
                     <td>{{obj.Name}}</td>
                 </tr>
             </tbody>

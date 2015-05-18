@@ -335,7 +335,40 @@ allControllers.controller('citiesController', ['$scope', '$http', '$modal', '$lo
         };
         $http(req).success(function(data){
             $scope.cityList = data;
-        });        
+        });
+
+        // clear the city input fields
+        $scope.clearInput = function(){
+            $scope.newCity = undefined;
+        }        
+
+        $scope.cityList = [];
+        $scope.loadCities = function(){
+            var req = {
+                method: 'GET',
+                url: globalServerURL +'cities'
+            }
+            $http(req).success(function(data) {
+                $scope.cityList = data;
+                console.log("City list loaded");
+            });
+        };
+
+        // add a city
+        $scope.addCity = function(){
+            if ($scope.newCity){
+                var req = {
+                    method: 'POST',
+                    url: globalServerURL + 'cities/city',
+                    data: {'Name':$scope.newCity.Name}
+                }
+                $http(req).success(function() {
+                    $scope.clearInput();
+                    $scope.loadCities();
+                    console.log("City added");
+                });
+            }
+        }
 
     }
 ]);
@@ -372,7 +405,7 @@ allControllers.controller('unitsController', ['$scope', '$http', '$modal', '$log
         };
 
         // add an unit
-        $scope.addUnit= function(){
+        $scope.addUnit = function(){
             if ($scope.newUnit){
                 var req = {
                     method: 'POST',
@@ -385,7 +418,7 @@ allControllers.controller('unitsController', ['$scope', '$http', '$modal', '$log
                     console.log("Unit added");
                 });
             }
-        }        
+        }
 
     }
 ]);

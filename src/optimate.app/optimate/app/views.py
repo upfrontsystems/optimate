@@ -957,7 +957,7 @@ def citiesview(request):
         citylist = []
         for city in qry:
             citylist.append({'Name': city.Name,
-                                'ID': city.ID})
+                             'ID': city.ID})
         return sorted(citylist, key=lambda k: k['Name'].upper())
 
 
