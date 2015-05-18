@@ -354,6 +354,20 @@ allControllers.controller('citiesController', ['$scope', '$http', '$modal', '$lo
             });
         };
 
+        // delete a city by id
+        $scope.deleteUnit = function(unitid, index){
+            var req = {
+                method: 'DELETE',
+                url: globalServerURL + cityid + '/city',
+            }
+            $http(req).success(function(result) {
+                if ( result.status == 'remove' ) {
+                    $scope.cityList.splice(index, 1);
+                    console.log("City deleted");
+                }
+            });
+        }        
+
         // add a city
         $scope.addCity = function(){
             if ($scope.newCity){
@@ -403,6 +417,20 @@ allControllers.controller('unitsController', ['$scope', '$http', '$modal', '$log
                 console.log("Unit list loaded");
             });
         };
+
+        // delete a unit by id
+        $scope.deleteUnit = function(unitid, index){
+            var req = {
+                method: 'DELETE',
+                url: globalServerURL + unitid + '/unit',
+            }
+            $http(req).success(function(result) {
+                if ( result.status == 'remove' ) {
+                    $scope.unitList.splice(index, 1);
+                    console.log("Unit deleted");
+                }
+            });
+        }
 
         // add an unit
         $scope.addUnit = function(){

@@ -912,16 +912,19 @@ def unitview(request):
     """
     if request.method == 'OPTIONS':
         return {"success": True}
-    # if the method is delete, delete the unit
+    # if the method is delete, delete the unit, granted it is not in use by any resources
     elif request.method == 'DELETE':
         deleteid = request.matchdict['id']
         # Deleting it from the node table deletes the object
         deletethis = DBSession.query(Unit).filter_by(ID=deleteid).first()
-        qry = DBSession.delete(deletethis)
-        if qry == 0:
-            return HTTPNotFound()
-        transaction.commit()
-        return HTTPOk()
+        # only delete if this Unit is not in use by any Resource
+        if len(deletethis.Resources) == 0:
+            qry = DBSession.delete(deletethis)
+            if qry == 0:
+                return HTTPNotFound()
+            transaction.commit()
+            return {'status': 'remove'}
+        return {'status': 'keep'}
     # if the method is post, add a new unit
     elif request.method == 'POST':
         newunit = Unit(Name=request.json_body['Name'])
@@ -978,11 +981,14 @@ def cityview(request):
         deleteid = request.matchdict['id']
         # Deleting it from the node table deletes the object
         deletethis = DBSession.query(City).filter_by(ID=deleteid).first()
-        qry = DBSession.delete(deletethis)
-        if qry == 0:
-            return HTTPNotFound()
-        transaction.commit()
-        return HTTPOk()
+        # only delete if this City is not in use by any Project
+        if len(deletethis.Cities) == 0:
+            qry = DBSession.delete(deletethis)
+            if qry == 0:
+                return HTTPNotFound()
+            transaction.commit()
+            return {'status': 'remove'}
+        return {'status': 'keep'}
     # if the method is post, add a new city
     elif request.method == 'POST':
         newcity = City(Name=request.json_body['Name'])

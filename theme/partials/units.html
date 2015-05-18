@@ -11,7 +11,7 @@
             <input type="text" ng-model="newUnit.Name" placeholder="Name">
         </td>
         <td>
-            <button data-ng-click="addUnit()" title="Add a Unit">
+            <button data-ng-click="addUnit()" title="Add a unit">
                 <i class="fa fa-plus"></i>
             </button>
         </td>
@@ -25,8 +25,15 @@
             </thead>
             <tbody>
                 <tr ng-repeat="obj in unitList" id="unit-{{obj.ID}}">
-                    <td>{{obj.Name}}</td>
-                </tr>
+                    <td>{{obj.Name}}
+                    </td>
+                    <td>
+                        <button data-ng-click="deleteUnit(obj.ID, $index)" 
+                                title="Delete this unit">
+                            <i class="fa fa-trash"></i>
+                        </button>                        
+                    </td>
+                </tr>                
             </tbody>
         </table>
     </div>
