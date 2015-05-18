@@ -1,23 +1,31 @@
 <ul>
     <li data-ng-repeat="node in treeModel track by node.ID">
-        <i class="collapsed"
-            data-ng-show="node.Subitem.length && node.collapsed"
-            data-ng-click="selectNodeHead(node)">
-        </i>
-        <i class="expanded"
-            data-ng-show="node.Subitem.length && !node.collapsed"
-            data-ng-click="selectNodeHead(node)">
-        </i>
-        <i class="normal"
-            data-ng-hide="node.Subitem.length">
-        </i>
-        <span class="circle {{node.NodeType}}">&nbsp;{{node.NodeTypeAbbr}}&nbsp;</span>
-        <span class="treenode {{node.NodeType}}"
-            id="{{node.ID}}"
-            data-ng-class="node.selected"
-            data-ng-click="selectNodeLabel(node)">
-            {{node.Name}}
-        </span>
+        <div id="draggable-node"
+            draggable="true"
+            dragstart="handleDragStart(event)"
+            dragenter="handleDragEnter(event)"
+            dragover="handleDragOver(event)"
+            dragleave="handleDragLeave(event)"
+            >
+            <i class="collapsed"
+                data-ng-show="node.Subitem.length && node.collapsed"
+                data-ng-click="selectNodeHead(node)">
+            </i>
+            <i class="expanded"
+                data-ng-show="node.Subitem.length && !node.collapsed"
+                data-ng-click="selectNodeHead(node)">
+            </i>
+            <i class="normal"
+                data-ng-hide="node.Subitem.length">
+            </i>
+            <span class="circle {{node.NodeType}}">&nbsp;{{node.NodeTypeAbbr}}&nbsp;</span>
+            <span class="treenode {{node.NodeType}}"
+                id="{{node.ID}}"
+                data-ng-class="node.selected"
+                data-ng-click="selectNodeLabel(node)">
+                {{node.Name}}
+            </span>
+        </div>
         <div data-ng-hide="!node.collapsed"
             data-tree-model="node.Subitem">
         </div>
