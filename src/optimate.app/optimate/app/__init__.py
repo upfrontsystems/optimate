@@ -6,13 +6,14 @@ from pyramid.events import NewResponse
 from pyramid.events import subscriber
 
 from pyramid.config import Configurator
+from pyramid.authorization import ACLAuthorizationPolicy
 from sqlalchemy import engine_from_config
 
-from .models import (
+from optimate.app.security import OAuthPolicy, makePublic, makeProtected
+from optimate.app.models import (
     DBSession,
     Base,
 )
-
 
 @subscriber(NewResponse)
 def handleResponse(event):
@@ -40,6 +41,10 @@ def main(global_config, **settings):
     config = Configurator(settings=settings)
     config.include('pyramid_chameleon')
     config.add_static_view('static', 'static', cache_max_age=3600)
+
+    config.set_authentication_policy(
+        OAuthPolicy())
+    config.set_authorization_policy(ACLAuthorizationPolicy())
 
     # the optimate data views
     config.add_route('rootview', '/')
