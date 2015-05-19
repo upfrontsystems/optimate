@@ -130,8 +130,8 @@ class Project(Node):
         total = Decimal(0.00)
         for child in self.Children:
             total += child.recalculateTotal()
-        self.Total = total
-        return self.Total
+        self._Total = total.quantize(Decimal('.01'))
+        return self._Total
 
     def resetTotal(self):
         """return the sum of the totals of this node's children
@@ -300,7 +300,6 @@ class BudgetGroup(Node):
         oldtotal = self.Total
         self._Total = Decimal(total).quantize(Decimal('.01'))
         difference = self._Total - oldtotal
-
         # update the parent with the new total
         parent = self.Parent
         if parent._Total == None:
@@ -631,9 +630,8 @@ class Component(Node):
         """ The total of a component is based on its rate and quantity
         """
         # After the total is set the total property is updated
-        self._Total = Decimal((1.0+self.Markup) *
+        self.Total = Decimal((1.0+self.Markup) *
             self.Quantity * float(self.Rate)).quantize(Decimal('.01'))
-        self.Total = self._Total
 
     @hybrid_property
     def Total(self):
@@ -652,17 +650,18 @@ class Component(Node):
         oldtotal = self.Total
         self._Total = Decimal(total).quantize(Decimal('.01'))
         difference = self._Total - oldtotal
-
         # since the total has changed, change the rate of any parent
         # components, budgetitems or others
         parent = self.Parent
-        if parent.type == 'BudgetItem':
-            parent.Rate = parent.Rate + difference
-        else:
-            if parent._Total == None:
-                parent.resetTotal()
+
+        if difference != 0:
+            if parent.type == 'BudgetItem':
+                parent.Rate = parent.Rate + difference
             else:
-                parent.Total = parent.Total + difference
+                if parent._Total == None:
+                    parent.resetTotal()
+                else:
+                    parent.Total = parent.Total + difference
 
     def Subtotal(self):
         """ Subtotal returns the total of the Component with the Overhead
