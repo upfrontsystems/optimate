@@ -42,8 +42,9 @@ setup(name='optimate.app',
       packages=find_packages(),
       include_package_data=True,
       zip_safe=False,
-      test_suite='optimate.app',
+      test_suite='nose.collector',
       install_requires=requires,
+      tests_require=requires + ['nose'],
       entry_points="""\
       [paste.app_factory]
       main = optimate.app:main
