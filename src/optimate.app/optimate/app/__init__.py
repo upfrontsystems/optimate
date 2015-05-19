@@ -4,7 +4,6 @@
 
 from pyramid.events import NewResponse
 from pyramid.events import subscriber
-from pyramid.events import NewRequest
 
 from pyramid.config import Configurator
 from sqlalchemy import engine_from_config
@@ -20,17 +19,15 @@ def handleResponse(event):
     """ Create a new request factory,
         ensuring CORS headers on all json responses.
     """
-
-    def cors_headers(request, response):
-        response.headers.update({
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST,GET,DELETE,PUT,OPTIONS',
-            'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept, \
-                                         Authorization',
-            'Access-Control-Allow-Credentials': 'true',
-            'Access-Control-Max-Age': '1728000',
-        })
-    event.request.add_response_callback(cors_headers)
+    event.response.headers.update({
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST,GET,DELETE,PUT,OPTIONS',
+        'Access-Control-Allow-Headers':
+            event.request.headers.get('Access-Control-Request-Headers',
+            'Origin, Accept, Content-Type, Authorization'),
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Max-Age': '1728000',
+    })
 
 
 def main(global_config, **settings):
@@ -42,7 +39,6 @@ def main(global_config, **settings):
 
     config = Configurator(settings=settings)
     config.include('pyramid_chameleon')
-    config.add_subscriber(handleResponse, NewRequest)
     config.add_static_view('static', 'static', cache_max_age=3600)
 
     # the optimate data views
