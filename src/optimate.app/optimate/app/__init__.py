@@ -9,7 +9,11 @@ from pyramid.config import Configurator
 from pyramid.authorization import ACLAuthorizationPolicy
 from sqlalchemy import engine_from_config
 
-from optimate.app.security import OAuthPolicy, makePublic, makeProtected
+from optimate.app.security import (
+    OAuthPolicy,
+    makePublic,
+    makeProtected,
+    Authenticated)
 from optimate.app.models import (
     DBSession,
     Base,
@@ -38,13 +42,15 @@ def main(global_config, **settings):
     DBSession.configure(bind=engine)
     Base.metadata.bind = engine
 
-    config = Configurator(settings=settings)
+    config = Configurator(settings=settings, root_factory=makeProtected(Authenticated))
     config.include('pyramid_chameleon')
     config.add_static_view('static', 'static', cache_max_age=3600)
 
+    # Authentication and Authorization
     config.set_authentication_policy(
         OAuthPolicy())
     config.set_authorization_policy(ACLAuthorizationPolicy())
+    config.set_default_permission('view')
 
     # the optimate data views
     config.add_route('rootview', '/')
