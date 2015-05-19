@@ -204,15 +204,19 @@ class Project(Node):
             subitem = []
         else:
             subitem = [{'Name':''}]
-        return {'name': self.Name,
-                'budg_cost': self.Total,
-                'order_cost': self.OrderCost,
-                'run_cost': self.RunningCost,
-                'claim_cost': self.ClaimedCost,
-                'income_rec': self.IncomeRecieved,
-                'client_cost': self.ClientCost,
-                'proj_profit': self.ProjectedProfit,
-                'act_profit': self.ActualProfit}
+        return {'Name': self.Name,
+                'Client' : self.ClientID,
+                'City' : self.CityID,
+                'SiteAddress' : self.SiteAddress,
+                'FileNumber' : self.FileNumber,
+                'budg_cost': str(self.Total),
+                'order_cost': str(self.OrderCost),
+                'run_cost': str(self.RunningCost),
+                'claim_cost': str(self.ClaimedCost),
+                'income_rec': str(self.IncomeRecieved),
+                'client_cost': str(self.ClientCost),
+                'proj_profit': str(self.ProjectedProfit),
+                'act_profit': str(self.ActualProfit)}
 
     def getGridData(self):
         return {'name': self.Name,

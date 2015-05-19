@@ -844,6 +844,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
 
         // Add a project to the tree and reload the projectlist
         $scope.addProject = function(){
+            $scope.modalState = "Add"
             // check if adding is disabled, if not disable it and add the node
             if (!$scope.isDisabled){
                 $scope.isDisabled = true;
@@ -860,6 +861,20 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 });
             }
         };
+
+        // edit a project. 
+        $scope.editProject = function(nodeid, nodetype){
+            $scope.modalState = "Edit"
+            $scope.isDisabled = false;
+            var req = {
+                method: 'GET',
+                url: globalServerURL + 'node/' + nodeid + '/'
+            }
+            $http(req).success(function(response) {                
+                $scope.formData = response;
+                $scope.formData['NodeType'] = nodetype;
+            });
+        }           
 
         // Setting the type of the node to be added
         // refresh it if the type is the same
