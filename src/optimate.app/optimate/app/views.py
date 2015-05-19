@@ -436,7 +436,7 @@ def additemview(request):
                 # get the resource used by the component
                 resource = new_list[0]
                 editedcomp.Resource = resource
-            editedcomp.Quantity=quantity
+            editedcomp._Quantity=quantity
             editedcomp.Overheads[:] = []
             newid = editedcomp.ID
             DBSession.flush()
@@ -452,7 +452,7 @@ def additemview(request):
                     newoverheads.append(overhead)
             editedcomp.Overheads = newoverheads
             editedcomp.resetTotal()
-            DBSession.flush()
+            transaction.commit()
         else:
             # Components need to reference a Resource
             # that already exists in the resource category

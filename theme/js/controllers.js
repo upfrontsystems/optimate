@@ -733,6 +733,8 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         // edit a component. load the overhead list followed by
         // data needed for the form
         $scope.editComponent = function(nodeid, nodetype){
+            $scope.modalState = "Edit"
+            $scope.isDisabled = false;
             var req = {
                 method: 'GET',
                 url: globalServerURL + 'component_overheads/' + nodeid + '/'
@@ -875,6 +877,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 $scope.addingNodeType = nodetype;
             }
             $scope.isDisabled = false;
+            $scope.modalState = "Add"
             $scope.formData = {'NodeType': nodetype};
         }
 
