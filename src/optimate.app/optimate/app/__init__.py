@@ -52,6 +52,9 @@ def main(global_config, **settings):
     config.set_authorization_policy(ACLAuthorizationPolicy())
     config.set_default_permission('view')
 
+    # auth view
+    config.add_route('auth', '/auth')
+
     # the optimate data views
     config.add_route('rootview', '/')
     config.add_route('childview', '/{parentid}/')

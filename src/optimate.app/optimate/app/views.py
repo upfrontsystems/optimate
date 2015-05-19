@@ -14,9 +14,13 @@ from pyramid.httpexceptions import (
     HTTPFound,
     HTTPNotFound,
     HTTPInternalServerError,
+    HTTPMethodNotAllowed,
+    HTTPBadRequest,
+    HTTPUnauthorized
 )
 
-from .models import (
+from optimate.app.security import create_token
+from optimate.app.models import (
     DBSession,
     Node,
     Project,
@@ -59,6 +63,39 @@ def cors_options(wrapped):
     wrapper.__doc__ = wrapped.__doc__
     wrapper.__name__ = wrapped.__name__
     return wrapper
+
+@view_config(route_name='auth', renderer='json')
+def auth(request):
+    """ Implements a kind of auth service.
+        1. Must be a POST
+        2. json encoded username and password
+        3. username and password fields on json_body
+
+        We return a token.
+    """
+    if request.method != 'POST':
+        return HTTPMethodNotAllowed(
+            'This endpoint only supports the POST method.')
+
+    username = request.json_body.get('username', None)
+    password = request.json_body.get('password', None)
+    if username is None or password is None:
+        return HTTPBadRequest('Username and password must be provided')
+
+    request.response.headerlist.extend((
+        ('Cache-Control', 'no-store'),
+        ('Pragma', 'no-cache')))
+
+    # TODO authenticate the user, if not
+    # return HTTPUnauthorized('Authentication failed')
+
+    # Create token and cache it
+    token = create_token(request, username)
+
+    return {
+        "access_token": token,
+    }
+
 
 @view_config(route_name="rootview", renderer='json')
 @view_config(route_name="childview", renderer='json')

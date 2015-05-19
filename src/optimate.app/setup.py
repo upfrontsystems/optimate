@@ -23,6 +23,7 @@ requires = [
     'waitress',
     'docutils',
     'xlrd',
+    'PyCrypto', # For secure authentication tokens
     ]
 
 setup(name='optimate.app',
