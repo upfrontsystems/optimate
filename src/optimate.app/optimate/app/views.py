@@ -422,6 +422,10 @@ def additemview(request):
     resourcetype = request.json_body.get('ResourceType', '')
     unit = request.json_body.get('Unit', '')
     objecttype = request.json_body['NodeType']
+    city = request.json_body.get('City', '')
+    client = request.json_body.get('Client', '')
+    siteaddress = request.json_body.get('SiteAddress', '')
+    filenumber = request.json_body.get('FileNumber', '')
     newid = 0
     newnode = None
 
@@ -448,6 +452,10 @@ def additemview(request):
     elif objecttype == 'Project':
         newnode = Project(Name=name,
                         Description=desc,
+                        ClientID=client,
+                        CityID=city,
+                        SiteAddress=siteaddress,
+                        FileNumber=filenumber,
                         ParentID=parentid)
         DBSession.add(newnode)
         DBSession.flush()
@@ -460,7 +468,7 @@ def additemview(request):
         DBSession.flush()
     elif objecttype == 'Component':
         # check if the data has an ID key
-        # this signals that an existing Component is being edited
+        # this signals that     an existing Component is being edited
         if 'ID' in request.json_body:
             editedcomp = DBSession.query(Component).filter_by(
                         ID=request.json_body['ID']).first()
@@ -1005,6 +1013,7 @@ def cityview(request):
         # Deleting it from the node table deletes the object
         deletethis = DBSession.query(City).filter_by(ID=deleteid).first()
         # only delete if this City is not in use by any Project
+        import pdb; pdb.set_trace()
         if len(deletethis.Projects) == 0:
             qry = DBSession.delete(deletethis)
             if qry == 0:
