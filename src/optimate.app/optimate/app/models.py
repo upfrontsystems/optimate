@@ -1169,8 +1169,6 @@ class CompanyInformation(Base):
     Tel = Column(Text)
     Fax = Column(Text)
     Cell = Column(Text)
-    #CompanyHeader =
-    #OrderHeader =
     BankName = Column(Text)
     BranchCode = Column(Text)
     AccountNo = Column(Text)
