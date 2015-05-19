@@ -64,6 +64,7 @@ def cors_options(wrapped):
     wrapper.__name__ = wrapped.__name__
     return wrapper
 
+
 @view_config(route_name='auth', renderer='json')
 def auth(request):
     """ Implements a kind of auth service.
@@ -177,6 +178,7 @@ def childview(request):
         return completelist[int(start):int(end)]
 
     return completelist
+
 
 @view_config(route_name="getitem", renderer='json')
 @cors_options

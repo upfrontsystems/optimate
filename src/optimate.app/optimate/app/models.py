@@ -233,6 +233,7 @@ class Project(Node):
         return '<Project(Name="%s", ID="%s", ParentID="%s")>' % (
             self.Name, self.ID, self.ParentID)
 
+
 class City(Base):
     """ City defines a city used by a Project
     """
@@ -246,6 +247,7 @@ class City(Base):
     def __repr__(self):
         return '<City(Name="%s", ID="%d")>' % (
             self.Name, self.ID)
+
 
 class BudgetGroup(Node):
     """ A table representing a BudgetGroup in Optimate, it has an ID, Name,
