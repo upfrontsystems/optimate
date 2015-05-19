@@ -12,6 +12,25 @@ allControllers.directive(
                 },
                 // templateUrl: 'partials/treeview.html',
                 link: function(scope, element, attrs) {
+                    // arrays of the allowed types to drop in a type
+                    scope.allowed = []
+                    scope.allowed.Project = ['BudgetGroup'];
+                    scope.allowed.BudgetGroup = ['BudgetGroup', 'BudgetItem',
+                                                'Component'];
+                    scope.allowed.BudgetItem = ['BudgetItem', 'Component'];
+                    scope.allowed.Component = [];
+                    scope.allowed.ResourceCategory = ['ResourceCategory', 'Resource'];
+                    scope.allowed.Resource = []
+
+                    scope.dragNode = function(node){
+                        console.log(node.ID);
+                        scope.copiedId = node.ID;
+                    }
+
+                    scope.closeNode = function(node){
+                        node.collapsed = false;
+                    }
+
                     // listening for a node thats been deleted
                     $rootScope.$on('handleDeletedNode', function(){
                         if (scope.treeModel){
