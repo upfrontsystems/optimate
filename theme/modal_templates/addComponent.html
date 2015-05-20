@@ -58,7 +58,10 @@
                 <form>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary" data-dismiss="modal" ng-click="selectedResource(); selectedType(); addNode()">Save</button>
+                <button ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal" 
+                 ng-click="selectedResource(); addNode()">Save</button>
+                <button ng-show="modalState == 'Edit'" class="btn btn-primary" data-dismiss="modal" 
+                 ng-click="selectedResource(); saveNodeEdits()">Update</button>
                 <button class="btn btn-default" ng-click="cancel()" data-dismiss="modal">Cancel</button>
             </div>
         </div>

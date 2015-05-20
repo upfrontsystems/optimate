@@ -204,15 +204,19 @@ class Project(Node):
             subitem = []
         else:
             subitem = [{'Name':''}]
-        return {'name': self.Name,
-                'budg_cost': self.Total,
-                'order_cost': self.OrderCost,
-                'run_cost': self.RunningCost,
-                'claim_cost': self.ClaimedCost,
-                'income_rec': self.IncomeRecieved,
-                'client_cost': self.ClientCost,
-                'proj_profit': self.ProjectedProfit,
-                'act_profit': self.ActualProfit}
+        return {'Name': self.Name,
+                'Client' : self.ClientID,
+                'City' : self.CityID,
+                'SiteAddress' : self.SiteAddress,
+                'FileNumber' : self.FileNumber,
+                'budg_cost': str(self.Total),
+                'order_cost': str(self.OrderCost),
+                'run_cost': str(self.RunningCost),
+                'claim_cost': str(self.ClaimedCost),
+                'income_rec': str(self.IncomeRecieved),
+                'client_cost': str(self.ClientCost),
+                'proj_profit': str(self.ProjectedProfit),
+                'act_profit': str(self.ActualProfit)}
 
     def getGridData(self):
         return {'name': self.Name,
@@ -258,8 +262,8 @@ class BudgetGroup(Node):
     __tablename__ = 'BudgetGroup'
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
+    Name = Column(Text)    
     Description = Column(Text)
-    Name = Column(Text)
     _Total = Column('Total', Numeric)
 
     __mapper_args__ = {
@@ -354,15 +358,16 @@ class BudgetGroup(Node):
             subitem = []
         else:
             subitem = [{'Name':''}]
-        return {'name': self.Name,
-                'budg_cost': self.Total,
-                'order_cost': self.OrderCost,
-                'run_cost': self.RunningCost,
-                'claim_cost': self.ClaimedCost,
-                'income_rec': self.IncomeRecieved,
-                'client_cost': self.ClientCost,
-                'proj_profit': self.ProjectedProfit,
-                'act_profit': self.ActualProfit}
+        return {'Name': self.Name,
+                'Description' : self.Description,
+                'budg_cost': str(self.Total),
+                'order_cost': str(self.OrderCost),
+                'run_cost': str(self.RunningCost),
+                'claim_cost': str(self.ClaimedCost),
+                'income_rec': str(self.IncomeRecieved),
+                'client_cost': str(self.ClientCost),
+                'proj_profit': str(self.ProjectedProfit),
+                'act_profit': str(self.ActualProfit)}
 
     def getGridData(self):
         return {'name': self.Name,
@@ -392,8 +397,8 @@ class BudgetItem(Node):
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'),
                 primary_key=True)
+    Name = Column(Text)    
     Description = Column(Text)
-    Name = Column(Text)
     _Quantity = Column('Quantity', Float, default=0.0)
     _Rate = Column('Rate', Numeric)
     _Total = Column('Total', Numeric)
@@ -550,15 +555,17 @@ class BudgetItem(Node):
             subitem = []
         else:
             subitem = [{'Name':''}]
-        return {'name': self.Name,
-                'budg_cost': self.Total,
-                'order_cost': self.OrderCost,
-                'run_cost': self.RunningCost,
-                'claim_cost': self.ClaimedCost,
-                'income_rec': self.IncomeRecieved,
-                'client_cost': self.ClientCost,
-                'proj_profit': self.ProjectedProfit,
-                'act_profit': self.ActualProfit}
+        return {'Name': self.Name,
+                'Description' : self.Description,
+                'Quantity' : self._Quantity,
+                'budg_cost': str(self.Total),
+                'order_cost': str(self.OrderCost),
+                'run_cost': str(self.RunningCost),
+                'claim_cost': str(self.ClaimedCost),
+                'income_rec': str(self.IncomeRecieved),
+                'client_cost': str(self.ClientCost),
+                'proj_profit': str(self.ProjectedProfit),
+                'act_profit': str(self.ActualProfit)}
 
     def getGridData(self):
         """ Return the data needed for the slick grid in the
@@ -793,8 +800,7 @@ class Component(Node):
         return {'Name': self.Name,
                 'Unit': self.Unit,
                 'Quantity': self.Quantity,
-                'ID':self.ID,
-                'overheadlist': overheadlist,
+                'OverheadList': overheadlist,
                 'order_cost': str(self.OrderCost),
                 'run_cost': str(self.RunningCost),
                 'claim_cost': str(self.ClaimedCost),
@@ -853,8 +859,8 @@ class ResourceCategory(Node):
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'),
                 primary_key=True)
+    Name = Column(Text)    
     Description = Column(Text)
-    Name = Column(Text)
     # Total is just a dummy column for when a project is calculating its total
     _Total = Column('Total', Numeric(12, 2), default=Decimal(0.00))
 
@@ -948,7 +954,8 @@ class ResourceCategory(Node):
         """ Returns a dictionary of this ResourceCategory, which only contains
             its name and a list indicating it has children or not
         """
-        return {'name': self.Name,
+        return {'Name': self.Name,
+                'Description' : self.Description,
                 'budg_cost': '-',
                 'order_cost': '-',
                 'run_cost': '-',
@@ -1061,7 +1068,11 @@ class Resource(Node):
         pass
 
     def toDict(self):
-        return {'name': self.Name,
+        return {'Name': self.Name,
+                'Description': self.Description,
+                'Rate': str(self._Rate),
+                'ResourceType': self.Type,
+                'Unit': int(self.UnitID),
                 'budg_cost': '-',
                 'order_cost': '-',
                 'run_cost': '-',

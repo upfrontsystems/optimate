@@ -26,7 +26,8 @@
                     </span>
                 </li>
                 <li>
-                    <a role="button" data-toggle="modal"
+                    <a role="button" data-toggle="modal" data-target="#addProject"
+                        data-ng-click="loadProjectRelatedList(); editNode(currentNode.ID, currentNode.NodeType)"
                        title="Edit Project">
                         <i class="fa fa-pencil"></i>
                     </a>
@@ -77,7 +78,7 @@
                 <li>
                     <a title="Overheads"
                     data-ng-click="loadOverheads(currentNode.ID)"
-                    data-target="#openOverheads"
+                    data-target="#editOverheads"
                     data-toggle="modal">
                     <i class="fa fa-bar-chart"></i></a>
                 </li>
@@ -115,7 +116,8 @@
                     </span>
                 </li>
                 <li>
-                    <a role="button" data-toggle="modal"
+                    <a role="button" data-toggle="modal" data-target="#addBudgetGroup"
+                        data-ng-click="editNode(currentNode.ID, currentNode.NodeType)"
                        title="Edit Budget Group">
                         <i class="fa fa-pencil"></i>
                     </a>
@@ -194,7 +196,8 @@
                     </span>
                 </li>
                 <li>
-                    <a role="button" data-toggle="modal"
+                    <a role="button" data-toggle="modal" data-target="#addBudgetItem"
+                        data-ng-click="editNode(currentNode.ID, currentNode.NodeType)"
                        title="Edit Budget Item">
                         <i class="fa fa-pencil"></i>
                     </a>
@@ -268,20 +271,21 @@
                     </span>
                 </li>
                 <li>
-                    <a role="button" data-toggle="modal"
-                       title="Edit Resource List">
+                    <a role="button" data-toggle="modal" data-target="#addResourceCategory"
+                        data-ng-click="editNode(currentNode.ID, currentNode.NodeType)"
+                       title="Edit Resource Category">
                         <i class="fa fa-pencil"></i>
                     </a>
                 </li>
                 <li>
                     <a role="button" data-ng-click="copyThisNode(currentNode.ID, currentNode.NodeType)"
-                       title="Copy Resource List">
+                       title="Copy Resource Category">
                         <i class="fa fa-files-o"></i>
                     </a>
                 </li>
                 <li>
                     <a role="button" data-ng-click="cutThisNode(currentNode.ID, currentNode.NodeType)"
-                       title="Cut Resource List">
+                       title="Cut Resource Category">
                         <i class="fa fa-cut"></i>
                     </a>
                 </li>
@@ -324,7 +328,7 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addComponent"
-                        data-ng-click="loadResourceList('edit'); editComponent(currentNode.ID, currentNode.NodeType)"
+                        data-ng-click="loadResourceList('edit'); loadComponentOverheads(currentNode.ID); editNode(currentNode.ID, currentNode.NodeType)"
                         title="Edit Component">
                         <i class="fa fa-pencil"></i>
                     </a>
@@ -361,7 +365,8 @@
                     </span>
                 </li>
                 <li>
-                    <a role="button" data-toggle="modal"
+                    <a role="button" data-toggle="modal" data-target="#addResource"
+                        data-ng-click="loadResourceRelatedList(); editNode(currentNode.ID, currentNode.NodeType)"
                        title="Edit Resource">
                         <i class="fa fa-pencil"></i>
                     </a>

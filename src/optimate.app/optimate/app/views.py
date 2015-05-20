@@ -87,14 +87,12 @@ def auth(request):
         ('Cache-Control', 'no-store'),
         ('Pragma', 'no-cache')))
 
-    # TODO authenticate the user, if not
-    # return HTTPUnauthorized('Authentication failed')
-
-    # Create token and cache it
-    token = create_token(request, username)
+    # TODO authenticate the user against real database
+    if username != 'john' or password != 'john':
+        return HTTPUnauthorized('Authentication failed')
 
     return {
-        "access_token": token,
+        "access_token": create_token(request, username)
     }
 
 
@@ -467,69 +465,34 @@ def additemview(request):
         DBSession.add(newresourcecat)
         DBSession.flush()
     elif objecttype == 'Component':
-        # check if the data has an ID key
-        # this signals that an existing Component is being edited
-        if 'ID' in request.json_body:
-            editedcomp = DBSession.query(Component).filter_by(
-                        ID=request.json_body['ID']).first()
-            # if the name is diffrent get the new resource
-            if editedcomp.Name != name:
-                rootparentid = editedcomp.getProjectID()
-                resourcecategory = DBSession.query(
-                    ResourceCategory).filter_by(
-                    ParentID=rootparentid).first()
-                reslist = resourcecategory.getResources()
-                new_list = [x for x in reslist if x.Name == name]
-                # get the resource used by the component
-                resource = new_list[0]
-                editedcomp.Resource = resource
-            editedcomp._Quantity=quantity
-            editedcomp.Overheads[:] = []
-            newid = editedcomp.ID
-            DBSession.flush()
+        # Components need to reference a Resource
+        # that already exists in the resource category
+        parent = DBSession.query(Node).filter_by(ID=parentid).first()
+        rootparentid = parent.getProjectID()
+        resourcecategory = DBSession.query(
+                ResourceCategory).filter_by(
+                ParentID=rootparentid).first()
 
-            # get the list of overheads used in the checkboxes
-            checklist = request.json_body['OverheadList']
-            newoverheads = []
-            for record in checklist:
-                if record['selected']:
-                    overheadid = record['ID']
-                    overhead = DBSession.query(
-                                Overhead).filter_by(ID=overheadid).first()
-                    newoverheads.append(overhead)
-            editedcomp.Overheads = newoverheads
-            editedcomp.resetTotal()
-            transaction.commit()
-        else:
-            # Components need to reference a Resource
-            # that already exists in the resource category
-            parent = DBSession.query(Node).filter_by(
-                    ID=parentid).first()
-            rootparentid = parent.getProjectID()
-            resourcecategory = DBSession.query(
-                    ResourceCategory).filter_by(
-                    ParentID=rootparentid).first()
+        reslist = resourcecategory.getResources()
+        new_list = [x for x in reslist if x.Name == name]
+        # get the resource used by the component
+        resource = new_list[0]
 
-            reslist = resourcecategory.getResources()
-            new_list = [x for x in reslist if x.Name == name]
-            # get the resource used by the component
-            resource = new_list[0]
+        newcomp = Component(ResourceID=resource.ID,
+                            _Quantity = quantity,
+                            ParentID=parentid)
 
-            newcomp = Component(ResourceID=resource.ID,
-                                _Quantity = quantity,
-                                ParentID=parentid)
+        DBSession.add(newcomp)
+        DBSession.flush()
 
-            DBSession.add(newcomp)
-            DBSession.flush()
-
-            # get the list of overheads used in the checkboxes
-            checklist = request.json_body['OverheadList']
-            for record in checklist:
-                if record['selected']:
-                    overheadid = record['ID']
-                    overhead = DBSession.query(
-                                Overhead).filter_by(ID=overheadid).first()
-                    newcomp.Overheads.append(overhead)
+        # get the list of overheads used in the checkboxes
+        checklist = request.json_body['OverheadList']
+        for record in checklist:
+            if record['selected']:
+                overheadid = record['ID']
+                overhead = DBSession.query(
+                            Overhead).filter_by(ID=overheadid).first()
+                newcomp.Overheads.append(overhead) 
     else:
         if objecttype == 'BudgetGroup':
             newnode = BudgetGroup(Name=name,
@@ -555,12 +518,103 @@ def additemview(request):
     # reset the total of the parent
     if parentid != 0:
         reset = DBSession.query(Node).filter_by(ID=parentid).first()
-        reset.resetTotal()
+        #reset.resetTotal()
 
     # commit the transaction and return ok,
     # along with the id of the new node
     transaction.commit()
     return {'ID': newid}
+
+
+@view_config(route_name="editview", renderer='json')
+@cors_options
+def edititemview(request):
+    """ The edittemview is called when a PUT request is sent from the client.
+        The method updates the specified node with properties as specified by the user.
+    """
+    nodeid = request.json_body['ID']
+    objecttype = request.json_body['NodeType']
+    name = request.json_body['Name']
+    desc = request.json_body.get('Description', '')
+    quantity = float(request.json_body.get('Quantity', 0))
+
+    # Determine the type of object to be edited
+    if objecttype == 'Project':
+        city = request.json_body.get('City', '')
+        client = request.json_body.get('Client', '')
+        siteaddress = request.json_body.get('SiteAddress', '')
+        filenumber = request.json_body.get('FileNumber', '')
+        project = DBSession.query(Project).filter_by(ID=nodeid).first()
+        project.Name=name
+        project.Description=desc
+        project.ClientID=client
+        project.CityID=city
+        project.SiteAddress=siteaddress
+        project.FileNumber=filenumber
+
+    elif objecttype == 'Component':
+        component = DBSession.query(Component).filter_by(ID=nodeid).first()
+
+        # if the name is different from current name, get the new resource
+        if component.Name != name:
+            rootparentid = component.getProjectID()
+            resourcecategory = DBSession.query(
+                ResourceCategory).filter_by(
+                ParentID=rootparentid).first()
+            reslist = resourcecategory.getResources()
+            new_list = [x for x in reslist if x.Name == name]
+            # get the resource used by the component
+            resource = new_list[0]
+            component.ResourceID = resource.ID
+
+        component._Quantity=quantity
+        component.Overheads[:] = []
+
+        # get the list of overheads used in the checkboxes
+        checklist = request.json_body['OverheadList']
+        newoverheads = []
+        for record in checklist:
+            if record['selected']:
+                overheadid = record['ID']
+                overhead = DBSession.query(Overhead).filter_by(ID=overheadid).first()
+                newoverheads.append(overhead)
+        component.Overheads = newoverheads        
+        #component.resetTotal()
+
+    elif objecttype == 'BudgetGroup':
+        budgetgroup = DBSession.query(BudgetGroup).filter_by(ID=nodeid).first()
+        budgetgroup.Name=name
+        budgetgroup.Description=desc
+        
+    elif objecttype == 'BudgetItem':
+        budgetitem = DBSession.query(BudgetItem).filter_by(ID=nodeid).first()
+        budgetitem.Name=name
+        budgetitem.Description=desc
+        budgetitem.Quantity=quantity
+
+    elif objecttype == 'ResourceCategory':
+        resourcecategory = DBSession.query(ResourceCategory).filter_by(ID=nodeid).first()
+        resourcecategory.Name=name
+        resourcecategory.Description=desc
+
+    elif objecttype == 'Resource':
+        rate = request.json_body.get('Rate', 0)
+        rate = Decimal(rate).quantize(Decimal('.01'))
+        resourcetype = request.json_body.get('ResourceType', '') 
+        unit = request.json_body.get('Unit', '')
+        resource = DBSession.query(Resource).filter_by(ID=nodeid).first()
+        resource.Name=name
+        resource.Description=desc
+        resource._Rate=rate
+        resource.UnitID=unit
+        resource.Type=resourcetype        
+
+    else:
+        return HTTPInternalServerError()
+
+    DBSession.flush()
+    transaction.commit()
+    return HTTPOk()
 
 
 @view_config(route_name="deleteview", renderer='json')
