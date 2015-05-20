@@ -1,5 +1,5 @@
 // angular module that contains all the controllers
-var allControllers = angular.module('allControllers', []);
+var allControllers = angular.module('allControllers', ['config']);
 
 // A factory that builds a shared service for the controllers for passing info
 allControllers.factory('sharedService', ['$rootScope',
@@ -31,9 +31,6 @@ allControllers.factory('sharedService', ['$rootScope',
 
         return shared;
 }]);
-
-// set the global server url
-allControllers.value('globalServerURL', 'http://127.0.0.1:8100/');
 
 function toggleMenu(itemclass) {
     $("ul.nav li").removeClass("active");
