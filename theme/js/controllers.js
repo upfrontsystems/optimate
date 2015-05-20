@@ -643,7 +643,6 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         // functions used by the treeview
         // --------------------------------------------------------------------
         $scope.overheadList = [];
-        // Load the resources the user can select from the resource list
         $scope.loadOverheads = function(projectid){
             var req = {
                 method: 'GET',
@@ -662,7 +661,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 url: globalServerURL + 'component_overheads/' + nodeid + '/'
             }
             $http(req).success(function(data) {
-                $scope.componentOverheadList = data;
+                $scope.componentOverheadList = data;                
                 console.log("Overhead list loaded");
             });
         }
@@ -729,35 +728,6 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 $('#inputResources').focus();
             });
         };
-
-        // edit a component. load the overhead list followed by
-        // data needed for the form
-        $scope.editComponent = function(nodeid, nodetype){
-            $scope.modalState = "Edit"
-            $scope.isDisabled = false;
-            var req = {
-                method: 'GET',
-                url: globalServerURL + 'component_overheads/' + nodeid + '/'
-            }
-            $http(req).success(function(data) {
-                $scope.componentOverheadList = data;
-
-                $http({
-                    method: 'GET',
-                    url: globalServerURL + 'node/' + nodeid + '/'
-                }).success(function(response){
-                    var overheadlist = response['overheadlist'];
-                    var arrayLength = $scope.componentOverheadList.length;
-                    for (var i = 0; i < arrayLength; i++) {
-                        if (overheadlist.indexOf($scope.componentOverheadList[i].ID) != -1){
-                            $scope.componentOverheadList[i].selected = true;
-                        }
-                    }
-                    $scope.formData = response;
-                    $scope.formData['NodeType'] = nodetype;
-                })
-            });
-        }
 
         // Load a list of the fields used in adding a project
         $scope.loadProjectRelatedList = function(){
@@ -882,7 +852,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             $scope.formData = {'NodeType': nodetype};
         }
 
-        // get the data of the node to show in the edit form
+        // fetch the properties of the node being edited to populate the respective edit form
         $scope.editNode = function(nodeid, nodetype){
             $scope.modalState = "Edit"
             $scope.isDisabled = false;
@@ -894,10 +864,21 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 $scope.formData = response;
                 $scope.formData['NodeType'] = nodetype;
                 $scope.formData['ID'] = nodeid;
+                // special case for component types
+                if (nodetype == 'Component') {
+                    var overheadlist = response['OverheadList'];
+                    var arrayLength = $scope.componentOverheadList.length;
+                    for (var i = 0; i < arrayLength; i++) {
+                        if (overheadlist.indexOf($scope.componentOverheadList[i].ID) != -1){
+                            $scope.componentOverheadList[i].selected = true;
+                        }
+                    }
+                    $scope.formData['OverheadList'] = $scope.componentOverheadList
+                }                
             });
         }
 
-        // save changes to a node
+        // save changes made to the node's properties
         $scope.saveNodeEdits = function(){            
             var req = {
                 method: 'PUT',
