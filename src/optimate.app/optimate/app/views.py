@@ -580,7 +580,7 @@ def edititemview(request):
                 overhead = DBSession.query(Overhead).filter_by(ID=overheadid).first()
                 newoverheads.append(overhead)
         component.Overheads = newoverheads
-        #component.resetTotal()
+        component.resetTotal()
 
     elif objecttype == 'BudgetGroup':
         budgetgroup = DBSession.query(BudgetGroup).filter_by(ID=nodeid).first()
