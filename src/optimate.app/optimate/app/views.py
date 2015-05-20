@@ -87,14 +87,12 @@ def auth(request):
         ('Cache-Control', 'no-store'),
         ('Pragma', 'no-cache')))
 
-    # TODO authenticate the user, if not
-    # return HTTPUnauthorized('Authentication failed')
-
-    # Create token and cache it
-    token = create_token(request, username)
+    # TODO authenticate the user against real database
+    if username != 'john' or password != 'john':
+        return HTTPUnauthorized('Authentication failed')
 
     return {
-        "access_token": token,
+        "access_token": create_token(request, username)
     }
 
 
