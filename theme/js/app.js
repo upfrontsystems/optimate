@@ -6,8 +6,8 @@ var myApp = angular.module('myApp', [
                     'dndLists',
                     'services']);
 
-myApp.config(['$routeProvider',
-  function($routeProvider) {
+myApp.config(['$routeProvider', '$httpProvider',
+  function($routeProvider, $httpProvider) {
     $routeProvider.
       when('/', {
         templateUrl: 'partials/projects.html',
@@ -46,7 +46,20 @@ myApp.config(['$routeProvider',
       when('/units', {
         templateUrl: 'partials/units.html',
         controller: 'unitsController'
-      })
+      });
+    $httpProvider.interceptors.push(function($window){
+        return {
+            request: function (config) {
+                var token = $window.sessionStorage.token;
+                if (token){
+                    // I would have preferred SessionService.get_token, but
+                    // that causes a circular dependency. Much simpler this way.
+                    config.headers['Authorization'] = 'Bearer ' + token;
+                }
+                return config;
+            }
+        }
+    });
 }])
 
 .run(['$rootScope', '$location', 'SessionService', function($rootScope, $location, SessionService){
