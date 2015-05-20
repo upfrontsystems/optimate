@@ -52,8 +52,12 @@ def main(global_config, **settings):
     config.set_authorization_policy(ACLAuthorizationPolicy())
     config.set_default_permission('view')
 
+    # OPTIONS view
+    config.add_route('options', '/*path', request_method='OPTIONS',
+        factory=makePublic)
+
     # auth view
-    config.add_route('auth', '/auth')
+    config.add_route('auth', '/auth', factory=makePublic)
 
     # the optimate data views
     config.add_route('rootview', '/')
