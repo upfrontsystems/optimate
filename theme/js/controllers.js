@@ -994,3 +994,29 @@ allControllers.controller('treeviewController', ['$http', '$scope', 'globalServe
             sharedService.reloadSlickgrid(selectedNode.ID)
         };
 }]);
+
+allControllers.controller('loginController', ['$scope', '$location', 'SessionService',
+    function($scope, $location, SessionService){
+        $scope.credentials = {
+            username: '',
+            password: ''
+        }
+
+        $scope.login = function(e){
+            e.preventDefault();
+            SessionService.login($scope.credentials.username, $scope.credentials.password).then(
+                function(){
+                    $location.path('/projects');
+                },
+                function(){
+                    alert('Login failed');
+                });
+        }
+}]);
+
+allControllers.controller('logoutController', ['$location', 'SessionService',
+    function($location, SessionService){
+        alert('logout');
+        SessionService.logout();
+        $location.path('/login');
+}]);
