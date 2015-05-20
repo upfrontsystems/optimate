@@ -862,20 +862,6 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             }
         };
 
-        // edit a project. 
-        $scope.editProject = function(nodeid, nodetype){
-            $scope.modalState = "Edit"
-            $scope.isDisabled = false;
-            var req = {
-                method: 'GET',
-                url: globalServerURL + 'node/' + nodeid + '/'
-            }
-            $http(req).success(function(response) {                
-                $scope.formData = response;
-                $scope.formData['NodeType'] = nodetype;
-            });
-        }           
-
         // Setting the type of the node to be added
         // refresh it if the type is the same
         // $timeout is used so that the scope is refreshed and the directive
@@ -894,6 +880,34 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             $scope.isDisabled = false;
             $scope.modalState = "Add"
             $scope.formData = {'NodeType': nodetype};
+        }
+
+        // get the data of the node to show in the edit form
+        $scope.editNode = function(nodeid, nodetype){
+            $scope.modalState = "Edit"
+            $scope.isDisabled = false;
+            var req = {
+                method: 'GET',
+                url: globalServerURL + 'node/' + nodeid + '/'
+            }
+            $http(req).success(function(response) {
+                $scope.formData = response;
+                $scope.formData['NodeType'] = nodetype;
+                $scope.formData['ID'] = nodeid;
+            });
+        }
+
+        // save changes to a node
+        $scope.saveNodeEdits = function(){            
+            var req = {
+                method: 'PUT',
+                url: globalServerURL + 'edit/' + $scope.formData['ID'] + '/',
+                data: $scope.formData,
+            }
+            $http(req).success(function(response) {
+                console.log($scope.formData['NodeType'] + " edited")                
+                // XXX here refresh project list in case the name of node has been updated
+            });
         }
 
         // Deleting a node. It recieves the id of the node

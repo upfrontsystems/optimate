@@ -563,6 +563,45 @@ def additemview(request):
     return {'ID': newid}
 
 
+@view_config(route_name="editview", renderer='json')
+@cors_options
+def edititemview(request):
+    """ The edittemview is called when a PUT request is sent from the client.
+        The method edits the specified node with attributes as specified by the user.        
+    """
+    nodeid = request.json_body['ID']
+    # Get the data to be added to the new object from the request body
+    name = request.json_body['Name']
+    desc = request.json_body.get('Description', '')
+    quantity = float(request.json_body.get('Quantity', 0))
+    rate = request.json_body.get('Rate', 0)
+    rate = Decimal(rate).quantize(Decimal('.01'))
+    resourcetype = request.json_body.get('ResourceType', '')
+    unit = request.json_body.get('Unit', '')
+    objecttype = request.json_body['NodeType']
+    city = request.json_body.get('City', '')
+    client = request.json_body.get('Client', '')
+    siteaddress = request.json_body.get('SiteAddress', '')
+    filenumber = request.json_body.get('FileNumber', '')
+    newid = 0
+    newnode = None
+
+    # Determine the type of object to be edited
+    if objecttype == 'Project':
+        project = DBSession.query(Project).filter_by(ID=nodeid).first()
+        project.Name=name
+        project.Description=desc
+        project.ClientID=client
+        project.CityID=city
+        project.SiteAddress=siteaddress
+        project.FileNumber=filenumber
+        DBSession.flush()
+
+    # commit the transaction and return ok
+    transaction.commit()
+    return HTTPOk()
+
+
 @view_config(route_name="deleteview", renderer='json')
 @cors_options
 def deleteitemview(request):
