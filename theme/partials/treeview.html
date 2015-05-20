@@ -1,5 +1,5 @@
 <ul dnd-list="treeModel"
-    dnd-drop="dropCallback(event, index, item, type, node.type)">
+    dnd-drop="dropNode(event, index, item, type, node.type)">
     <li data-ng-repeat="node in treeModel track by node.ID">
         <div dnd-draggable="node"
             dnd-effect-allowed="move"
@@ -26,6 +26,7 @@
             </span>
         </div>
         <div data-ng-hide="!node.collapsed"
+            data-parent-id="{{node.ID}}"
             data-tree-model="node.Subitem">
         </div>
     </li>

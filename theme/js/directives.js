@@ -24,13 +24,20 @@ allControllers.directive(
 
                     scope.dragStart = function(node){
                         node.collapsed = false;
-                        console.log("Dragging this node: " + node.ID);
-                        scope.copiedId = node.ID;
                     }
 
-                    scope.dropCallback = function(event, index, item, external, type, allowedType) {
-                        console.log('dropped at:\n' + event +"\n"+ index +"\n"+ external +"\n"+ type);
-
+                    scope.dropNode = function(event, index, item, external, type, allowedType) {
+                        console.log("Dropping " + item.ID + " in " +  attrs.parentId);
+                        var cnode = item.ID;
+                        $http({
+                            method: 'POST',
+                            url: globalServerURL + 'move/' + attrs.parentId,
+                            data:{'ID': cnode}
+                        }).success(function () {
+                            console.log('Success: Node pasted');
+                        }).error(function(){
+                            console.log("Server error");
+                        });
                         return item;
                     };
 
