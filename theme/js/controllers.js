@@ -954,7 +954,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 console.log("Children loaded");
             });
         }
-}])
+}]);
 
 // Controller for the treeview. Handles expanding and collapsing the tree and
 // setting the currentNode in the root
@@ -1038,4 +1038,4 @@ allControllers.controller('treeviewController', ['$http', '$scope', 'globalServe
         function handleDragLeave(e) {
           this.classList.remove('over');  // this / e.target is previous target element.
         }
-}])
+}]);
