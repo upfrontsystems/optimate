@@ -1,0 +1,17 @@
+<div class="container-fluid"
+     data-ng-controller="loginController">
+    <form class="form-signin">
+        <h2 class="form-signin-heading">Please sign in</h2>
+        <label for="userName" class="sr-only">Username</label>
+        <input type="text" id="userName", class="form-control"
+               placeholder="User name" required="1" autofocus="1"
+               ng-model="credentials.username" />
+        <label for="userPassword" class="sr-only">Password</label>
+        <input type="password" id="userPassword" class="form-control"
+               placeholder="Password" required="1"
+               ng-model="credentials.password" />
+        <button class="btn btn-lg btn-primary btn-block"
+                type="submit"
+                ng-click="login($event)">Sign in</button>
+    </form>
+</div>

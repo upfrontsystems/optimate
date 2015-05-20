@@ -3,7 +3,8 @@ var myApp = angular.module('myApp', [
                     'allControllers',
                     'ngRoute',
                     'ui.bootstrap',
-                    'dndLists']);
+                    'dndLists',
+                    'services']);
 
 myApp.config(['$routeProvider',
   function($routeProvider) {
@@ -11,6 +12,16 @@ myApp.config(['$routeProvider',
       when('/', {
         templateUrl: 'partials/projects.html',
         controller: 'projectsController'
+      }).
+      when('/login', {
+        templateUrl: 'partials/login.html',
+        controller: 'loginController',
+        'public': true
+      }).
+      when('/logout', {
+        template: '',
+        controller: 'logoutController',
+        'public': true
       }).
       when('/projects', {
         templateUrl: 'partials/projects.html',
@@ -36,4 +47,12 @@ myApp.config(['$routeProvider',
         templateUrl: 'partials/units.html',
         controller: 'unitsController'
       })
-  }]);
+}])
+
+.run(['$rootScope', '$location', 'SessionService', function($rootScope, $location, SessionService){
+    $rootScope.$on("$routeChangeStart", function(event, next, current){
+        if (!(SessionService.authenticated() || next.public)){
+            $location.path("/login");
+        }
+    });
+}]);
