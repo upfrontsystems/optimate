@@ -116,7 +116,8 @@
                     </span>
                 </li>
                 <li>
-                    <a role="button" data-toggle="modal"
+                    <a role="button" data-toggle="modal" data-target="#addBudgetGroup"
+                        data-ng-click="editNode(currentNode.ID, currentNode.NodeType)"
                        title="Edit Budget Group">
                         <i class="fa fa-pencil"></i>
                     </a>
@@ -195,7 +196,8 @@
                     </span>
                 </li>
                 <li>
-                    <a role="button" data-toggle="modal"
+                    <a role="button" data-toggle="modal" data-target="#addBudgetItem"
+                        data-ng-click="editNode(currentNode.ID, currentNode.NodeType)"
                        title="Edit Budget Item">
                         <i class="fa fa-pencil"></i>
                     </a>
@@ -269,20 +271,21 @@
                     </span>
                 </li>
                 <li>
-                    <a role="button" data-toggle="modal"
-                       title="Edit Resource List">
+                    <a role="button" data-toggle="modal" data-target="#addResourceCategory"
+                        data-ng-click="editNode(currentNode.ID, currentNode.NodeType)"
+                       title="Edit Resource Category">
                         <i class="fa fa-pencil"></i>
                     </a>
                 </li>
                 <li>
                     <a role="button" data-ng-click="copyThisNode(currentNode.ID, currentNode.NodeType)"
-                       title="Copy Resource List">
+                       title="Copy Resource Category">
                         <i class="fa fa-files-o"></i>
                     </a>
                 </li>
                 <li>
                     <a role="button" data-ng-click="cutThisNode(currentNode.ID, currentNode.NodeType)"
-                       title="Cut Resource List">
+                       title="Cut Resource Category">
                         <i class="fa fa-cut"></i>
                     </a>
                 </li>

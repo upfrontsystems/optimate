@@ -597,6 +597,28 @@ def edititemview(request):
         project.FileNumber=filenumber
         DBSession.flush()
 
+    elif objecttype == 'BudgetGroup':
+        budgetgroup = DBSession.query(BudgetGroup).filter_by(ID=nodeid).first()
+        budgetgroup.Name=name
+        budgetgroup.Description=desc
+        DBSession.flush()        
+        
+    elif objecttype == 'BudgetItem':
+        budgetitem = DBSession.query(BudgetItem).filter_by(ID=nodeid).first()
+        budgetitem.Name=name
+        budgetitem.Description=desc
+        budgetitem.Quantity=quantity
+        DBSession.flush()        
+
+    elif objecttype == 'ResourceCategory':
+        resourcecategory = DBSession.query(ResourceCategory).filter_by(ID=nodeid).first()
+        resourcecategory.Name=name
+        resourcecategory.Description=desc
+        DBSession.flush()        
+
+    else:
+        return HTTPInternalServerError()
+
     # commit the transaction and return ok
     transaction.commit()
     return HTTPOk()
