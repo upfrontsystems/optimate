@@ -51,8 +51,7 @@ class OAuthPolicy(CallbackAuthenticationPolicy):
             if validated:
                 return username
 
-        # FIXME Return None here to indicate failure
-        return 'john'
+        return None
 
     def remember(self, request, principal, **kw):
         """ A no-op. No protocol for remembering the user.
