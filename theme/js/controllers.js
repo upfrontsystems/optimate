@@ -956,7 +956,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 console.log("Children loaded");
             });
         }
-}])
+}]);
 
 // Controller for the treeview. Handles expanding and collapsing the tree and
 // setting the currentNode in the root
@@ -993,4 +993,4 @@ allControllers.controller('treeviewController', ['$http', '$scope', 'globalServe
             // reload the slickgrid (adding draggable to node break listener)
             sharedService.reloadSlickgrid(selectedNode.ID)
         };
-}])
+}]);
