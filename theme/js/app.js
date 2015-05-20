@@ -2,7 +2,8 @@
 var myApp = angular.module('myApp', [
                     'allControllers',
                     'ngRoute',
-                    'ui.bootstrap']);
+                    'ui.bootstrap',
+                    'dndLists']);
 
 myApp.config(['$routeProvider',
   function($routeProvider) {
@@ -34,5 +35,5 @@ myApp.config(['$routeProvider',
       when('/units', {
         templateUrl: 'partials/units.html',
         controller: 'unitsController'
-      })      
+      })
   }]);

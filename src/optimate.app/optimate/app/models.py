@@ -262,7 +262,7 @@ class BudgetGroup(Node):
     __tablename__ = 'BudgetGroup'
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
-    Name = Column(Text)    
+    Name = Column(Text)
     Description = Column(Text)
     _Total = Column('Total', Numeric)
 
@@ -397,7 +397,7 @@ class BudgetItem(Node):
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'),
                 primary_key=True)
-    Name = Column(Text)    
+    Name = Column(Text)
     Description = Column(Text)
     _Quantity = Column('Quantity', Float, default=0.0)
     _Rate = Column('Rate', Numeric)
@@ -655,7 +655,7 @@ class Component(Node):
         """ Set the Total and update the parent with the new value
         """
         if self._Total == None:
-            self.resetTotal()
+            self.recalculateTotal()
         oldtotal = self.Total
         self._Total = Decimal(total).quantize(Decimal('.01'))
         difference = self._Total - oldtotal
@@ -859,7 +859,7 @@ class ResourceCategory(Node):
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'),
                 primary_key=True)
-    Name = Column(Text)    
+    Name = Column(Text)
     Description = Column(Text)
     # Total is just a dummy column for when a project is calculating its total
     _Total = Column('Total', Numeric(12, 2), default=Decimal(0.00))

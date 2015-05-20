@@ -1,12 +1,11 @@
-<ul>
+<ul dnd-list="treeModel"
+    dnd-drop="dropCallback(event, index, item, type, node.type)">
     <li data-ng-repeat="node in treeModel track by node.ID">
-        <div id="draggable-node"
-            draggable="true"
-            dragstart="handleDragStart(event)"
-            dragenter="handleDragEnter(event)"
-            dragover="handleDragOver(event)"
-            dragleave="handleDragLeave(event)"
-            >
+        <div dnd-draggable="node"
+            dnd-effect-allowed="move"
+            dnd-moved="treeModel.splice($index, 1)"
+            dnd-dragstart="dragStart(node)"
+            dnd-type="node.type">
             <i class="collapsed"
                 data-ng-show="node.Subitem.length && node.collapsed"
                 data-ng-click="selectNodeHead(node)">

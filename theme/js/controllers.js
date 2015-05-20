@@ -658,7 +658,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 url: globalServerURL + 'component_overheads/' + nodeid + '/'
             }
             $http(req).success(function(data) {
-                $scope.componentOverheadList = data;                
+                $scope.componentOverheadList = data;
                 console.log("Overhead list loaded");
             });
         }
@@ -871,20 +871,22 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                         }
                     }
                     $scope.formData['OverheadList'] = $scope.componentOverheadList
-                }                
+                }
             });
         }
 
         // save changes made to the node's properties
-        $scope.saveNodeEdits = function(){            
+        $scope.saveNodeEdits = function(){
             var req = {
                 method: 'PUT',
                 url: globalServerURL + 'edit/' + $scope.formData['ID'] + '/',
                 data: $scope.formData,
             }
             $http(req).success(function(response) {
-                console.log($scope.formData['NodeType'] + " edited")                
+                console.log($scope.formData['NodeType'] + " edited")
                 // XXX here refresh project list in case the name of node has been updated
+                // set the current node name to the name in the modal form
+                $rootScope.currentNode.Name = $scope.formData['Name'];
             });
         }
 
@@ -988,54 +990,7 @@ allControllers.controller('treeviewController', ['$http', '$scope', 'globalServe
             selectedNode.selected = 'selected';
             // set currentNode
             $rootScope.currentNode = selectedNode;
+            // reload the slickgrid (adding draggable to node break listener)
+            sharedService.reloadSlickgrid(selectedNode.ID)
         };
-
-        // handling drag and drop
-        // ====================================================================
-        var dragSrcEl = null;
-        function handleDragStart(e) {
-            console.log("starting drag");
-            this.style.opacity = '0.4';  // this / e.target is the source node.
-
-            dragSrcEl = this;
-
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/html', this.innerHTML);
-        }
-
-        function handleDrop(e) {
-          // this/e.target is current target element.
-
-          if (e.stopPropagation) {
-            e.stopPropagation(); // Stops some browsers from redirecting.
-          }
-
-          // Don't do anything if dropping the same column we're dragging.
-          if (dragSrcEl != this) {
-            // Set the source column's HTML to the HTML of the column we dropped on.
-            dragSrcEl.innerHTML = this.innerHTML;
-            this.innerHTML = e.dataTransfer.getData('text/html');
-          }
-
-          return false;
-        }
-
-        function handleDragOver(e) {
-          if (e.preventDefault) {
-            e.preventDefault(); // Necessary. Allows us to drop.
-          }
-
-          e.dataTransfer.dropEffect = 'move';
-
-          return false;
-        }
-
-        function handleDragEnter(e) {
-          // this / e.target is the current hover target.
-          this.classList.add('over');
-        }
-
-        function handleDragLeave(e) {
-          this.classList.remove('over');  // this / e.target is previous target element.
-        }
 }]);

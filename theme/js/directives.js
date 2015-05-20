@@ -12,6 +12,28 @@ allControllers.directive(
                 },
                 // templateUrl: 'partials/treeview.html',
                 link: function(scope, element, attrs) {
+                    // arrays of the allowed types to drop in a type
+                    scope.allowed = []
+                    scope.allowed.Project = ['BudgetGroup'];
+                    scope.allowed.BudgetGroup = ['BudgetGroup', 'BudgetItem',
+                                                'Component'];
+                    scope.allowed.BudgetItem = ['BudgetItem', 'Component'];
+                    scope.allowed.Component = [];
+                    scope.allowed.ResourceCategory = ['ResourceCategory', 'Resource'];
+                    scope.allowed.Resource = []
+
+                    scope.dragStart = function(node){
+                        node.collapsed = false;
+                        console.log("Dragging this node: " + node.ID);
+                        scope.copiedId = node.ID;
+                    }
+
+                    scope.dropCallback = function(event, index, item, external, type, allowedType) {
+                        console.log('dropped at:\n' + event +"\n"+ index +"\n"+ external +"\n"+ type);
+
+                        return item;
+                    };
+
                     // listening for a node thats been deleted
                     $rootScope.$on('handleDeletedNode', function(){
                         if (scope.treeModel){
@@ -328,6 +350,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 grid.render();
             });
 
+            // on cell change post to the server and update the totals
             grid.onCellChange.subscribe(function (e, ctx) {
                 var item = ctx.item
                 $.ajax({
@@ -337,6 +360,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     success: function(data) {
                         if (data){
                             item.budg_cost = data['total'];
+                            item.sub_cost = data['subtotal'];
                             dataView.updateItem(item.id, item);
                         }
                         console.log('id_'+ item.id + ' updated')
