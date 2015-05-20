@@ -1073,7 +1073,7 @@ class Resource(Node):
                 'Description': self.Description,
                 'Rate': str(self._Rate),
                 'ResourceType': self.Type,
-                'Unit': self.UnitID,
+                'Unit': int(self.UnitID),
                 'budg_cost': '-',
                 'order_cost': '-',
                 'run_cost': '-',
