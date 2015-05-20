@@ -1016,7 +1016,6 @@ allControllers.controller('loginController', ['$scope', '$location', 'SessionSer
 
 allControllers.controller('logoutController', ['$location', 'SessionService',
     function($location, SessionService){
-        alert('logout');
         SessionService.logout();
         $location.path('/login');
 }]);
