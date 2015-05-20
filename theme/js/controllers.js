@@ -45,7 +45,7 @@ allControllers.controller('companyinformationController', ['$scope', '$http', '$
 
         var req = {
             method: 'GET',
-            url: globalServerURL + 'company_information',
+            url: globalServerURL + 'company_information'
         };
         $http(req).success(function(data){
             $scope.company_information = data;
@@ -55,7 +55,7 @@ allControllers.controller('companyinformationController', ['$scope', '$http', '$
         $scope.editingState = function (){
             $http({
                 method: 'GET',
-                url: globalServerURL + 'company_information',
+                url: globalServerURL + 'company_information'
             }).success(function(response){
                 $scope.formData = response;
             })
@@ -66,7 +66,7 @@ allControllers.controller('companyinformationController', ['$scope', '$http', '$
             $http({
                 method: 'PUT',
                 url: globalServerURL + 'company_information',
-                data:$scope.formData
+                data: $scope.formData
             }).success(function (data) {
                 $scope.company_information = $scope.formData
             });
@@ -99,7 +99,7 @@ allControllers.controller('clientsController', ['$scope', '$http', 'globalServer
                     $http({
                         method: 'PUT',
                         url: globalServerURL + $scope.formData['ID'] + '/' + $scope.formData['NodeType'],
-                        data:$scope.formData
+                        data: $scope.formData
                     }).success(function () {
                         $scope.handleEdited($scope.formData);
                         $scope.formData = {'NodeType': $scope.formData['NodeType']};
@@ -109,7 +109,7 @@ allControllers.controller('clientsController', ['$scope', '$http', 'globalServer
                     $http({
                         method: 'POST',
                         url: globalServerURL + '0/' + $scope.formData['NodeType'],
-                        data:$scope.formData
+                        data: $scope.formData
                     }).success(function (response) {
                         $scope.formData['ID'] = response['newid'];
                         // post the new client to the shared service
@@ -616,7 +616,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                         var url = globalServerURL + 'projectview/' + id + '/'
                         var req = {
                             method: 'GET',
-                            url: url,
+                            url: url
                         }
                         $http(req).success(function(data) {
                             templist.push(data[0]);
