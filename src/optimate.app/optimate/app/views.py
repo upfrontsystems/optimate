@@ -705,6 +705,66 @@ def pasteitemview(request):
     return HTTPOk()
 
 
+@view_config(route_name="moveview", renderer='json')
+@cors_options
+def moveitemview(request):
+    """ The moveitemview is called when a node is dropped in the tree
+        The function checks depending on which project the node is dropped
+        in whether it should be cut or copied.
+        Then it adds the node to the parent.
+    """
+    # Find the source object to be copied from the path in the request body
+    sourceid = request.json_body["ID"]
+    # Find the object to be copied to from the path
+    destinationid = request.matchdict['id']
+
+    source = DBSession.query(Node).filter_by(ID=sourceid).first()
+    dest =DBSession.query(Node).filter_by(ID=destinationid).first()
+
+    sourceprojectid = source.getProjectID()
+    destprojectid = dest.getProjectID()
+
+    # if the nodes are in the same project cut, otherwise copy
+    if destprojectid == sourceprojectid:
+        # set the source parent to the destination parent
+        source.ParentID = destinationid
+        transaction.commit()
+
+        if destinationid != 0:
+            reset = DBSession.query(
+                    Node).filter_by(ID=destinationid).first()
+            reset.resetTotal()
+    else:
+        if (source.type == 'ResourceCategory' or source.type == 'Resource'):
+            # Paste the source into the destination
+            parentid = dest.ID
+            dest.paste(source.copy(dest.ID), source.Children)
+        else:
+            # Get a list of the components in the source
+            componentlist = source.getComponents()
+
+            # Get the ID of the project the destination is in
+            projectid = destprojectid
+
+            # Paste the source into the destination
+            parentid = dest.ID
+            dest.paste(source.copy(dest.ID), source.Children)
+
+            # Add the new resources to the destinations resource category
+            resourcecategory = DBSession.query(
+                            ResourceCategory).filter_by(
+                            ParentID=projectid).first()
+            resourcecategory.addResources(componentlist)
+            transaction.commit()
+
+            if parentid != 0:
+                reset = DBSession.query(Node).filter_by(ID=parentid).first()
+                reset.resetTotal()
+
+    transaction.commit()
+    return HTTPOk()
+
+
 @view_config(route_name="costview", renderer='json')
 @cors_options
 def costview(request):
