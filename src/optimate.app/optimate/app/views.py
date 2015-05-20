@@ -689,7 +689,6 @@ def pasteitemview(request):
 
 
 @view_config(route_name="moveview", renderer='json')
-@cors_options
 def moveitemview(request):
     """ The moveitemview is called when a node is dropped in the tree
         The function checks depending on which project the node is dropped
