@@ -66,6 +66,7 @@ def cors_options(wrapped):
 
 
 @view_config(route_name='auth', renderer='json')
+@cors_options
 def auth(request):
     """ Implements a kind of auth service.
         1. Must be a POST
