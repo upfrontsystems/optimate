@@ -396,8 +396,9 @@ def update_value(request):
             try:
                 result.Quantity = float(request.params.get('quantity'))
                 newtotal = str(result.Total)
+                newsubtotal = str(result.Subtotal())
                 # return the new total
-                return {'total': newtotal}
+                return {'total': newtotal, 'subtotal': newsubtotal}
             except ValueError:
                 pass # do not do anything
 
@@ -492,7 +493,7 @@ def additemview(request):
                 overheadid = record['ID']
                 overhead = DBSession.query(
                             Overhead).filter_by(ID=overheadid).first()
-                newcomp.Overheads.append(overhead) 
+                newcomp.Overheads.append(overhead)
     else:
         if objecttype == 'BudgetGroup':
             newnode = BudgetGroup(Name=name,
@@ -518,7 +519,7 @@ def additemview(request):
     # reset the total of the parent
     if parentid != 0:
         reset = DBSession.query(Node).filter_by(ID=parentid).first()
-        #reset.resetTotal()
+        reset.resetTotal()
 
     # commit the transaction and return ok,
     # along with the id of the new node
@@ -578,14 +579,14 @@ def edititemview(request):
                 overheadid = record['ID']
                 overhead = DBSession.query(Overhead).filter_by(ID=overheadid).first()
                 newoverheads.append(overhead)
-        component.Overheads = newoverheads        
+        component.Overheads = newoverheads
         #component.resetTotal()
 
     elif objecttype == 'BudgetGroup':
         budgetgroup = DBSession.query(BudgetGroup).filter_by(ID=nodeid).first()
         budgetgroup.Name=name
         budgetgroup.Description=desc
-        
+
     elif objecttype == 'BudgetItem':
         budgetitem = DBSession.query(BudgetItem).filter_by(ID=nodeid).first()
         budgetitem.Name=name
@@ -600,14 +601,14 @@ def edititemview(request):
     elif objecttype == 'Resource':
         rate = request.json_body.get('Rate', 0)
         rate = Decimal(rate).quantize(Decimal('.01'))
-        resourcetype = request.json_body.get('ResourceType', '') 
+        resourcetype = request.json_body.get('ResourceType', '')
         unit = request.json_body.get('Unit', '')
         resource = DBSession.query(Resource).filter_by(ID=nodeid).first()
         resource.Name=name
         resource.Description=desc
         resource._Rate=rate
         resource.UnitID=unit
-        resource.Type=resourcetype        
+        resource.Type=resourcetype
 
     else:
         return HTTPInternalServerError()

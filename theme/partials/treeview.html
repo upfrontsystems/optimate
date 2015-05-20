@@ -1,28 +1,30 @@
-<ul dnd-list="treeModel">
+<ul dnd-list="treeModel"
+    dnd-drop="dropCallback(event, index, item, type, node.type)">
     <li data-ng-repeat="node in treeModel track by node.ID">
-        <i class="collapsed"
-            data-ng-show="node.Subitem.length && node.collapsed"
-            data-ng-click="selectNodeHead(node)">
-        </i>
-        <i class="expanded"
-            data-ng-show="node.Subitem.length && !node.collapsed"
-            data-ng-click="selectNodeHead(node)">
-        </i>
-        <i class="normal"
-            data-ng-hide="node.Subitem.length">
-        </i>
-        <span class="circle {{node.NodeType}}">&nbsp;{{node.NodeTypeAbbr}}&nbsp;</span>
-        <span class="treenode {{node.NodeType}}"
-            id="{{node.ID}}"
-            data-ng-class="node.selected"
-            data-ng-click="selectNodeLabel(node)"
-            dnd-draggable="node"
+        <div dnd-draggable="node"
             dnd-effect-allowed="move"
-            dnd-moved="dragNode(node); treeModel.splice($index, 1)"
-            dnd-dragstart="closeNode(node)"
+            dnd-moved="treeModel.splice($index, 1)"
+            dnd-dragstart="dragStart(node)"
             dnd-type="node.type">
-            {{node.Name}}
-        </span>
+            <i class="collapsed"
+                data-ng-show="node.Subitem.length && node.collapsed"
+                data-ng-click="selectNodeHead(node)">
+            </i>
+            <i class="expanded"
+                data-ng-show="node.Subitem.length && !node.collapsed"
+                data-ng-click="selectNodeHead(node)">
+            </i>
+            <i class="normal"
+                data-ng-hide="node.Subitem.length">
+            </i>
+            <span class="circle {{node.NodeType}}">&nbsp;{{node.NodeTypeAbbr}}&nbsp;</span>
+            <span class="treenode {{node.NodeType}}"
+                id="{{node.ID}}"
+                data-ng-class="node.selected"
+                data-ng-click="selectNodeLabel(node)">
+                {{node.Name}}
+            </span>
+        </div>
         <div data-ng-hide="!node.collapsed"
             data-tree-model="node.Subitem">
         </div>

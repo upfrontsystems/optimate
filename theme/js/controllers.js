@@ -658,7 +658,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 url: globalServerURL + 'component_overheads/' + nodeid + '/'
             }
             $http(req).success(function(data) {
-                $scope.componentOverheadList = data;                
+                $scope.componentOverheadList = data;
                 console.log("Overhead list loaded");
             });
         }
@@ -871,20 +871,22 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                         }
                     }
                     $scope.formData['OverheadList'] = $scope.componentOverheadList
-                }                
+                }
             });
         }
 
         // save changes made to the node's properties
-        $scope.saveNodeEdits = function(){            
+        $scope.saveNodeEdits = function(){
             var req = {
                 method: 'PUT',
                 url: globalServerURL + 'edit/' + $scope.formData['ID'] + '/',
                 data: $scope.formData,
             }
             $http(req).success(function(response) {
-                console.log($scope.formData['NodeType'] + " edited")                
+                console.log($scope.formData['NodeType'] + " edited")
                 // XXX here refresh project list in case the name of node has been updated
+                // set the current node name to the name in the modal form
+                $rootScope.currentNode.Name = $scope.formData['Name'];
             });
         }
 
@@ -988,5 +990,7 @@ allControllers.controller('treeviewController', ['$http', '$scope', 'globalServe
             selectedNode.selected = 'selected';
             // set currentNode
             $rootScope.currentNode = selectedNode;
+            // reload the slickgrid (adding draggable to node break listener)
+            sharedService.reloadSlickgrid(selectedNode.ID)
         };
 }])

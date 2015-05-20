@@ -22,14 +22,17 @@ allControllers.directive(
                     scope.allowed.ResourceCategory = ['ResourceCategory', 'Resource'];
                     scope.allowed.Resource = []
 
-                    scope.dragNode = function(node){
-                        console.log(node.ID);
+                    scope.dragStart = function(node){
+                        node.collapsed = false;
+                        console.log("Dragging this node: " + node.ID);
                         scope.copiedId = node.ID;
                     }
 
-                    scope.closeNode = function(node){
-                        node.collapsed = false;
-                    }
+                    scope.dropCallback = function(event, index, item, external, type, allowedType) {
+                        console.log('dropped at:\n' + event +"\n"+ index +"\n"+ external +"\n"+ type);
+
+                        return item;
+                    };
 
                     // listening for a node thats been deleted
                     $rootScope.$on('handleDeletedNode', function(){
@@ -347,6 +350,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 grid.render();
             });
 
+            // on cell change post to the server and update the totals
             grid.onCellChange.subscribe(function (e, ctx) {
                 var item = ctx.item
                 $.ajax({
@@ -356,6 +360,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     success: function(data) {
                         if (data){
                             item.budg_cost = data['total'];
+                            item.sub_cost = data['subtotal'];
                             dataView.updateItem(item.id, item);
                         }
                         console.log('id_'+ item.id + ' updated')
