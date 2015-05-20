@@ -862,7 +862,16 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 $scope.formData['NodeType'] = nodetype;
                 $scope.formData['ID'] = nodeid;
                 // special case for component types
-                if (nodetype == 'Component') {
+                if (nodetype == 'Component') {                    
+                    // update resource
+                    // remove any old remembered choices from last time
+                    $('.search-choice').remove();                    
+                    var resource_html = '<li title="undefined" class="search-choice">' +
+                                        '<span class="selected-resource">' + $scope.formData['ResourceName'] +
+                                        '</span><a data-uid="' + $scope.formData['ResourceID'] +
+                                        '" class="search-choice-close" href="javascript:void(0)"></a></li>'
+                    $('#related_items_finder .finder-choices').prepend(resource_html);
+                    // update overheadlist
                     var overheadlist = response['OverheadList'];
                     var arrayLength = $scope.componentOverheadList.length;
                     for (var i = 0; i < arrayLength; i++) {
