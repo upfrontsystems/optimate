@@ -1069,7 +1069,11 @@ class Resource(Node):
         pass
 
     def toDict(self):
-        return {'name': self.Name,
+        return {'Name': self.Name,
+                'Description': self.Description,
+                'Rate': str(self._Rate),
+                'ResourceType': self.Type,
+                'Unit': self.UnitID,
                 'budg_cost': '-',
                 'order_cost': '-',
                 'run_cost': '-',

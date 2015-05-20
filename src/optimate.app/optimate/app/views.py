@@ -614,6 +614,15 @@ def edititemview(request):
         resourcecategory = DBSession.query(ResourceCategory).filter_by(ID=nodeid).first()
         resourcecategory.Name=name
         resourcecategory.Description=desc
+        DBSession.flush()
+
+    elif objecttype == 'Resource':
+        resource = DBSession.query(Resource).filter_by(ID=nodeid).first()
+        resource.Name=name
+        resource.Description=desc
+        resource._Rate=rate
+        resource.UnitID=unit
+        resource.Type=resourcetype
         DBSession.flush()        
 
     else:
