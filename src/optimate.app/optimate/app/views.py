@@ -644,27 +644,53 @@ def pasteitemview(request):
     destinationid = request.matchdict['id']
 
     source = DBSession.query(Node).filter_by(ID=sourceid).first()
-
+    dest = DBSession.query(Node).filter_by(ID=destinationid).first()
+    parentid = dest.ID
     # if the source is to be cut and pasted into the destination
     if request.json_body["cut"]:
+        # check if the node was pasted into a different project
+        # Get the ID of the projects
+        destprojectid = dest.getProjectID()
+        sourceprojectid = source.getProjectID()
+        if destprojectid != sourceprojectid:
+            projectid = destprojectid
+            # get the resource category the project uses
+            resourcecategory = DBSession.query(
+                            ResourceCategory).filter_by(
+                            ParentID=projectid).first()
+            rescatid = resourcecategory.ID
+
+            # Get the components that were copied
+            if source.type == 'Component':
+                sourcecomponents = [source]
+            else:
+                sourcecomponents = source.getComponents()
+            # copy each unique resource into the new resource category
+            copiedresourceIds = {}
+            for component in sourcecomponents:
+                if component.ResourceID not in copiedresourceIds:
+                    copiedresource = component.Resource.copy(rescatid)
+                    resourcecategory.Children.append(copiedresource)
+                    DBSession.flush()
+                    copiedresourceIds[
+                            component.Resource.ID] = copiedresource.ID
+
+            # get the components that were pasted
+            destcomponents = dest.getComponents()
+            # change the resource ids of components who resources were copied
+            for component in destcomponents:
+                if component.ResourceID in copiedresourceIds:
+                    component.ResourceID = copiedresourceIds[
+                                                component.ResourceID]
         # set the source parent to the destination parent
         source.ParentID = destinationid
         transaction.commit()
-
-        if destinationid != 0:
-            reset = DBSession.query(
-                    Node).filter_by(ID=destinationid).first()
-            reset.resetTotal()
     else:
-        dest = DBSession.query(Node).filter_by(ID=destinationid).first()
-
         if (source.type == 'ResourceCategory' or source.type == 'Resource'):
             # Paste the source into the destination
-            parentid = dest.ID
             dest.paste(source.copy(dest.ID), source.Children)
         else:
             # Paste the source into the destination
-            parentid = dest.ID
             dest.paste(source.copy(dest.ID), source.Children)
             DBSession.flush()
 
@@ -703,9 +729,9 @@ def pasteitemview(request):
                         component.ResourceID = copiedresourceIds[
                                                     component.ResourceID]
 
-            if parentid != 0:
-                reset = DBSession.query(Node).filter_by(ID=parentid).first()
-                reset.resetTotal()
+    if parentid != 0:
+        reset = DBSession.query(Node).filter_by(ID=parentid).first()
+        reset.resetTotal()
 
     transaction.commit()
     return HTTPOk()
