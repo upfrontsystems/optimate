@@ -19,7 +19,9 @@ from optimate.app.models import (
     Resource,
     Client,
     Supplier,
-    CompanyInformation
+    CompanyInformation,
+    Order,
+    OrderItem
 )
 
 from sqlalchemy import (
@@ -910,6 +912,7 @@ if __name__ == '__main__':
         # =====================================================================
         clientbook = xlrd.open_workbook(exceldatapath + 'Client.xls')
         sheet = clientbook.sheet_by_index(0)
+        codeindex = 0
         nameindex = 1
         addresindex = 2
         cityindex = 3
@@ -929,7 +932,7 @@ if __name__ == '__main__':
             except UnicodeEncodeError, u:
                 name = unicodedata.normalize('NFKD',
                                         name).encode('ascii', 'ignore')
-
+            code = int(sheet.cell(x, codeindex).value)
             address = str(sheet.cell(x, addresindex).value).encode('ascii')
             city = str(sheet.cell(x, cityindex).value).encode('ascii')
             state = str(sheet.cell(x, stateindex).value).encode('ascii')
@@ -945,7 +948,8 @@ if __name__ == '__main__':
                 contact = unicodedata.normalize('NFKD',
                                         contact).encode('ascii', 'ignore')
 
-            client = Client(Name=name,
+            client = Client(ID=code,
+                            Name=name,
                             Address=address,
                             City=city,
                             StateProvince=state,
@@ -971,7 +975,7 @@ if __name__ == '__main__':
             except UnicodeEncodeError, u:
                 name = unicodedata.normalize('NFKD',
                                     name).encode('ascii', 'ignore')
-
+            code = int(sheet.cell(x, codeindex).value)
             address = str(sheet.cell(x, addresindex).value).encode('ascii')
             city = str(sheet.cell(x, cityindex).value).encode('ascii')
             state = str(sheet.cell(x, stateindex).value).encode('ascii')
@@ -987,7 +991,8 @@ if __name__ == '__main__':
                 contact = unicodedata.normalize('NFKD',
                                     contact).encode('ascii', 'ignore')
 
-            supplier = Supplier(Name=name,
+            supplier = Supplier(ID=code,
+                            Name=name,
                             Address=address,
                             City=city,
                             StateProvince=state,
@@ -997,6 +1002,74 @@ if __name__ == '__main__':
                             Fax=fax,
                             Contact=contact)
             DBSession.add(supplier)
+
+        transaction.commit()
+
+        orderbook = xlrd.open_workbook(exceldatapath + 'Orders.xls')
+        sheet = orderbook.sheet_by_index(0)
+        codeindex = 0
+        authindex = 5
+        projidindex = 6
+        supidindex = 7
+        clientidindex = 8
+        totalindex = 9
+        taxindex = 10
+        deladdindex = 11
+
+        print 'Converting Order table'
+        for x in range(1, sheet.nrows):
+            code = int(sheet.cell(x, codeindex).value)
+            auth = str(sheet.cell(x, authindex).value).encode('ascii')
+            projid = sheet.cell(x, projidindex).value
+            supid = sheet.cell(x, supidindex).value
+            clientid = sheet.cell(x, clientidindex).value
+            try:
+                total = Decimal(sheet.cell(x,
+                    totalindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
+                total = Decimal(0.00)
+            try:
+                tax = float(sheet.cell(x, taxindex).value)
+            except ValueError:
+                tax = 0.0
+            try:
+                deladd = str(sheet.cell(x, deladdindex).value).encode('ascii')
+            except UnicodeEncodeError:
+                deladd = ""
+
+            order = Order(ID=code,
+                            Authorisation=auth,
+                            ProjectID=projid,
+                            SupplierID=supid,
+                            ClientID=clientid,
+                            Total=total,
+                            TaxRate=tax,
+                            DeliveryAddress=deladd)
+            DBSession.add(order)
+
+        transaction.commit()
+
+        orderitembook = xlrd.open_workbook(exceldatapath + 'OrderItem.xls')
+        sheet = orderitembook.sheet_by_index(0)
+        codeindex = 0
+        orderidindex = 1
+        compidindex = 2
+
+        print 'Converting Order Item table'
+        for x in range(1, sheet.nrows):
+            code = int(sheet.cell(x, codeindex).value)
+            orderid = sheet.cell(x, orderidindex).value
+            compid = sheet.cell(x, compidindex).value
+
+            # if the code has been changed assign it here
+            if compid in changedcocodes:
+                if changedcocodes[compid] != 149999:
+                    compid = changedcocodes[compid]
+
+                    orderitem = OrderItem(ID=code,
+                                    OrderID=orderid,
+                                    ComponentID=compid)
+                    DBSession.add(orderitem)
 
         transaction.commit()
 

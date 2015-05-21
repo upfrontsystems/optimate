@@ -178,7 +178,7 @@ class Project(Node):
 
         return copied
 
-    def paste(self, source, sourcechildren):
+    def paste(self, source, sourcechildren, resourcecatid):
         """paste appends a source object to the children of this node,
            and then recursively does the same
            with each child of the source object.
@@ -187,17 +187,18 @@ class Project(Node):
         for child in sourcechildren:
             # The resource category is not pasted
             if child.type != 'ResourceCategory':
-                source.paste(child.copy(source.ID), child.Children)
+                source.paste(child.copy(source.ID),
+                            child.Children, resourcecatid)
 
-    def getComponents(self):
-        """ Returns a list of all the Components that are used in this project.
-            The components are retrieved from the children of this project
+    def getResources(self):
+        """Returns a list of all the Resources that are used by the children of
+           the budgetitem. The resources are retrieved from its children and any
+           children that are components return their resource
         """
-        componentlist = []
+        resourcelist = []
         for child in self.Children:
-            if child.type != 'ResourceCategory':
-                componentlist += child.getComponents()
-        return componentlist
+            resourcelist += child.getResources()
+        return resourcelist
 
     def toDict(self):
         if len(self.Children) == 0:
@@ -331,27 +332,30 @@ class BudgetGroup(Node):
 
         return copied
 
-    def paste(self, source, sourcechildren):
+    def paste(self, source, sourcechildren, resourcecatid):
         """paste appends a source object to the children of this node,
         and then recursively does the same with each child of the source object.
         """
         self.Children.append(source)
+        # if the child is of type component copy the component with the
+        # resource category id for use by the component's resource
         for child in sourcechildren:
-            # The resource category is not pasted
-            if child.type != 'ResourceCategory':
-                source.paste(child.copy(source.ID), child.Children)
-
-    def getComponents(self):
-        """Returns a list of all the Components that are used in this
-           budgetgroup. The components are retrieved from it's children and
-           and any component that is it's child
-        """
-        componentlist = []
-        for child in self.Children:
             if child.type == 'Component':
-                componentlist += [child]
-            componentlist += child.getComponents()
-        return componentlist
+                source.paste(child.copy(source.ID, resourcecatid),
+                    child.Children, resourcecatid)
+            else:
+                source.paste(child.copy(source.ID),
+                    child.Children, resourcecatid)
+
+    def getResources(self):
+        """Returns a list of all the Resources that are used by the children of
+           the budgetitem. The resources are retrieved from its children and any
+           children that are components return their resource
+        """
+        resourcelist = []
+        for child in self.Children:
+            resourcelist += child.getResources()
+        return resourcelist
 
     def toDict(self):
         if len(self.Children) == 0:
@@ -525,26 +529,31 @@ class BudgetItem(Node):
 
         return copied
 
-    def paste(self, source, sourcechildren):
+    def paste(self, source, sourcechildren, resourcecatid):
         """ Paste appends a source object to the children of this node,
             and then recursively does the same
             with each child of the source object.
         """
         self.Children.append(source)
+        # if the child is of type component copy the component with the
+        # resource category id for use by the component's resource
         for child in sourcechildren:
-            source.paste(child.copy(source.ID), child.Children)
-
-    def getComponents(self):
-        """Returns a list of all the Components that are used in this
-           budgetitem. The components are retrieved from its children and any
-           children that are components are added to it
-        """
-        componentlist = []
-        for child in self.Children:
             if child.type == 'Component':
-                componentlist += [child]
-            componentlist += child.getComponents()
-        return componentlist
+                source.paste(child.copy(source.ID, resourcecatid),
+                    child.Children, resourcecatid)
+            else:
+                source.paste(child.copy(source.ID),
+                    child.Children, resourcecatid)
+
+    def getResources(self):
+        """Returns a list of all the Resources that are used by the children of
+           the budgetitem. The resources are retrieved from its children and any
+           children that are components return their resource
+        """
+        resourcelist = []
+        for child in self.Children:
+            resourcelist += child.getResources()
+        return resourcelist
 
     def toDict(self):
         """ Returns a dictionary of all the attributes of this object.
@@ -760,12 +769,12 @@ class Component(Node):
         """
         pass
 
-    def copy(self, parentid):
-        """ copy returns an exact duplicate of this object,
-            but with the ParentID specified.
+    def copy(self, parentid, resourcecatid):
+        """ copy returns an exact duplicate of this component,
+            but with the ParentID specified and a copied resource
         """
-        copied = Component(ResourceID=self.ResourceID,
-                            ParentID=parentid,
+        newresource = self.Resource.copy(resourcecatid)
+        copied = Component(ParentID=parentid,
                             _Quantity=self._Quantity,
                             _Total=self._Total,
                             OrderCost=self.OrderCost,
@@ -776,19 +785,19 @@ class Component(Node):
                             ProjectedProfit=self.ProjectedProfit,
                             ActualProfit=self.ActualProfit)
 
+        copied.Resource = newresource
         return copied
 
-    def paste(self, source, sourcechildren):
-        """ Paste into this Component, since Components do not have children
-            nothing is added to its Children and this function does nothing
+    def paste(self, source, sourcechildren, resourcecatid):
+        """ Paste into this Component, make a copy of the resource the
+            component uses and add it the new component
         """
         pass
 
-    def getComponents(self):
-        """ Since a Component cannot contain any other components
-            an empty list is returned
+    def getResources(self):
+        """ A component returns it's resource
         """
-        return []
+        return self.Resource
 
     def toDict(self):
         """ Return a dictionary of all the attributes of this Component
@@ -911,16 +920,16 @@ class ResourceCategory(Node):
 
         return rlist
 
-    def addResources(self, componentlist):
-        """ Add a list of components to this ResourceCategory.
+    def addResources(self, resourcelist):
+        """ Add a list of resources to this ResourceCategory.
             The Resource is extracted from the component, tested if it is in
             the ResourceCategory, and appended
         """
-        for component in componentlist:
+        completeResourcesList = self.getResources()
+        for resource in resourcelist:
             # add the resource to the category
-            resource = component.Resource
-            if resource not in self.Children:
-                self.Children.append(resource)
+            print resource
+            self.Children.append(resource)
 
     def addResource(self, resource):
         """ check if the resource is already in this category and add it if not
@@ -932,8 +941,8 @@ class ResourceCategory(Node):
             return False
 
     def copy(self, parentid):
-        """copy returns an exact duplicate of this object,
-        but with the ParentID specified.
+        """ copy returns an exact duplicate of this object,
+            but with the ParentID specified.
         """
         copied = ResourceCategory(Name=self.Name,
                          Description=self.Description,
@@ -941,14 +950,14 @@ class ResourceCategory(Node):
                          _Total = self.Total)
         return copied
 
-    def paste(self, source, sourcechildren):
+    def paste(self, source, sourcechildren, resourcecatid):
         """ Paste appends a source object to the children of this node,
             and then recursively does the same
             with each child of the source object.
         """
         self.Children.append(source)
         for child in sourcechildren:
-            source.paste(child.copy(source.ID), child.Children)
+            source.paste(child.copy(source.ID), child.Children, resourcecatid)
 
     def toDict(self):
         """ Returns a dictionary of this ResourceCategory, which only contains
@@ -1191,3 +1200,51 @@ class CompanyInformation(Base):
         """
         return '<CompanyInformation(Name="%s", Address="%s")>' % (
             self.Name, self.Address)
+
+
+class Order(Base):
+    """ A table containing the data relavent to an order of Optimate
+    """
+    __tablename__ = 'Order'
+    ID = Column(Integer, primary_key=True, index=True)
+    UserCode = Column(Text)
+    Authorisation = Column(Text)
+    ProjectID = Column(Integer, ForeignKey('Project.ID'))
+    SupplierID = Column(Integer, ForeignKey('Supplier.ID'))
+    ClientID = Column(Integer, ForeignKey('Client.ID'))
+    Total = Column(Numeric)
+    TaxRate = Column(Float)
+    DeliveryAddress = Column(Text)
+
+    Project = relationship('Project',
+                              backref=backref('Order'))
+    Supplier = relationship('Supplier',
+                              backref=backref('Order'))
+    Client = relationship('Client',
+                              backref=backref('Order'))
+
+    def __repr__(self):
+        """Return a representation of this order
+        """
+        return '<Order(ID="%s")>' % (
+            self.ID)
+
+
+class OrderItem(Base):
+    """ A table containing the data relavent to an order item of Optimate
+    """
+    __tablename__ = 'OrderItem'
+    ID = Column(Integer, primary_key=True, index=True)
+    OrderID = Column(Integer, ForeignKey('Order.ID'))
+    ComponentID = Column(Integer, ForeignKey('Component.ID'))
+
+    Order = relationship('Order',
+                              backref=backref('OrderItem'))
+    Component = relationship('Component',
+                              backref=backref('OrderItem'))
+
+    def __repr__(self):
+        """Return a representation of this order item
+        """
+        return '<OrderItem(ID="%s")>' % (
+            self.ID)

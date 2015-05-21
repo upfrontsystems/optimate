@@ -122,7 +122,7 @@ def childview(request):
             if child.type == 'ResourceCategory':
                 subitem = []
                 if len(child.Children) > 0:
-                    subitem = [{'Name': '...'}]
+                    subitem = [{'Name': '...', 'NodeType': 'Default'}]
 
                 nodetypeabbr = 'C'
                 resourcecategories.append({
@@ -136,7 +136,7 @@ def childview(request):
             else:
                 subitem = []
                 if len(child.Children) > 0:
-                    subitem = [{'Name': '...'}]
+                    subitem = [{'Name': '...', 'NodeType': 'Default'}]
 
                 nodetypeabbr = ''
                 if child.type == "Project":
@@ -680,21 +680,26 @@ def pasteitemview(request):
             parentid = dest.ID
             dest.paste(source.copy(dest.ID), source.Children)
         else:
-            # Get a list of the components in the source
-            componentlist = source.getComponents()
-
             # Get the ID of the project the destination is in
             projectid = dest.getProjectID()
-
-            # Paste the source into the destination
-            parentid = dest.ID
-            dest.paste(source.copy(dest.ID), source.Children)
-
-            # Add the new resources to the destinations resource category
+            # get the resource category the project uses
             resourcecategory = DBSession.query(
                             ResourceCategory).filter_by(
                             ParentID=projectid).first()
-            resourcecategory.addResources(componentlist)
+            rescatid = resourcecategory.ID
+
+            # Paste the source into the destination
+            # pass along the resource category id for the components
+            # the resources are added to the resource category when the
+            # component is pasted
+            parentid = dest.ID
+            if source.type == 'Component':
+                dest.paste(source.copy(dest.ID, rescatid),
+                    source.Children, rescatid)
+            else:
+                dest.paste(source.copy(dest.ID),
+                    source.Children, rescatid)
+
             transaction.commit()
 
             if parentid != 0:
@@ -729,37 +734,35 @@ def moveitemview(request):
         # set the source parent to the destination parent
         source.ParentID = destinationid
         transaction.commit()
-
-        if destinationid != 0:
-            reset = DBSession.query(
-                    Node).filter_by(ID=destinationid).first()
-            reset.resetTotal()
     else:
         if (source.type == 'ResourceCategory' or source.type == 'Resource'):
             # Paste the source into the destination
             parentid = dest.ID
             dest.paste(source.copy(dest.ID), source.Children)
         else:
-            # Get a list of the components in the source
-            componentlist = source.getComponents()
-
             # Get the ID of the project the destination is in
-            projectid = destprojectid
-
-            # Paste the source into the destination
-            parentid = dest.ID
-            dest.paste(source.copy(dest.ID), source.Children)
-
-            # Add the new resources to the destinations resource category
+            projectid = dest.getProjectID()
+            # get the resource category the project uses
             resourcecategory = DBSession.query(
                             ResourceCategory).filter_by(
                             ParentID=projectid).first()
-            resourcecategory.addResources(componentlist)
-            transaction.commit()
+            rescatid = resourcecategory.ID
 
-            if parentid != 0:
-                reset = DBSession.query(Node).filter_by(ID=parentid).first()
-                reset.resetTotal()
+            # Paste the source into the destination
+            # pass along the resource category id for the components
+            # the resources are added to the resource category when the
+            # component is pasted
+            parentid = dest.ID
+            if source.type == 'Component':
+                dest.paste(source.copy(dest.ID, rescatid),
+                    source.Children, rescatid)
+            else:
+                dest.paste(source.copy(dest.ID),
+                    source.Children, rescatid)
+
+    if destinationid != 0:
+        reset = DBSession.query(Node).filter_by(ID=destinationid).first()
+        reset.resetTotal()
 
     transaction.commit()
     return HTTPOk()

@@ -8,30 +8,45 @@ allControllers.directive(
                 restrict: 'A',
                 controller: 'treeviewController',
                 scope: {
-                    treeModel:'='
+                    treeModel: '='
                 },
                 // templateUrl: 'partials/treeview.html',
                 link: function(scope, element, attrs) {
                     // arrays of the allowed types to drop in a type
-                    scope.allowed = []
-                    scope.allowed.Project = ['BudgetGroup'];
-                    scope.allowed.BudgetGroup = ['BudgetGroup', 'BudgetItem',
+                    var allowed = {};
+                    allowed['Root'] = ['Project'];
+                    allowed['Project'] = ['BudgetGroup'];
+                    allowed['BudgetGroup'] = ['BudgetGroup', 'BudgetItem',
                                                 'Component'];
-                    scope.allowed.BudgetItem = ['BudgetItem', 'Component'];
-                    scope.allowed.Component = [];
-                    scope.allowed.ResourceCategory = ['ResourceCategory', 'Resource'];
-                    scope.allowed.Resource = []
+                    allowed['BudgetItem'] = ['BudgetItem', 'Component'];
+                    allowed['Component'] = [];
+                    allowed['ResourceCategory'] = ['ResourceCategory', 'Resource'];
+                    allowed['Resource'] = [];
+                    allowed['Default'] = [];
 
+                    // evaluate the treeParent to an object in scope
+                    scope.tParent =  scope.$eval(attrs.treeParent);
+                    scope.allowedType = allowed[scope.tParent.NodeType];
                     scope.dragStart = function(node){
                         node.collapsed = false;
                     }
 
+                    // expand the node when it is dragged over
+                    scope.dragoverEvent = function() {
+                        if (scope.tParent.collapsed){
+                            scope.tParent.collapsed = false;
+                            scope.selectNodeHead(scope.tParent);
+                        }
+                        return true;
+                    };
+
+                    // called when a node is dropped into the treeModel
                     scope.dropNode = function(event, index, item, external, type, allowedType) {
-                        console.log("Dropping " + item.ID + " in " +  attrs.parentId);
+                        console.log("Dropping " + item.ID + " in " +  scope.tParent.ID);
                         var cnode = item.ID;
                         $http({
                             method: 'POST',
-                            url: globalServerURL + 'move/' + attrs.parentId,
+                            url: globalServerURL + 'move/' + scope.tParent.ID,
                             data:{'ID': cnode}
                         }).success(function () {
                             console.log('Success: Node pasted');

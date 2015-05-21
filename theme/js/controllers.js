@@ -640,6 +640,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         // functions used by the treeview
         // --------------------------------------------------------------------
         $scope.overheadList = [];
+        $scope.treeviewRoot = {'ID':0, 'NodeType':'Root', 'collapsed': false};
         $scope.loadOverheads = function(projectid){
             var req = {
                 method: 'GET',

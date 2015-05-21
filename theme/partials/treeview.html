@@ -1,11 +1,13 @@
 <ul dnd-list="treeModel"
-    dnd-drop="dropNode(event, index, item, type, node.type)">
+    dnd-drop="dropNode(event, index, item, type, node.type)"
+    dnd-dragover="dragoverEvent()"
+    dnd-allowed-types="{{allowedType}}">
     <li data-ng-repeat="node in treeModel track by node.ID">
         <div dnd-draggable="node"
             dnd-effect-allowed="move"
             dnd-moved="treeModel.splice($index, 1)"
             dnd-dragstart="dragStart(node)"
-            dnd-type="node.type">
+            dnd-type="node.NodeType">
             <i class="collapsed"
                 data-ng-show="node.Subitem.length && node.collapsed"
                 data-ng-click="selectNodeHead(node)">
@@ -26,7 +28,7 @@
             </span>
         </div>
         <div data-ng-hide="!node.collapsed"
-            data-parent-id="{{node.ID}}"
+            data-tree-parent="{{node}}"
             data-tree-model="node.Subitem">
         </div>
     </li>
