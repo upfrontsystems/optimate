@@ -2,7 +2,7 @@
 
 angular.module('services', ['config'])
 
-.service('SessionService', ['$q', '$http', '$window', 'globalServerURL', function($q, $http, $window, globalServerURL){
+.service('SessionService', ['$q', '$http', '$window', '$rootScope', 'globalServerURL', function($q, $http, $window, $rootScope, globalServerURL){
 
     this.login = function(username, password){
         var p = $q.defer();
@@ -17,6 +17,7 @@ angular.module('services', ['config'])
             function(response){
                 // Success
                 $window.sessionStorage.token = response.data.access_token;
+                $rootScope.$broadcast('session:changed', username);
                 p.resolve();
             },
             function(){
@@ -29,6 +30,7 @@ angular.module('services', ['config'])
 
     this.logout = function(){
         $window.sessionStorage.clear();
+        $rootScope.$broadcast('session:changed', null);
     };
 
     this.authenticated = function(){
