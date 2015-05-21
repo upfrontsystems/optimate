@@ -17,6 +17,7 @@ angular.module('services', ['config'])
             function(response){
                 // Success
                 $window.sessionStorage.token = response.data.access_token;
+                $window.sessionStorage.username = username;
                 $rootScope.$broadcast('session:changed', username);
                 p.resolve();
             },
@@ -31,6 +32,10 @@ angular.module('services', ['config'])
     this.logout = function(){
         $window.sessionStorage.clear();
         $rootScope.$broadcast('session:changed', null);
+    };
+
+    this.username = function(){
+        return $window.sessionStorage.username;
     };
 
     this.authenticated = function(){
