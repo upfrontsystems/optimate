@@ -53,17 +53,10 @@ resourcecatlist = {"A-B": ("A-B"),
                     "W-X-Y-Z": ("W-X-Y-Z")}
 
 
-def cors_options(wrapped):
-    """ Decorator that looks for an OPTIONS http call and simply returns.
-        This is then handled by the response event handler. """
-    def wrapper(request):
-        if request.method == 'OPTIONS':
-            return {"success": True}
-        return wrapped(request)
-    wrapper.__doc__ = wrapped.__doc__
-    wrapper.__name__ = wrapped.__name__
-    return wrapper
-
+@view_config(route_name='options', renderer='json')
+def options_view(request):
+    """ This view will be called for all OPTIONS requests. """
+    return {"success": True}
 
 @view_config(route_name='auth', renderer='json')
 def auth(request):
@@ -179,7 +172,6 @@ def childview(request):
 
 
 @view_config(route_name="getitem", renderer='json')
-@cors_options
 def getitem(request):
     """ Retrieves and returns all the information of a single item
     """
@@ -189,7 +181,6 @@ def getitem(request):
 
 
 @view_config(route_name="project_listing", renderer='json')
-@cors_options
 def project_listing(request):
     """ Returns a list of all the Projects in the database
     """
@@ -204,7 +195,6 @@ def project_listing(request):
 
 
 @view_config(route_name="resource_list", renderer='json')
-@cors_options
 def resource_list(request):
     """ Returns a list of all the resources in the
         node's project's resourcecategory in a format
@@ -236,7 +226,6 @@ def resource_list(request):
 
 
 @view_config(route_name="resourcetypes", renderer='json')
-@cors_options
 def resourcetypes(request):
     """ Returns a list of all the resource types in the database
     """
@@ -250,7 +239,6 @@ def resourcetypes(request):
 
 
 @view_config(route_name="component_overheads", renderer='json')
-@cors_options
 def componentoverheads(request):
     """ Get a list of the Overheads a component can use
     """
@@ -269,7 +257,6 @@ def componentoverheads(request):
 
 
 @view_config(route_name="overhead_list", renderer='json')
-@cors_options
 def overheadlist(request):
     """ Perform operations on the Overhead table table depending on the method
     """
@@ -404,7 +391,6 @@ def update_value(request):
 
 
 @view_config(route_name="addview", renderer='json')
-@cors_options
 def additemview(request):
     """ The additemview is called when a POST request is sent from the client.
         The method adds a new node with attributes as specified by the user
@@ -528,7 +514,6 @@ def additemview(request):
 
 
 @view_config(route_name="editview", renderer='json')
-@cors_options
 def edititemview(request):
     """ The edittemview is called when a PUT request is sent from the client.
         The method updates the specified node with properties as specified by the user.
@@ -619,7 +604,6 @@ def edititemview(request):
 
 
 @view_config(route_name="deleteview", renderer='json')
-@cors_options
 def deleteitemview(request):
     """ The deleteitemview is called using
         the address from the node to be deleted.
@@ -648,7 +632,6 @@ def deleteitemview(request):
 
 
 @view_config(route_name="pasteview", renderer='json')
-@cors_options
 def pasteitemview(request):
     """ The pasteitemview is sent the path of the node that is to be copied.
         That node is then found in the db, copied with the new parent's id,
@@ -711,7 +694,6 @@ def pasteitemview(request):
 
 
 @view_config(route_name="moveview", renderer='json')
-@cors_options
 def moveitemview(request):
     """ The moveitemview is called when a node is dropped in the tree
         The function checks depending on which project the node is dropped
@@ -769,7 +751,6 @@ def moveitemview(request):
 
 
 @view_config(route_name="costview", renderer='json')
-@cors_options
 def costview(request):
     """ The costview is called using the address from the node to be costed.
         The node ID is sent in the request, and the total cost of that node
@@ -789,7 +770,6 @@ def costview(request):
 
 
 @view_config(route_name='clientsview', renderer='json')
-@cors_options
 def clientsview(request):
     """ The clientview returns a list in json format of all the clients
         in the server database
@@ -816,7 +796,6 @@ def clientsview(request):
 
 
 @view_config(route_name='clientview', renderer='json')
-@cors_options
 def clientview(request):
     """ The clientview handles different cases of a single client
         depending on the http method
@@ -890,7 +869,6 @@ def clientview(request):
 
 
 @view_config(route_name='suppliersview', renderer='json')
-@cors_options
 def suppliersview(request):
     """ The supplierview returns a list in json format of all the suppliers
         in the server database
@@ -914,7 +892,6 @@ def suppliersview(request):
 
 
 @view_config(route_name='supplierview', renderer='json')
-@cors_options
 def supplierview(request):
     """ The supplierview handles different cases of a single supplier
         depending on the http method
@@ -989,7 +966,6 @@ def supplierview(request):
 
 
 @view_config(route_name="company_information", renderer='json')
-@cors_options
 def company_information(request):
     """ Returns all company information data
     """
@@ -1045,7 +1021,6 @@ def company_information(request):
 
 
 @view_config(route_name='unitsview', renderer='json')
-@cors_options
 def unitsview(request):
     """ The unitsview returns a list in json format of all the units
         in the server database
@@ -1059,7 +1034,6 @@ def unitsview(request):
 
 
 @view_config(route_name='unitview', renderer='json')
-@cors_options
 def unitview(request):
     """ The unitview handles different cases for units
         depending on the http method
@@ -1106,7 +1080,6 @@ def unitview(request):
 
 
 @view_config(route_name='citiesview', renderer='json')
-@cors_options
 def citiesview(request):
     """ The citiesview returns a list in json format of all the units
         in the server database
@@ -1120,7 +1093,6 @@ def citiesview(request):
 
 
 @view_config(route_name='cityview', renderer='json')
-@cors_options
 def cityview(request):
     """ The cityview handles different cases for cities
         depending on the http method

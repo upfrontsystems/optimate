@@ -45,7 +45,7 @@ allControllers.controller('companyinformationController', ['$scope', '$http', '$
 
         var req = {
             method: 'GET',
-            url: globalServerURL + 'company_information',
+            url: globalServerURL + 'company_information'
         };
         $http(req).success(function(data){
             $scope.company_information = data;
@@ -55,7 +55,7 @@ allControllers.controller('companyinformationController', ['$scope', '$http', '$
         $scope.editingState = function (){
             $http({
                 method: 'GET',
-                url: globalServerURL + 'company_information',
+                url: globalServerURL + 'company_information'
             }).success(function(response){
                 $scope.formData = response;
             })
@@ -66,7 +66,7 @@ allControllers.controller('companyinformationController', ['$scope', '$http', '$
             $http({
                 method: 'PUT',
                 url: globalServerURL + 'company_information',
-                data:$scope.formData
+                data: $scope.formData
             }).success(function (data) {
                 $scope.company_information = $scope.formData
             });
@@ -99,7 +99,7 @@ allControllers.controller('clientsController', ['$scope', '$http', 'globalServer
                     $http({
                         method: 'PUT',
                         url: globalServerURL + $scope.formData['ID'] + '/' + $scope.formData['NodeType'],
-                        data:$scope.formData
+                        data: $scope.formData
                     }).success(function () {
                         $scope.handleEdited($scope.formData);
                         $scope.formData = {'NodeType': $scope.formData['NodeType']};
@@ -109,7 +109,7 @@ allControllers.controller('clientsController', ['$scope', '$http', 'globalServer
                     $http({
                         method: 'POST',
                         url: globalServerURL + '0/' + $scope.formData['NodeType'],
-                        data:$scope.formData
+                        data: $scope.formData
                     }).success(function (response) {
                         $scope.formData['ID'] = response['newid'];
                         // post the new client to the shared service
@@ -616,7 +616,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                         var url = globalServerURL + 'projectview/' + id + '/'
                         var req = {
                             method: 'GET',
-                            url: url,
+                            url: url
                         }
                         $http(req).success(function(data) {
                             templist.push(data[0]);
@@ -863,7 +863,16 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 $scope.formData['NodeType'] = nodetype;
                 $scope.formData['ID'] = nodeid;
                 // special case for component types
-                if (nodetype == 'Component') {
+                if (nodetype == 'Component') {                    
+                    // update resource
+                    // remove any old remembered choices from last time
+                    $('.search-choice').remove();                    
+                    var resource_html = '<li title="undefined" class="search-choice">' +
+                                        '<span class="selected-resource">' + $scope.formData['ResourceName'] +
+                                        '</span><a data-uid="' + $scope.formData['ResourceID'] +
+                                        '" class="search-choice-close" href="javascript:void(0)"></a></li>'
+                    $('#related_items_finder .finder-choices').prepend(resource_html);
+                    // update overheadlist
                     var overheadlist = response['OverheadList'];
                     var arrayLength = $scope.componentOverheadList.length;
                     for (var i = 0; i < arrayLength; i++) {
@@ -994,4 +1003,29 @@ allControllers.controller('treeviewController', ['$http', '$scope', 'globalServe
             // reload the slickgrid (adding draggable to node break listener)
             sharedService.reloadSlickgrid(selectedNode.ID)
         };
+}]);
+
+allControllers.controller('loginController', ['$scope', '$location', 'SessionService',
+    function($scope, $location, SessionService){
+        $scope.credentials = {
+            username: '',
+            password: ''
+        }
+
+        $scope.login = function(e){
+            e.preventDefault();
+            SessionService.login($scope.credentials.username, $scope.credentials.password).then(
+                function(){
+                    $location.path('/projects');
+                },
+                function(){
+                    alert('Login failed');
+                });
+        }
+}]);
+
+allControllers.controller('logoutController', ['$location', 'SessionService',
+    function($location, SessionService){
+        SessionService.logout();
+        $location.path('/login');
 }]);

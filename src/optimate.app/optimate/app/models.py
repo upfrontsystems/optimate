@@ -806,9 +806,12 @@ class Component(Node):
         overheadlist = []
         for overhead in self.Overheads:
             overheadlist.append(overhead.ID)
+        resource = DBSession.query(Resource).filter_by(ID=self.ResourceID).first()
+
         return {'Name': self.Name,
-                'Unit': self.Unit,
                 'Quantity': self.Quantity,
+                'ResourceID': self.ResourceID,
+                'ResourceName': resource.Name,
                 'OverheadList': overheadlist,
                 'order_cost': str(self.OrderCost),
                 'run_cost': str(self.RunningCost),

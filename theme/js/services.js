@@ -5,12 +5,12 @@ angular.module('services', ['config'])
 .service('SessionService', ['$q', '$http', '$window', 'globalServerURL', function($q, $http, $window, globalServerURL){
 
     this.login = function(username, password){
-        p = $q.defer();
+        var p = $q.defer();
         $http({
             method: 'POST',
             url: globalServerURL + 'auth',
             data: {
-                username: userid,
+                username: username,
                 password: password
             }
         }).then(
@@ -21,10 +21,10 @@ angular.module('services', ['config'])
             },
             function(){
                 // Failure
-                p.reject()
+                p.reject();
             }
         );
-        return p.promise
+        return p.promise;
     };
 
     this.logout = function(){
@@ -32,7 +32,7 @@ angular.module('services', ['config'])
     };
 
     this.authenticated = function(){
-        return $window.sessionStorage.token != '';
+        return Boolean($window.sessionStorage.token);
     };
 
     this.get_token = function(){
