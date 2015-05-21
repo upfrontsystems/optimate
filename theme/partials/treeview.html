@@ -2,7 +2,7 @@
     dnd-drop="dropNode(event, index, item, type, node.type)"
     dnd-dragover="dragoverEvent()"
     dnd-allowed-types="{{allowedType}}">
-    <li data-ng-repeat="node in treeModel track by node.ID">
+    <li data-ng-repeat="node in treeModel">
         <div dnd-draggable="node"
             dnd-effect-allowed="copy"
             dnd-copy="dragFinished()"

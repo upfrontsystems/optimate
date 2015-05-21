@@ -22,7 +22,10 @@
         {{node.Name}}
     </span>
 </div>
-<ol ui-tree-nodes="" ng-model="node.Subitem" data-ng-hide="!node.collapsed">
-    <li ng-repeat="node in node.Subitem" ui-tree-node ng-include="'partials/angularTree.html'">
+<ol ui-tree-nodes="" ng-model="node.Subitem" data-ng-hide="!node.collapsed" data-type="{{node.NodeType}}">
+    <li ng-repeat="node in node.Subitem track by node.ID"
+        data-type="{{node.NodeType}}"
+        ui-tree-node
+        ng-include="'partials/angularTree.html'">
     </li>
 </ol>

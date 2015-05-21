@@ -641,6 +641,50 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         // --------------------------------------------------------------------
         $scope.overheadList = [];
 
+        // set the allowed types to be dropped
+        $scope.allowed = {}
+        $scope.allowed['Project'] = ['BudgetGroup'];
+        $scope.allowed['BudgetGroup'] = ['BudgetGroup', 'BudgetItem',
+                                    'Component'];
+        $scope.allowed['BudgetItem'] = ['BudgetItem', 'Component'];
+        $scope.allowed['Component'] = [];
+        $scope.allowed['ResourceCategory'] = ['ResourceCategory', 'Resource'];
+        $scope.allowed['Resource'] = []
+
+        // define the tree options for the ui-tree
+        $scope.treeOptions = {
+           accept: function(sourceNodeScope, destNodesScope, destIndex) {
+                var srctype = sourceNodeScope.$element.attr('data-type');
+                var dsttype = destNodesScope.$element.attr('data-type');
+                // check if the node can be dropped here
+                if($scope.allowed[dsttype].indexOf(srctype) > -1){
+                    return true;
+                }else{
+                    return false;
+                }
+            },
+
+            // when a node is dropped get the id's and paste in the server
+            dropped: function(event){
+                var destid = event.dest.nodesScope.$nodeScope.$modelValue.ID;
+                var srcparent = event.source.nodesScope.$nodeScope.$modelValue.ID;
+                // only paste if it is not the same parent
+                if (destid != srcparent){
+                    var srcid = event.source.nodeScope.$modelValue.ID;
+                    console.log("Dropping " + srcid + " in " + destid);
+                    $http({
+                        method: 'POST',
+                        url: globalServerURL + 'move/' + destid,
+                        data:{'ID': srcid}
+                    }).success(function () {
+                        console.log('Success: Node pasted');
+                    }).error(function(){
+                        console.log("Server error");
+                    });
+                }
+            }
+        };
+
         // if node head clicks, get the children of the node
         // and collapse or expand the node
         $scope.selectNodeHead = $scope.selectNodeHead || function( selectedNode ) {
