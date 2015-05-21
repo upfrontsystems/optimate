@@ -178,7 +178,7 @@ class Project(Node):
 
         return copied
 
-    def paste(self, source, sourcechildren, resourcecatid):
+    def paste(self, source, sourcechildren):
         """paste appends a source object to the children of this node,
            and then recursively does the same
            with each child of the source object.
@@ -187,18 +187,18 @@ class Project(Node):
         for child in sourcechildren:
             # The resource category is not pasted
             if child.type != 'ResourceCategory':
-                source.paste(child.copy(source.ID),
-                            child.Children, resourcecatid)
+                source.paste(child.copy(source.ID), child.Children)
 
-    def getResources(self):
+    def getComponents(self):
         """Returns a list of all the Resources that are used by the children of
-           the budgetitem. The resources are retrieved from its children and any
+           the project. The resources are retrieved from its children and any
            children that are components return their resource
         """
-        resourcelist = []
+        componentslist = []
         for child in self.Children:
-            resourcelist += child.getResources()
-        return resourcelist
+            if child.type != 'ResourceCategory':
+                componentslist += child.getComponents()
+        return componentslist
 
     def toDict(self):
         if len(self.Children) == 0:
@@ -332,7 +332,7 @@ class BudgetGroup(Node):
 
         return copied
 
-    def paste(self, source, sourcechildren, resourcecatid):
+    def paste(self, source, sourcechildren):
         """paste appends a source object to the children of this node,
         and then recursively does the same with each child of the source object.
         """
@@ -340,22 +340,20 @@ class BudgetGroup(Node):
         # if the child is of type component copy the component with the
         # resource category id for use by the component's resource
         for child in sourcechildren:
-            if child.type == 'Component':
-                source.paste(child.copy(source.ID, resourcecatid),
-                    child.Children, resourcecatid)
-            else:
-                source.paste(child.copy(source.ID),
-                    child.Children, resourcecatid)
+            source.paste(child.copy(source.ID), child.Children)
 
-    def getResources(self):
+    def getComponents(self):
         """Returns a list of all the Resources that are used by the children of
-           the budgetitem. The resources are retrieved from its children and any
+           the budgetgroup. The resources are retrieved from its children and any
            children that are components return their resource
         """
-        resourcelist = []
+        componentlist = []
         for child in self.Children:
-            resourcelist += child.getResources()
-        return resourcelist
+            if child.type == 'Component':
+                componentlist.append(child)
+            else:
+                componentlist += child.getComponents()
+        return componentlist
 
     def toDict(self):
         if len(self.Children) == 0:
@@ -529,31 +527,30 @@ class BudgetItem(Node):
 
         return copied
 
-    def paste(self, source, sourcechildren, resourcecatid):
+    def paste(self, source, sourcechildren):
         """ Paste appends a source object to the children of this node,
             and then recursively does the same
             with each child of the source object.
         """
         self.Children.append(source)
+        print source.ID
         # if the child is of type component copy the component with the
         # resource category id for use by the component's resource
         for child in sourcechildren:
-            if child.type == 'Component':
-                source.paste(child.copy(source.ID, resourcecatid),
-                    child.Children, resourcecatid)
-            else:
-                source.paste(child.copy(source.ID),
-                    child.Children, resourcecatid)
+            source.paste(child.copy(source.ID), child.Children)
 
-    def getResources(self):
+    def getComponents(self):
         """Returns a list of all the Resources that are used by the children of
            the budgetitem. The resources are retrieved from its children and any
            children that are components return their resource
         """
-        resourcelist = []
+        componentlist = []
         for child in self.Children:
-            resourcelist += child.getResources()
-        return resourcelist
+            if child.type == 'Component':
+                componentlist.append(child)
+            else:
+                componentlist += child.getComponents()
+        return componentlist
 
     def toDict(self):
         """ Returns a dictionary of all the attributes of this object.
@@ -769,12 +766,12 @@ class Component(Node):
         """
         pass
 
-    def copy(self, parentid, resourcecatid):
+    def copy(self, parentid):
         """ copy returns an exact duplicate of this component,
             but with the ParentID specified and a copied resource
         """
-        newresource = self.Resource.copy(resourcecatid)
         copied = Component(ParentID=parentid,
+                            ResourceID = self.ResourceID,
                             _Quantity=self._Quantity,
                             _Total=self._Total,
                             OrderCost=self.OrderCost,
@@ -784,20 +781,18 @@ class Component(Node):
                             ClientCost=self.ClientCost,
                             ProjectedProfit=self.ProjectedProfit,
                             ActualProfit=self.ActualProfit)
-
-        copied.Resource = newresource
         return copied
 
-    def paste(self, source, sourcechildren, resourcecatid):
+    def paste(self, source, sourcechildren):
         """ Paste into this Component, make a copy of the resource the
             component uses and add it the new component
         """
         pass
 
-    def getResources(self):
-        """ A component returns it's resource
+    def getComponents(self):
+        """ A component returns nothing
         """
-        return self.Resource
+        pass
 
     def toDict(self):
         """ Return a dictionary of all the attributes of this Component
@@ -930,9 +925,9 @@ class ResourceCategory(Node):
         """
         completeResourcesList = self.getResources()
         for resource in resourcelist:
-            # add the resource to the category
-            print resource
-            self.Children.append(resource)
+            if resource not in completeResourcesList:
+                # add the resource to the category
+                self.Children.append(resource)
 
     def addResource(self, resource):
         """ check if the resource is already in this category and add it if not
@@ -953,14 +948,14 @@ class ResourceCategory(Node):
                          _Total = self.Total)
         return copied
 
-    def paste(self, source, sourcechildren, resourcecatid):
+    def paste(self, source, sourcechildren):
         """ Paste appends a source object to the children of this node,
             and then recursively does the same
             with each child of the source object.
         """
         self.Children.append(source)
         for child in sourcechildren:
-            source.paste(child.copy(source.ID), child.Children, resourcecatid)
+            source.paste(child.copy(source.ID), child.Children)
 
     def toDict(self):
         """ Returns a dictionary of this ResourceCategory, which only contains
