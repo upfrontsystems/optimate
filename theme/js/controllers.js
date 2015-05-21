@@ -1029,3 +1029,12 @@ allControllers.controller('logoutController', ['$location', 'SessionService',
         SessionService.logout();
         $location.path('/login');
 }]);
+
+allControllers.controller('navController', ['$scope', 'SessionService',
+    function($scope, SessionService){
+        // Hide and show the toolbar depending on whether you're logged in.
+        $scope.logged_in = SessionService.authenticated();
+        $scope.$on('session:changed', function(evt, username){
+            $scope.logged_in = SessionService.authenticated();
+        });
+}]);

@@ -58,7 +58,8 @@
 </head>
 <body>
     <div ng-app="myApp" class="main-container">
-        <nav class="navbar navbar-default navbar-fixed-top">
+        <nav class="navbar navbar-default navbar-fixed-top"
+             ng-controller="navController" ng-show="logged_in">
             <div class="container-fluid">
                 <ul class="nav nav-pills">
                     <li class="projects"><a href="#/projects">Projects</a></li>
