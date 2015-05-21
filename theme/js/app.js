@@ -3,7 +3,7 @@ var myApp = angular.module('myApp', [
                     'allControllers',
                     'ngRoute',
                     'ui.bootstrap',
-                    'dndLists',
+                    'ui.tree',
                     'services']);
 
 myApp.config(['$routeProvider', '$httpProvider',

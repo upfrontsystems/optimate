@@ -111,17 +111,10 @@
 <div class="container-fluid">
     <div id="costs" class="row">
         <div class="left">
-            <div>
-                <!-- Angular Treeview -->
-                <div class="treeview-styling">
-                    <div
-                        data-angular-treeview="true"
-                        data-tree-model="roleList"
-                        data-copied-id=0
-                        data-tree-parent="{{treeviewRoot}}"
-                        class="angular-treeview">
-                    </div>
-                </div>
+            <div ui-tree data-max-depth="0" data-drag-delay="100" id="tree-root">
+                <ol ui-tree-nodes ng-model="roleList">
+                    <li ng-repeat="node in roleList" ui-tree-node ng-include="'partials/angularTree.html'"></li>
+                </ol>
             </div>
         </div>
         <div class="right">

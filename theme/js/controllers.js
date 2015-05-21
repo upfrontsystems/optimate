@@ -640,7 +640,39 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         // functions used by the treeview
         // --------------------------------------------------------------------
         $scope.overheadList = [];
-        $scope.treeviewRoot = {'ID':0, 'NodeType':'Root', 'collapsed': false};
+
+        // if node head clicks, get the children of the node
+        // and collapse or expand the node
+        $scope.selectNodeHead = $scope.selectNodeHead || function( selectedNode ) {
+            // if the node is collapsed, get the data and
+            // expand the node
+            if (!selectedNode.collapsed){
+                selectedNode.collapsed = true;
+                var parentid = selectedNode.ID;
+                $http.get(globalServerURL + parentid + '/').success(function(data) {
+                    selectedNode.Subitem = data;
+                    console.log("Children loaded");
+                });
+            }
+            else{
+                selectedNode.collapsed = false;
+            }
+        };
+
+        // if node label clicks,
+        $scope.selectNodeLabel = $scope.selectNodeLabel || function(selectedNode) {
+            // remove highlight from previous node
+            if ($rootScope.currentNode) {
+                $rootScope.currentNode.selected = undefined;
+            }
+            // set highlight to selected node
+            selectedNode.selected = 'selected';
+            // set currentNode
+            $rootScope.currentNode = selectedNode;
+            // reload the slickgrid (adding draggable to node break listener)
+            sharedService.reloadSlickgrid(selectedNode.ID)
+        };
+
         $scope.loadOverheads = function(projectid){
             var req = {
                 method: 'GET',
@@ -863,10 +895,10 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 $scope.formData['NodeType'] = nodetype;
                 $scope.formData['ID'] = nodeid;
                 // special case for component types
-                if (nodetype == 'Component') {                    
+                if (nodetype == 'Component') {
                     // update resource
                     // remove any old remembered choices from last time
-                    $('.search-choice').remove();                    
+                    $('.search-choice').remove();
                     var resource_html = '<li title="undefined" class="search-choice">' +
                                         '<span class="selected-resource">' + $scope.formData['ResourceName'] +
                                         '</span><a data-uid="' + $scope.formData['ResourceID'] +

@@ -12,50 +12,6 @@ allControllers.directive(
                 },
                 // templateUrl: 'partials/treeview.html',
                 link: function(scope, element, attrs) {
-                    // arrays of the allowed types to drop in a type
-                    var allowed = {};
-                    allowed['Root'] = ['Project'];
-                    allowed['Project'] = ['BudgetGroup'];
-                    allowed['BudgetGroup'] = ['BudgetGroup', 'BudgetItem',
-                                                'Component'];
-                    allowed['BudgetItem'] = ['BudgetItem', 'Component'];
-                    allowed['Component'] = [];
-                    allowed['ResourceCategory'] = ['ResourceCategory', 'Resource'];
-                    allowed['Resource'] = [];
-                    allowed['Default'] = [];
-
-                    // evaluate the treeParent to an object in scope
-                    scope.tParent =  scope.$eval(attrs.treeParent);
-                    scope.allowedType = allowed[scope.tParent.NodeType];
-                    scope.dragStart = function(node){
-                        node.collapsed = false;
-                    }
-
-                    // expand the node when it is dragged over
-                    scope.dragoverEvent = function() {
-                        if (scope.tParent.collapsed){
-                            scope.tParent.collapsed = false;
-                            scope.selectNodeHead(scope.tParent);
-                        }
-                        return true;
-                    };
-
-                    // called when a node is dropped into the treeModel
-                    scope.dropNode = function(event, index, item, external, type, allowedType) {
-                        console.log("Dropping " + item.ID + " in " +  scope.tParent.ID);
-                        var cnode = item.ID;
-                        $http({
-                            method: 'POST',
-                            url: globalServerURL + 'move/' + scope.tParent.ID,
-                            data:{'ID': cnode}
-                        }).success(function () {
-                            console.log('Success: Node pasted');
-                        }).error(function(){
-                            console.log("Server error");
-                        });
-                        return item;
-                    };
-
                     // listening for a node thats been deleted
                     $rootScope.$on('handleDeletedNode', function(){
                         if (scope.treeModel){

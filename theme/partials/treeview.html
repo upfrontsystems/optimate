@@ -4,8 +4,8 @@
     dnd-allowed-types="{{allowedType}}">
     <li data-ng-repeat="node in treeModel track by node.ID">
         <div dnd-draggable="node"
-            dnd-effect-allowed="move"
-            dnd-moved="treeModel.splice($index, 1)"
+            dnd-effect-allowed="copy"
+            dnd-copy="dragFinished()"
             dnd-dragstart="dragStart(node)"
             dnd-type="node.NodeType">
             <i class="collapsed"
@@ -28,7 +28,6 @@
             </span>
         </div>
         <div data-ng-hide="!node.collapsed"
-            data-tree-parent="{{node}}"
             data-tree-model="node.Subitem">
         </div>
     </li>
