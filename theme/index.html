@@ -57,8 +57,18 @@
 </head>
 <body>
     <div ng-app="myApp" class="main-container">
-        <nav class="navbar navbar-default navbar-fixed-top">
+        <nav class="navbar navbar-default navbar-fixed-top"
+             ng-controller="navController" ng-show="logged_in">
             <div class="container-fluid">
+                <div class="btn-group pull-right personal-tools">
+                    <a href="javascript:;" data-toggle="dropdown"
+                       class="btn dropdown-toggle">
+                        {{username}}
+                        <span class="caret"></span></a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="#/logout">Logout</a></li>
+                    </ul>
+                </div>
                 <ul class="nav nav-pills">
                     <li class="projects"><a href="#/projects">Projects</a></li>
                     <li class="dropdown setup">
@@ -71,6 +81,7 @@
                             <li><a href="#/company_information">Company Information</a></li>
                             <li><a href="#/suppliers">Suppliers</a></li>
                             <li><a href="#/units">Units</a></li>
+                            <li><a href="#/users">Users</a></li>
                         </ul>
                     </li>
                 </ul>
