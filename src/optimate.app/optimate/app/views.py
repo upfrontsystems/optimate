@@ -1194,3 +1194,62 @@ def cityview(request):
     cityid = request.matchdict['id']
     city = DBSession.query(City).filter_by(ID=cityid).first()
     return {'Name': city.Name, 'ID': city.ID}
+
+
+@view_config(route_name='ordersview', renderer='json')
+def ordersview(request):
+    """ The ordersview returns a list in json format of all the orders
+        in the server database
+    """
+    qry = DBSession.query(Order).all()
+    orderlist = []
+    for order in qry:
+        orderlist.append({'Name': city.Name,
+                         'ID': city.ID})
+    return sorted(citylist, key=lambda k: k['Name'].upper())
+
+
+@view_config(route_name='cityview', renderer='json')
+def cityview(request):
+    """ The cityview handles different cases for cities
+        depending on the http method
+    """
+    # if the method is delete, delete the city
+    if request.method == 'DELETE':
+        deleteid = request.matchdict['id']
+        # Deleting it from the node table deletes the object
+        deletethis = DBSession.query(City).filter_by(ID=deleteid).first()
+        # only delete if this City is not in use by any Project
+        if len(deletethis.Projects) == 0:
+            qry = DBSession.delete(deletethis)
+            if qry == 0:
+                return HTTPNotFound()
+            transaction.commit()
+            return {'status': 'remove'}
+        return {'status': 'keep'}
+
+    # if the method is post, add a new city
+    if request.method == 'POST':
+        newcity = City(Name=request.json_body['Name'])
+        qry = DBSession.query(City).all()
+        existing_citylist = []
+        for city in qry:
+            existing_citylist.append(str(city.Name).upper())
+        if str(request.json_body['Name']).upper() not in existing_citylist:
+            DBSession.add(newcity)
+            DBSession.flush()
+            return {'newid': newcity.ID}
+        return
+
+    # if the method is put, edit an existing city
+    if request.method == 'PUT':
+        city = DBSession.query(
+                    City).filter_by(Name=request.matchdict['id']).first()
+        city.Name=request.json_body['Name']
+        transaction.commit()
+        return HTTPOk()
+
+    # otherwise return the selected city
+    cityid = request.matchdict['id']
+    city = DBSession.query(City).filter_by(ID=cityid).first()
+    return {'Name': city.Name, 'ID': city.ID}
