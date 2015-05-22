@@ -1229,7 +1229,7 @@ class Order(Base):
 
 
 class OrderItem(Base):
-    """ A table containing the data relavent to an order item of Optimate
+    """ A table containing the data relevant to an order item of Optimate
     """
     __tablename__ = 'OrderItem'
     ID = Column(Integer, primary_key=True, index=True)

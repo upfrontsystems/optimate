@@ -88,6 +88,12 @@ def main(global_config, **settings):
     config.add_route('unitview', '/{id}/unit')
     config.add_route('citiesview', '/cities')
     config.add_route('cityview', '/{id}/city')
+    config.add_route('ordersview', '/orders')
+    config.add_route('orderview', '/order/{id}/')
+
+    # Editing users
+    config.add_route('usersview', '/users')
+    config.add_route('userview', '/users/{username}')
 
     config.scan()
     return config.make_wsgi_app()

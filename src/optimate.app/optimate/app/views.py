@@ -1204,52 +1204,119 @@ def ordersview(request):
     qry = DBSession.query(Order).all()
     orderlist = []
     for order in qry:
-        orderlist.append({'Name': city.Name,
-                         'ID': city.ID})
-    return sorted(citylist, key=lambda k: k['Name'].upper())
+        orderlist.append({'ID': order.ID,
+                            'ProjectID': order.ProjectID,
+                            'SupplierID': order.SupplierID,
+                            'ClientID': order.ClientID,
+                            'Total': str(order.Total),
+                            'TaxRate': order.TaxRate})
+    return sorted(orderlist, key=lambda k: k['ID'])
 
 
-@view_config(route_name='cityview', renderer='json')
-def cityview(request):
-    """ The cityview handles different cases for cities
+@view_config(route_name='orderview', renderer='json')
+def orderview(request):
+    """ The orderview handles different cases for orders
         depending on the http method
     """
-    # if the method is delete, delete the city
+    # if the method is delete, delete the order
     if request.method == 'DELETE':
         deleteid = request.matchdict['id']
-        # Deleting it from the node table deletes the object
-        deletethis = DBSession.query(City).filter_by(ID=deleteid).first()
-        # only delete if this City is not in use by any Project
-        if len(deletethis.Projects) == 0:
-            qry = DBSession.delete(deletethis)
-            if qry == 0:
-                return HTTPNotFound()
-            transaction.commit()
-            return {'status': 'remove'}
-        return {'status': 'keep'}
+        # Deleting it from the table deletes the object
+        deletethis = DBSession.query(Order).filter_by(ID=deleteid).first()
 
-    # if the method is post, add a new city
+        qry = DBSession.delete(deletethis)
+        if qry == 0:
+            return HTTPNotFound()
+        transaction.commit()
+
+        return HTTPOk()
+
+    # if the method is post, add a new order
     if request.method == 'POST':
-        newcity = City(Name=request.json_body['Name'])
-        qry = DBSession.query(City).all()
-        existing_citylist = []
-        for city in qry:
-            existing_citylist.append(str(city.Name).upper())
-        if str(request.json_body['Name']).upper() not in existing_citylist:
-            DBSession.add(newcity)
-            DBSession.flush()
-            return {'newid': newcity.ID}
-        return
+        user = request.json_body.get('UserCode', '')
+        auth = request.json_body.get('Authorisation', '')
+        proj = request.json_body.get('ProjectID', None)
+        supplier = request.json_body.get('SupplierID', None)
+        client = request.json_body.get('ClientID', None)
+        tax = request.json_body.get('TaxRate', 0.0)
+        address = request.json_body.get('DeliveryAddress', '')
+
+        neworder = Order(UserCode=user,
+                            Authorisation=auth,
+                            ProjectID=proj,
+                            SupplierID=supplier,
+                            ClientID=client,
+                            TaxRate=tax,
+                            DeliveryAddress=address)
+        DBSession.add(neworder)
+        DBSession.flush()
+        return {'newid': neworder.ID}
 
     # if the method is put, edit an existing city
     if request.method == 'PUT':
-        city = DBSession.query(
-                    City).filter_by(Name=request.matchdict['id']).first()
-        city.Name=request.json_body['Name']
+        order = DBSession.query(
+                    Order).filter_by(ID=request.matchdict['id']).first()
+
+        user = request.json_body.get('UserCode', '')
+        auth = request.json_body.get('Authorisation', '')
+        proj = request.json_body.get('ProjectID', None)
+        supplier = request.json_body.get('SupplierID', None)
+        client = request.json_body.get('ClientID', None)
+        tax = request.json_body.get('TaxRate', 0.0)
+        address = request.json_body.get('DeliveryAddress', '')
+
+        order.UserCode=user
+        order.Authorisation=auth
+        order.ProjectID=proj
+        order.SupplierID=supplier
+        order.ClientID=client
+        order.TaxRate=tax
+        order.DeliveryAddress=address
+
         transaction.commit()
         return HTTPOk()
 
     # otherwise return the selected city
-    cityid = request.matchdict['id']
-    city = DBSession.query(City).filter_by(ID=cityid).first()
-    return {'Name': city.Name, 'ID': city.ID}
+    orderid = request.matchdict['id']
+    order = DBSession.query(Order).filter_by(ID=orderid).first()
+    return {'ID': order.ID,
+            'ProjectID': order.ProjectID,
+            'SupplierID': order.SupplierID,
+            'ClientID': order.ClientID,
+            'Total': str(order.Total),
+            'TaxRate': order.TaxRate}
+
+
+@view_config(route_name='usersview', renderer='json')
+def usersview(request):
+    if request.method == 'POST':
+        # Create a new user
+        username=request.json_body['username']
+        password=request.json_body['password']
+        return {
+            'username': username
+        }
+
+    return [
+        {
+            'username': 'john',
+            'roles': []
+        },
+        {
+            'username': 'james',
+            'roles': []
+        }
+    ]
+
+@view_config(route_name='userview', renderer='json')
+def userview(request):
+    username = request.matchdict['username']
+
+    if request.method == 'POST':
+        # update password
+        password=request.json_body['password']
+
+    return {
+        'username': username,
+        'roles': []
+    }
