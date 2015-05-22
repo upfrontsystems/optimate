@@ -46,6 +46,10 @@ myApp.config(['$routeProvider', '$httpProvider',
       when('/units', {
         templateUrl: 'partials/units.html',
         controller: 'unitsController'
+      }).
+      when('/users', {
+        templateUrl: 'partials/users.html',
+        controller: 'usersController'
       });
     $httpProvider.interceptors.push(function($window){
         return {

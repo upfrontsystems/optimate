@@ -1081,6 +1081,115 @@ allControllers.controller('treeviewController', ['$http', '$scope', 'globalServe
         };
 }]);
 
+allControllers.controller('usersController', ['$scope', '$http', '$modal', 'globalServerURL',
+    function($scope, $http, $modal, globalServerURL) {
+
+        toggleMenu('setup');
+        $scope.users = [];
+
+        // populate user list
+        ($scope.repopulate = function(){
+            $http({
+                method: 'GET',
+                url: globalServerURL + 'users',
+            }).then(
+                function(response){
+                    $scope.users = response.data;
+                },
+                function(){
+                    alert('Error while fetching user list');
+                }
+            );
+        })();
+
+        $scope.selectedUser = null;
+        $scope.showActionsFor = function(obj) {
+            $scope.selectedUser = obj;
+            for (i in $scope.users){
+                $scope.users[i].selected = false;
+            }
+            obj.selected = true;
+        };
+
+        $scope.newuser = {
+            username: '',
+            password: ''
+        }
+        var modalInstance = null;
+        $scope.addingState = function (){
+            $scope.modalState = "Add";
+            $scope.newuser.password = '';
+            if ($scope.selectedUser){
+                $scope.selectedUser.selected = false;
+                $scope.selectedUser = null;
+            }
+            modalInstance = $modal.open({
+                templateUrl: 'addUser',
+                scope: $scope
+            });
+        };
+
+        $scope.editingState = function (){
+            $scope.modalState = "Edit";
+            $scope.newuser.password = '';
+            $http({
+                method: 'GET',
+                url: globalServerURL + 'users/' + $scope.selectedUser.username
+            }).then(
+                function(response){
+                    $scope.data = response.data;
+                    modalInstance = $modal.open({
+                        templateUrl: 'addUser',
+                        scope: $scope
+                    });
+                },
+                function(){
+                    alert('Error while fetching user information');
+                }
+            );
+        };
+
+        $scope.saveUser = function(){
+            if ($scope.selectedUser){
+                // Update the password (and later also the roles)
+                $http({
+                    method: "POST",
+                    url: globalServerURL + 'users/' + $scope.selectedUser.username,
+                    data: {
+                        password: $scope.newuser.password
+                    }
+                }).then(
+                    function(){
+                        modalInstance && modalInstance.dismiss('ok');
+                        modalInstance = null;
+                    },
+                    function(){
+                        alert('Error while saving user details');
+                    }
+                );
+            } else {
+                $http({
+                    method: "POST",
+                    url: globalServerURL + 'users',
+                    data: {
+                        username: $scope.newuser.username,
+                        password: $scope.newuser.password
+                    }
+                }).then(
+                    function(){
+                        modalInstance && modalInstance.dismiss('ok');
+                        modalInstance = null;
+                        $scope.repopulate();
+                    },
+                    function(){
+                        alert('Error while saving user details');
+                    }
+                );
+            }
+        };
+
+}]);
+
 allControllers.controller('loginController', ['$scope', '$location', 'SessionService',
     function($scope, $location, SessionService){
         $scope.credentials = {
