@@ -89,5 +89,9 @@ def main(global_config, **settings):
     config.add_route('citiesview', '/cities')
     config.add_route('cityview', '/{id}/city')
 
+    # Editing users
+    config.add_route('usersview', '/users')
+    config.add_route('userview', '/users/{username}')
+
     config.scan()
     return config.make_wsgi_app()

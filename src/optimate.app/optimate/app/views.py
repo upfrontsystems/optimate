@@ -1194,3 +1194,37 @@ def cityview(request):
     cityid = request.matchdict['id']
     city = DBSession.query(City).filter_by(ID=cityid).first()
     return {'Name': city.Name, 'ID': city.ID}
+
+@view_config(route_name='usersview', renderer='json')
+def usersview(request):
+    if request.method == 'POST':
+        # Create a new user
+        username=request.json_body['username']
+        password=request.json_body['password']
+        return {
+            'username': username
+        }
+
+    return [
+        {
+            'username': 'john',
+            'roles': []
+        },
+        {
+            'username': 'james',
+            'roles': []
+        }
+    ]
+
+@view_config(route_name='userview', renderer='json')
+def userview(request):
+    username = request.matchdict['username']
+
+    if request.method == 'POST':
+        # update password
+        password=request.json_body['password']
+
+    return {
+        'username': username,
+        'roles': []
+    }
