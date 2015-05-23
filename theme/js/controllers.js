@@ -6,18 +6,10 @@ allControllers.factory('sharedService', ['$rootScope',
     function($rootScope){
         var shared = {};
 
-        // when a node is deleted from the projects treeview
-        // the treeview should be reloaded in the directive
-        shared.nodeDeleted = function(nodeid){
-           this.deletedNodeId = nodeid;
-           this.clearSlickgrid();
-           $rootScope.$broadcast('handleDeletedNode');
-        }
-
         // when a node is added to the projects treeview
         // the slickgrid should be reloaded
-        shared.nodeAdded = function(){
-            this.reloadSlickgrid($rootScope.currentNode.ID);
+        shared.nodeAdded = function(currentid){
+            this.reloadSlickgrid(currentid);
         }
 
         shared.clearSlickgrid = function(){
@@ -449,12 +441,12 @@ allControllers.controller('unitsController', ['$scope', '$http', '$modal', '$log
 ]);
 
 
-// Angular function that loads a specific project into the treeview
-// upon selection from the user
+// Controller for the projects and treeview
 allControllers.controller('projectsController',['$scope', '$http', 'globalServerURL', '$rootScope', 'sharedService', '$timeout',
     function($scope, $http, globalServerURL, $rootScope, sharedService, $timeout) {
 
         toggleMenu('projects');
+        // variable for disabling submit button after user clicked it
         $scope.isDisabled = false;
 
         // load the projects used in the select project modal
@@ -468,10 +460,9 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             $scope.projectsList = data;
         });
 
-        // listening for the handle new project broadcast
-        $scope.handleAddedProject = function(newproject){
+        // When a new project is added to the tree
+        $scope.projectAdded = function(newproject){
             // add the new project to the projects and role list and sort
-
             $scope.projectsList.push(newproject);
             $scope.projectsList.sort(function(a, b) {
                 var textA = a.Name.toUpperCase();
@@ -479,8 +470,8 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
             });
 
-            $scope.roleList.push(newproject);
-            $scope.roleList.sort(function(a, b) {
+            $scope.projectsRoot.Subitem.push(newproject);
+            $scope.projectsRoot.Subitem.sort(function(a, b) {
                 var textA = a.Name.toUpperCase();
                 var textB = b.Name.toUpperCase();
                 return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
@@ -540,11 +531,11 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 url: url,
             }
             $http(req).success(function(data) {
-                if (!(containsObject(data[0], $scope.roleList))) {
+                if (!(containsObject(data[0], $scope.projectsRoot.Subitem))) {
                     // add latest select project, if not already in the list
-                    $scope.roleList.push(data[0]);
+                    $scope.projectsRoot.Subitem.push(data[0]);
                     // sort alphabetically by project name
-                    $scope.roleList.sort(function(a, b) {
+                    $scope.projectsRoot.Subitem.sort(function(a, b) {
                         var textA = a.Name.toUpperCase();
                         var textB = b.Name.toUpperCase();
                         return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
@@ -577,12 +568,12 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         $scope.closeProject = function (project_id) {
             // clear the slickgrid
             sharedService.clearSlickgrid();
-            var result = $.grep($scope.roleList, function(e) {
+            var result = $.grep($scope.projectsRoot.Subitem, function(e) {
                 return e.ID == project_id;
             });
-            var i = $scope.roleList.indexOf(result[0]);
+            var i = $scope.projectsRoot.Subitem.indexOf(result[0]);
             if (i != -1) {
-                $scope.roleList.splice(i, 1);
+                $scope.projectsRoot.Subitem.splice(i, 1);
 
                 if (hasStorage) {
                     // remove id of project that we are closing from storage
@@ -596,8 +587,6 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 else {
                     console.log("LOCAL STORAGE NOT SUPPORTED!")
                 }
-                // blank the data in the info box under the treeview
-                $rootScope.currentNode = '';
             }
         };
         // reopen projects that were previously opened upon page load
@@ -610,31 +599,24 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 catch (exception) {
                 }
                 if ( open_projects.length != 0 ) {
-                    var templist = []
                     for (i = 0; i < open_projects.length; i++) {
                         var id = open_projects[i];
                         var url = globalServerURL + 'projectview/' + id + '/'
-                        var req = {
-                            method: 'GET',
-                            url: url
-                        }
-                        $http(req).success(function(data) {
-                            templist.push(data[0]);
+                        $http.get(url).success(function(data) {
+                            $scope.projectsRoot.Subitem.push(data[0]);
+                            $scope.projectsRoot.Subitem.sort(function(a, b) {
+                                return a.Name.localeCompare(b.Name)
+                            });
                         });
                     }
-                    templist.sort(function(a, b) {
-                                var textA = a.Name.toUpperCase();
-                                var textB = b.Name.toUpperCase();
-                                return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
-                            });
-                    $scope.roleList = templist;
                 }
             }
             else {
                 console.log("LOCAL STORAGE NOT SUPPORTED!")
             }
         };
-        $scope.roleList = [];
+        // build the root for the projects in the tree
+        $scope.projectsRoot = {"Name": "Root", "ID": 0, "NodeType":"Root", "Subitem": []};
         $scope.preloadProjects(); // check if anything is stored in local storage
 
         // functions used by the treeview
@@ -649,14 +631,16 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         $scope.allowed['BudgetItem'] = ['BudgetItem', 'Component'];
         $scope.allowed['Component'] = [];
         $scope.allowed['ResourceCategory'] = ['ResourceCategory', 'Resource'];
-        $scope.allowed['Resource'] = []
+        $scope.allowed['Resource'] = [];
+        $scope.allowed['Root'] = ['Project'];
 
         // define the tree options for the ui-tree
         $scope.treeOptions = {
+            // check if the dropped node can be accepted in the tree
            accept: function(sourceNodeScope, destNodesScope, destIndex) {
                 var srctype = sourceNodeScope.$element.attr('data-type');
                 var dsttype = destNodesScope.$element.attr('data-type');
-                // check if the node can be dropped here
+                // check the allowed array for the types
                 if($scope.allowed[dsttype].indexOf(srctype) > -1){
                     return true;
                 }else{
@@ -666,30 +650,60 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
 
             // when a node is dropped get the id's and paste in the server
             dropped: function(event){
-                var destid = event.dest.nodesScope.$nodeScope.$modelValue.ID;
-                var srcparent = event.source.nodesScope.$nodeScope.$modelValue.ID;
+                // get the node ids from the model value
+                if (event.dest.nodesScope.$nodeScope){
+                    var dest = event.dest.nodesScope.$nodeScope.$modelValue;
+                }
+                else{
+                     var dest = {"ID":0}
+                }
+                if (event.source.nodesScope.$nodeScope)
+                    var srcparent = event.source.nodesScope.$nodeScope.$modelValue.ID;
+                else{
+                    var srcparent = 0;
+                }
                 // only paste if it is not the same parent
-                if (destid != srcparent){
-                    var srcid = event.source.nodeScope.$modelValue.ID;
-                    console.log("Dropping " + srcid + " in " + destid);
-                    $http({
-                        method: 'POST',
-                        url: globalServerURL + 'move/' + destid,
-                        data:{'ID': srcid}
-                    }).success(function () {
-                        console.log('Success: Node pasted');
-                    }).error(function(){
-                        console.log("Server error");
-                    });
+                if (dest.ID != srcparent){
+                    var parent = event.dest.nodesScope.$nodeScope.$parentNodeScope || null;
+                    var destprojectid = undefined;
+                    // find the project the destination node is in
+                    while (parent != null){
+                        if (parent.$parentNodeScope == null){
+                            destprojectid = parent.$modelValue.ID;
+                        }
+                        parent = parent.$parentNodeScope;
+                    }
+                    // find the project the source node is in
+                    var parent = event.source.nodesScope.$nodeScope.$parentNodeScope || null;
+                    var srcprojectid = undefined;
+                    while (parent != null){
+                        if (parent.$parentNodeScope == null){
+                            srcprojectid = parent.$modelValue.ID;
+                        }
+                        parent = parent.$parentNodeScope;
+                    }
+                    // set the current node to the one dropped in
+                    $scope.currentNode = dest;
+                    var src = event.source.nodeScope.$modelValue;
+                    // if its in the same project, cut
+                    if (destprojectid == srcprojectid){
+                        $scope.currentNodeScope = event.source.nodeScope;
+                        $scope.cutThisNode(src.ID, src.NodeType);
+                        $scope.pasteThisNode(dest.ID);
+                    }
+                    // otherwise paste
+                    else{
+                        $scope.copyThisNode(src.ID, src.NodeType);
+                        $scope.pasteThisNode(dest.ID);
+                    }
                 }
             }
         };
 
         // if node head clicks, get the children of the node
         // and collapse or expand the node
-        $scope.selectNodeHead = $scope.selectNodeHead || function( selectedNode ) {
-            // if the node is collapsed, get the data and
-            // expand the node
+        $scope.selectNodeHead = function(selectedNode) {
+            // if the node is collapsed, get the data and expand the node
             if (!selectedNode.collapsed){
                 selectedNode.collapsed = true;
                 var parentid = selectedNode.ID;
@@ -704,17 +718,19 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         };
 
         // if node label clicks,
-        $scope.selectNodeLabel = $scope.selectNodeLabel || function(selectedNode) {
+        $scope.selectNodeLabel = function(scope) {
+            // reload the slickgrid
+            sharedService.reloadSlickgrid(scope.$modelValue.ID);
+            // set the current scope
+            $scope.currentNodeScope = scope;
             // remove highlight from previous node
-            if ($rootScope.currentNode) {
-                $rootScope.currentNode.selected = undefined;
+            if ($scope.currentNode) {
+                $scope.currentNode.selected = undefined;
             }
             // set highlight to selected node
-            selectedNode.selected = 'selected';
             // set currentNode
-            $rootScope.currentNode = selectedNode;
-            // reload the slickgrid (adding draggable to node break listener)
-            sharedService.reloadSlickgrid(selectedNode.ID)
+            $scope.currentNode = scope.$modelValue;
+            $scope.currentNode.selected = 'selected';
         };
 
         $scope.loadOverheads = function(projectid){
@@ -736,7 +752,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             }
             $http(req).success(function(data) {
                 $scope.componentOverheadList = data;
-                console.log("Overhead list loaded");
+                console.log("Component overhead list loaded");
             });
         }
 
@@ -776,9 +792,10 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
 
         // Load the resources the user can select from the resource list
         $scope.loadResourceList = function(state){
+            var currentid = $scope.currentNode.ID;
             var req = {
                 method: 'GET',
-                url: globalServerURL + 'resource_list/' + $rootScope.currentNode.ID + '/'
+                url: globalServerURL + 'resource_list/' + currentid + '/'
             }
             $http(req).success(function(data) {
                 finderdata = data
@@ -865,22 +882,21 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             // check if adding is disabled, if not disable it and add the node
             if (!$scope.isDisabled){
                 $scope.isDisabled = true;
-                var currentId = $rootScope.currentNode.ID;
-                $scope.formData['OverheadList'] = $scope.componentOverheadList
+                var currentid = $scope.currentNode.ID;
+                $scope.formData['OverheadList'] = $scope.componentOverheadList || [];
                 $http({
                     method: 'POST',
-                    url: globalServerURL + currentId + '/add',
+                    url: globalServerURL + currentid + '/add',
                     data: $scope.formData
                 }).success(function () {
                     // check if the current node is edited
-                    if ($scope.formData['ID'] == $rootScope.currentNode.ID){
+                    if ($scope.formData['ID'] == currentid){
                         // update the node with the name in the form
-                        $rootScope.currentNode.Name = $scope.formData['Name'];
+                        $scope.currentNode.Name = $scope.formData['Name'];
                     }
                     $scope.formData = {'NodeType':$scope.formData['NodeType']};
-                    var nodeid = $rootScope.currentNode.ID;
-                    sharedService.nodeAdded();
-                    $scope.loadNodeChildren(nodeid);
+                    sharedService.reloadSlickgrid(currentid);
+                    $scope.loadNodeChildren(currentid);
                     console.log("Node added");
                 });
             }
@@ -900,7 +916,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                     $scope.formData['ID'] = response['ID'];
                     $scope.formData['NodeTypeAbbr'] = 'P';
                     $scope.formData['Subitem'] = [{'Name': '...'}];
-                    $scope.handleAddedProject($scope.formData);
+                    $scope.projectAdded($scope.formData);
                     $scope.formData = {'NodeType':$scope.formData['NodeType']};
                 });
             }
@@ -926,7 +942,8 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             $scope.formData = {'NodeType': nodetype};
         }
 
-        // fetch the properties of the node being edited to populate the respective edit form
+        // fetch the properties of the node being edited
+        // to populate the respective edit form
         $scope.editNode = function(nodeid, nodetype){
             $scope.modalState = "Edit"
             $scope.isDisabled = false;
@@ -972,7 +989,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 console.log($scope.formData['NodeType'] + " edited")
                 // XXX here refresh project list in case the name of node has been updated
                 // set the current node name to the name in the modal form
-                $rootScope.currentNode.Name = $scope.formData['Name'];
+                $scope.currentNode.Name = $scope.formData['Name'];
             });
         }
 
@@ -988,7 +1005,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                     $scope.closeProject(nodeid);
                 }
                 else{
-                    sharedService.nodeDeleted(nodeid);
+                    $scope.nodeDeleted();
                 }
             });
         };
@@ -1006,13 +1023,13 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             $scope.copiedNode = {'id': cutid, 'type': nodetype};
             console.log("Node id cut: " + cutid);
             $scope.cut = true;
-            sharedService.nodeDeleted(cutid);
+            $scope.nodeDeleted();
         }
 
         // function to paste copied node into another node
         // the id is sent to the server and the node pasted there
         // the user can't paste into the same node
-        $scope.pasteThisNode = function(nodeid, nodetype) {
+        $scope.pasteThisNode = function(nodeid) {
             var cnode = $scope.copiedNode;
             if (cnode){
                 if (cnode['id'] == nodeid){
@@ -1035,50 +1052,22 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             }
         }
 
+        // when a node is deleted clear the slickgrid and remove it from the tree
+        $scope.nodeDeleted = function(){
+            $scope.currentNode = undefined;
+            $scope.currentNodeScope.remove();
+            sharedService.clearSlickgrid();
+        }
+
         // Load the children and add to the tree
         $scope.loadNodeChildren = function(parentid){
-            $http.get(globalServerURL + parentid + '/').success(function(data) {
-                $rootScope.currentNode.Subitem = data;
-                console.log("Children loaded");
-            });
-        }
-}]);
-
-// Controller for the treeview. Handles expanding and collapsing the tree and
-// setting the currentNode in the root
-allControllers.controller('treeviewController', ['$http', '$scope', 'globalServerURL', '$rootScope', 'sharedService',
-    function($http, $scope, globalServerURL, $rootScope, sharedService){
-        // if node head clicks, get the children of the node
-        // and collapse or expand the node
-        $scope.selectNodeHead = $scope.selectNodeHead || function( selectedNode ) {
-            // if the node is collapsed, get the data and
-            // expand the node
-            if (!selectedNode.collapsed){
-                selectedNode.collapsed = true;
-                var parentid = selectedNode.ID;
+            if ($scope.currentNode){
                 $http.get(globalServerURL + parentid + '/').success(function(data) {
-                    selectedNode.Subitem = data;
+                    $scope.currentNode.Subitem = data;
                     console.log("Children loaded");
                 });
             }
-            else{
-                selectedNode.collapsed = false;
-            }
-        };
-
-        // if node label clicks,
-        $scope.selectNodeLabel = $scope.selectNodeLabel || function(selectedNode) {
-            // remove highlight from previous node
-            if ($rootScope.currentNode) {
-                $rootScope.currentNode.selected = undefined;
-            }
-            // set highlight to selected node
-            selectedNode.selected = 'selected';
-            // set currentNode
-            $rootScope.currentNode = selectedNode;
-            // reload the slickgrid (adding draggable to node break listener)
-            sharedService.reloadSlickgrid(selectedNode.ID)
-        };
+        }
 }]);
 
 allControllers.controller('usersController', ['$scope', '$http', '$modal', 'globalServerURL',

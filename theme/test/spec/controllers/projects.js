@@ -17,6 +17,6 @@ describe('Controller: projectlistController', function () {
   }));
 
   it('should have projects in the list', function () {
-    expect(scope.roleList.length).not.toBe(null);
+    expect(scope.projectsRoot.Subitem.length).not.toBe(null);
   });
 });

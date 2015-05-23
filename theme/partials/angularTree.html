@@ -18,12 +18,12 @@
     <span class="treenode {{node.NodeType}}"
         id="{{node.ID}}"
         data-ng-class="node.selected"
-        data-ng-click="selectNodeLabel(node)">
+        data-ng-click="selectNodeLabel(this)">
         {{node.Name}}
     </span>
 </div>
-<ol ui-tree-nodes="" ng-model="node.Subitem" data-ng-hide="!node.collapsed" data-type="{{node.NodeType}}">
-    <li ng-repeat="node in node.Subitem track by node.ID"
+<ol ui-tree-nodes ng-model="node.Subitem" data-ng-hide="!node.collapsed" data-type="{{node.NodeType}}">
+    <li ng-repeat="node in node.Subitem"
         data-type="{{node.NodeType}}"
         ui-tree-node
         ng-include="'partials/angularTree.html'">

@@ -111,9 +111,13 @@
 <div class="container-fluid">
     <div id="costs" class="row">
         <div class="left">
-            <div ui-tree="treeOptions" data-max-depth="0" data-drag-delay="100" id="tree-root">
-                <ol ui-tree-nodes ng-model="roleList" data-type="Root">
-                    <li ng-repeat="node in roleList"
+            <div ui-tree="treeOptions"
+                data-max-depth="0"
+                data-drag-delay="100"
+                data-empty-placeholder-enabled="false"
+                id="tree-root">
+                <ol ui-tree-nodes ng-model="projectsRoot.Subitem" data-type="{{projectsRoot.NodeType}}">
+                    <li ng-repeat="node in projectsRoot.Subitem"
                         data-type="{{node.NodeType}}"
                         ui-tree-node
                         ng-include="'partials/angularTree.html'"></li>

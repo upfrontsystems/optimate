@@ -1,47 +1,3 @@
-allControllers.directive(
-        'treeModel', ['$compile', '$http', 'globalServerURL', '$rootScope', '$templateCache', '$timeout', '$parse', 'sharedService',
-        function($compile, $http, globalServerURL, $rootScope, $templateCache, $timeout, $parse, sharedService) {
-            // All the functions used for the treeview are in the
-            // treeviewController controller
-            // The treeview html is retrieved from treeview.html and compiled
-            return {
-                restrict: 'A',
-                controller: 'treeviewController',
-                scope: {
-                    treeModel: '='
-                },
-                // templateUrl: 'partials/treeview.html',
-                link: function(scope, element, attrs) {
-                    // listening for a node thats been deleted
-                    $rootScope.$on('handleDeletedNode', function(){
-                        if (scope.treeModel){
-                            var nodeid = sharedService.deletedNodeId;
-                            var result = $.grep(scope.treeModel, function(e) {
-                                return e.ID == nodeid;
-                            });
-                            var i = scope.treeModel.indexOf(result[0]);
-                            if (i != -1) {
-                                scope.treeModel.splice(i, 1);
-                                console.log('Success: Item deleted');
-                            }
-                            else{
-                                console.log("id not found");
-                            }
-                        }
-                    });
-
-                    $http.get("partials/treeview.html", {cache: $templateCache})
-                    .success(function(html) {
-                        element.html(html);
-                    }).then(function (response) {
-                        var result = $compile(element.html())(scope);
-                        element.html('').append(result);
-                    });
-                }
-            };
-}]);
-
-
 // Directive for the custom modals, the html for the relevant modal is loaded
 // from the directive attribute and compiled
 allControllers.directive('customModals', function ($http, $compile, globalServerURL) {
@@ -73,8 +29,8 @@ allControllers.directive('customModals', function ($http, $compile, globalServer
 });
 
 // Directive for the slickgrid
-allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedService',
-    function(globalServerURL, sharedService) {
+allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedService', '$http',
+    function(globalServerURL, sharedService, $http) {
     return {
         require: '?ngModel',
         restrict: 'E',
@@ -294,29 +250,12 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             $scope.$on('handleReloadSlickgrid', function(){
                 var nodeid = sharedService.reloadId;
                 var url = globalServerURL +'nodegridview/' + nodeid + '/'
-                $.ajax({
-                    url: url,
-                    dataType: "json",
-                    success: function(response) {
-                        loadSlickgrid(response);
-                    }
-                });
-            });
-
-            // eventhandler to update grid data when a tree node is clicked
-            $( document ).on( "click", ".treenode", function( e ) {
-                var nodeid = $(this).attr('ID');
-                var url = globalServerURL +'nodegridview/' + nodeid + '/'
                 var target = document.getElementsByClassName('slick-viewport');
                 var spinner = new Spinner().spin(target[0]);
 
-                $.ajax({
-                    url: url,
-                    dataType: "json",
-                    success: function(response) {
-                        spinner.stop(); // stop the spinner - ajax call complete
-                        loadSlickgrid(response);
-                    }
+                $http.get(url).success(function(response) {
+                    spinner.stop(); // stop the spinner - ajax call complete
+                    loadSlickgrid(response);
                 });
             });
 

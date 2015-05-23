@@ -646,54 +646,11 @@ def pasteitemview(request):
     source = DBSession.query(Node).filter_by(ID=sourceid).first()
     dest = DBSession.query(Node).filter_by(ID=destinationid).first()
     parentid = dest.ID
-    # if the source is to be cut and pasted into the destination
-    if request.json_body["cut"]:
-        # check if the node was pasted into a different project
-        # Get the ID of the projects
-        destprojectid = dest.getProjectID()
-        sourceprojectid = source.getProjectID()
-        if destprojectid != sourceprojectid:
-            projectid = destprojectid
-            # get the resource category the project uses
-            resourcecategory = DBSession.query(
-                            ResourceCategory).filter_by(
-                            ParentID=projectid).first()
-            rescatid = resourcecategory.ID
-
-            # Get the components that were copied
-            if source.type == 'Component':
-                sourcecomponents = [source]
-            else:
-                sourcecomponents = source.getComponents()
-            # copy each unique resource into the new resource category
-            copiedresourceIds = {}
-            for component in sourcecomponents:
-                if component.ResourceID not in copiedresourceIds:
-                    copiedresource = component.Resource.copy(rescatid)
-                    resourcecategory.Children.append(copiedresource)
-                    DBSession.flush()
-                    copiedresourceIds[
-                            component.Resource.ID] = copiedresource.ID
-
-            # get the components that were pasted
-            destcomponents = dest.getComponents()
-            # change the resource ids of components who resources were copied
-            for component in destcomponents:
-                if component.ResourceID in copiedresourceIds:
-                    component.ResourceID = copiedresourceIds[
-                                                component.ResourceID]
-        # set the source parent to the destination parent
-        source.ParentID = destinationid
-        transaction.commit()
-    else:
-        if (source.type == 'ResourceCategory' or source.type == 'Resource'):
-            # Paste the source into the destination
-            dest.paste(source.copy(dest.ID), source.Children)
-        else:
-            # Paste the source into the destination
-            dest.paste(source.copy(dest.ID), source.Children)
-            DBSession.flush()
-
+    sourceparent = source.ParentID
+    # check the node isnt being pasted into it's parent
+    if parentid != sourceparent:
+        # if the source is to be cut and pasted into the destination
+        if request.json_body["cut"]:
             # check if the node was pasted into a different project
             # Get the ID of the projects
             destprojectid = dest.getProjectID()
@@ -723,88 +680,63 @@ def pasteitemview(request):
 
                 # get the components that were pasted
                 destcomponents = dest.getComponents()
-                # change the resource ids of components who resources were copied
+                # change the resource ids of components who were copied
                 for component in destcomponents:
                     if component.ResourceID in copiedresourceIds:
                         component.ResourceID = copiedresourceIds[
                                                     component.ResourceID]
-
-    if parentid != 0:
-        reset = DBSession.query(Node).filter_by(ID=parentid).first()
-        reset.resetTotal()
-
-    transaction.commit()
-    return HTTPOk()
-
-
-@view_config(route_name="moveview", renderer='json')
-def moveitemview(request):
-    """ The moveitemview is called when a node is dropped in the tree
-        The function checks depending on which project the node is dropped
-        in whether it should be cut or copied.
-        Then it adds the node to the parent.
-    """
-    # Find the source object to be copied from the path in the request body
-    sourceid = request.json_body["ID"]
-    # Find the object to be copied to from the path
-    destinationid = request.matchdict['id']
-
-    source = DBSession.query(Node).filter_by(ID=sourceid).first()
-    dest =DBSession.query(Node).filter_by(ID=destinationid).first()
-
-    sourceprojectid = source.getProjectID()
-    destprojectid = dest.getProjectID()
-
-    # if the nodes are in the same project cut, otherwise copy
-    if destprojectid == sourceprojectid:
-        # set the source parent to the destination parent
-        source.ParentID = destinationid
-        transaction.commit()
-    else:
-        if (source.type == 'ResourceCategory' or source.type == 'Resource'):
-            # Paste the source into the destination
-            parentid = dest.ID
-            dest.paste(source.copy(dest.ID), source.Children)
+            # set the source parent to the destination parent
+            source.ParentID = destinationid
+            transaction.commit()
         else:
-            # Get the ID of the project the destination is in
-            projectid = dest.getProjectID()
-            # get the resource category the project uses
-            resourcecategory = DBSession.query(
-                            ResourceCategory).filter_by(
-                            ParentID=projectid).first()
-            rescatid = resourcecategory.ID
-
-            # Paste the source into the destination
-            parentid = dest.ID
-            dest.paste(source.copy(dest.ID), source.Children)
-            DBSession.flush()
-            # Get the components that were copied
-            if source.type == 'Component':
-                sourcecomponents = [source]
+            if (source.type == 'ResourceCategory' or source.type == 'Resource'):
+                # Paste the source into the destination
+                dest.paste(source.copy(dest.ID), source.Children)
             else:
-                sourcecomponents = source.getComponents()
-            # copy each unique resource into the new resource category
-            copiedresourceIds = {}
-            for component in sourcecomponents:
-                if component.ResourceID not in copiedresourceIds:
-                    copiedresource = component.Resource.copy(rescatid)
-                    resourcecategory.Children.append(copiedresource)
-                    DBSession.flush()
-                    copiedresourceIds[component.Resource.ID] = copiedresource.ID
+                # Paste the source into the destination
+                dest.paste(source.copy(dest.ID), source.Children)
+                DBSession.flush()
 
-            # get the components that were pasted
-            destcomponents = dest.getComponents()
-            # change the resource ids of components who resources were copied
-            for component in destcomponents:
-                if component.ResourceID in copiedresourceIds:
-                    component.ResourceID = copiedresourceIds[
-                                                component.ResourceID]
+                # check if the node was pasted into a different project
+                # Get the ID of the projects
+                destprojectid = dest.getProjectID()
+                sourceprojectid = source.getProjectID()
+                if destprojectid != sourceprojectid:
+                    projectid = destprojectid
+                    # get the resource category the project uses
+                    resourcecategory = DBSession.query(
+                                    ResourceCategory).filter_by(
+                                    ParentID=projectid).first()
+                    rescatid = resourcecategory.ID
 
-    if destinationid != 0:
-        reset = DBSession.query(Node).filter_by(ID=destinationid).first()
-        reset.resetTotal()
+                    # Get the components that were copied
+                    if source.type == 'Component':
+                        sourcecomponents = [source]
+                    else:
+                        sourcecomponents = source.getComponents()
+                    # copy each unique resource into the new resource category
+                    copiedresourceIds = {}
+                    for component in sourcecomponents:
+                        if component.ResourceID not in copiedresourceIds:
+                            copiedresource = component.Resource.copy(rescatid)
+                            resourcecategory.Children.append(copiedresource)
+                            DBSession.flush()
+                            copiedresourceIds[
+                                    component.Resource.ID] = copiedresource.ID
 
-    transaction.commit()
+                    # get the components that were pasted
+                    destcomponents = dest.getComponents()
+                    # change the resource ids of components who were copied
+                    for component in destcomponents:
+                        if component.ResourceID in copiedresourceIds:
+                            component.ResourceID = copiedresourceIds[
+                                                        component.ResourceID]
+        # reset the total
+        if parentid != 0:
+            reset = DBSession.query(Node).filter_by(ID=parentid).first()
+            reset.resetTotal()
+
+        transaction.commit()
     return HTTPOk()
 
 

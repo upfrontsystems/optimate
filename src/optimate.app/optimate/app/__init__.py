@@ -42,7 +42,8 @@ def main(global_config, **settings):
     DBSession.configure(bind=engine)
     Base.metadata.bind = engine
 
-    config = Configurator(settings=settings, root_factory=makeProtected(Authenticated))
+    # config = Configurator(settings=settings, root_factory=makeProtected(Authenticated))
+    config = Configurator(settings=settings, root_factory=makePublic)
     config.include('pyramid_chameleon')
     config.add_static_view('static', 'static', cache_max_age=3600)
 
@@ -74,7 +75,6 @@ def main(global_config, **settings):
     config.add_route('addview', '/{id}/add')
     config.add_route('editview', 'edit/{id}/')
     config.add_route('deleteview', '/{id}/delete')
-    config.add_route('moveview', '/move/{id}')
     config.add_route('pasteview', '/{id}/paste')
     config.add_route('costview', '/{id}/cost')
 

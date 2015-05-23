@@ -11,6 +11,13 @@ div[ui-tree] li .selected {
     font-weight: bold;
 }
 
+div[ui-tree] li .treenode {
+    background-color: Transparent;
+    background-repeat:no-repeat;
+    border: none;
+    outline:none;
+}
+
 div[ui-tree] li .expanded {
     background: url("../img/plusbtn.png") center no-repeat;
     padding-left: 15px;
