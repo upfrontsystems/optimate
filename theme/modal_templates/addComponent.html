@@ -48,12 +48,15 @@
                     <div class="form-group">
                         <label class="col-sm-2 control-label" style="display: block;" >Overhead:
                         </label>
-                        <div ng-repeat="overhead in componentOverheadList">
-                            <span>{{overhead.Name}}</span>
-                            <span>
-                                <input type="checkbox" value="{{overhead.Name}}" ng-model="overhead.selected">
-                            </span>
-                        </div>
+                        <table>
+                            <tr ng-repeat="overhead in componentOverheadList">
+                                <td>{{overhead.Name}} &nbsp;</td>
+                                <td>
+                                    <input type="checkbox" value="{{overhead.Name}}" 
+                                           ng-model="overhead.selected">
+                                </td>
+                            </tr>
+                        </table>
                     </div>
                 <form>
             </div>
