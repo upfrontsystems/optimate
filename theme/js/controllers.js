@@ -807,7 +807,6 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                     finder.listdir(url);
                     $(document).on('click', function(event) {
                         if (!$(event.target).closest('#related_items_finder').length) {
-                            console.log("CLICKSTICKS")
                             finder.dropdown.css({'left': -9000});
                             // close the widget if it was left open last time
                             $('.finder-dropdown').attr('style','left: -9000px; width: 99.9%; top: 29px;');
