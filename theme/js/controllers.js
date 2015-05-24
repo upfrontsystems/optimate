@@ -805,9 +805,19 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                     var url = $(this).attr('data-url');
                     var finder = new ContentFinder('#'+$(this).attr('id'), url, true);
                     finder.listdir(url);
+                    $(document).on('click', function(event) {
+                        if (!$(event.target).closest('#related_items_finder').length) {
+                            console.log("CLICKSTICKS")
+                            finder.dropdown.css({'left': -9000});
+                            // close the widget if it was left open last time
+                            $('.finder-dropdown').attr('style','left: -9000px; width: 99.9%; top: 29px;');
+                            // set the text in case it is blank
+                            $('#inputResources').val('Click to search or browse');
+                        }
+                    });
                 });
+
                 console.log("Resource list loaded");
-                console.log(state)
                 if ( state == 'add' ) {
                     // remove any old remembered choices from last time
                     $('.search-choice').remove();
