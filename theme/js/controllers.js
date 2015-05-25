@@ -1186,6 +1186,22 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
             }
         };
 
+        $scope.deleteUser = function(user){
+            if (confirm('Are you sure you want to delete ' + user.username + '?')){
+                $http({
+                    method: "DELETE",
+                    url: globalServerURL + 'users/' + user.username
+                }).then(
+                    function(){
+                        $scope.repopulate();
+                    },
+                    function(){
+                        alert('Error deleting user');
+                    }
+                );
+            }
+        };
+
 }]);
 
 allControllers.controller('loginController', ['$scope', '$location', 'SessionService',

@@ -84,7 +84,7 @@ def auth(request):
         ('Pragma', 'no-cache')))
 
     try:
-        user = DBSession.query(User).filter(User.username==username).one()
+        user = DBSession().query(User).filter(User.username==username).one()
     except NoResultFound:
         return HTTPUnauthorized('Authentication failed')
     else:
@@ -1257,15 +1257,19 @@ def usersview(request):
 @view_config(route_name='userview', renderer='json')
 def userview(request):
     username = request.matchdict['username']
+    session = DBSession()
 
     try:
-        user = DBSession.query(User).filter(User.username==username).one()
+        user = session.query(User).filter(User.username==username).one()
     except NoResultFound:
         return HTTPNotFound('No such user')
 
     if request.method == 'POST':
         password=request.json_body['password']
         user.set_password(password)
+    elif request.method == 'DELETE':
+        session.delete(user)
+        return {}
 
     return {
         'username': user.username,
