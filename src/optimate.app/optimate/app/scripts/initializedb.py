@@ -5,10 +5,9 @@ default data.
 
 import os
 import sys
-import transaction
 import uuid
-from sqlalchemy import exc
-from sqlalchemy.sql import exists
+from sqlalchemy.orm.exc import NoResultFound
+import transaction
 from pyramid.scripts.common import parse_vars
 from sqlalchemy import engine_from_config
 
@@ -31,6 +30,7 @@ from optimate.app.models import (
     Resource,
     Base,
     CompanyInformation,
+    User
 )
 
 
@@ -51,3 +51,14 @@ def main(argv=sys.argv):
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
+
+    # Initialise used database with an admin user
+    try:
+        user = DBSession.query(User).filter(User.username=='admin').one()
+    except NoResultFound:
+        user = User()
+        user.username = u'admin'
+        user.set_password('admin')
+        DBSession().merge(user)
+
+    transaction.commit()

@@ -8,6 +8,7 @@ from pyramid.view import view_config
 from decimal import Decimal
 import timeit
 from sqlalchemy.sql import collate
+from sqlalchemy.orm.exc import NoResultFound
 
 from pyramid.httpexceptions import (
     HTTPOk,
@@ -16,7 +17,8 @@ from pyramid.httpexceptions import (
     HTTPInternalServerError,
     HTTPMethodNotAllowed,
     HTTPBadRequest,
-    HTTPUnauthorized
+    HTTPUnauthorized,
+    HTTPConflict
 )
 
 from optimate.app.security import create_token
@@ -36,6 +38,7 @@ from optimate.app.models import (
     Client,
     Supplier,
     CompanyInformation,
+    User,
 )
 
 # the categories the resources fall into
@@ -80,9 +83,13 @@ def auth(request):
         ('Cache-Control', 'no-store'),
         ('Pragma', 'no-cache')))
 
-    # TODO authenticate the user against real database
-    if username != 'john' or password != 'john':
+    try:
+        user = DBSession.query(User).filter(User.username==username).one()
+    except NoResultFound:
         return HTTPUnauthorized('Authentication failed')
+    else:
+        if not user.validate_password(password):
+            return HTTPUnauthorized('Authentication failed')
 
     return {
         "access_token": create_token(request, username)
@@ -1225,30 +1232,42 @@ def usersview(request):
         # Create a new user
         username=request.json_body['username']
         password=request.json_body['password']
+
+        # Check for existing user
+        if DBSession.query(User).filter(User.username==username).count() > 0:
+            return HTTPConflict('user exists')
+
+        # createuser
+        user = User()
+        user.username = username
+        user.set_password(password)
+        DBSession().merge(user)
+
         return {
-            'username': username
+            'username': user.username
         }
 
+    users = DBSession().query(User).all()
     return [
         {
-            'username': 'john',
+            'username': user.username,
             'roles': []
-        },
-        {
-            'username': 'james',
-            'roles': []
-        }
-    ]
+        } for user in users]
 
 @view_config(route_name='userview', renderer='json')
 def userview(request):
     username = request.matchdict['username']
 
+    try:
+        user = DBSession.query(User).filter(User.username==username).one()
+    except NoResultFound:
+        return HTTPNotFound('No such user')
+
     if request.method == 'POST':
-        # update password
         password=request.json_body['password']
+        user.set_password(password)
 
     return {
-        'username': username,
-        'roles': []
+        'username': user.username,
+        'roles': [] # TODO expose roles here
     }
