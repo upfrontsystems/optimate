@@ -3,13 +3,14 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" 
-                        aria-hidden="true">&times;
+                        ar  ia-hidden="true">&times;
                 </button>
                 <h3 class="modal-title">Edit Company Information</h3>
             </div>
             <div class="modal-body">
-                <form class="form-horizontal">
-                    <div class="form-group">
+                <form class="form-horizontal" name="EditCompanyInformationForm" novalidate>
+                    <div class="form-group"
+                        ng-class="{'has-error': EditCompanyInformationForm.inputName.$invalid}">
                         <label for="inputName" class="col-sm-3 control-label">Name:</label>
                         <input type="text"
                                class="col-sm-7"
@@ -19,7 +20,8 @@
                                required
                                autofocus>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group"
+                        ng-class="{'has-error': EditCompanyInformationForm.inputAddress.$invalid}">
                         <label for="inputAddress" class="col-sm-3 control-label">Address:</label>
                         <textarea id="inputAddress"
                                   class="col-sm-7"                        
@@ -28,7 +30,8 @@
                                   rows="5" cols="40">
                         </textarea>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group"
+                        ng-class="{'has-error': EditCompanyInformationForm.inputTel.$invalid}">
                         <label for="inputTel" class="col-sm-3 control-label">Tel:</label>
                         <input type="text"
                                class="col-sm-7"                        
@@ -36,7 +39,8 @@
                                name="inputTel"
                                ng-model="formData['Tel']">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group"
+                        ng-class="{'has-error': EditCompanyInformationForm.inputFax.$invalid}">
                         <label for="inputFax" class="col-sm-3 control-label">Fax:</label>
                         <input type="text"
                                class="col-sm-7"                        
@@ -44,7 +48,8 @@
                                name="inputFax"
                                ng-model="formData['Fax']">
                     </div>                    
-                    <div class="form-group">
+                    <div class="form-group"
+                        ng-class="{'has-error': EditCompanyInformationForm.inputCell.$invalid}">
                         <label for="inputCell" class="col-sm-3 control-label">Cell:</label>
                         <input type="text"
                                class="col-sm-7"                        
@@ -52,7 +57,8 @@
                                name="inputCell"
                                ng-model="formData['Cell']">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group"
+                        ng-class="{'has-error': EditCompanyInformationForm.inputBankName.$invalid}">
                         <label for="inputBankName" class="col-sm-3 control-label">Bank Name:</label>
                         <input type="text"
                                class="col-sm-7"                        
@@ -60,7 +66,8 @@
                                name="inputBankName"
                                ng-model="formData['BankName']">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group"
+                        ng-class="{'has-error': EditCompanyInformationForm.inputBranchCode$invalid}">
                         <label for="inputBranchCode" class="col-sm-3 control-label">Branch Code:</label>
                         <input type="text"
                                class="col-sm-7"                        
@@ -68,7 +75,8 @@
                                name="inputBranchCode"
                                ng-model="formData['BranchCode']">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group"
+                        ng-class="{'has-error': EditCompanyInformationForm.inputAccountNo.$invalid}">
                         <label for="inputAccountNo" class="col-sm-3 control-label">Account No:</label>
                         <input type="text"
                                class="col-sm-7"                        
@@ -76,15 +84,18 @@
                                name="inputAccountNo"
                                ng-model="formData['AccountNo']">
                     </div>
-                    <div class="form-group">
-                        <label for="inputAccountName" class="col-sm-3 control-label">Account Name:</label>
+                    <div class="form-group"
+                        ng-class="{'has-error': EditCompanyInformationForm.inputAccountName.$invalid}">
+                        <label for="inputAccountName" 
+                               class="col-sm-3 control-label">Account Name:</label>
                         <input type="text"
                                class="col-sm-7"                        
                                id="inputAccountName"
                                name="inputAccountName"
                                ng-model="formData['AccountName']">
                     </div>                    
-                    <div class="form-group">
+                    <div class="form-group"
+                        ng-class="{'has-error': EditCompanyInformationForm.inputDefaultTaxrate.$invalid}">
                         <label for="inputDefaultTaxrate" class="col-sm-3 control-label">Default Taxrate:</label>
                         <input type="text"
                                class="col-sm-7"                        
@@ -95,7 +106,9 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="disableButton(); save()">Save</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" 
+                ng-disabled="!EditCompanyInformationForm.$valid" 
+                ng-click="disableButton(); save()">Update</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
             </div>
         </div>
