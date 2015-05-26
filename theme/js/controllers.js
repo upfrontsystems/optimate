@@ -1111,12 +1111,18 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
 
         $scope.newuser = {
             username: '',
-            password: ''
+            password: '',
+            roles: [
+                { title: 'Administrator', selected: false }
+            ]
         }
         var modalInstance = null;
         $scope.addingState = function (){
             $scope.modalState = "Add";
             $scope.newuser.password = '';
+            $scope.newuser.roles.forEach(function(v){
+                v.selected = false;
+            });
             if ($scope.selectedUser){
                 $scope.selectedUser.selected = false;
                 $scope.selectedUser = null;
@@ -1135,7 +1141,12 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
                 url: globalServerURL + 'users/' + $scope.selectedUser.username
             }).then(
                 function(response){
+                    var i;
                     $scope.data = response.data;
+                    for (i in $scope.newuser.roles){
+                        var role = $scope.newuser.roles[i];
+                        role.selected = (response.data.roles.indexOf(role.title) > -1);
+                    }
                     modalInstance = $modal.open({
                         templateUrl: 'addUser',
                         scope: $scope
@@ -1148,16 +1159,27 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
         };
 
         $scope.saveUser = function(){
+            var newroles = $scope.newuser.roles.map(function(v){
+                if (v.selected){
+                    return v.title;
+                } else {
+                    return null;
+                }
+            }).filter(function(v){
+                return v != null;
+            });
             if ($scope.selectedUser){
                 // Update the password (and later also the roles)
                 $http({
                     method: "POST",
                     url: globalServerURL + 'users/' + $scope.selectedUser.username,
                     data: {
-                        password: $scope.newuser.password
+                        password: $scope.newuser.password,
+                        roles: newroles
                     }
                 }).then(
-                    function(){
+                    function(response){
+                        $scope.selectedUser.roles = response.data.roles;
                         modalInstance && modalInstance.dismiss('ok');
                         modalInstance = null;
                     },
@@ -1171,7 +1193,8 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
                     url: globalServerURL + 'users',
                     data: {
                         username: $scope.newuser.username,
-                        password: $scope.newuser.password
+                        password: $scope.newuser.password,
+                        roles: newroles
                     }
                 }).then(
                     function(){
