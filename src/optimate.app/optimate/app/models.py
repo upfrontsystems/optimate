@@ -1265,5 +1265,5 @@ class User(Base):
     def set_password(self, password):
         salt = os.urandom(32).encode('hex')
         h = hashlib.sha256((salt + password).encode('utf-8')).hexdigest()
-        self.salt = salt
-        self.password = h
+        self.salt = unicode(salt)
+        self.password = unicode(h)
