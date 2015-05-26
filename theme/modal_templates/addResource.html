@@ -33,11 +33,12 @@
                     <div class="form-group"
                         ng-class="{'has-error': addResourceForm.inputRate.$invalid}">
                         <label for="inputRate" class="col-sm-2 control-label">Rate:</label>
-                        <input type="number"
+                        <input type="text"
                                class="col-sm-7"
                                id="inputRate"
                                name="inputRate"
-                               ng-model="formData['Rate']">
+                               ng-model="formData['Rate']"
+                               smart-float>
                     </div>
                     <div class="form-group"
                         ng-class="{'has-error': addResourceForm.inputUnit.$invalid}">

@@ -156,6 +156,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                              width: cell_small, formatter: CurrencyFormatter, editor: Slick.Editors.Float},
                              {id: "unit", name: "Unit", field: "unit",
                             width: cell_medium, cssClass: "cell non-editable-column"},
+                             {id: "type", name: "Type", field: "type",
+                            width: cell_medium, cssClass: "cell non-editable-column"},                            
                         ];
 
                         grid.setColumns(newcolumns);

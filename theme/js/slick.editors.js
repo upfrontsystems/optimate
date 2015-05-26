@@ -77,14 +77,14 @@
 
       this.validate = function () {
         if (isNaN(parseFloat($input.val()))) {
-          console.log("NOT FLOAT")
+          // not FLOAT
           return {
             valid: false,
             msg: "Please enter a valid float"
           };
         }
 
-        console.log("FLOAT")
+        // FLOAT
         return {
           valid: true,
           msg: null
@@ -325,14 +325,14 @@
 
     this.validate = function () {
       if (isNaN(parseFloat($input.val()))) {
-        console.log("NOT FLOAT")
+        // not FLOAT
         return {
           valid: false,
           msg: "Please enter a valid float"
         };
       }
 
-      console.log("FLOAT")
+      // FLOAT
       return {
         valid: true,
         msg: null

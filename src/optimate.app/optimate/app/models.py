@@ -1097,7 +1097,8 @@ class Resource(Node):
                 'id': self.ID,
                 'unit': self.unitName(),
                 'node_type': self.type,
-                'rate': str(self.Rate)}
+                'rate': str(self.Rate),
+                'type': str(self.Type)}
 
     def __eq__(self, other):
         """Test for equality, for now testing based on the name
