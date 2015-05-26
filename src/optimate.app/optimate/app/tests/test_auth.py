@@ -16,13 +16,13 @@ class TestAuth(unittest.TestCase):
         """ Test the crypto token generating and verifying code. """
         from optimate.app.security import create_token, verify_token
 
-        token = create_token(self.request, 'john')
-        validated, user = verify_token(self.request, token)
+        token = create_token(self.request, 'john', ['Janitor'])
+        validated, user, roles = verify_token(self.request, token)
         self.assertTrue(validated, "Token did not validate")
 
         # Also test with a funny character
-        token = create_token(self.request, '\xc3'.decode('latin1'))
-        validated, user = verify_token(self.request, token)
+        token = create_token(self.request, '\xc3'.decode('latin1'), ['Plebian'])
+        validated, user, roles = verify_token(self.request, token)
         self.assertTrue(validated, "Token did not validate")
 
     def test_authview(self):

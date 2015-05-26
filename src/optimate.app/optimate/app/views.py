@@ -3,6 +3,7 @@ views uses pyramid and sqlalchemy to recieve requests from a user
 and send responses with appropriate data
 """
 
+import json
 import transaction
 from pyramid.view import view_config
 from decimal import Decimal
@@ -22,6 +23,7 @@ from pyramid.httpexceptions import (
 )
 
 from optimate.app.security import create_token
+from optimate.app.security import Administrator, Manager
 from optimate.app.models import (
     DBSession,
     Node,
@@ -92,7 +94,8 @@ def auth(request):
             return HTTPUnauthorized('Authentication failed')
 
     return {
-        "access_token": create_token(request, username)
+        "access_token": create_token(request, username,
+            user.roles and json.loads(user.roles) or [])
     }
 
 
@@ -1230,8 +1233,9 @@ def orderview(request):
 def usersview(request):
     if request.method == 'POST':
         # Create a new user
-        username=request.json_body['username']
-        password=request.json_body['password']
+        username = request.json_body['username']
+        password = request.json_body['password']
+        roles = request.json_body.get('roles', [])
 
         # Check for existing user
         if DBSession.query(User).filter(User.username==username).count() > 0:
@@ -1241,17 +1245,23 @@ def usersview(request):
         user = User()
         user.username = username
         user.set_password(password)
+
+        # Ensure only valid roles can be specified
+        roles = [role for role in roles if role in (Administrator, Manager)]
+        user.roles = json.dumps(roles)
+
         DBSession().merge(user)
 
         return {
-            'username': user.username
+            'username': user.username,
+            'roles': roles
         }
 
     users = DBSession().query(User).all()
     return [
         {
             'username': user.username,
-            'roles': []
+            'roles': user.roles and json.loads(user.roles) or []
         } for user in users]
 
 @view_config(route_name='userview', renderer='json')
@@ -1266,12 +1276,19 @@ def userview(request):
 
     if request.method == 'POST':
         password=request.json_body['password']
-        user.set_password(password)
+        roles = request.json_body.get('roles', None)
+        if password:
+            user.set_password(password)
+        if roles is not None:
+            # Ensure only valid roles can be specified
+            roles = [role for role in roles if role in (Administrator, Manager)]
+            user.roles = json.dumps(roles)
+
     elif request.method == 'DELETE':
         session.delete(user)
         return {}
 
     return {
         'username': user.username,
-        'roles': [] # TODO expose roles here
+        'roles': user.roles and json.loads(user.roles) or []
     }

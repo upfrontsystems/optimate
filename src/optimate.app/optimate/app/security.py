@@ -1,3 +1,5 @@
+import json
+from base64 import b64encode, b64decode
 from Crypto.Hash import HMAC, SHA
 from uuid import uuid4
 from pyramid.security import Allow, Deny, Everyone
@@ -10,11 +12,18 @@ Administrator = u'Administrator'
 Manager = u'Manager'
 
 # Token generating machinery
-def create_token(request, userid):
+def create_token(request, userid, roles):
     secret = request.registry.settings.get('optimate.app.secret')
     assert secret is not None, 'No secret set for token signing'
-    assert len(userid) <= 20, 'userid must have at most length of 20'
-    r = uuid4().hex + u'{:>20s}'.format(userid)
+
+    # Take a random bit and add details about the user. We will sign this so
+    # we can trust it later, instead of having to check with the database on
+    # each request.
+    r = uuid4().hex + b64encode(json.dumps({
+        'userid': userid,
+        'roles': roles
+    }))
+
     sig = HMAC.new(secret, r.encode('UTF-8'), SHA).hexdigest()
     return u"{}{}".format(sig, r)
 
@@ -34,8 +43,21 @@ def verify_token(request, token):
         invalid_bits += a != b
 
     if invalid_bits == 0:
-        return (True, token[-20:].strip())
-    return (False, None)
+        try:
+            data = json.loads(b64decode(token[72:]))
+        except (TypeError, ValueError):
+            pass
+        else:
+            return (True, data['userid'], data['roles'])
+    return (False, None, None)
+
+def rolefinder(request):
+    auth = request.headers.get('Authorization')
+    if auth and auth.startswith('Bearer '):
+        validated, username, roles = verify_token(request, auth[7:])
+        if roles:
+            return [role for role in roles if role in (Administrator, Manager)]
+    return []
 
 # Authentication policy
 class OAuthPolicy(CallbackAuthenticationPolicy):
@@ -47,7 +69,7 @@ class OAuthPolicy(CallbackAuthenticationPolicy):
         auth = request.headers.get('Authorization')
         if auth and auth.startswith('Bearer '):
             token = auth[7:]
-            validated, username = verify_token(request, token)
+            validated, username, roles = verify_token(request, token)
             if validated:
                 return username
 
@@ -64,8 +86,7 @@ class OAuthPolicy(CallbackAuthenticationPolicy):
         return []
 
     def callback(self, username, request):
-        # FIXME: return list of actual roles
-        return [Authenticated]
+        return [Authenticated] + rolefinder(request)
 
 # Factories to create a security context
 class Protected(object): 
