@@ -37,7 +37,8 @@
                                 id="inputClient"
                                 name="inputClient"
                                 data-ng-model="formData['Client']"
-                                data-ng-options="client.ID as client.Name for client in clientList">
+                                data-ng-options="client.ID as client.Name for client in clientList"
+                                required>
                             <option value="">Select a client</option>
                         </select>
                     </div>
@@ -48,7 +49,8 @@
                                 id="inputCity"
                                 name="inputCity"
                                 data-ng-model="formData['City']"
-                                data-ng-options="city.Name as city.Name for city in cityList">
+                                data-ng-options="city.Name as city.Name for city in cityList"
+                                required>
                             <option value="">Select a city</option>
                         </select>
                     </div>                    
