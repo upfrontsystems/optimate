@@ -5,7 +5,7 @@ default data.
 
 import os
 import sys
-import uuid
+import json
 from sqlalchemy.orm.exc import NoResultFound
 import transaction
 from pyramid.scripts.common import parse_vars
@@ -54,11 +54,12 @@ def main(argv=sys.argv):
 
     # Initialise used database with an admin user
     try:
-        user = DBSession.query(User).filter(User.username=='admin').one()
+        user = DBSession.query(User).filter(User.username==u'admin').one()
     except NoResultFound:
         user = User()
         user.username = u'admin'
         user.set_password('admin')
+        user.roles = json.dumps(['Administrator'])
         DBSession().merge(user)
 
     transaction.commit()
