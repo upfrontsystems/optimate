@@ -13,7 +13,8 @@ from optimate.app.security import (
     OAuthPolicy,
     makePublic,
     makeProtected,
-    Authenticated)
+    Authenticated,
+    Administrator)
 from optimate.app.models import (
     DBSession,
     Base,
@@ -42,8 +43,8 @@ def main(global_config, **settings):
     DBSession.configure(bind=engine)
     Base.metadata.bind = engine
 
-    # config = Configurator(settings=settings, root_factory=makeProtected(Authenticated))
-    config = Configurator(settings=settings, root_factory=makePublic)
+    config = Configurator(settings=settings, root_factory=makeProtected(Authenticated))
+    # config = Configurator(settings=settings, root_factory=makePublic)
     config.include('pyramid_chameleon')
     config.add_static_view('static', 'static', cache_max_age=3600)
 
@@ -92,8 +93,8 @@ def main(global_config, **settings):
     config.add_route('orderview', '/order/{id}/')
 
     # Editing users
-    config.add_route('usersview', '/users')
-    config.add_route('userview', '/users/{username}')
+    config.add_route('usersview', '/users', factory=makeProtected(Administrator))
+    config.add_route('userview', '/users/{username}', factory=makeProtected(Administrator))
 
     config.scan()
     return config.make_wsgi_app()

@@ -6,8 +6,9 @@
                 <h3 class="modal-title">{{modalState}} a {{formData.NodeType}}</h3>
             </div>
             <div class="modal-body">
-                <form class="form-horizontal">
-                    <div class="form-group">
+                <form class="form-horizontal"  name="saveModalForm" novalidate>
+                    <div class="form-group"
+                        ng-class="{'has-error': saveModalForm.inputName.$invalid}">
                         <label for="inputName" class="col-sm-2 control-label">Name:</label>
                         <input type="text"
                                class="col-sm-7"                        
@@ -17,7 +18,8 @@
                                required
                                autofocus>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group"
+                        ng-class="{'has-error': saveModalForm.inputAddress.$invalid}">
                         <label for="inputAddress" class="col-sm-2 control-label">Address:</label>
                         <textarea id="inputAddress"
                                   class="col-sm-7"                        
@@ -26,7 +28,8 @@
                                   rows="5" cols="40">
                         </textarea>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group"
+                        ng-class="{'has-error': saveModalForm.inputCity.$invalid}">
                         <label for="inputCity" class="col-sm-2 control-label">City:</label>
                         <input type="text"
                                class="col-sm-7"                        
@@ -34,7 +37,8 @@
                                name="inputCity"
                                ng-model="formData['City']">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group"
+                        ng-class="{'has-error': saveModalForm.inputStateProvince.$invalid}">
                         <label for="inputStateProvince" class="col-sm-2 control-label">State/Province:</label>
                         <input type="text"
                                class="col-sm-7"                        
@@ -42,7 +46,8 @@
                                name="inputStateProvince"
                                ng-model="formData['StateProvince']">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group"
+                        ng-class="{'has-error': saveModalForm.inputStateCountry.$invalid}">
                         <label for="inputStateCountry" class="col-sm-2 control-label">Country:</label>
                         <input type="text"
                                class="col-sm-7"                        
@@ -50,7 +55,8 @@
                                name="inputStateCountry"
                                ng-model="formData['Country']">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group"
+                        ng-class="{'has-error': saveModalForm.inputZip.$invalid}">
                         <label for="inputZip" class="col-sm-2 control-label">Zip Code:</label>
                         <input type="text"
                                class="col-sm-7"                        
@@ -58,7 +64,8 @@
                                name="inputZip"
                                ng-model="formData['Zipcode']">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group"
+                        ng-class="{'has-error': saveModalForm.inputPhone.$invalid}">
                         <label for="inputPhone" class="col-sm-2 control-label">Phone:</label>
                         <input type="text"
                                class="col-sm-7"                        
@@ -66,7 +73,8 @@
                                name="inputPhone"
                                ng-model="formData['Phone']">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group"
+                        ng-class="{'has-error': saveModalForm.inputCity.$invalid}">                    
                         <label for="inputFax" class="col-sm-2 control-label">Fax:</label>
                         <input type="text"
                                class="col-sm-7"                        
@@ -74,7 +82,8 @@
                                name="inputFax"
                                ng-model="formData['Fax']">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group"
+                        ng-class="{'has-error': saveModalForm.inputCellular.$invalid}">
                         <label for="inputCellular" class="col-sm-2 control-label">Cellular:</label>
                         <input type="text"
                                class="col-sm-7"                        
@@ -82,7 +91,8 @@
                                name="inputCellular"
                                ng-model="formData['Cellular']">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group"
+                        ng-class="{'has-error': saveModalForm.inputContact.$invalid}">                   
                         <label for="inputContact" class="col-sm-2 control-label">Contact:</label>
                         <input type="text"
                                class="col-sm-7"                        
@@ -93,8 +103,11 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary" data-dismiss="modal" ng-click="save()">Save</button>
-                <button  class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal"
+                 ng-disabled="!saveModalForm.$valid" ng-click="save()">Save</button>
+                <button ng-show="modalState == 'Edit'" class="btn btn-primary" data-dismiss="modal"
+                 ng-disabled="!saveModalForm.$valid" ng-click="save()">Update</button>
+                <button class="btn btn-default" data-dismiss="modal">Cancel</button>
             </div>
         </div>
     </div>

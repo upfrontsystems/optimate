@@ -8,8 +8,9 @@
                 <h3 class="modal-title">{{modalState}} Resource Category</h3>                
             </div>
             <div class="modal-body">
-                <form class="form-horizontal">
-                    <div class="form-group">
+                <form class="form-horizontal" name="addResourceCategoryForm" novalidate>
+                    <div class="form-group"
+                        ng-class="{'has-error': addResourceCategoryForm.inputName.$invalid}">
                         <label for="inputName" class="col-sm-2 control-label">Name:</label>
                         <input type="text"
                                class="col-sm-7"                        
@@ -19,7 +20,8 @@
                                required
                                autofocus>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group"
+                        ng-class="{'has-error': addResourceCategoryForm.inputDescription.$invalid}">
                         <label for="inputDescription" class="col-sm-2 control-label">Description:</label>
                         <textarea id="inputDescription"
                                   class="col-sm-7"                        
@@ -32,9 +34,9 @@
             </div>
             <div class="modal-footer">
                 <button ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal" 
-                 ng-click="addNode()">Save</button>
+                 ng-disabled="!addResourceCategoryForm.$valid" ng-click="addNode()">Save</button>
                 <button ng-show="modalState == 'Edit'" class="btn btn-primary" data-dismiss="modal" 
-                 ng-click="saveNodeEdits()">Update</button>
+                 ng-disabled="!addResourceCategoryForm.$valid" ng-click="saveNodeEdits()">Update</button>
                 <button class="btn btn-default" ng-click="cancel()" data-dismiss="modal">Cancel</button>
             </div>
         </div>

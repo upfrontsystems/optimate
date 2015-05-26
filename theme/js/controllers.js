@@ -813,9 +813,18 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                     var url = $(this).attr('data-url');
                     var finder = new ContentFinder('#'+$(this).attr('id'), url, true);
                     finder.listdir(url);
+                    $(document).on('click', function(event) {
+                        if (!$(event.target).closest('#related_items_finder').length) {
+                            finder.dropdown.css({'left': -9000});
+                            // close the widget if it was left open last time
+                            $('.finder-dropdown').attr('style','left: -9000px; width: 99.9%; top: 29px;');
+                            // set the text in case it is blank
+                            $('#inputResources').val('Click to search or browse');
+                        }
+                    });
                 });
+
                 console.log("Resource list loaded");
-                console.log(state)
                 if ( state == 'add' ) {
                     // remove any old remembered choices from last time
                     $('.search-choice').remove();
@@ -1110,12 +1119,18 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
 
         $scope.newuser = {
             username: '',
-            password: ''
+            password: '',
+            roles: [
+                { title: 'Administrator', selected: false }
+            ]
         }
         var modalInstance = null;
         $scope.addingState = function (){
             $scope.modalState = "Add";
             $scope.newuser.password = '';
+            $scope.newuser.roles.forEach(function(v){
+                v.selected = false;
+            });
             if ($scope.selectedUser){
                 $scope.selectedUser.selected = false;
                 $scope.selectedUser = null;
@@ -1134,7 +1149,12 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
                 url: globalServerURL + 'users/' + $scope.selectedUser.username
             }).then(
                 function(response){
+                    var i;
                     $scope.data = response.data;
+                    for (i in $scope.newuser.roles){
+                        var role = $scope.newuser.roles[i];
+                        role.selected = (response.data.roles.indexOf(role.title) > -1);
+                    }
                     modalInstance = $modal.open({
                         templateUrl: 'addUser',
                         scope: $scope
@@ -1147,16 +1167,27 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
         };
 
         $scope.saveUser = function(){
+            var newroles = $scope.newuser.roles.map(function(v){
+                if (v.selected){
+                    return v.title;
+                } else {
+                    return null;
+                }
+            }).filter(function(v){
+                return v != null;
+            });
             if ($scope.selectedUser){
                 // Update the password (and later also the roles)
                 $http({
                     method: "POST",
                     url: globalServerURL + 'users/' + $scope.selectedUser.username,
                     data: {
-                        password: $scope.newuser.password
+                        password: $scope.newuser.password,
+                        roles: newroles
                     }
                 }).then(
-                    function(){
+                    function(response){
+                        $scope.selectedUser.roles = response.data.roles;
                         modalInstance && modalInstance.dismiss('ok');
                         modalInstance = null;
                     },
@@ -1170,7 +1201,8 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
                     url: globalServerURL + 'users',
                     data: {
                         username: $scope.newuser.username,
-                        password: $scope.newuser.password
+                        password: $scope.newuser.password,
+                        roles: newroles
                     }
                 }).then(
                     function(){
@@ -1180,6 +1212,22 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
                     },
                     function(){
                         alert('Error while saving user details');
+                    }
+                );
+            }
+        };
+
+        $scope.deleteUser = function(user){
+            if (confirm('Are you sure you want to delete ' + user.username + '?')){
+                $http({
+                    method: "DELETE",
+                    url: globalServerURL + 'users/' + user.username
+                }).then(
+                    function(){
+                        $scope.repopulate();
+                    },
+                    function(){
+                        alert('Error deleting user');
                     }
                 );
             }

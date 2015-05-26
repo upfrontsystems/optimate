@@ -1,6 +1,8 @@
 """Models file contains resources used in the project
 """
 
+import os
+import hashlib
 from zope.sqlalchemy import ZopeTransactionExtension
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -14,6 +16,7 @@ from sqlalchemy import (
     Integer,
     Float,
     Text,
+    Unicode,
     ForeignKey,
     ForeignKeyConstraint,
 )
@@ -1246,3 +1249,21 @@ class OrderItem(Base):
         """
         return '<OrderItem(ID="%s")>' % (
             self.ID)
+
+class User(Base):
+    """ A table to hold user and their roles. """
+    __tablename__ = 'User'
+    ID = Column(Integer, primary_key=True)
+    username = Column(Unicode(length=20), nullable=False, index=True)
+    salt = Column(Unicode(length=64), nullable=True)
+    password = Column(Unicode(length=64), nullable=True) # For an sha256 hash
+    roles = Column(Text)
+
+    def validate_password(self, password):
+        return hashlib.sha256((self.salt + password).encode('utf-8')).hexdigest() == self.password
+        
+    def set_password(self, password):
+        salt = os.urandom(32).encode('hex')
+        h = hashlib.sha256((salt + password).encode('utf-8')).hexdigest()
+        self.salt = unicode(salt)
+        self.password = unicode(h)
