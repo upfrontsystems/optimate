@@ -697,6 +697,14 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                         $scope.pasteThisNode(dest.ID);
                     }
                 }
+            },
+
+            dragStop: function(event){
+                console.log("dragging stopped");
+            },
+
+            beforeDrop: function(event){
+                console.log("before drop");
             }
         };
 

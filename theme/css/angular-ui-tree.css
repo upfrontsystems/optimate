@@ -1,8 +1,8 @@
 .angular-ui-tree {}
 
 .angular-ui-tree-empty {
-    min-height: 50px;
-    background-color: white;
+    min-height: 190px;
+    background-color: gray;
     background-size: 60px 60px;
     background-position: 0 0, 30px 30px;
 }
