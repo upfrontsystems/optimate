@@ -1270,3 +1270,201 @@ allControllers.controller('navController', ['$scope', 'SessionService',
             $scope.username = SessionService.username();
         });
 }]);
+
+// controller for the Order data from the server
+allControllers.controller('ordersController', ['$scope', '$http', 'globalServerURL',
+    function($scope, $http, globalServerURL) {
+
+        toggleMenu('setup');
+        $scope.isDisabled = false;
+
+        var req = {
+            method: 'GET',
+            url: globalServerURL + 'orders',
+        };
+        $http(req).success(function(data){
+            $scope.jsonorders = data;
+        });
+
+        // loading the project, client and supplier list
+        $scope.projectsList = [];
+        $http.get(globalServerURL + 'project_listing')
+        .success(function(data) {
+            $scope.projectsList = data;
+        });
+        $scope.clientList = [];
+        $http.get(globalServerURL + 'clients')
+        .success(function(data){
+            $scope.clientList = data;
+        });
+        $scope.supplierList = [];
+        $http.get(globalServerURL + 'suppliers')
+        .success(function(data){
+            $scope.supplierList = data;
+        });
+
+        // Adding or editing an order
+        $scope.save = function(){
+            // check if saving is disabled, if not disable it and save
+            if (!$scope.isDisabled){
+                $scope.isDisabled = true;
+                if ($scope.modalState == 'Edit'){
+                    $http({
+                        method: 'PUT',
+                        url: globalServerURL + $scope.formData['ID'] + '/' + $scope.formData['NodeType'],
+                        data: $scope.formData
+                    }).success(function () {
+                        $scope.handleEdited($scope.formData);
+                        $scope.formData = {'NodeType': $scope.formData['NodeType']};
+                    });
+                }
+                else{
+                    $http({
+                        method: 'POST',
+                        url: globalServerURL + '0/' + $scope.formData['NodeType'],
+                        data: $scope.formData
+                    }).success(function (response) {
+                        $scope.formData['ID'] = response['newid'];
+                        // post the new client to the shared service
+                        $scope.handleNew($scope.formData);
+                        $scope.formData = {'NodeType': $scope.formData['NodeType']};
+                    });
+                }
+            }
+        };
+
+        // add a new order to the list and sort
+        $scope.handleNew = function(newclient){
+            // the new client is added to the list
+            $scope.jsonorders.push(neworder);
+            // sort by order id
+            $scope.jsonorders.sort(function(a, b) {
+                var idA = a.ID;
+                var idB = b.ID;
+                return (idA < idB) ? -1 : (idA > idB) ? 1 : 0;
+            });
+            console.log ("Order added");
+        }
+
+        // handle editing a client
+        $scope.handleEdited = function(editedorder){
+            // search for the order and edit in the list
+            var result = $.grep($scope.jsonorders, function(e) {
+                return e.ID == editedorder.ID;
+            });
+            var i = $scope.jsonorder.indexOf(result[0]);
+            $scope.jsonorder[i] = editedorder;
+            // sort by order id
+            $scope.jsonorders.sort(function(a, b) {
+                var idA = a.ID;
+                var idB = b.ID;
+                return (idA < idB) ? -1 : (idA > idB) ? 1 : 0;
+            });
+            console.log ("Order edited");
+        };
+
+        // Set the selected order and change the css
+        $scope.showActionsFor = function(obj) {
+            $scope.selectedOrder = obj;
+            $('#order-'+obj.ID).addClass('active').siblings().removeClass('active');
+        };
+
+        // When the Add button is pressed change the state and form data
+        $scope.addingState = function (){
+            $scope.isDisabled = false;
+            $scope.modalState = "Add";
+            $scope.formData = {'NodeType': 'order'};
+            $scope.order_components_list = [];
+            if ($scope.selectedOrder){
+                $('#order-'+$scope.selectedOrder.ID).removeClass('active');
+                $scope.selectedOrder = undefined;
+            }
+        }
+
+        // When the edit button is pressed change the state and set the data
+        $scope.editingState = function (){
+            $scope.isDisabled = false;
+            $scope.modalState = "Edit";
+            $http({
+                method: 'GET',
+                url: globalServerURL + $scope.selectedOrder.ID + '/order'
+            }).success(function(response){
+                $scope.formData = response;
+                $scope.formData['NodeType'] = 'order';
+            })
+            // get the components used by the order
+            $http.get(globalServerURL + '/order_components/' + $scope.selectedOrder.ID + '/')
+            .success(function(response){
+                $scope.order_components_list = response;
+            });
+        }
+
+        // Delete an order and remove from the orders list
+        $scope.deleteOrder = function() {
+            var deleteid = $scope.selectedOrder.ID;
+            $scope.selectedOrder = undefined;
+            $http({
+                method: 'DELETE',
+                url: globalServerURL + deleteid + '/order'
+            }).success(function () {
+                var result = $.grep($scope.jsonorders, function(e) {
+                    return e.ID == deleteid;
+                });
+                var i = $scope.jsonorders.indexOf(result[0]);
+                $scope.jsonorders.splice(i, 1);
+                console.log("Deleted order");
+            });
+        };
+
+        $scope.setComponentList = function(){
+            console.log($scope.components.selected);
+        };
+
+        // remove a component from the component list
+        $scope.removeComponent = function(index){
+            $scope.overheadList.splice(index, 1);
+        };
+
+
+        // functions used for the tree in the order modal
+        // load the project that has been selected into the tree
+        $scope.loadProject = function () {
+            var id = $('#project-select').find(":selected").val()
+            var url = globalServerURL + 'projectview/' + id + '/'
+            var req = {
+                method: 'GET',
+                url: url,
+            }
+            $http(req).success(function(data) {
+                if (!(containsObject(data[0], $scope.projectsList))) {
+                    // add latest select project, if not already in the list
+                    $scope.projectsList.push(data[0]);
+                    // sort alphabetically by project name
+                    $scope.projectsList.sort(function(a, b) {
+                        var textA = a.Name.toUpperCase();
+                        var textB = b.Name.toUpperCase();
+                        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+                    });
+                }
+            });
+        };
+
+        // if node head clicks, get the children of the node
+        // and collapse or expand the node
+        $scope.selectNodeHead = function(selectedNode) {
+            // if the node is collapsed, get the data and expand the node
+            if (!selectedNode.collapsed){
+                selectedNode.collapsed = true;
+                var parentid = selectedNode.ID;
+                $http.get(globalServerURL + parentid + '/').success(function(data) {
+                    selectedNode.Subitem = data;
+                    console.log("Children loaded");
+                });
+            }
+            else{
+                selectedNode.collapsed = false;
+            }
+        };
+    }
+]);
+

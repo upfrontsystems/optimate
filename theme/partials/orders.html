@@ -1,0 +1,61 @@
+<nav class="navbar navbar-default navbar-fixed-top action-bar">
+    <div class="container-fluid">
+        <ul class="nav nav-pills">
+            <li>
+                <a title="Add Order" data-ng-click="addingState()" data-target="#saveOrderModal"  data-toggle="modal"><i class="fa fa-plus-square"></i></a>
+            </li>
+            <li ng-show="selectedOrder">
+                <a title="Edit Order" data-ng-click="editingState()" data-target="#saveOrderModal" data-toggle="modal"><i class="fa fa-pencil"></i></a>
+            </li>
+            <li ng-show="selectedOrder">
+                <a title="Delete Order" data-target="#deleteOrderModal" data-toggle="modal"><i class="fa fa-trash"></i></a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<div custom-modals modal-id="saveOrderModal"
+    modal-type="order"
+    modal-src="modal_templates/saveOrderModal.html">
+</div>
+
+<div id="deleteOrderModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h4>Delete order: {{selectedOrder.ID}}</h4>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal" data-ng-click="deleteOrder()">Delete</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div id="orders" class="row">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Project ID</th>
+                    <th>Supplier ID</th>
+                    <th>Client ID</th>
+                    <th>Total</th>
+                    <th>Tax Rate</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="obj in jsonorders" ng-click="showActionsFor(obj)" id="order-{{obj.ID}}">
+                    <td>{{obj.ID}}</td>
+                    <td>{{obj.ProjectID}}</td>
+                    <td>{{obj.SupplierID}}</td>
+                    <td>{{obj.ClientID}}</td>
+                    <td>{{obj.Total}}</td>
+                    <td>{{obj.TaxRate}}%</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

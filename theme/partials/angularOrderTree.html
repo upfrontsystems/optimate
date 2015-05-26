@@ -1,0 +1,36 @@
+<!-- build a tree using angular-tree-ui -->
+<div ui-tree-handle class="tree-node tree-node-content">
+    <input type="button"
+        class="collapsed"
+        data-ng-show="node.Subitem.length && node.collapsed"
+        data-ng-click="selectNodeHead(node)">
+    </input>
+    <input type="button"
+        class="expanded"
+        data-ng-show="node.Subitem.length && !node.collapsed"
+        data-ng-click="selectNodeHead(node)">
+    </button>
+    <input type="button"
+        class="normal"
+        data-ng-hide="node.Subitem.length">
+    </input>
+    <input data-ng-show="{{node.NodeType == 'Component'}}"
+            type="checkbox"
+            ng-model="components.selected"
+            [ng-true-value="{{node.ID}}"]>
+    <span class="circle {{node.NodeType}}">&nbsp;{{node.NodeTypeAbbr}}&nbsp;</span>
+    <span class="treenode {{node.NodeType}}"
+        id="{{node.ID}}">
+        {{node.Name}}<br>
+        <div class="nodeDescription">
+            {{node.Description}}
+        </div>
+    </span>
+</div>
+<ol ui-tree-nodes ng-model="node.Subitem" data-ng-hide="!node.collapsed" data-type="{{node.NodeType}}">
+    <li ng-repeat="node in node.Subitem"
+        data-type="{{node.NodeType}}"
+        ui-tree-node
+        ng-include="'partials/angularOrderTree.html'">
+    </li>
+</ol>

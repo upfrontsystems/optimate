@@ -1,0 +1,60 @@
+<div id="orderTreeModal" class="modal fade">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h3 class="modal-title">Add Components</h3>
+            </div>
+            <div class="modal-body">
+                <nav class="navbar navbar-default navbar-fixed-top action-bar">
+                    <div class="container-fluid">
+                        <ul class="nav nav-pills">
+                            <li>
+                                <a title="Open Project" data-target="#selectOrderProjectModal" data-toggle="modal"><i class="fa fa-folder-open"></i></a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+                <div id="selectOrderProjectModal" class="modal fade" tabindex='-1'>
+                  <div class="modal-dialog">
+                      <div class="modal-content">
+                          <div class="modal-header">
+                              <button type="button" class="close"
+                                      data-dismiss="modal" aria-hidden="true">&times;
+                              </button>
+                              <h3 class="modal-title">Open Project</h3>
+                          </div>
+                          <div class="modal-body">
+                              <span> Select project: </span>
+                              <span>
+                                  <select id="project-select">
+                                      <option ng-repeat="obj in projectsList" value="{{obj.ID}}">{{obj.Name}}</option>
+                                  </select>
+                              </span>
+                          </div>
+                          <div class="modal-footer">
+                              <button type="select" class="btn btn-primary" data-ng-click="loadProject()" data-dismiss="modal">Open</button>
+                              <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+                <div ui-tree="treeOptions"
+                  data-max-depth="0"
+                  data-drag-enabled="false"
+                  id="tree-root">
+                  <ol ui-tree-nodes ng-model="projectsList">
+                      <li ng-repeat="node in projectsList"
+                          ui-tree-node
+                          ng-include="'partials/angularOrderTree.html'"></li>
+                  </ol>
+              </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal"
+                data-ng-click="setComponentList()">Done</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -41,6 +41,8 @@ from optimate.app.models import (
     Supplier,
     CompanyInformation,
     User,
+    Order,
+    OrderItem
 )
 
 # the categories the resources fall into
@@ -1194,7 +1196,7 @@ def orderview(request):
         DBSession.flush()
         return {'newid': neworder.ID}
 
-    # if the method is put, edit an existing city
+    # if the method is put, edit an existing order
     if request.method == 'PUT':
         order = DBSession.query(
                     Order).filter_by(ID=request.matchdict['id']).first()
@@ -1218,7 +1220,7 @@ def orderview(request):
         transaction.commit()
         return HTTPOk()
 
-    # otherwise return the selected city
+    # otherwise return the selected order
     orderid = request.matchdict['id']
     order = DBSession.query(Order).filter_by(ID=orderid).first()
     return {'ID': order.ID,
@@ -1227,6 +1229,21 @@ def orderview(request):
             'ClientID': order.ClientID,
             'Total': str(order.Total),
             'TaxRate': order.TaxRate}
+
+@view_config(route_name='order_components', renderer='json')
+def order_components(request):
+    """ Get a list of the components used by the order items of an order
+    """
+    orderid = request.matchdict['id']
+
+    orderitems = DBSession.query(OrderItem).filter_by(OrderID=orderid).all()
+
+    componentlist = []
+    for orderitem in orderitems:
+        componentlist.append({'Name': orderitem.Component.Name,
+                                'ID': orderitem.Component.ID})
+
+    return sorted(componentlist, key=lambda k: k['Name'])
 
 
 @view_config(route_name='usersview', renderer='json')
