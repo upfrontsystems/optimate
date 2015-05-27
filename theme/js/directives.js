@@ -149,16 +149,24 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                         }
                     }
                     if ((secondtype == 'Resource') || (secondtype == 'ResourceCategory')){
-                        newcolumns = [
-                            {id: "name", name: "Name", field: "name",
-                             width: cell_large, cssClass: "cell-title non-editable-column"},
-                            {id: "rate", name: "Rate", field: "rate", cssClass: "cell editable-column",
-                             width: cell_small, formatter: CurrencyFormatter, editor: Slick.Editors.Float},
-                             {id: "unit", name: "Unit", field: "unit",
-                            width: cell_medium, cssClass: "cell non-editable-column"},
-                             {id: "type", name: "Type", field: "type",
-                            width: cell_medium, cssClass: "cell non-editable-column"},                            
-                        ];
+                        if (secondtype == 'Resource'){
+                            newcolumns = [
+                                {id: "name", name: "Name", field: "name",
+                                 width: cell_large, cssClass: "cell-title non-editable-column"},
+                                {id: "rate", name: "Rate", field: "rate", cssClass: "cell editable-column",
+                                 width: cell_small, formatter: CurrencyFormatter, editor: Slick.Editors.Float},
+                                 {id: "unit", name: "Unit", field: "unit",
+                                width: cell_medium, cssClass: "cell non-editable-column"},
+                                 {id: "type", name: "Type", field: "type",
+                                width: cell_medium, cssClass: "cell non-editable-column"},                            
+                            ];
+                        }
+                        else if (secondtype == 'ResourceCategory'){
+                            newcolumns = [
+                                {id: "name", name: "Name", field: "name",
+                                 width: cell_large, cssClass: "cell-title non-editable-column"},
+                            ];
+                        }
 
                         grid.setColumns(newcolumns);
                         dataView.beginUpdate();

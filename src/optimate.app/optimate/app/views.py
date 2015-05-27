@@ -344,6 +344,9 @@ def nodegridview(request):
     childrenlist = []
     # Execute the sql query on the Node table to find the parent
     qry = DBSession.query(Node).filter_by(ParentID=parentid).all()
+    if qry == []:
+        # if the node doesnt have any children, query for the node's data instead
+        qry = DBSession.query(Node).filter_by(ID=parentid).all()
 
     # Filter out all the Budgetitems and Components
     # Test if the result is the same length as the query
