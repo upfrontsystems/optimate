@@ -230,3 +230,13 @@ a.resource-category-button {
 div.personal-tools {
     margin-top: 10px;
 }
+
+/* centering nav-bar pagination */
+.nav-center {
+    display: table;
+    margin: 0 auto;
+}
+
+span.order-tree-node {
+    display:inline-block;
+}

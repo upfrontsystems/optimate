@@ -526,11 +526,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         $scope.loadProject = function () {
             var id = $('#project-select').find(":selected").val()
             var url = globalServerURL + 'projectview/' + id + '/'
-            var req = {
-                method: 'GET',
-                url: url,
-            }
-            $http(req).success(function(data) {
+            $http.get(url).success(function(data) {
                 if (!(containsObject(data[0], $scope.projectsRoot.Subitem))) {
                     // add latest select project, if not already in the list
                     $scope.projectsRoot.Subitem.push(data[0]);
@@ -1277,14 +1273,122 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
 
         toggleMenu('setup');
         $scope.isDisabled = false;
-
-        var req = {
-            method: 'GET',
-            url: globalServerURL + 'orders',
-        };
-        $http(req).success(function(data){
-            $scope.jsonorders = data;
+        $scope.isCollapsed = true;
+        $scope.jsonorders = [];
+        $scope.componentsList = [];
+        // Pagination variables and functions
+        $scope.pageSize = 100;
+        $scope.currentPage = 1;
+        $scope.maxPageSize = 20;
+        $scope.orderListLength = $scope.maxPageSize;
+        // get the length of the list of all the orders
+        $http.get(globalServerURL + 'orders/length').success(function(data){
+            $scope.orderListLength = data['length'];
         });
+
+        $scope.loadOrderSection = function(){
+            var start = ($scope.currentPage-1)*$scope.pageSize;
+            var end = start + $scope.pageSize;
+            var req = {
+                method: 'GET',
+                url: globalServerURL + 'orders',
+                data: {'start':start,
+                        'end': end}
+            }
+            $http(req).success(function(response) {
+                $scope.jsonorders = response;
+                console.log("Orders loaded");
+            });
+        }
+        $scope.loadOrderSection();
+
+        // aux function to test if we can support localstorage
+        var hasStorage = (function() {
+            try {
+                var mod = 'modernizr';
+                localStorage.setItem(mod, mod);
+                localStorage.removeItem(mod);
+                return true;
+            }
+            catch (exception) {
+                return false;
+            }
+        }());
+        // aux function - checks if object is already in list based on ID
+        function containsObject(obj, list) {
+            var i;
+            for (i = 0; i < list.length; i++) {
+                if (list[i].ID === obj.ID) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        // reopen projects that were previously opened upon page load
+        $scope.preloadProjects = function () {
+            if (hasStorage) {
+                open_projects = []
+                try {
+                    open_projects = JSON.parse(localStorage["open_projects"])
+                }
+                catch (exception) {
+                }
+                if ( open_projects.length != 0 ) {
+                    for (i = 0; i < open_projects.length; i++) {
+                        var id = open_projects[i];
+                        var url = globalServerURL + 'projectview/' + id + '/'
+                        $http.get(url).success(function(data) {
+                            $scope.openProjectsList.push(data[0]);
+                            $scope.openProjectsList.sort(function(a, b) {
+                                return a.Name.localeCompare(b.Name)
+                            });
+                        });
+                    }
+                }
+            }
+            else {
+                console.log("LOCAL STORAGE NOT SUPPORTED!")
+            }
+        };
+        $scope.openProjectsList = [];
+        $scope.preloadProjects(); // check if anything is in local storage
+        // load the project that has been selected into the tree
+        $scope.loadProject = function () {
+            var id = $scope.formData.treeProject;
+            var url = globalServerURL + 'projectview/' + id + '/'
+            $http.get(url).success(function(data) {
+                if (!(containsObject(data[0], $scope.openProjectsList))) {
+                    // add latest select project, if not already in the list
+                    $scope.openProjectsList.push(data[0]);
+                    // sort alphabetically by project name
+                    $scope.openProjectsList.sort(function(a, b) {
+                        var textA = a.Name.toUpperCase();
+                        var textB = b.Name.toUpperCase();
+                        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+                    });
+                }
+                if (hasStorage) {
+                    // add id of project to local storage
+                    var open_projects;
+                    try {
+                        // attempt to add an id to open_projects storage
+                        open_projects = JSON.parse(localStorage["open_projects"])
+                        open_projects.push(data[0].ID);
+                        localStorage["open_projects"] = JSON.stringify(open_projects);
+                    }
+                    catch (exception) {
+                        // create a new open_projects storage as one doesnt exist
+                        localStorage.setItem("open_projects", []);
+                        open_projects = []
+                        open_projects.push(data[0].ID);
+                        localStorage["open_projects"] = JSON.stringify(open_projects);
+                    }
+                }
+                else {
+                    console.log("LOCAL STORAGE NOT SUPPORTED!")
+                }
+            });
+        };
 
         // loading the project, client and supplier list
         $scope.projectsList = [];
@@ -1305,6 +1409,8 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
 
         // Adding or editing an order
         $scope.save = function(){
+            // set the list of checked components
+            $scope.setComponentList();
             // check if saving is disabled, if not disable it and save
             if (!$scope.isDisabled){
                 $scope.isDisabled = true;
@@ -1334,32 +1440,39 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         };
 
         // add a new order to the list and sort
-        $scope.handleNew = function(newclient){
+        $scope.handleNew = function(neworder){
             // the new order is added to the list
-            $scope.jsonorders.push(neworder);
-            // sort by order id
-            $scope.jsonorders.sort(function(a, b) {
-                var idA = a.ID;
-                var idB = b.ID;
-                return (idA < idB) ? -1 : (idA > idB) ? 1 : 0;
-            });
+            var low = $scope.jsonorders[0].ID;
+            var high = $scope.jsonorders[$scope.jsonorders.length - 1].ID;
+            // only need to add it if it's id falls in the current section
+            if (neworder.ID > low && neworder.ID < high){
+                $scope.jsonorders.push(neworder);
+                // sort by order id
+                $scope.jsonorders.sort(function(a, b) {
+                    var idA = a.ID;
+                    var idB = b.ID;
+                    return (idA < idB) ? -1 : (idA > idB) ? 1 : 0;
+                });
+            }
             console.log ("Order added");
         }
 
-        // handle editing a client
+        // handle editing an order
         $scope.handleEdited = function(editedorder){
             // search for the order and edit in the list
             var result = $.grep($scope.jsonorders, function(e) {
                 return e.ID == editedorder.ID;
             });
             var i = $scope.jsonorder.indexOf(result[0]);
-            $scope.jsonorder[i] = editedorder;
-            // sort by order id
-            $scope.jsonorders.sort(function(a, b) {
-                var idA = a.ID;
-                var idB = b.ID;
-                return (idA < idB) ? -1 : (idA > idB) ? 1 : 0;
-            });
+            if (i>-1){
+                $scope.jsonorder[i] = editedorder;
+                // sort by order id
+                $scope.jsonorders.sort(function(a, b) {
+                    var idA = a.ID;
+                    var idB = b.ID;
+                    return (idA < idB) ? -1 : (idA > idB) ? 1 : 0;
+                });
+            }
             console.log ("Order edited");
         };
 
@@ -1374,7 +1487,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $scope.isDisabled = false;
             $scope.modalState = "Add";
             $scope.formData = {'NodeType': 'order'};
-            $scope.formData['ComponentList'] = [];
+            $scope.componentsList = [];
             if ($scope.selectedOrder){
                 $('#order-'+$scope.selectedOrder.ID).removeClass('active');
                 $scope.selectedOrder = undefined;
@@ -1390,6 +1503,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 url: globalServerURL + $scope.formData['NodeType'] + '/' + $scope.selectedOrder.ID + '/'
             }).success(function(response){
                 $scope.formData = response;
+                $scope.componentsList = $scope.formData['ComponentList'];
                 $scope.formData['NodeType'] = 'order';
             });
         }
@@ -1412,36 +1526,35 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         };
 
         $scope.setComponentList = function(){
-            console.log($scope.components.selected);
+            $scope.formData['ComponentList'] = $scope.componentsList;
         };
+
+        $scope.toggleComponents = function(node){
+            var componentid = node.ID;
+            var result = $.grep($scope.componentsList, function(e) {
+                    return e.ID == componentid;
+            });
+            var i = $scope.componentsList.indexOf(result[0]);
+            if (i>-1){
+                $scope.componentsList.splice(i, 1);
+            }
+            else{
+                $scope.componentsList.push(node);
+            }
+        }
+
+        $scope.componentSelected = function(node){
+            $scope.componentsList.append(node);
+        }
 
         // remove a component from the component list
-        $scope.removeComponent = function(index){
-            $scope.formData['ComponentList'].splice(index, 1);
-        };
-
-
-        // functions used for the tree in the order modal
-        // load the project that has been selected into the tree
-        $scope.loadProject = function () {
-            var id = $('#project-select').find(":selected").val()
-            var url = globalServerURL + 'projectview/' + id + '/'
-            var req = {
-                method: 'GET',
-                url: url,
-            }
-            $http(req).success(function(data) {
-                if (!(containsObject(data[0], $scope.projectsList))) {
-                    // add latest select project, if not already in the list
-                    $scope.projectsList.push(data[0]);
-                    // sort alphabetically by project name
-                    $scope.projectsList.sort(function(a, b) {
-                        var textA = a.Name.toUpperCase();
-                        var textB = b.Name.toUpperCase();
-                        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
-                    });
-                }
+        $scope.removeComponent = function(node){
+            var deleteid = node.ID;
+            var result = $.grep($scope.componentsList, function(e) {
+                    return e.ID == deleteid;
             });
+            var i = $scope.componentsList.indexOf(result[0]);
+            $scope.componentsList.splice(i, 1);
         };
 
         // if node head clicks, get the children of the node

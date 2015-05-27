@@ -91,6 +91,7 @@ def main(global_config, **settings):
     config.add_route('cityview', '/{id}/city')
     config.add_route('ordersview', '/orders')
     config.add_route('orderview', '/order/{id}/')
+    config.add_route('orders_length', '/orders/length')
 
     # Editing users
     config.add_route('usersview', '/users', factory=makeProtected(Administrator))

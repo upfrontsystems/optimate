@@ -1145,20 +1145,34 @@ def cityview(request):
 
 @view_config(route_name='ordersview', renderer='json')
 def ordersview(request):
-    """ The ordersview returns a list in json format of all the orders
+    """ The ordersview returns a list in json format of a section of the orders
         in the server database
     """
-    qry = DBSession.query(Order).all()
+    qry = DBSession.query(Order).order_by(Order.ID).all()
+    # cut the section
+    if 'start' not in request.json_body.keys():
+        start = 0
+        end = -1
+    else:
+        start = request.json_body['start']
+        end = request.json_body['end']
+    section = qry[start:end]
     orderlist = []
-    for order in qry:
+    for order in section:
         orderlist.append({'ID': order.ID,
                             'ProjectID': order.ProjectID,
                             'SupplierID': order.SupplierID,
                             'ClientID': order.ClientID,
                             'Total': str(order.Total),
                             'TaxRate': order.TaxRate})
-    return sorted(orderlist, key=lambda k: k['ID'])
+    return orderlist
 
+@view_config(route_name='orders_length', renderer='json')
+def orders_length(request):
+    """ Returns the number of orders in the database
+    """
+    qry = DBSession.query(Order).all()
+    return {'length': len(qry)}
 
 @view_config(route_name='orderview', renderer='json')
 def orderview(request):

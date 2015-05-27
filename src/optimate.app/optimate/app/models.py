@@ -1228,8 +1228,8 @@ class Order(Base):
     def __repr__(self):
         """Return a representation of this order
         """
-        return '<Order(ID="%s")>' % (
-            self.ID)
+        return '<Order(ID="%s", ProjectID="%s", ClientID="%s")>' % (
+            self.ID, self.ProjectID, self.ClientID)
 
 
 class OrderItem(Base):
@@ -1248,8 +1248,8 @@ class OrderItem(Base):
     def __repr__(self):
         """Return a representation of this order item
         """
-        return '<OrderItem(ID="%s")>' % (
-            self.ID)
+        return '<OrderItem(ID="%s", OrderID="%s", ComponentID="%s")>' % (
+            self.ID, self.OrderID, self.ComponentID)
 
 class User(Base):
     """ A table to hold user and their roles. """
@@ -1262,7 +1262,7 @@ class User(Base):
 
     def validate_password(self, password):
         return hashlib.sha256((self.salt + password).encode('utf-8')).hexdigest() == self.password
-        
+
     def set_password(self, password):
         salt = os.urandom(32).encode('hex')
         h = hashlib.sha256((salt + password).encode('utf-8')).hexdigest()

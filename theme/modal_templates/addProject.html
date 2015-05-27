@@ -5,7 +5,7 @@
                 <button type="button" class="close"
                         data-dismiss="modal" aria-hidden="true">&times;
                 </button>
-                <h3 class="modal-title">{{modalState}} Project</h3>                
+                <h3 class="modal-title">{{modalState}} Project</h3>
             </div>
             <div class="modal-body">
                 <form class="form-horizontal" name="addProjectForm" novalidate>
@@ -13,10 +13,10 @@
                         ng-class="{'has-error': addProjectForm.inputName.$invalid}">
                         <label for="inputName" class="col-sm-2 control-label">Name:</label>
                         <input type="text"
-                               class="col-sm-7"                        
+                               class="col-sm-7"
                                id="inputName"
                                name="inputName"
-                               ng-model="formData['Name']"
+                               data-ng-model="formData['Name']"
                                required
                                autofocus>
                     </div>
@@ -24,14 +24,14 @@
                         ng-class="{'has-error': addProjectForm.inputDescription.$invalid}">
                         <label for="inputDescription" class="col-sm-2 control-label">Description:</label>
                         <textarea id="inputDescription"
-                                  class="col-sm-7"                        
+                                  class="col-sm-7"
                                   name="inputDescription"
-                                  ng-model="formData['Description']"
+                                  data-ng-model="formData['Description']"
                                   rows="5" cols="40">
                         </textarea>
                     </div>
                     <div class="form-group"
-                        ng-class="{'has-error': addProjectForm.inputClient.$invalid}">                    
+                        ng-class="{'has-error': addProjectForm.inputClient.$invalid}">
                         <label for="inputClient" class="col-sm-2 control-label">Client:</label>
                         <select class="col-sm-7"
                                 id="inputClient"
@@ -43,7 +43,7 @@
                         </select>
                     </div>
                     <div class="form-group"
-                        ng-class="{'has-error': addProjectForm.inputCity.$invalid}">                    
+                        ng-class="{'has-error': addProjectForm.inputCity.$invalid}">
                         <label for="inputCity" class="col-sm-2 control-label">City:</label>
                         <select class="col-sm-7"
                                 id="inputCity"
@@ -53,14 +53,14 @@
                                 required>
                             <option value="">Select a city</option>
                         </select>
-                    </div>                    
+                    </div>
                     <div class="form-group"
                         ng-class="{'has-error': addProjectForm.inputSiteAddress.$invalid}">
                         <label for="inputSiteAddress" class="col-sm-2 control-label">Site Address:</label>
                         <textarea id="inputSiteAddress"
-                                  class="col-sm-7"                        
+                                  class="col-sm-7"
                                   name="inputSiteAddress"
-                                  ng-model="formData['SiteAddress']"
+                                  data-ng-model="formData['SiteAddress']"
                                   rows="5" cols="40">
                         </textarea>
                     </div>
@@ -68,18 +68,18 @@
                         ng-class="{'has-error': addProjectForm.inputFileNumber.$invalid}">
                         <label for="inputFileNumber" class="col-sm-2 control-label">File Number:</label>
                         <input type="text"
-                               class="col-sm-7"                      
+                               class="col-sm-7"
                                id="inputFileNumber"
                                name="inputFileNumber"
-                               ng-model="formData['FileNumber']">
-                    </div>                                        
+                               data-ng-model="formData['FileNumber']">
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
             <span>
-                <button ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal" 
+                <button data-ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal"
                  ng-disabled="!addProjectForm.$valid" ng-click="addProject()">Save</button>
-                <button ng-show="modalState == 'Edit'" class="btn btn-primary" data-dismiss="modal" 
+                <button data-ng-show="modalState == 'Edit'" class="btn btn-primary" data-dismiss="modal"
                  ng-disabled="!addProjectForm.$valid" ng-click="saveNodeEdits()">Update</button>
                 <button class="btn btn-default" ng-click="cancel()" data-dismiss="modal">Cancel</button>
             </div>

@@ -14,6 +14,18 @@
     </div>
 </nav>
 
+<pagination boundary-links="true"
+            total-items="orderListLength"
+            items-per-page="pageSize"
+            data-ng-model="currentPage"
+            data-ng-change="loadOrderSection()"
+            max-size="maxPageSize"
+            class="pagination-sm nav-center"
+            previous-text="&lsaquo;"
+            next-text="&rsaquo;"
+            first-text="&laquo;"
+            last-text="&raquo;">
+</pagination>
 <div custom-modals modal-id="saveOrderModal"
     modal-type="order"
     modal-src="modal_templates/saveOrderModal.html">
@@ -32,7 +44,6 @@
         </div>
     </div>
 </div>
-
 <div class="container-fluid">
     <div id="orders" class="row">
         <table class="table">
@@ -47,7 +58,8 @@
                 </tr>
             </thead>
             <tbody>
-                <tr ng-repeat="obj in jsonorders" ng-click="showActionsFor(obj)" id="order-{{obj.ID}}">
+                <tr ng-repeat="obj in jsonorders"
+                    ng-click="showActionsFor(obj)" id="order-{{obj.ID}}">
                     <td>{{obj.ID}}</td>
                     <td>{{obj.ProjectID}}</td>
                     <td>{{obj.SupplierID}}</td>

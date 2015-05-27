@@ -13,7 +13,7 @@
                         <select class="col-sm-7"
                                 id="inputProject"
                                 name="inputProject"
-                                data-ng-model="formData['Project']"
+                                data-ng-model="formData['ProjectID']"
                                 data-ng-options="project.ID as project.Name for project in projectsList"
                                 required>
                             <option value="">Select a project</option>
@@ -25,7 +25,7 @@
                         <select class="col-sm-7"
                                 id="inputClient"
                                 name="inputClient"
-                                data-ng-model="formData['Client']"
+                                data-ng-model="formData['ClientID']"
                                 data-ng-options="client.ID as client.Name for client in clientList"
                                 required>
                             <option value="">Select a client</option>
@@ -37,7 +37,7 @@
                         <select class="col-sm-7"
                                 id="inputSupplier"
                                 name="inputSupplier"
-                                data-ng-model="formData['Supplier']"
+                                data-ng-model="formData['SupplierID']"
                                 data-ng-options="supplier.ID as supplier.Name for supplier in supplierList"
                                 required>
                             <option value="">Select a supplier</option>
@@ -52,25 +52,19 @@
                                name="inputTaxRate"
                                ng-model="formData['TaxRate']">
                     </div>
-                    <div id="order_components" class="row">
+                    <div id="order_components" class="row form-group">
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>Component</th>
-                                    <th>
-                                        <button data-target="#orderTreeModal"
-                                                data-toggle="modal"
-                                                title="Add">
-                                                <i class="fa fa-plus-square"></i>
-                                        </button>
-                                    </th>
+                                    <th>Components</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr ng-repeat="comp in formData['ComponentList'] track by comp.ID">
+                                <tr ng-repeat="comp in componentsList">
                                     <td>{{comp.Name}}</td>
                                     <td>
-                                      <button data-ng-click="removeComponent($index)"
+                                      <button data-ng-click="removeComponent(comp)"
                                               title="Remove">
                                           <i class="fa fa-trash"></i>
                                       </button>
@@ -80,7 +74,13 @@
                         </table>
                     </div>
                 </form>
-                <div>
+                <button class="btn btn-default" data-ng-click="isCollapsed = !isCollapsed">
+                    Add Components
+                </button>
+                <div collapse="isCollapsed">
+                    <div ng-include="'partials/orderTreeview.html'">
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal"
