@@ -143,13 +143,11 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 if (data.length > 0){
                     // If the grid is only showing resources or resourcecategories
                     var secondtype = data[0]['node_type']
-                    console.log(secondtype)
                     if ((secondtype == 'Resource') || (secondtype == 'ResourceCategory')){
                         if (data.length>1){
                             secondtype = data[1]['node_type']
                         }
                     }
-                    console.log(secondtype)
                     if ((secondtype == 'Resource') || (secondtype == 'ResourceCategory')){
                         if (secondtype == 'Resource'){
                             newcolumns = [
