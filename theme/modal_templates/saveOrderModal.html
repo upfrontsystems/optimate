@@ -3,7 +3,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h3 class="modal-title">{{modalState}} a {{formData.NodeType}}</h3>
+                <h3 class="modal-title">{{modalState}} an {{formData.NodeType}}</h3>
             </div>
             <div class="modal-body">
                 <form class="form-horizontal"  name="saveOrderModalForm" novalidate>
@@ -52,35 +52,35 @@
                                name="inputTaxRate"
                                ng-model="formData['TaxRate']">
                     </div>
+                    <div id="order_components" class="row">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Component</th>
+                                    <th>
+                                        <button data-target="#orderTreeModal"
+                                                data-toggle="modal"
+                                                title="Add">
+                                                <i class="fa fa-plus-square"></i>
+                                        </button>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr ng-repeat="comp in formData['ComponentList'] track by comp.ID">
+                                    <td>{{comp.Name}}</td>
+                                    <td>
+                                      <button data-ng-click="removeComponent($index)"
+                                              title="Remove">
+                                          <i class="fa fa-trash"></i>
+                                      </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </form>
                 <div>
-                <div id="order_components" class="row">
-                  <table class="table table-hover">
-                      <thead>
-                          <tr>
-                              <th>Component</th>
-                              <th>
-                                  <button data-target="#orderTreeModal"
-                                          data-toggle="modal"
-                                          title="Add">
-                                          <i class="fa fa-plus-square"></i>
-                                  </button>
-                              </th>
-                          </tr>
-                      </thead>
-                      <tbody>
-                          <tr ng-repeat="comp in order_components_list track by comp.ID">
-                              <td>{{comp.Name}}</td>
-                              <td>
-                                <button data-ng-click="removeComponent($index)"
-                                        title="Remove">
-                                    <i class="fa fa-trash"></i>
-                                </button>
-                              </td>
-                          </tr>
-                      </tbody>
-                  </table>
-              </div>
             </div>
             <div class="modal-footer">
                 <button ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal"

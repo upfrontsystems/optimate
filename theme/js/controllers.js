@@ -1311,7 +1311,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 if ($scope.modalState == 'Edit'){
                     $http({
                         method: 'PUT',
-                        url: globalServerURL + $scope.formData['ID'] + '/' + $scope.formData['NodeType'],
+                        url: globalServerURL + $scope.formData['NodeType'] + '/' + $scope.formData['ID'] + '/',
                         data: $scope.formData
                     }).success(function () {
                         $scope.handleEdited($scope.formData);
@@ -1321,11 +1321,11 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 else{
                     $http({
                         method: 'POST',
-                        url: globalServerURL + '0/' + $scope.formData['NodeType'],
+                        url: globalServerURL + $scope.formData['NodeType'] + '/0/',
                         data: $scope.formData
                     }).success(function (response) {
                         $scope.formData['ID'] = response['newid'];
-                        // post the new client to the shared service
+                        // add the new order to the list
                         $scope.handleNew($scope.formData);
                         $scope.formData = {'NodeType': $scope.formData['NodeType']};
                     });
@@ -1335,7 +1335,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
 
         // add a new order to the list and sort
         $scope.handleNew = function(newclient){
-            // the new client is added to the list
+            // the new order is added to the list
             $scope.jsonorders.push(neworder);
             // sort by order id
             $scope.jsonorders.sort(function(a, b) {
@@ -1374,7 +1374,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $scope.isDisabled = false;
             $scope.modalState = "Add";
             $scope.formData = {'NodeType': 'order'};
-            $scope.order_components_list = [];
+            $scope.formData['ComponentList'] = [];
             if ($scope.selectedOrder){
                 $('#order-'+$scope.selectedOrder.ID).removeClass('active');
                 $scope.selectedOrder = undefined;
@@ -1387,15 +1387,10 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $scope.modalState = "Edit";
             $http({
                 method: 'GET',
-                url: globalServerURL + $scope.selectedOrder.ID + '/order'
+                url: globalServerURL + $scope.formData['NodeType'] + '/' + $scope.selectedOrder.ID + '/'
             }).success(function(response){
                 $scope.formData = response;
                 $scope.formData['NodeType'] = 'order';
-            })
-            // get the components used by the order
-            $http.get(globalServerURL + '/order_components/' + $scope.selectedOrder.ID + '/')
-            .success(function(response){
-                $scope.order_components_list = response;
             });
         }
 
@@ -1405,7 +1400,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $scope.selectedOrder = undefined;
             $http({
                 method: 'DELETE',
-                url: globalServerURL + deleteid + '/order'
+                url: globalServerURL + $scope.formData['NodeType'] + '/' + deleteid + '/'
             }).success(function () {
                 var result = $.grep($scope.jsonorders, function(e) {
                     return e.ID == deleteid;
@@ -1422,7 +1417,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
 
         // remove a component from the component list
         $scope.removeComponent = function(index){
-            $scope.overheadList.splice(index, 1);
+            $scope.formData['ComponentList'].splice(index, 1);
         };
 
 

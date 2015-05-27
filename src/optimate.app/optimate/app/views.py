@@ -1188,6 +1188,7 @@ def orderview(request):
         tax = request.json_body.get('TaxRate', 0.0)
         address = request.json_body.get('DeliveryAddress', '')
 
+
         neworder = Order(UserCode=user,
                             Authorisation=auth,
                             ProjectID=proj,
@@ -1197,7 +1198,14 @@ def orderview(request):
                             DeliveryAddress=address)
         DBSession.add(neworder)
         DBSession.flush()
-        return {'newid': neworder.ID}
+        # add the order items to the order
+        newid = neworder.ID
+        componentlist = request.json_body.get('ComponentList', [])
+        for component in componentlist:
+            neworderitem = OrderItem(OrderID=newid, ComponentID=component['ID'])
+            DBSession.add(neworderitem)
+        transaction.commit()
+        return {'newid': newid}
 
     # if the method is put, edit an existing order
     if request.method == 'PUT':
@@ -1220,33 +1228,49 @@ def orderview(request):
         order.TaxRate=tax
         order.DeliveryAddress=address
 
+        # get the list of component id's used in the form
+        componentlist = request.json_body['ComponentList']
+        newidlist = []
+        for component in componentlist:
+            newidlist.append(component['ID'])
+        # get a list of id's used in the orderitems
+        iddict = {}
+        for orderitem in order.OrderItem:
+            idlist[orderitem.ComponentID] = orderitem.ID
+        # iterate through the new id's and add any new orders
+        # remove the id from the list if it is there already
+        for newcompid in newidlist:
+            if newcompid not in iddict.keys():
+                neworderitem = OrderItem(ComponentID=newcompid,
+                                        OrderID=order.ID)
+                DBSession.add(neworderitem)
+            else:
+                del iddict[newcompid]
+        # delete the leftover id's
+        for oldid in iddict.values():
+            deletethis = DBSession.query(OrderItem).filter_by(ID=oldid).first()
+            qry = DBSession.delete(deletethis)
+
         transaction.commit()
         return HTTPOk()
 
     # otherwise return the selected order
     orderid = request.matchdict['id']
     order = DBSession.query(Order).filter_by(ID=orderid).first()
+    # build a list of the components used in the order from the order items
+    componentlist = []
+    for orderitem in order.OrderItem:
+        componentlist.append({'Name': orderitem.Component.Name,
+                                'ID': orderitem.Component.ID})
+
+    componentlist = sorted(componentlist, key=lambda k: k['Name'])
     return {'ID': order.ID,
             'ProjectID': order.ProjectID,
             'SupplierID': order.SupplierID,
             'ClientID': order.ClientID,
             'Total': str(order.Total),
-            'TaxRate': order.TaxRate}
-
-@view_config(route_name='order_components', renderer='json')
-def order_components(request):
-    """ Get a list of the components used by the order items of an order
-    """
-    orderid = request.matchdict['id']
-
-    orderitems = DBSession.query(OrderItem).filter_by(OrderID=orderid).all()
-
-    componentlist = []
-    for orderitem in orderitems:
-        componentlist.append({'Name': orderitem.Component.Name,
-                                'ID': orderitem.Component.ID})
-
-    return sorted(componentlist, key=lambda k: k['Name'])
+            'TaxRate': order.TaxRate,
+            'ComponentList': componentlist}
 
 
 @view_config(route_name='usersview', renderer='json')
