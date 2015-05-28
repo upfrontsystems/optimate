@@ -1290,11 +1290,11 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             var start = ($scope.currentPage-1)*$scope.pageSize;
             var end = start + $scope.pageSize;
             var req = {
-                method: 'GET',
+                method: 'POST',
                 url: globalServerURL + 'orders',
                 data: {'start':start,
                         'end': end}
-            }
+            };
             $http(req).success(function(response) {
                 $scope.jsonorders = response;
                 console.log("Orders loaded");
@@ -1520,8 +1520,10 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                     return e.ID == deleteid;
                 });
                 var i = $scope.jsonorders.indexOf(result[0]);
-                $scope.jsonorders.splice(i, 1);
-                console.log("Deleted order");
+                if (i>-1){
+                    $scope.jsonorders.splice(i, 1);
+                    console.log("Deleted order");
+                }
             });
         };
 
@@ -1544,7 +1546,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         }
 
         $scope.componentSelected = function(node){
-            $scope.componentsList.append(node);
+            $scope.componentsList.push(node);
         }
 
         // remove a component from the component list

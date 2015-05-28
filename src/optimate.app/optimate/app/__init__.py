@@ -61,7 +61,7 @@ def main(global_config, **settings):
     # auth view
     config.add_route('auth', '/auth', factory=makePublic)
 
-    # the optimate data views
+    # the optimate project data views
     config.add_route('rootview', '/')
     config.add_route('childview', '/{parentid}/')
     config.add_route('getitem', 'node/{id}/')
@@ -79,7 +79,7 @@ def main(global_config, **settings):
     config.add_route('pasteview', '/{id}/paste')
     config.add_route('costview', '/{id}/cost')
 
-    # the company information, client, supplier  and unit views
+    # the other views
     config.add_route('clientsview', '/clients')
     config.add_route('suppliersview', '/suppliers')
     config.add_route('clientview', '/{id}/client')
