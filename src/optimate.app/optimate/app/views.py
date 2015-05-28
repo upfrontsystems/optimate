@@ -1150,12 +1150,13 @@ def ordersview(request):
     """
     qry = DBSession.query(Order).order_by(Order.ID).all()
     # cut the section
-    if 'start' not in request.json_body.keys():
+    paramsdict = request.params.dict_of_lists()
+    if 'start' not in paramsdict.keys():
         start = 0
         end = -1
     else:
-        start = request.json_body['start']
-        end = request.json_body['end']
+        start = int(paramsdict['start'][0])
+        end = int(paramsdict['end'][0])
     section = qry[start:end]
     orderlist = []
     for order in section:

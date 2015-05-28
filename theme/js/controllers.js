@@ -1290,9 +1290,9 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             var start = ($scope.currentPage-1)*$scope.pageSize;
             var end = start + $scope.pageSize;
             var req = {
-                method: 'POST',
+                method: 'GET',
                 url: globalServerURL + 'orders',
-                data: {'start':start,
+                params: {'start':start,
                         'end': end}
             };
             $http(req).success(function(response) {
