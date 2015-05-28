@@ -83,11 +83,17 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal"
-                 ng-disabled="!saveOrderModalForm.$valid" ng-click="save()">Save</button>
-                <button ng-show="modalState == 'Edit'" class="btn btn-primary" data-dismiss="modal"
-                 ng-disabled="!saveOrderModalForm.$valid" ng-click="save()">Update</button>
-                <button class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button data-ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal"
+                 data-ng-disabled="!saveOrderModalForm.$valid" data-ng-click="save(); isCollapsed = true">
+                    Save
+                </button>
+                <button data-ng-show="modalState == 'Edit'" class="btn btn-primary" data-dismiss="modal"
+                 data-ng-disabled="!saveOrderModalForm.$valid" data-ng-click="save(); isCollapsed = true">
+                    Update
+                </button>
+                <button class="btn btn-default" data-dismiss="modal" data-ng-click="isCollapsed = true">
+                    Cancel
+                </button>
             </div>
         </div>
     </div>

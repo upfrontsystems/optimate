@@ -1148,7 +1148,7 @@ def ordersview(request):
     """ The ordersview returns a list in json format of a section of the orders
         in the server database
     """
-    qry = DBSession.query(Order).order_by(Order.ID).all()
+    qry = DBSession.query(Order).all()
     # cut the section
     paramsdict = request.params.dict_of_lists()
     if 'start' not in paramsdict.keys():
@@ -1251,7 +1251,7 @@ def orderview(request):
         # get a list of id's used in the orderitems
         iddict = {}
         for orderitem in order.OrderItem:
-            idlist[orderitem.ComponentID] = orderitem.ID
+            iddict[orderitem.ComponentID] = orderitem.ID
         # iterate through the new id's and add any new orders
         # remove the id from the list if it is there already
         for newcompid in newidlist:

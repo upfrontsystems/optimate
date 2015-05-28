@@ -1415,6 +1415,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             if (!$scope.isDisabled){
                 $scope.isDisabled = true;
                 if ($scope.modalState == 'Edit'){
+                    console.log($scope.formData['ComponentList']);
                     $http({
                         method: 'PUT',
                         url: globalServerURL + $scope.formData['NodeType'] + '/' + $scope.formData['ID'] + '/',
@@ -1443,7 +1444,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         $scope.handleNew = function(neworder){
             // the new order is added to the list
             var low = $scope.jsonorders[0].ID;
-            var high = $scope.jsonorders[$scope.jsonorders.length - 1].ID;
+            var high = $scope.jsonorders[$scope.jsonorders.length - 1].ID + 2;
             // only need to add it if it's id falls in the current section
             if (neworder.ID > low && neworder.ID < high){
                 $scope.jsonorders.push(neworder);
@@ -1463,15 +1464,9 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             var result = $.grep($scope.jsonorders, function(e) {
                 return e.ID == editedorder.ID;
             });
-            var i = $scope.jsonorder.indexOf(result[0]);
+            var i = $scope.jsonorders.indexOf(result[0]);
             if (i>-1){
-                $scope.jsonorder[i] = editedorder;
-                // sort by order id
-                $scope.jsonorders.sort(function(a, b) {
-                    var idA = a.ID;
-                    var idB = b.ID;
-                    return (idA < idB) ? -1 : (idA > idB) ? 1 : 0;
-                });
+                $scope.jsonorders[i] = editedorder;
             }
             console.log ("Order edited");
         };
