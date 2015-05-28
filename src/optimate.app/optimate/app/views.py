@@ -1148,7 +1148,6 @@ def ordersview(request):
     """ The ordersview returns a list in json format of a section of the orders
         in the server database
     """
-    qry = DBSession.query(Order).all()
     # cut the section
     paramsdict = request.params.dict_of_lists()
     if 'start' not in paramsdict.keys():
@@ -1157,7 +1156,8 @@ def ordersview(request):
     else:
         start = int(paramsdict['start'][0])
         end = int(paramsdict['end'][0])
-    section = qry[start:end]
+    section = DBSession.query(Order).slice(start,end).all()
+
     orderlist = []
     for order in section:
         orderlist.append({'ID': order.ID,

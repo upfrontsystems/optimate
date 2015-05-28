@@ -1,5 +1,5 @@
 <script type="text/ng-template" id="angularOrderTree.html">
-  <div ui-tree-handle class="tree-node tree-node-content">
+  <div ui-tree-handle class="tree-node order-tree-node-content">
       <input type="button"
           class="collapsed"
           data-ng-show="node.Subitem.length && node.collapsed"
@@ -10,24 +10,18 @@
           data-ng-show="node.Subitem.length && !node.collapsed"
           data-ng-click="selectNodeHead(node)">
       </button>
-      <input type="button"
-          class="normal"
-          data-ng-hide="node.Subitem.length">
-      </input>
       <input data-ng-show="{{node.NodeType == 'Component'}}"
-              type="checkbox"
-              data-ng-model="node.selected"
-              data-ng-change="toggleComponents(node)">
+          type="checkbox"
+          data-ng-model="node.selected"
+          data-ng-change="toggleComponents(node)">
       <span class="circle {{node.NodeType}}">&nbsp;{{node.NodeTypeAbbr}}&nbsp;</span>
       <span class="order-tree-node"
           id="{{node.ID}}">
-          <div style="font-weight:bold;">
-              {{node.Name}}
-          </div>
-          <div style="padding-left:5em;">
-              {{node.Description}}
-          </div>
+          {{node.Name}}
       </span>
+      <div class="order-node-description">
+          {{node.Description}}
+      </div>
   </div>
   <ol ui-tree-nodes ng-model="node.Subitem" data-ng-hide="!node.collapsed" data-type="{{node.NodeType}}">
       <li ng-repeat="node in node.Subitem"

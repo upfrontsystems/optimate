@@ -237,6 +237,20 @@ div.personal-tools {
     margin: 0 auto;
 }
 
+/* styling for the tree in the order modal */
 span.order-tree-node {
+    font-weight:bold;
+    background-color: Transparent;
+    background-repeat:no-repeat;
+    border: none;
+    outline:none;
+}
+
+div.order-tree-content{
     display:inline-block;
+    cursor: pointer;
+}
+
+div.order-node-description {
+    padding-left:5em;
 }
