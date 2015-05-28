@@ -394,16 +394,15 @@ def update_value(request):
                 pass # do not do anything
     elif result.type in ['BudgetItem', 'Component']:
         # update the data - only quantity and/or markup can be modified
-        if request.params.get('quantity') != None:
+        if 'quantity' in request.json_body.keys():
             try:
-                result.Quantity = float(request.params.get('quantity'))
+                result.Quantity = float(request.json_body['quantity'])
                 newtotal = str(result.Total)
                 newsubtotal = str(result.Subtotal())
                 # return the new total
                 return {'total': newtotal, 'subtotal': newsubtotal}
-            except ValueError:
-                pass # do not do anything
-
+            except ValueError, e:
+                print e
 
 @view_config(route_name="addview", renderer='json')
 def additemview(request):

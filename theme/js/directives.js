@@ -158,7 +158,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                  {id: "unit", name: "Unit", field: "unit",
                                 width: cell_medium, cssClass: "cell non-editable-column"},
                                  {id: "type", name: "Type", field: "type",
-                                width: cell_medium, cssClass: "cell non-editable-column"},                            
+                                width: cell_medium, cssClass: "cell non-editable-column"},
                             ];
                         }
                         else if (secondtype == 'ResourceCategory'){
@@ -280,19 +280,18 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             // on cell change post to the server and update the totals
             grid.onCellChange.subscribe(function (e, ctx) {
                 var item = ctx.item
-                $.ajax({
+                var req = {
+                    method: 'POST',
                     url: globalServerURL +'update_value/' + item.id + '/',
-                    data: item,
-                    dataType: "json",
-                    success: function(data) {
-                        if (data){
-                            item.budg_cost = data['total'];
-                            item.sub_cost = data['subtotal'];
-                            dataView.updateItem(item.id, item);
-                        }
-                        console.log('id_'+ item.id + ' updated')
-                    },
-                });
+                    data: item}
+                $http(req).success(function(data) {
+                    if (data){
+                        item.budg_cost = data['total'];
+                        item.sub_cost = data['subtotal'];
+                        dataView.updateItem(item.id, item);
+                    }
+                    console.log('id_'+ item.id + ' updated')
+                })
             });
         }
     }

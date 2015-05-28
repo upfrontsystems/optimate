@@ -510,6 +510,11 @@ class BudgetItem(Node):
         # when the quantity changes recalculate the total
         self.Total = (1.0+self.Markup) * self.Quantity * float(self.Rate)
 
+    def Subtotal(self):
+        """ Subtotal for a BudgetItem returns nothing
+        """
+        return ""
+
     def copy(self, parentid):
         """copy returns an exact duplicate of this object,
            but with the ParentID specified.
