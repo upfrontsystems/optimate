@@ -660,7 +660,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 }
                 // only paste if it is not the same parent
                 if (dest.ID != srcparent){
-                    var parent = event.dest.nodesScope.$nodeScope.$parentNodeScope || null;
+                    var parent = event.dest.nodesScope.$nodeScope || null;
                     var destprojectid = undefined;
                     // find the project the destination node is in
                     while (parent != null){
@@ -670,7 +670,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                         parent = parent.$parentNodeScope;
                     }
                     // find the project the source node is in
-                    var parent = event.source.nodesScope.$nodeScope.$parentNodeScope || null;
+                    var parent = event.source.nodesScope.$nodeScope || null;
                     var srcprojectid = undefined;
                     while (parent != null){
                         if (parent.$parentNodeScope == null){
@@ -681,6 +681,8 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                     // set the current node to the one dropped in
                     $scope.currentNode = dest;
                     var src = event.source.nodeScope.$modelValue;
+                    console.log("source project: "+srcprojectid);
+                    console.log("dest project: " + destprojectid);
                     // if its in the same project, cut
                     if (destprojectid == srcprojectid){
                         $scope.currentNodeScope = event.source.nodeScope;
@@ -691,16 +693,38 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                     else{
                         $scope.copyThisNode(src.ID, src.NodeType);
                         $scope.pasteThisNode(dest.ID);
+                        // set the flag to indicate the source needs to be added
+                        // back to the parent when the node drops
+                        $scope.addNodeBack = true;
+
                     }
                 }
             },
 
             dragStop: function(event){
-                console.log("dragging stopped");
+                if($scope.addNodeBack){
+                    var sourceobject = event.source.nodeScope.$modelValue;
+                    var parent = event.source.nodeScope.$parentNodeScope.$modelValue;
+                    parent.Subitem.push(sourceobject);
+                    $scope.addNodeBack = false;
+                }
             },
 
             beforeDrop: function(event){
                 console.log("before drop");
+            },
+
+            beforeDrag: function(sourceNodeScope){
+                console.log("before drag");
+                return true;
+            },
+
+            dragStart: function(event){
+                console.log("drag start");
+            },
+
+            dragMove: function(event){
+                console.log("drag move");
             }
         };
 
@@ -1046,7 +1070,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
             var cnode = $scope.copiedNode;
             if (cnode){
                 if (cnode['id'] == nodeid){
-                    alert("You can't paste into the same node");
+                    console.log("You can't paste a node into itself");
                 }
                 else {
                     $http({
@@ -1415,7 +1439,6 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             if (!$scope.isDisabled){
                 $scope.isDisabled = true;
                 if ($scope.modalState == 'Edit'){
-                    console.log($scope.formData['ComponentList']);
                     $http({
                         method: 'PUT',
                         url: globalServerURL + $scope.formData['NodeType'] + '/' + $scope.formData['ID'] + '/',

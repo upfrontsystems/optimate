@@ -541,7 +541,6 @@ class BudgetItem(Node):
             with each child of the source object.
         """
         self.Children.append(source)
-        print source.ID
         # if the child is of type component copy the component with the
         # resource category id for use by the component's resource
         for child in sourcechildren:
