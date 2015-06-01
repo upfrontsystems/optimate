@@ -29,6 +29,86 @@ function toggleMenu(itemclass) {
     $("li."+itemclass).toggleClass("active");
 }
 
+allControllers.controller('BasicExampleCtrl', ['$scope', function ($scope) {
+      $scope.remove = function(scope) {
+        scope.remove();
+      };
+
+      $scope.toggle = function(scope) {
+        scope.toggle();
+      };
+
+      $scope.moveLastToTheBeginning = function () {
+        var a = $scope.data.pop();
+        $scope.data.splice(0,0, a);
+      };
+
+      $scope.newSubItem = function(scope) {
+        var nodeData = scope.$modelValue;
+        nodeData.nodes.push({
+          id: nodeData.id * 10 + nodeData.nodes.length,
+          title: nodeData.title + '.' + (nodeData.nodes.length + 1),
+          nodes: []
+        });
+      };
+
+      $scope.collapseAll = function() {
+        $scope.$broadcast('collapseAll');
+      };
+
+      $scope.expandAll = function() {
+        $scope.$broadcast('expandAll');
+      };
+
+      $scope.data = [{
+        "id": 1,
+        "title": "node1",
+        "nodes": [
+          {
+            "id": 11,
+            "title": "node1.1",
+            "nodes": [
+              {
+                "id": 111,
+                "title": "node1.1.1",
+                "nodes": []
+              }
+            ]
+          },
+          {
+            "id": 12,
+            "title": "node1.2",
+            "nodes": []
+          }
+        ],
+      }, {
+        "id": 2,
+        "title": "node2",
+        "nodes": [
+          {
+            "id": 21,
+            "title": "node2.1",
+            "nodes": []
+          },
+          {
+            "id": 22,
+            "title": "node2.2",
+            "nodes": []
+          }
+        ],
+      }, {
+        "id": 3,
+        "title": "node3",
+        "nodes": [
+          {
+            "id": 31,
+            "title": "node3.1",
+            "nodes": []
+          }
+        ],
+      }];
+    }]);
+
 // controller for the Company Information data from the server
 allControllers.controller('companyinformationController', ['$scope', '$http', '$modal', '$log', 'globalServerURL',
     function($scope, $http, $modal, $log, globalServerURL) {
@@ -1434,7 +1514,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         // Adding or editing an order
         $scope.save = function(){
             // set the list of checked components
-            $scope.setComponentList();
+            $scope.setComponentsList();
             // check if saving is disabled, if not disable it and save
             if (!$scope.isDisabled){
                 $scope.isDisabled = true;
@@ -1521,7 +1601,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 url: globalServerURL + $scope.formData['NodeType'] + '/' + $scope.selectedOrder.ID + '/'
             }).success(function(response){
                 $scope.formData = response;
-                $scope.componentsList = $scope.formData['ComponentList'];
+                $scope.componentsList = $scope.formData['ComponentsList'];
                 $scope.formData['NodeType'] = 'order';
             });
         }
@@ -1545,8 +1625,8 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             });
         };
 
-        $scope.setComponentList = function(){
-            $scope.formData['ComponentList'] = $scope.componentsList;
+        $scope.setComponentsList = function(){
+            $scope.formData['ComponentsList'] = $scope.componentsList;
         };
 
         $scope.toggleComponents = function(node){
@@ -1574,8 +1654,34 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                     return e.ID == deleteid;
             });
             var i = $scope.componentsList.indexOf(result[0]);
-            $scope.componentsList.splice(i, 1);
+            if (i>-1){
+                $scope.componentsList.splice(i, 1);
+                // loop through all the open nodes and if the checked component
+                // is in it uncheck the component
+                for (i = 0; i<$scope.openProjectsList.length; i++){
+                    var subitem = $scope.openProjectsList[i].Subitem || [];
+                    if (subitem.length > 0){
+                        $scope.uncheckComponent(deleteid, subitem);
+                    }
+                }
+
+            }
         };
+
+        $scope.uncheckComponent = function(componentId, subitem){
+            for (i = 0; i<subitem.length; i++){
+                if (subitem[i].ID == componentId){
+                    subitem[i].selected = false;
+                    break;
+                }
+                else{
+                    var subsubitem = subitem[i].Subitem || [];
+                    if (subsubitem.length > 0){
+                       $scope.uncheckComponent(componentId, subsubitem);
+                    }
+                }
+            }
+        }
 
         // if node head clicks, get the children of the node
         // and collapse or expand the node
@@ -1586,6 +1692,17 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 var parentid = selectedNode.ID;
                 $http.get(globalServerURL + parentid + '/').success(function(data) {
                     selectedNode.Subitem = data;
+                    // check if any of the components are in the components list
+                    // and select then
+                    for (i = 0; i<selectedNode.Subitem.length; i++){
+                        if (selectedNode.Subitem[i].NodeType == 'Component'){
+                            for (b = 0; b<$scope.componentsList.length; b++){
+                                if ($scope.componentsList[b].ID == selectedNode.Subitem[i].ID){
+                                    selectedNode.Subitem[i].selected = true;
+                                }
+                            }
+                        }
+                    }
                     console.log("Children loaded");
                 });
             }

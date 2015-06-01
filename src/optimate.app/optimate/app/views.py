@@ -1214,8 +1214,8 @@ def orderview(request):
         DBSession.flush()
         # add the order items to the order
         newid = neworder.ID
-        componentlist = request.json_body.get('ComponentList', [])
-        for component in componentlist:
+        componentslist = request.json_body.get('ComponentsList', [])
+        for component in componentslist:
             neworderitem = OrderItem(OrderID=newid, ComponentID=component['ID'])
             DBSession.add(neworderitem)
         transaction.commit()
@@ -1243,9 +1243,9 @@ def orderview(request):
         order.DeliveryAddress=address
 
         # get the list of component id's used in the form
-        componentlist = request.json_body['ComponentList']
+        componentslist = request.json_body['ComponentsList']
         newidlist = []
-        for component in componentlist:
+        for component in componentslist:
             newidlist.append(component['ID'])
         # get a list of id's used in the orderitems
         iddict = {}
@@ -1272,19 +1272,19 @@ def orderview(request):
     orderid = request.matchdict['id']
     order = DBSession.query(Order).filter_by(ID=orderid).first()
     # build a list of the components used in the order from the order items
-    componentlist = []
+    componentslist = []
     for orderitem in order.OrderItem:
-        componentlist.append({'Name': orderitem.Component.Name,
+        componentslist.append({'Name': orderitem.Component.Name,
                                 'ID': orderitem.Component.ID})
 
-    componentlist = sorted(componentlist, key=lambda k: k['Name'])
+    componentslist = sorted(componentslist, key=lambda k: k['Name'])
     return {'ID': order.ID,
             'ProjectID': order.ProjectID,
             'SupplierID': order.SupplierID,
             'ClientID': order.ClientID,
             'Total': str(order.Total),
             'TaxRate': order.TaxRate,
-            'ComponentList': componentlist}
+            'ComponentsList': componentslist}
 
 
 @view_config(route_name='usersview', renderer='json')
