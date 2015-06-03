@@ -698,6 +698,9 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         // functions used by the treeview
         // --------------------------------------------------------------------
         $scope.overheadList = [];
+        // set the collapsed flag to false, this allows horizontal dragging
+        // into any node
+        $scope.$broadcast('expandAll');
 
         // set the allowed types to be dropped
         $scope.allowed = {}
@@ -1669,7 +1672,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         };
 
         $scope.uncheckComponent = function(componentId, subitem){
-            for (i = 0; i<subitem.length; i++){
+            for (var i = 0; i<subitem.length; i++){
                 if (subitem[i].ID == componentId){
                     subitem[i].selected = false;
                     break;
@@ -1677,7 +1680,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 else{
                     var subsubitem = subitem[i].Subitem || [];
                     if (subsubitem.length > 0){
-                       $scope.uncheckComponent(componentId, subsubitem);
+                        $scope.uncheckComponent(componentId, subsubitem);
                     }
                 }
             }
