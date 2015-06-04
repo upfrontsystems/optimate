@@ -10,15 +10,21 @@
           data-ng-show="node.Subitem.length && !node.collapsed"
           data-ng-click="selectNodeHead(node)">
       </button>
-      <input data-ng-show="{{node.NodeType == 'Component'}}"
-          type="checkbox"
-          data-ng-model="node.selected"
-          data-ng-change="toggleComponents(node)">
+      <input type="button"
+        class="normal"
+        data-ng-hide="node.Subitem.length">
+      </input>
       <span class="circle {{node.NodeType}}">&nbsp;{{node.NodeTypeAbbr}}&nbsp;</span>
       <span class="order-tree-node"
           id="{{node.ID}}">
           {{node.Name}}
       </span>
+      <input data-ng-show="{{node.NodeType == 'Component'}}"
+          class="checkbox right"
+          type="checkbox"
+          data-ng-model="node.selected"
+          data-ng-change="toggleComponents(node)">
+      </input>
       <div class="order-node-description">
           {{node.Description}}
       </div>

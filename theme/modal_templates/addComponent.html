@@ -53,7 +53,7 @@
                             <tr ng-repeat="overhead in componentOverheadList">
                                 <td>{{overhead.Name}} &nbsp;</td>
                                 <td>
-                                    <input type="checkbox" value="{{overhead.Name}}" 
+                                    <input type="checkbox" value="{{overhead.Name}}"
                                            ng-model="overhead.selected">
                                 </td>
                             </tr>
@@ -62,10 +62,10 @@
                 <form>
             </div>
             <div class="modal-footer">
-                <button ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal" 
-                 ng-disabled="!addComponentForm.$valid" 
+                <button ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal"
+                 ng-disabled="!addComponentForm.$valid"
                  ng-click="selectedResource(); addNode()">Save</button>
-                <button ng-show="modalState == 'Edit'" class="btn btn-primary" data-dismiss="modal" 
+                <button ng-show="modalState == 'Edit'" class="btn btn-primary" data-dismiss="modal"
                  ng-disabled="!addComponentForm.$valid"
                  ng-click="selectedResource(); saveNodeEdits()">Update</button>
                 <button class="btn btn-default" ng-click="cancel()" data-dismiss="modal">Cancel</button>
