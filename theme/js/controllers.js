@@ -723,8 +723,6 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 // check the allowed array for the types
                 if($scope.allowed[dsttype].indexOf(srctype) > -1){
                     var dstparent = destNodesScope.$nodeScope.$modelValue.Name || undefined;
-                    console.log("parent name");
-                    console.log(dstparent);
                     return true;
                 }else{
                     return false;
@@ -1460,6 +1458,11 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         };
         $scope.openProjectsList = [];
         $scope.preloadProjects(); // check if anything is in local storage
+
+        $scope.dateTimeNow = function() {
+            $scope.date = new Date();
+        };
+        $scope.dateTimeNow();
         // load the project that has been selected into the tree
         $scope.loadProject = function () {
             var id = $scope.formData.treeProject;
@@ -1518,6 +1521,8 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             // check if saving is disabled, if not disable it and save
             if (!$scope.isDisabled){
                 $scope.isDisabled = true;
+                // convert the date to json format
+                $scope.formData['Date'] = $scope.date.toJSON();
                 if ($scope.modalState == 'Edit'){
                     $http({
                         method: 'PUT',
@@ -1584,6 +1589,8 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $scope.isDisabled = false;
             $scope.modalState = "Add";
             $scope.formData = {'NodeType': 'order'};
+            $scope.dateTimeNow();
+            $scope.formData['Date'] = $scope.date;
             $scope.componentsList = [];
             if ($scope.selectedOrder){
                 $('#order-'+$scope.selectedOrder.ID).removeClass('active');
@@ -1601,6 +1608,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             }).success(function(response){
                 $scope.formData = response;
                 $scope.componentsList = $scope.formData['ComponentsList'];
+                $scope.date = Date.parse($scope.formData['Date']);
                 $scope.formData['NodeType'] = 'order';
             });
         }

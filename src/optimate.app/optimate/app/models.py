@@ -3,7 +3,6 @@
 
 import os
 import hashlib
-import locale
 from zope.sqlalchemy import ZopeTransactionExtension
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -1252,6 +1251,7 @@ class Order(Base):
             total = "R" + '{:20,.2f}'.format(self.Total)
         else:
             total = "R" + '{:20,.2f}'.format(0)
+
         return {'ID': self.ID,
                 'Project': projectname,
                 'Supplier': suppname,

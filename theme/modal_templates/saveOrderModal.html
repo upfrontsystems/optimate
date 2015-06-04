@@ -32,6 +32,16 @@
                         </select>
                     </div>
                     <div class="form-group"
+                        ng-class="{'has-error': saveOrderModalForm.inputDate.$invalid}">
+                        <label for="inputDate" class="col-sm-2 control-label">Date:</label>
+                        <datetimepicker id="inputDate"
+                                        name="inputDate"
+                                        show-meridian="false"
+                                        data-ng-model="date"
+                                        date-format="dd/mm/yyyy">
+                        </datetimepicker>
+                    </div>
+                    <div class="form-group"
                         ng-class="{'has-error': saveOrderModalForm.inputTaxRate.$invalid}">
                         <label for="inputTaxRate" class="col-sm-2 control-label">Tax Rate:</label>
                         <input type="text"

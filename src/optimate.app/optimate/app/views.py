@@ -5,6 +5,7 @@ and send responses with appropriate data
 
 import json
 import transaction
+from datetime import datetime
 from pyramid.view import view_config
 from decimal import Decimal
 from sqlalchemy.sql import collate
@@ -1196,6 +1197,10 @@ def orderview(request):
         address = request.json_body.get('DeliveryAddress', '')
         # the client is derived from the project
         client = DBSession.query(Project).filter_by(ID=proj).first().ClientID
+        # convert to date from json format
+        date = request.json_body.get('Date', None)
+        if date:
+            date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
 
         neworder = Order(UserCode=user,
                             Authorisation=auth,
@@ -1203,7 +1208,8 @@ def orderview(request):
                             SupplierID=supplier,
                             ClientID=client,
                             TaxRate=tax,
-                            DeliveryAddress=address)
+                            DeliveryAddress=address,
+                            Date=date)
         DBSession.add(neworder)
         DBSession.flush()
         # add the order items to the order
@@ -1232,6 +1238,10 @@ def orderview(request):
         supplier = request.json_body.get('SupplierID', None)
         tax = request.json_body.get('TaxRate', 0.0)
         address = request.json_body.get('DeliveryAddress', '')
+        # convert to date from json format
+        date = request.json_body.get('Date', None)
+        if date:
+            date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
 
         order.UserCode=user
         order.Authorisation=auth
@@ -1240,6 +1250,7 @@ def orderview(request):
         order.ClientID=client
         order.TaxRate=tax
         order.DeliveryAddress=address
+        order.Date = date
 
         # get the list of component id's used in the form
         componentslist = request.json_body['ComponentsList']
@@ -1280,13 +1291,16 @@ def orderview(request):
                                 'ID': orderitem.Component.ID})
 
     componentslist = sorted(componentslist, key=lambda k: k['Name'])
+    # get the date in json format
+    jsondate = order.Date.isoformat()
     return {'ID': order.ID,
             'ProjectID': order.ProjectID,
             'SupplierID': order.SupplierID,
             'ClientID': order.ClientID,
             'Total': str(order.Total),
             'TaxRate': order.TaxRate,
-            'ComponentsList': componentslist}
+            'ComponentsList': componentslist,
+            'Date': jsondate}
 
 
 @view_config(route_name='usersview', renderer='json')
