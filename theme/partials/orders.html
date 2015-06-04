@@ -49,23 +49,23 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Project ID</th>
-                    <th>Supplier ID</th>
-                    <th>Client ID</th>
+                    <th>Order Number</th>
+                    <th>Project</th>
+                    <th>Supplier</th>
+                    <th>Client</th>
                     <th>Total</th>
-                    <th>Tax Rate</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody>
                 <tr ng-repeat="obj in jsonorders"
                     ng-click="showActionsFor(obj)" id="order-{{obj.ID}}">
                     <td>{{obj.ID}}</td>
-                    <td>{{obj.ProjectID}}</td>
-                    <td>{{obj.SupplierID}}</td>
-                    <td>{{obj.ClientID}}</td>
-                    <td>{{obj.Total}}</td>
-                    <td>{{obj.TaxRate}}%</td>
+                    <td>{{obj.Project}}</td>
+                    <td>{{obj.Supplier}}</td>
+                    <td>{{obj.Client}}</td>
+                    <td align="right">{{obj.Total}}</td>
+                    <td>{{obj.Status}}</td>
                 </tr>
             </tbody>
         </table>

@@ -719,8 +719,12 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
            accept: function(sourceNodeScope, destNodesScope, destIndex) {
                 var srctype = sourceNodeScope.$element.attr('data-type');
                 var dsttype = destNodesScope.$element.attr('data-type');
+
                 // check the allowed array for the types
                 if($scope.allowed[dsttype].indexOf(srctype) > -1){
+                    var dstparent = destNodesScope.$nodeScope.$modelValue.Name || undefined;
+                    console.log("parent name");
+                    console.log(dstparent);
                     return true;
                 }else{
                     return false;
@@ -764,9 +768,7 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                     // set the current node to the one dropped in
                     $scope.currentNode = dest;
                     var src = event.source.nodeScope.$modelValue;
-                    console.log("source project: "+srcprojectid);
-                    console.log("dest project: " + destprojectid);
-                    // if its in the same project, cut
+                    // if it's in the same project, cut
                     if (destprojectid == srcprojectid){
                         $scope.currentNodeScope = event.source.nodeScope;
                         $scope.cutThisNode(src.ID, src.NodeType);
@@ -779,7 +781,6 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                         // set the flag to indicate the source needs to be added
                         // back to the parent when the node drops
                         $scope.addNodeBack = true;
-
                     }
                 }
             },
@@ -793,22 +794,22 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
                 }
             },
 
-            beforeDrop: function(event){
-                console.log("before drop");
-            },
+            // beforeDrop: function(event){
+            //     console.log("before drop");
+            // },
 
-            beforeDrag: function(sourceNodeScope){
-                console.log("before drag");
-                return true;
-            },
+            // beforeDrag: function(sourceNodeScope){
+            //     console.log("before drag");
+            //     return true;
+            // },
 
-            dragStart: function(event){
-                console.log("drag start");
-            },
+            // dragStart: function(event){
+            //     console.log("drag start");
+            // },
 
-            dragMove: function(event){
-                console.log("drag move");
-            }
+            // dragMove: function(event){
+            //     console.log("drag move");
+            // }
         };
 
         // if node head clicks, get the children of the node
@@ -1503,11 +1504,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         .success(function(data) {
             $scope.projectsList = data;
         });
-        $scope.clientList = [];
-        $http.get(globalServerURL + 'clients')
-        .success(function(data){
-            $scope.clientList = data;
-        });
+
         $scope.supplierList = [];
         $http.get(globalServerURL + 'suppliers')
         .success(function(data){
@@ -1526,8 +1523,8 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                         method: 'PUT',
                         url: globalServerURL + $scope.formData['NodeType'] + '/' + $scope.formData['ID'] + '/',
                         data: $scope.formData
-                    }).success(function () {
-                        $scope.handleEdited($scope.formData);
+                    }).success(function (response) {
+                        $scope.handleEdited(response);
                         $scope.formData = {'NodeType': $scope.formData['NodeType']};
                     });
                 }
@@ -1537,9 +1534,8 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                         url: globalServerURL + $scope.formData['NodeType'] + '/0/',
                         data: $scope.formData
                     }).success(function (response) {
-                        $scope.formData['ID'] = response['newid'];
                         // add the new order to the list
-                        $scope.handleNew($scope.formData);
+                        $scope.handleNew(response);
                         $scope.formData = {'NodeType': $scope.formData['NodeType']};
                     });
                 }

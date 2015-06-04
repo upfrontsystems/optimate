@@ -7,7 +7,6 @@ import json
 import transaction
 from pyramid.view import view_config
 from decimal import Decimal
-import timeit
 from sqlalchemy.sql import collate
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -1159,12 +1158,7 @@ def ordersview(request):
 
     orderlist = []
     for order in section:
-        orderlist.append({'ID': order.ID,
-                            'ProjectID': order.ProjectID,
-                            'SupplierID': order.SupplierID,
-                            'ClientID': order.ClientID,
-                            'Total': str(order.Total),
-                            'TaxRate': order.TaxRate})
+        orderlist.append(order.toDict())
     return orderlist
 
 @view_config(route_name='orders_length', renderer='json')
@@ -1198,10 +1192,10 @@ def orderview(request):
         auth = request.json_body.get('Authorisation', '')
         proj = request.json_body.get('ProjectID', None)
         supplier = request.json_body.get('SupplierID', None)
-        client = request.json_body.get('ClientID', None)
         tax = request.json_body.get('TaxRate', 0.0)
         address = request.json_body.get('DeliveryAddress', '')
-
+        # the client is derived from the project
+        client = DBSession.query(Project).filter_by(ID=proj).first().ClientID
 
         neworder = Order(UserCode=user,
                             Authorisation=auth,
@@ -1219,7 +1213,9 @@ def orderview(request):
             neworderitem = OrderItem(OrderID=newid, ComponentID=component['ID'])
             DBSession.add(neworderitem)
         transaction.commit()
-        return {'newid': newid}
+        # return the new order
+        neworder = DBSession.query(Order).filter_by(ID=newid).first()
+        return neworder.toDict()
 
     # if the method is put, edit an existing order
     if request.method == 'PUT':
@@ -1229,8 +1225,11 @@ def orderview(request):
         user = request.json_body.get('UserCode', '')
         auth = request.json_body.get('Authorisation', '')
         proj = request.json_body.get('ProjectID', None)
+        if proj == order.ProjectID:
+            client = order.ClientID
+        else:
+            client = DBSession.query(Project).filter_by(ID=proj).first().ClientID
         supplier = request.json_body.get('SupplierID', None)
-        client = request.json_body.get('ClientID', None)
         tax = request.json_body.get('TaxRate', 0.0)
         address = request.json_body.get('DeliveryAddress', '')
 
@@ -1249,7 +1248,7 @@ def orderview(request):
             newidlist.append(component['ID'])
         # get a list of id's used in the orderitems
         iddict = {}
-        for orderitem in order.OrderItem:
+        for orderitem in order.OrderItems:
             iddict[orderitem.ComponentID] = orderitem.ID
         # iterate through the new id's and add any new orders
         # remove the id from the list if it is there already
@@ -1266,14 +1265,17 @@ def orderview(request):
             qry = DBSession.delete(deletethis)
 
         transaction.commit()
-        return HTTPOk()
+        # return the edited order
+        order = DBSession.query(
+                    Order).filter_by(ID=request.matchdict['id']).first()
+        return order.toDict()
 
     # otherwise return the selected order
     orderid = request.matchdict['id']
     order = DBSession.query(Order).filter_by(ID=orderid).first()
     # build a list of the components used in the order from the order items
     componentslist = []
-    for orderitem in order.OrderItem:
+    for orderitem in order.OrderItems:
         componentslist.append({'Name': orderitem.Component.Name,
                                 'ID': orderitem.Component.ID})
 

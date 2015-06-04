@@ -3,6 +3,7 @@
 
 import os
 import hashlib
+import locale
 from zope.sqlalchemy import ZopeTransactionExtension
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -17,6 +18,7 @@ from sqlalchemy import (
     Float,
     Text,
     Unicode,
+    DateTime,
     ForeignKey,
     ForeignKeyConstraint,
 )
@@ -107,12 +109,12 @@ class Project(Node):
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'),
                 primary_key=True)
-    Name = Column(Text)
-    Description = Column(Text)
+    Name = Column(Text(50))
+    Description = Column(Text(100))
     ClientID = Column(Integer, ForeignKey('Client.ID'))
-    CityID = Column(Text, ForeignKey('City.ID'))
-    SiteAddress = Column(Text)
-    FileNumber = Column(Text)
+    CityID = Column(Integer, ForeignKey('City.ID'))
+    SiteAddress = Column(Text(50))
+    FileNumber = Column(Text(50))
     _Total = Column('Total', Numeric)
 
     Clients = relationship('Client',
@@ -247,7 +249,7 @@ class City(Base):
     """
     __tablename__ = 'City'
     ID = Column(Integer, primary_key=True)
-    Name = Column(Text)
+    Name = Column(Text(50))
 
     Projects = relationship('Project',
                          backref=backref('City'))
@@ -266,8 +268,8 @@ class BudgetGroup(Node):
     __tablename__ = 'BudgetGroup'
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'), primary_key=True)
-    Name = Column(Text)
-    Description = Column(Text)
+    Name = Column(Text(50))
+    Description = Column(Text(100))
     _Total = Column('Total', Numeric)
 
     __mapper_args__ = {
@@ -402,8 +404,8 @@ class BudgetItem(Node):
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'),
                 primary_key=True)
-    Name = Column(Text)
-    Description = Column(Text)
+    Name = Column(Text(50))
+    Description = Column(Text(100))
     _Quantity = Column('Quantity', Float, default=0.0)
     _Rate = Column('Rate', Numeric)
     _Total = Column('Total', Numeric)
@@ -855,7 +857,7 @@ class Overhead(Base):
     """
     __tablename__ = 'Overhead'
     ID = Column(Integer, primary_key=True)
-    Name = Column(Text)
+    Name = Column(Text(50))
     Percentage = Column(Float, default=0.0)
     ProjectID = Column(Integer, ForeignKey('Project.ID'))
 
@@ -873,8 +875,8 @@ class ResourceCategory(Node):
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'),
                 primary_key=True)
-    Name = Column(Text)
-    Description = Column(Text)
+    Name = Column(Text(50))
+    Description = Column(Text(100))
     # Total is just a dummy column for when a project is calculating its total
     _Total = Column('Total', Numeric(12, 2), default=Decimal(0.00))
 
@@ -1009,7 +1011,7 @@ class ResourceType(Base):
         or form path of the project hierarchy
     """
     __tablename__ = 'ResourceType'
-    Name = Column(Text, primary_key=True)
+    Name = Column(Text(50), primary_key=True)
 
     Resources = relationship('Resource',
                               backref=backref('ResourceType'))
@@ -1032,11 +1034,11 @@ class Resource(Node):
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'),
                 primary_key=True)
-    Code = Column(Text)
-    Name = Column(Text)
-    Description = Column(Text)
-    UnitID = Column(Text, ForeignKey('Unit.ID'))
-    Type = Column(Integer, ForeignKey('ResourceType.Name'))
+    Code = Column(Text(50))
+    Name = Column(Text(50))
+    Description = Column(Text(100))
+    UnitID = Column(Integer, ForeignKey('Unit.ID'))
+    Type = Column(Text(50), ForeignKey('ResourceType.Name'))
     _Rate = Column('Rate', Numeric, default=Decimal(0.00))
 
     __mapper_args__ = {
@@ -1127,7 +1129,7 @@ class Unit(Base):
     """
     __tablename__ = 'Unit'
     ID = Column(Integer, primary_key=True)
-    Name = Column(Text)
+    Name = Column(Text(50))
 
     Resources = relationship('Resource',
                               backref=backref('Unit'))
@@ -1142,18 +1144,18 @@ class Client(Base):
     """
     __tablename__ = 'Client'
     ID = Column(Integer, primary_key=True, index=True)
-    Name = Column(Text)
-    Address = Column(Text)
-    City = Column(Text)
-    StateProvince = Column(Text)
-    Country = Column(Text)
-    Zipcode = Column(Text)
-    Phone = Column(Text)
-    Fax = Column(Text)
-    Cellular = Column(Text)
-    Contact = Column(Text)
-    VAT = Column(Text)
-    RegNo = Column(Text)
+    Name = Column(Text(50))
+    Address = Column(Text(100))
+    City = Column(Text(50))
+    StateProvince = Column(Text(50))
+    Country = Column(Text(50))
+    Zipcode = Column(Text(50))
+    Phone = Column(Text(50))
+    Fax = Column(Text(50))
+    Cellular = Column(Text(50))
+    Contact = Column(Text(50))
+    VAT = Column(Text(50))
+    RegNo = Column(Text(50))
 
     def __repr__(self):
         """Return a representation of this client
@@ -1167,16 +1169,16 @@ class Supplier(Base):
     """
     __tablename__ = 'Supplier'
     ID = Column(Integer, primary_key=True, index=True)
-    Name = Column(Text)
-    Address = Column(Text)
-    City = Column(Text)
-    StateProvince = Column(Text)
-    Country = Column(Text)
-    Zipcode = Column(Text)
-    Phone = Column(Text)
-    Fax = Column(Text)
-    Cellular = Column(Text)
-    Contact = Column(Text)
+    Name = Column(Text(50))
+    Address = Column(Text(100))
+    City = Column(Text(50))
+    StateProvince = Column(Text(50))
+    Country = Column(Text(50))
+    Zipcode = Column(Text(50))
+    Phone = Column(Text(50))
+    Fax = Column(Text(50))
+    Cellular = Column(Text(50))
+    Contact = Column(Text(50))
 
     def __repr__(self):
         """Return a representation of this supplier
@@ -1190,16 +1192,16 @@ class CompanyInformation(Base):
     """
     __tablename__ = 'CompanyInformation'
     ID = Column(Integer, primary_key=True)
-    Name = Column(Text)
-    Address = Column(Text)
-    Tel = Column(Text)
-    Fax = Column(Text)
-    Cell = Column(Text)
-    BankName = Column(Text)
-    BranchCode = Column(Text)
-    AccountNo = Column(Text)
-    AccountName = Column(Text)
-    DefaultTaxrate = Column(Text)
+    Name = Column(Text(50))
+    Address = Column(Text(100))
+    Tel = Column(Text(50))
+    Fax = Column(Text(50))
+    Cell = Column(Text(50))
+    BankName = Column(Text(50))
+    BranchCode = Column(Text(50))
+    AccountNo = Column(Text(50))
+    AccountName = Column(Text(50))
+    DefaultTaxrate = Column(Float)
 
     def __repr__(self):
         """Return a representation of this company information
@@ -1213,14 +1215,16 @@ class Order(Base):
     """
     __tablename__ = 'Order'
     ID = Column(Integer, primary_key=True, index=True)
-    UserCode = Column(Text)
-    Authorisation = Column(Text)
+    UserCode = Column(Text(50))
+    Authorisation = Column(Text(50))
     ProjectID = Column(Integer, ForeignKey('Project.ID'))
     SupplierID = Column(Integer, ForeignKey('Supplier.ID'))
     ClientID = Column(Integer, ForeignKey('Client.ID'))
     Total = Column(Numeric)
     TaxRate = Column(Float)
-    DeliveryAddress = Column(Text)
+    DeliveryAddress = Column(Text(100))
+    Date = Column(DateTime)
+    Status = Column(Text(10))
 
     Project = relationship('Project',
                               backref=backref('Order'))
@@ -1228,6 +1232,32 @@ class Order(Base):
                               backref=backref('Order'))
     Client = relationship('Client',
                               backref=backref('Order'))
+
+    def toDict(self):
+        """ Returns a JSON dict of the order
+        """
+        if self.Project:
+            projectname = self.Project.Name
+        else:
+            projectname = ""
+        if self.Supplier:
+            suppname = self.Supplier.Name
+        else:
+            suppname = ""
+        if self.Client:
+            clientname = self.Client.Name
+        else:
+            clientname = ""
+        if self.Total:
+            total = "R" + '{:20,.2f}'.format(self.Total)
+        else:
+            total = "R" + '{:20,.2f}'.format(0)
+        return {'ID': self.ID,
+                'Project': projectname,
+                'Supplier': suppname,
+                'Client': clientname,
+                'Total': total,
+                'Status': self.Status}
 
     def __repr__(self):
         """Return a representation of this order
@@ -1245,7 +1275,7 @@ class OrderItem(Base):
     ComponentID = Column(Integer, ForeignKey('Component.ID'))
 
     Order = relationship('Order',
-                              backref=backref('OrderItem'))
+                              backref=backref('OrderItems'))
     Component = relationship('Component',
                               backref=backref('OrderItem'))
 
@@ -1262,7 +1292,7 @@ class User(Base):
     username = Column(Unicode(length=20), nullable=False, index=True)
     salt = Column(Unicode(length=64), nullable=True)
     password = Column(Unicode(length=64), nullable=True) # For an sha256 hash
-    roles = Column(Text)
+    roles = Column(Text(20))
 
     def validate_password(self, password):
         return hashlib.sha256((self.salt + password).encode('utf-8')).hexdigest() == self.password

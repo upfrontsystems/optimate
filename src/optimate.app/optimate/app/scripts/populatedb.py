@@ -48,6 +48,7 @@ import unicodedata
 from decimal import *
 from itertools import groupby
 from operator import itemgetter
+from datetime import datetime
 
 resourcecodeno = 0
 
@@ -1008,6 +1009,7 @@ if __name__ == '__main__':
         orderbook = xlrd.open_workbook(exceldatapath + 'Orders.xls')
         sheet = orderbook.sheet_by_index(0)
         codeindex = 0
+        dateindex = 2
         authindex = 5
         projidindex = 6
         supidindex = 7
@@ -1016,6 +1018,7 @@ if __name__ == '__main__':
         taxindex = 10
         deladdindex = 11
 
+
         print 'Converting Order table'
         for x in range(1, sheet.nrows):
             code = int(sheet.cell(x, codeindex).value)
@@ -1023,6 +1026,12 @@ if __name__ == '__main__':
             projid = sheet.cell(x, projidindex).value
             supid = sheet.cell(x, supidindex).value
             clientid = sheet.cell(x, clientidindex).value
+            try:
+                tup=xlrd.xldate_as_tuple(sheet.cell(x,
+                                    dateindex).value,0)
+                date = datetime(*(tup[0:5]))
+            except ValueError, e:
+                date = None
             try:
                 total = Decimal(sheet.cell(x,
                     totalindex).value).quantize(Decimal('.01'))
@@ -1044,7 +1053,8 @@ if __name__ == '__main__':
                             ClientID=clientid,
                             Total=total,
                             TaxRate=tax,
-                            DeliveryAddress=deladd)
+                            DeliveryAddress=deladd,
+                            Date=date)
             DBSession.add(order)
 
         transaction.commit()
