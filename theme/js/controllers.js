@@ -1378,8 +1378,13 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
     function($scope, $http, globalServerURL) {
 
         toggleMenu('setup');
+        $scope.dateTimeNow = function() {
+            $scope.date = new Date();
+        };
+        $scope.dateTimeNow();
         $scope.isDisabled = false;
         $scope.isCollapsed = true;
+        $scope.addComponentsButton = "Add Components";
         $scope.jsonorders = [];
         $scope.componentsList = [];
         // Pagination variables and functions
@@ -1408,97 +1413,27 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         }
         $scope.loadOrderSection();
 
-        // aux function to test if we can support localstorage
-        var hasStorage = (function() {
-            try {
-                var mod = 'modernizr';
-                localStorage.setItem(mod, mod);
-                localStorage.removeItem(mod);
-                return true;
-            }
-            catch (exception) {
-                return false;
-            }
-        }());
         // aux function - checks if object is already in list based on ID
-        function containsObject(obj, list) {
+        function containsObject(objid, list) {
             var i;
             for (i = 0; i < list.length; i++) {
-                if (list[i].ID === obj.ID) {
+                if (list[i].ID === objid) {
                     return true;
                 }
             }
             return false;
         }
-        // reopen projects that were previously opened upon page load
-        $scope.preloadProjects = function () {
-            if (hasStorage) {
-                open_projects = []
-                try {
-                    open_projects = JSON.parse(localStorage["open_projects"])
-                }
-                catch (exception) {
-                }
-                if ( open_projects.length != 0 ) {
-                    for (i = 0; i < open_projects.length; i++) {
-                        var id = open_projects[i];
-                        var url = globalServerURL + 'projectview/' + id + '/'
-                        $http.get(url).success(function(data) {
-                            $scope.openProjectsList.push(data[0]);
-                            $scope.openProjectsList.sort(function(a, b) {
-                                return a.Name.localeCompare(b.Name)
-                            });
-                        });
-                    }
-                }
-            }
-            else {
-                console.log("LOCAL STORAGE NOT SUPPORTED!")
-            }
-        };
         $scope.openProjectsList = [];
-        $scope.preloadProjects(); // check if anything is in local storage
-
-        $scope.dateTimeNow = function() {
-            $scope.date = new Date();
-        };
-        $scope.dateTimeNow();
         // load the project that has been selected into the tree
         $scope.loadProject = function () {
-            var id = $scope.formData.treeProject;
+            var id = $scope.formData['ProjectID']
             var url = globalServerURL + 'projectview/' + id + '/'
-            $http.get(url).success(function(data) {
-                if (!(containsObject(data[0], $scope.openProjectsList))) {
-                    // add latest select project, if not already in the list
-                    $scope.openProjectsList.push(data[0]);
-                    // sort alphabetically by project name
-                    $scope.openProjectsList.sort(function(a, b) {
-                        var textA = a.Name.toUpperCase();
-                        var textB = b.Name.toUpperCase();
-                        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
-                    });
-                }
-                if (hasStorage) {
-                    // add id of project to local storage
-                    var open_projects;
-                    try {
-                        // attempt to add an id to open_projects storage
-                        open_projects = JSON.parse(localStorage["open_projects"])
-                        open_projects.push(data[0].ID);
-                        localStorage["open_projects"] = JSON.stringify(open_projects);
-                    }
-                    catch (exception) {
-                        // create a new open_projects storage as one doesnt exist
-                        localStorage.setItem("open_projects", []);
-                        open_projects = []
-                        open_projects.push(data[0].ID);
-                        localStorage["open_projects"] = JSON.stringify(open_projects);
-                    }
-                }
-                else {
-                    console.log("LOCAL STORAGE NOT SUPPORTED!")
-                }
-            });
+            if (!(containsObject(id, $scope.openProjectsList))) {
+                $http.get(url).success(function(data) {
+                    // add the project, if not already in the list
+                    $scope.openProjectsList = [data[0]];
+                });
+            }
         };
 
         // loading the project, client and supplier list
@@ -1513,6 +1448,20 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         .success(function(data){
             $scope.supplierList = data;
         });
+
+
+        // when the add components button is clicked
+        $scope.componentsButtonClicked = function(){
+            $scope.loadProject();
+            $scope.isCollapsed = !$scope.isCollapsed;
+            if ($scope.isCollapsed){
+                $scope.addComponentsButton = "Add Components";
+            }
+            else{
+                $scope.addComponentsButton = "Back";
+            }
+        }
+
 
         // Adding or editing an order
         $scope.save = function(){
@@ -1586,6 +1535,8 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
 
         // When the Add button is pressed change the state and form data
         $scope.addingState = function (){
+            $scope.addComponentsButton = "Add Components";
+            $scope.isCollapsed = true;
             $scope.isDisabled = false;
             $scope.modalState = "Add";
             $scope.formData = {'NodeType': 'order'};
@@ -1600,6 +1551,8 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
 
         // When the edit button is pressed change the state and set the data
         $scope.editingState = function (){
+            $scope.addComponentsButton = "Add Components";
+            $scope.isCollapsed = true;
             $scope.isDisabled = false;
             $scope.modalState = "Edit";
             $http({

@@ -32,16 +32,6 @@
   </ol>
 </script>
 
-
-<span>
-    <select class="col-sm-7"
-            id="inputTreeProject"
-            data-ng-model="formData.treeProject"
-            data-ng-options="project.ID as project.Name for project in projectsList">
-        <option value="">Select a project</option>
-    </select>
-    <button type="select" class="btn btn-primary" data-ng-click="loadProject()">Open project</button>
-</span>
 <div ui-tree="treeOptions"
     data-max-depth="0"
     data-drag-enabled="false"

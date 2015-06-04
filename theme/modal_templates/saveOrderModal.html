@@ -6,74 +6,78 @@
                 <h3 class="modal-title">{{modalState}} an {{formData.NodeType}}</h3>
             </div>
             <div class="modal-body">
-                <form class="form-horizontal"  name="saveOrderModalForm" novalidate>
-                    <div class="form-group"
-                        ng-class="{'has-error': saveOrderModalForm.inputProject.$invalid}">
-                        <label for="inputProject" class="col-sm-2 control-label">Project:</label>
-                        <select class="col-sm-7"
-                                id="inputProject"
-                                name="inputProject"
-                                data-ng-model="formData['ProjectID']"
-                                data-ng-options="project.ID as project.Name for project in projectsList"
-                                required>
-                            <option value="">Select a project</option>
-                        </select>
-                    </div>
-                    <div class="form-group"
-                        ng-class="{'has-error': saveOrderModalForm.inputSupplier.$invalid}">
-                        <label for="inputSupplier" class="col-sm-2 control-label">Supplier:</label>
-                        <select class="col-sm-7"
-                                id="inputSupplier"
-                                name="inputSupplier"
-                                data-ng-model="formData['SupplierID']"
-                                data-ng-options="supplier.ID as supplier.Name for supplier in supplierList"
-                                required>
-                            <option value="">Select a supplier</option>
-                        </select>
-                    </div>
-                    <div class="form-group"
-                        ng-class="{'has-error': saveOrderModalForm.inputDate.$invalid}">
-                        <label for="inputDate" class="col-sm-2 control-label">Date:</label>
-                        <datetimepicker id="inputDate"
-                                        name="inputDate"
-                                        show-meridian="false"
-                                        data-ng-model="date"
-                                        date-format="dd/mm/yyyy">
-                        </datetimepicker>
-                    </div>
-                    <div class="form-group"
-                        ng-class="{'has-error': saveOrderModalForm.inputTaxRate.$invalid}">
-                        <label for="inputTaxRate" class="col-sm-2 control-label">Tax Rate:</label>
-                        <input type="text"
-                               class="col-sm-7"
-                               id="inputTaxRate"
-                               name="inputTaxRate"
-                               ng-model="formData['TaxRate']">
-                    </div>
-                    <div id="order_components" class="row form-group">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Components</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr ng-repeat="comp in componentsList">
-                                    <td>{{comp.Name}}</td>
-                                    <td>
-                                      <button data-ng-click="removeComponent(comp)"
-                                              title="Remove">
-                                          <i class="fa fa-trash"></i>
-                                      </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </form>
-                <button class="btn btn-default" data-ng-click="isCollapsed = !isCollapsed">
-                    Add Components
+                <div collapse="!isCollapsed">
+                    <form class="form-horizontal"  name="saveOrderModalForm" novalidate>
+                        <div class="form-group"
+                            ng-class="{'has-error': saveOrderModalForm.inputProject.$invalid}">
+                            <label for="inputProject" class="col-sm-2 control-label">Project:</label>
+                            <select class="col-sm-7"
+                                    id="inputProject"
+                                    name="inputProject"
+                                    data-ng-model="formData['ProjectID']"
+                                    data-ng-options="project.ID as project.Name for project in projectsList"
+                                    required>
+                                <option value="">Select a project</option>
+                            </select>
+                        </div>
+                        <div class="form-group"
+                            ng-class="{'has-error': saveOrderModalForm.inputSupplier.$invalid}">
+                            <label for="inputSupplier" class="col-sm-2 control-label">Supplier:</label>
+                            <select class="col-sm-7"
+                                    id="inputSupplier"
+                                    name="inputSupplier"
+                                    data-ng-model="formData['SupplierID']"
+                                    data-ng-options="supplier.ID as supplier.Name for supplier in supplierList"
+                                    required>
+                                <option value="">Select a supplier</option>
+                            </select>
+                        </div>
+                        <div class="form-group"
+                            ng-class="{'has-error': saveOrderModalForm.inputDate.$invalid}">
+                            <label for="inputDate" class="col-sm-2 control-label">Date:</label>
+                            <datetimepicker id="inputDate"
+                                            name="inputDate"
+                                            show-meridian="false"
+                                            data-ng-model="date"
+                                            date-format="dd/mm/yyyy">
+                            </datetimepicker>
+                        </div>
+                        <div class="form-group"
+                            ng-class="{'has-error': saveOrderModalForm.inputTaxRate.$invalid}">
+                            <label for="inputTaxRate" class="col-sm-2 control-label">Tax Rate:</label>
+                            <input type="text"
+                                   class="col-sm-7"
+                                   id="inputTaxRate"
+                                   name="inputTaxRate"
+                                   ng-model="formData['TaxRate']">
+                        </div>
+                        <div id="order_components" class="row form-group">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Components</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="comp in componentsList">
+                                        <td>{{comp.Name}}</td>
+                                        <td>
+                                          <button data-ng-click="removeComponent(comp)"
+                                                  title="Remove">
+                                              <i class="fa fa-trash"></i>
+                                          </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </form>
+                </div>
+                <button class="btn btn-default"
+                        data-ng-click="componentsButtonClicked()"
+                        data-ng-disabled="saveOrderModalForm.inputProject.$invalid">
+                    {{addComponentsButton}}
                 </button>
                 <div collapse="isCollapsed">
                     <div class="well well-lg" ng-include="'partials/orderTreeview.html'">
@@ -82,14 +86,14 @@
             </div>
             <div class="modal-footer">
                 <button data-ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal"
-                 data-ng-disabled="!saveOrderModalForm.$valid" data-ng-click="save(); isCollapsed = true">
+                 data-ng-disabled="!saveOrderModalForm.$valid" data-ng-click="save()">
                     Save
                 </button>
                 <button data-ng-show="modalState == 'Edit'" class="btn btn-primary" data-dismiss="modal"
-                 data-ng-disabled="!saveOrderModalForm.$valid" data-ng-click="save(); isCollapsed = true">
+                 data-ng-disabled="!saveOrderModalForm.$valid" data-ng-click="save()">
                     Update
                 </button>
-                <button class="btn btn-default" data-dismiss="modal" data-ng-click="isCollapsed = true">
+                <button class="btn btn-default" data-dismiss="modal">
                     Cancel
                 </button>
             </div>
