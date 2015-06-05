@@ -1,10 +1,6 @@
-/*global finderdata:false*/ /* <- not sure if this is still valid */
-
-var finderdata = {}
-
-var ContentFinder = function(id, path, multiselect) {
+var ContentFinder = function(id, callback, multiselect) {
+    // id may be a string, a dom element or a jquery.
     var self = this;
-    self.id = id;
     self.container = $(id);
     self.multiselect = multiselect || false;
     self.activeresults = [];
@@ -17,6 +13,7 @@ var ContentFinder = function(id, path, multiselect) {
     self.input.attr('value', self.input.attr('data-placeholder'));
     // self.single_backstroke_delete = this.options.single_backstroke_delete || false;
     self.single_backstroke_delete = false;
+    self.callback = callback;
 
 
     var open_dropdown = function(e) {
@@ -111,7 +108,38 @@ var ContentFinder = function(id, path, multiselect) {
     self.choices
         .toggle(open_dropdown, close_dropdown)
         .keydown(keyboard_navigation);
-    self.current_path = path;
+
+    // Delegated events, this way we need only attach one handler
+    self.results.on('click', 'li.not-folderish', function(e){
+        self.result_click($(e.target));
+    });
+
+    self.container.on('dblclick', 'li.folderish', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        self.listdir($(this).data('uid'));
+    }).on('click', 'li.folderish', function(e){
+        self.result_click($(this));
+    });
+
+    self.container.on('click', 'a.open-folder', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        self.listdir($(this).parent().data('uid'));
+    });
+
+    self.container.on('mouseenter', 'a.open-folder .arrow', function(e){
+        $(this).attr('class', 'arrow right-arrow-active');
+    }).on('mouseleave', 'a.open-folder .arrow', function(e){
+        $(this).attr('class', 'arrow right-arrow');
+    });
+
+    self.container.on('click', '.internalpath a', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        self.listdir($(this).attr('data-uid'));
+    });
+
 };
 
 ContentFinder.prototype.selected_uids = function() {
@@ -123,36 +151,52 @@ ContentFinder.prototype.selected_uids = function() {
     return uids;
 };
 
-ContentFinder.prototype.listdir = function(path) {
+ContentFinder.prototype.listdir = function(id) {
+    var self = this;
+    self.callback(id).then(function(response){
+        self._listdir(response.data);
+    }, function(){
+        alert('Cannot list folder contents');
+    });
+}
+
+ContentFinder.prototype._listdir = function(data) {
     var self = this,
-        html = [],
+        $html = $(),
         selected, result, len;
 
-    self.data = finderdata[path];
+    self.data = data;
     // create the list of items to choose from
     for (var i=0; i<self.data.items.length; i++) {
         var item = self.data.items[i];
-        var folderish = item.is_folderish ? ' folderish ' : ' not-folderish ';
         selected = $.inArray(item.uid, self.selected_uids()) !== -1;
         var selected_class = selected ? ' selected ' : '';
-        if (item.is_folderish) {
-            $.merge(html, [
-                '<li class="active-result' + folderish + selected_class + '" data-url="' + item.url + '" data-uid="' + item.uid + '">',
-                '<span class="contenttype-' + item.normalized_type + '">' + item.title + '</span>',
-                '<a class="open-folder" data-url="' + item.url + '" data-uid="' + item.uid + '"><div class="arrow right-arrow" ></div></a>',
-                '</li>'
-                ]
-            );
+        if (item.folderish) {
+            var $item = $('<div>').addClass('arrow right-arrow') // nested div
+                .appendTo('<a>').parent() // up to containing anchor
+                .addClass('open-folder')
+                .add('<span>').last() // span sibling
+                .addClass('contenttype-' + item.normalized_type)
+                .text(item.title).end() // back to anchor
+                .appendTo('<li>').parent() // up to li container
+                .addClass('active-result folderish')
+                .data('uid', item.uid)
+                .addClass(selected && 'selected' || '');
+
+            $html = $html.add($item)
         } else {
-            $.merge(html, [
-                '<li class="active-result' + folderish + selected_class + '" data-url="' + item.url + '" data-uid="' + item.uid + '">',
-                '<span class="contenttype-' + item.normalized_type + '">' + item.title + '</span>',
-                '</li>'
-                ]
-            );
+            var $item = $('<span>')
+                .addClass('contenttype-' + item.normalized_type)
+                .text(item.title)
+                .appendTo('<li>').parent() // up to li container
+                .addClass('active-result not-folderish')
+                .data('uid', item.uid)
+                .addClass(selected && 'selected' || '');
+
+            $html = $html.add($item)
         }
     }
-    this.results.html(html.join(''));
+    this.results.empty().append($html);
 
     /* rebuild the list of selected results
        this is necessary since selecteditems contains items selected
@@ -166,39 +210,6 @@ ContentFinder.prototype.listdir = function(path) {
             self.selectedresults.push(result);
         }
     }
-    $('li.not-folderish', this.results)
-        .unbind('.finderresult')
-        .bind('click.finderresult', function() {
-            self.result_click($(this));
-        });
-
-    $('li.folderish', this.container).single_double_click(
-        function() {
-            self.result_click($(this));
-        },
-        function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            self.listdir($(this).attr('data-url'));
-        }
-    );
-
-    $('a.open-folder', this.container).click(
-        function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            self.listdir($(this).attr('data-url'));
-        }
-    );
-
-    $('a.open-folder .arrow', this.container).hover(
-        function() {
-            $(this).attr('class', 'arrow right-arrow-active');
-        },
-        function() {
-            $(this).attr('class', 'arrow right-arrow');
-        }
-    );
 
     // breadcrumbs
     html = [];
@@ -207,24 +218,14 @@ ContentFinder.prototype.listdir = function(path) {
         if (i > 0) {
             html.push(" / ");
         }
-        html.push(item.icon);
+        //html.push(item.icon);
         if (i === len - 1) {
             html.push('<span>' + item.title + '</span>');
         } else {
-            html.push('<a href="' + item.url + '">' + item.title + '</a>');
+            html.push('<a href="#" data-uid="' + item.uid + '">' + item.title + '</a>');
         }
     });
     $('.internalpath', this.container).html(html.join(''));
-
-    // breadcrumb link
-    $('.internalpath a', this.container)
-        .unbind('.finderpath')
-        .bind('click.finderpath', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            self.listdir($(this).attr('href'));
-        });
-
 };
 
 ContentFinder.prototype.select_item = function(uid) {
@@ -254,21 +255,21 @@ ContentFinder.prototype.result_click = function(item) {
     if (!self.multiselect) {
         selected = self.selectedresults[0];
         if (selected !== undefined && item !== selected) {
-            selected.toggleClass('selected');
-            self.deselect_item(selected.attr('data-uid'));
+            selected.removeClass('selected');
+            self.deselect_item(selected.data('uid'));
         }
         self.selectedresults = [item];
-        item.toggleClass('selected');
-        self.select_item(item.attr('data-uid'));
+        item.addClass('selected');
+        self.select_item(item.data('uid'));
     } else {
         // remove item from list if it was deselected
         if (item.hasClass('selected')) {
             var new_lst = [];
             for (i=0; i<self.selectedresults.length; i++) {
                 selected = self.selectedresults[i];
-                if (selected.attr('data-uid') === item.attr('data-uid')) {
+                if (selected.data('uid') === item.data('uid')) {
                     selected.toggleClass('selected');
-                    self.deselect_item(selected.attr('data-uid'));
+                    self.deselect_item(selected.data('uid'));
                 } else {
                     new_lst.push(selected);
                 }
@@ -276,7 +277,7 @@ ContentFinder.prototype.result_click = function(item) {
             self.selectedresults = new_lst;
         } else {
             self.selectedresults.push(item);
-            self.select_item(item.attr('data-uid'));
+            self.select_item(item.data('uid'));
             item.toggleClass('selected');
         }
     }
@@ -284,7 +285,7 @@ ContentFinder.prototype.result_click = function(item) {
     // add selections to search input
     for (i=0; i < this.selecteditems.length; i++) {
         item = this.selecteditems[i];
-        html.push('<li class="search-choice" title="' + item.url + '"><span class="selected-resource">' + item.title + '</span><a href="javascript:void(0)" class="search-choice-close" rel="3" data-uid="' + item.uid + '"></a></li>');        
+        html.push('<li class="search-choice" title="' + item.title + '"><span class="selected-resource">' + item.title + '</span><a href="javascript:void(0)" class="search-choice-close" rel="3" data-uid="' + item.uid + '"></a></li>');        
     }
     $('.search-choice', self.choices).remove();
     self.choices.prepend(html.join(''));
@@ -297,7 +298,6 @@ ContentFinder.prototype.result_click = function(item) {
         });
     self.resize();
 };
-
 
 ContentFinder.prototype.choice_destroy = function(link) {
     var self = this,
@@ -348,35 +348,3 @@ ContentFinder.prototype.resize = function() {
         "top": dd_top + "px"
     });
 };
-
-// XXX This function most likely is no longer needed here as we will only use
-//     the reference widget in the add component modal - but leaving it here just in case
-$(document).ready(function () {
-    $('.finder').each(function() {
-        var url = $(this).attr('data-url');
-        var finder = new ContentFinder('#'+$(this).attr('id'), url, true);
-        finder.listdir(url);
-    });
-});
-
-// Author:  Jacek Becela
-// Source:  http://gist.github.com/399624
-// License: MIT
-jQuery.fn.single_double_click = function(single_click_callback, double_click_callback, timeout) {
-  return this.each(function(){
-    var clicks = 0, self = this;
-    jQuery(this).click(function(event){
-      clicks++;
-      if (clicks == 1) {
-        setTimeout(function(){
-          if(clicks == 1) {
-            single_click_callback.call(self, event);
-          } else {
-            double_click_callback.call(self, event);
-          }
-          clicks = 0;
-        }, timeout || 300);
-      }
-    });
-  });
-}

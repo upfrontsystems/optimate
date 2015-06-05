@@ -213,29 +213,47 @@ def resource_list(request):
         that the related items widget can read
     """
     nodeid = request.matchdict['id']
-    resourcelist = []
-    # Get the current node
     currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
-    # Get the parent
-    rootid = currentnode.getProjectID()
-    # Get the resourcecategory whos parent that is
-    resourcecategory = DBSession.query(
-                            ResourceCategory).filter_by(
-                            ParentID=rootid).first()
+
+    # Look up the node, if it isn't a resource category, find the topmost
+    # resource category and use that. Otherwise this is a sub-folder listing.
+    if type(currentnode) is ResourceCategory:
+        resourcecategory = currentnode
+    else:
+        nodeid = currentnode.getProjectID()
+        resourcecategory = DBSession.query(ResourceCategory).filter_by(
+                ParentID=nodeid).first()
+
     # if it doesnt exist return the empty list
     if not resourcecategory:
-        return resourcelist
+        return {
+            "path": [ {"url": request.route_url('resource_list', id=nodeid)} ],
+            "items": []
+        }
 
-    data = resourcecategory.getResourcesDetail()
-    resourcelist = {"http://127.0.0.1:8100": {
-                        "parent_url": "",
-                        "path": [ {"url": "http://127.0.0.1:8100"} ],
-                        "upload_allowed": 'false',
-                        "items": sorted(data, key=lambda k: k['title'].upper())
-                        }
-                    }
-    return resourcelist
+    items = [{
+        'title': item.Name,
+        'uid': item.ID,
+        'normalized_type': item.type == 'ResourceCategory' and 'folder' or 'document', # FIXME
+        'folderish': item.type == 'ResourceCategory',
+    } for item in sorted(resourcecategory.Children, key=lambda o: o.Name.upper())]
 
+    def pathlist(node):
+        p = node.Parent
+        if p is not None and type(p) is not Project:
+            for u in pathlist(p):
+                yield u
+        yield (node.ID,
+            getattr(node, 'Name', None),
+            request.route_url('resource_list', id=node.ID))
+
+    return {
+        "path": [{
+            "url": url,
+            "title": title,
+            "uid": uid } for uid, title, url in pathlist(resourcecategory)],
+        "items": items
+    }
 
 @view_config(route_name="resourcetypes", renderer='json')
 def resourcetypes(request):
