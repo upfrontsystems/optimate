@@ -32,15 +32,29 @@
                                 <option value="">Select a supplier</option>
                             </select>
                         </div>
-                        <div class="form-group"
-                            ng-class="{'has-error': saveOrderModalForm.inputDate.$invalid}">
+                        <div class="form-group">
                             <label for="inputDate" class="col-sm-2 control-label">Date:</label>
-                            <datetimepicker id="inputDate"
-                                            name="inputDate"
-                                            show-meridian="false"
-                                            data-ng-model="date"
-                                            date-format="dd/mm/yyyy">
-                            </datetimepicker>
+                            <div id="inputDate"
+                                class="dropdown">
+                                <a class="dropdown-toggle"
+                                    id="dateDropdown"
+                                    role="button"
+                                    data-toggle="dropdown" href="">
+                                    <div class="input-group">
+                                        <input type="text"
+                                                date-parser="DD/MM/YYYY hh:mm A"
+                                                class="col-sm-7 form-control"
+                                                data-ng-model="date">
+                                        <span class="input-group-addon">
+                                            <i class="fa fa-calendar"></i>
+                                        </span>
+                                    </div>
+                                </a>
+                                <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                                    <datetimepicker data-ng-model="date"
+                                                    data-datetimepicker-config="{ dropdownSelector: '#dateDropdown' }"/>
+                                </ul>
+                            </div>
                         </div>
                         <div class="form-group"
                             ng-class="{'has-error': saveOrderModalForm.inputTaxRate.$invalid}">

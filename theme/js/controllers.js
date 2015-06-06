@@ -115,11 +115,7 @@ allControllers.controller('companyinformationController', ['$scope', '$http', '$
 
         toggleMenu('setup');
 
-        var req = {
-            method: 'GET',
-            url: globalServerURL + 'company_information'
-        };
-        $http(req).success(function(data){
+        $http.get(globalServerURL + 'company_information').success(function(data){
             $scope.company_information = data;
         });
 
@@ -154,11 +150,7 @@ allControllers.controller('clientsController', ['$scope', '$http', 'globalServer
         toggleMenu('setup');
         $scope.isDisabled = false;
 
-        var req = {
-            method: 'GET',
-            url: globalServerURL + 'clients',
-        };
-        $http(req).success(function(data){
+        $http.get(globalServerURL + 'clients').success(function(data){
             $scope.jsonclients = data;
         });
 
@@ -277,11 +269,7 @@ allControllers.controller('suppliersController', ['$scope', '$http', 'globalServ
         toggleMenu('setup');
         $scope.isDisabled = false;
 
-        var req = {
-            method: 'GET',
-            url: globalServerURL + 'suppliers'
-        };
-        $http(req).success(function(data){
+        $http.get(globalServerURL + 'suppliers').success(function(data){
             $scope.jsonsuppliers = data;
         });
 
@@ -398,11 +386,7 @@ allControllers.controller('citiesController', ['$scope', '$http', '$modal', '$lo
 
         toggleMenu('setup');
 
-        var req = {
-            method: 'GET',
-            url: globalServerURL + 'cities'
-        };
-        $http(req).success(function(data){
+        $http.get(globalServerURL + 'cities').success(function(data){
             $scope.cityList = data;
         });
 
@@ -462,14 +446,6 @@ allControllers.controller('unitsController', ['$scope', '$http', '$modal', '$log
 
         toggleMenu('setup');
 
-        var req = {
-            method: 'GET',
-            url: globalServerURL + 'units'
-        };
-        $http(req).success(function(data){
-            $scope.unitList = data;
-        });
-
         // clear the unit input fields
         $scope.clearInput = function(){
             $scope.newUnit = undefined;
@@ -519,7 +495,6 @@ allControllers.controller('unitsController', ['$scope', '$http', '$modal', '$log
 
     }
 ]);
-
 
 // Controller for the projects and treeview
 allControllers.controller('projectsController',['$scope', '$http', 'globalServerURL', '$rootScope', 'sharedService', '$timeout',
@@ -1377,7 +1352,7 @@ allControllers.controller('navController', ['$scope', 'SessionService',
 allControllers.controller('ordersController', ['$scope', '$http', 'globalServerURL',
     function($scope, $http, globalServerURL) {
 
-        toggleMenu('setup');
+        toggleMenu('orders');
         $scope.dateTimeNow = function() {
             $scope.date = new Date();
         };
