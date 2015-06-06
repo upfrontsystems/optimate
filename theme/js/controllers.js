@@ -497,8 +497,8 @@ allControllers.controller('unitsController', ['$scope', '$http', '$modal', '$log
 ]);
 
 // Controller for the projects and treeview
-allControllers.controller('projectsController',['$scope', '$http', 'globalServerURL', '$rootScope', 'sharedService', '$timeout',
-    function($scope, $http, globalServerURL, $rootScope, sharedService, $timeout) {
+allControllers.controller('projectsController',['$scope', '$http', '$q', 'globalServerURL', '$rootScope', 'sharedService', '$timeout',
+    function($scope, $http, $q, globalServerURL, $rootScope, sharedService, $timeout) {
 
         toggleMenu('projects');
         // variable for disabling submit button after user clicked it
@@ -878,40 +878,40 @@ allControllers.controller('projectsController',['$scope', '$http', 'globalServer
         // Load the resources the user can select from the resource list
         $scope.loadResourceList = function(state){
             var currentid = $scope.currentNode.ID;
-            var req = {
-                method: 'GET',
-                url: globalServerURL + 'resource_list/' + currentid + '/'
-            }
-            $http(req).success(function(data) {
-                finderdata = data
-                console.log(finderdata)
-                // instantiate the related items widget
-                $('.finder').each(function() {
-                    var url = $(this).attr('data-url');
-                    var finder = new ContentFinder('#'+$(this).attr('id'), url, true);
-                    finder.listdir(url);
-                    $(document).on('click', function(event) {
-                        if (!$(event.target).closest('#related_items_finder').length) {
-                            finder.dropdown.css({'left': -9000});
-                            // close the widget if it was left open last time
-                            $('.finder-dropdown').attr('style','left: -9000px; width: 99.9%; top: 29px;');
-                            // set the text in case it is blank
-                            $('#inputResources').val('Click to search or browse');
-                        }
-                    });
+            $('.finder').each(function() {
+                var finder = new ContentFinder(this, function(id){
+                    return $http({
+                        method: 'GET',
+                        url: globalServerURL + 'resource_list/' + id + '/'
+                    })
                 });
-
-                console.log("Resource list loaded");
-                if ( state == 'add' ) {
-                    // remove any old remembered choices from last time
-                    $('.search-choice').remove();
-                }
-                // close the widget if it was left open last time
-                $('.finder-dropdown').attr('style','left: -9000px; width: 99.9%; top: 29px;');
-                // set the text in case it is blank
-                $('#inputResources').val('Click to search or browse');
-                $('#inputResources').focus();
+                finder.listdir(currentid);
             });
+
+            //$http(req).success(function(data) {
+            //    // instantiate the related items widget
+            //    $('.finder').each(function() {
+            //        $(document).on('click', function(event) {
+            //            if (!$(event.target).closest('#related_items_finder').length) {
+            //                finder.dropdown.css({'left': -9000});
+            //                // close the widget if it was left open last time
+            //                $('.finder-dropdown').attr('style','left: -9000px; width: 99.9%; top: 29px;');
+            //                // set the text in case it is blank
+            //                $('#inputResources').val('Click to search or browse');
+            //            }
+            //        });
+            //    });
+
+            //    if ( state == 'add' ) {
+            //        // remove any old remembered choices from last time
+            //        $('.search-choice').remove();
+            //    }
+            //    // close the widget if it was left open last time
+            //    $('.finder-dropdown').attr('style','left: -9000px; width: 99.9%; top: 29px;');
+            //    // set the text in case it is blank
+            //    $('#inputResources').val('Click to search or browse');
+            //    $('#inputResources').focus();
+            //});
         };
 
         // Load a list of the fields used in adding a project
