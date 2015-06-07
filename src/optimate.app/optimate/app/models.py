@@ -223,6 +223,20 @@ class Project(Node):
                 'proj_profit': str(self.ProjectedProfit),
                 'act_profit': str(self.ActualProfit)}
 
+    def toChildDict(self):
+        """ Returns a dictionary of this node used in the childview
+        """
+        subitem = []
+        if len(self.Children) > 0:
+            subitem = [{'Name': '...', 'NodeType': 'Default'}]
+
+        return {'Name': self.Name,
+                'Description': self.Description,
+                'ID': self.ID,
+                'Subitem': subitem,
+                'NodeType': self.type,
+                'NodeTypeAbbr' : 'P'}
+
     def getGridData(self):
         return {'name': self.Name,
             'id': self.ID,
@@ -358,6 +372,20 @@ class BudgetGroup(Node):
             else:
                 componentlist += child.getComponents()
         return componentlist
+
+    def toChildDict(self):
+        """ Returns a dictionary of this node used in the childview
+        """
+        subitem = []
+        if len(self.Children) > 0:
+            subitem = [{'Name': '...', 'NodeType': 'Default'}]
+
+        return {'Name': self.Name,
+                'Description': self.Description,
+                'ID': self.ID,
+                'Subitem': subitem,
+                'NodeType': self.type,
+                'NodeTypeAbbr' : 'G'}
 
     def toDict(self):
         if len(self.Children) == 0:
@@ -559,6 +587,20 @@ class BudgetItem(Node):
             else:
                 componentlist += child.getComponents()
         return componentlist
+
+    def toChildDict(self):
+        """ Returns a dictionary of this node used in the childview
+        """
+        subitem = []
+        if len(self.Children) > 0:
+            subitem = [{'Name': '...', 'NodeType': 'Default'}]
+
+        return {'Name': self.Name,
+                'Description': self.Description,
+                'ID': self.ID,
+                'Subitem': subitem,
+                'NodeType': self.type,
+                'NodeTypeAbbr' : 'I'}
 
     def toDict(self):
         """ Returns a dictionary of all the attributes of this object.
@@ -802,6 +844,20 @@ class Component(Node):
         """
         pass
 
+    def toChildDict(self):
+        """ Returns a dictionary of this node used in the childview
+        """
+        subitem = []
+        return {'Name': self.Name,
+                'Description': self.Description,
+                'ID': self.ID,
+                'Subitem': subitem,
+                'NodeType': self.type,
+                'NodeTypeAbbr' : 'C',
+                'Quantity': self.Quantity,
+                'Rate': "R" + '{:20,.2f}'.format(self.Rate),
+                'Total': "R" + '{:20,.2f}'.format(self.Total)}
+
     def toDict(self):
         """ Return a dictionary of all the attributes of this Component
             Also returns a list of the Overhead ID's used by this component
@@ -965,6 +1021,20 @@ class ResourceCategory(Node):
         for child in sourcechildren:
             source.paste(child.copy(source.ID), child.Children)
 
+    def toChildDict(self):
+        """ Returns a dictionary of this node used in the childview
+        """
+        subitem = []
+        if len(self.Children) > 0:
+            subitem = [{'Name': '...', 'NodeType': 'Default'}]
+
+        return {'Name': self.Name,
+                'Description': self.Description,
+                'ID': self.ID,
+                'Subitem': subitem,
+                'NodeType': self.type,
+                'NodeTypeAbbr' : 'C'}
+
     def toDict(self):
         """ Returns a dictionary of this ResourceCategory, which only contains
             its name and a list indicating it has children or not
@@ -1081,6 +1151,17 @@ class Resource(Node):
         """ Do nothing. Cant paste into a resource
         """
         pass
+
+    def toChildDict(self):
+        """ Returns a dictionary of this node used in the childview
+        """
+        subitem = []
+        return {'Name': self.Name,
+                'Description': self.Description,
+                'ID': self.ID,
+                'Subitem': subitem,
+                'NodeType': self.type,
+                'NodeTypeAbbr' : 'R'}
 
     def toDict(self):
         return {'Name': self.Name,

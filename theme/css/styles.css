@@ -244,6 +244,7 @@ span.order-tree-node {
     background-repeat:no-repeat;
     border: none;
     outline:none;
+    cursor:pointer;
 }
 
 div.order-tree-content{
@@ -253,4 +254,16 @@ div.order-tree-content{
 
 div.order-node-description {
     padding-left:5em;
+}
+
+button.custom-checkbox{
+    background-color: Transparent;
+    background-repeat:no-repeat;
+    border: none;
+    outline:none;
+    float: right;
+}
+
+i.checkbox-icon {
+    background-color: white;
 }

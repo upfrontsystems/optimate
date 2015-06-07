@@ -70,12 +70,18 @@
                                 <thead>
                                     <tr>
                                         <th>Components</th>
+                                        <th>Quantity</th>
+                                        <th>Rate</th>
+                                        <th>Total</th>
                                         <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr ng-repeat="comp in componentsList">
                                         <td>{{comp.Name}}</td>
+                                        <td>{{comp.Quantity}}</td>
+                                        <td>{{comp.Rate}}</td>
+                                        <td>{{comp.Total}}</td>
                                         <td>
                                           <button data-ng-click="removeComponent(comp)"
                                                   title="Remove">
@@ -94,7 +100,7 @@
                     {{addComponentsButton}}
                 </button>
                 <div collapse="isCollapsed">
-                    <div class="well well-lg" ng-include="'partials/orderTreeview.html'">
+                    <div class="well well-lg" data-ng-include="'partials/orderTreeview.html'">
                     </div>
                 </div>
             </div>

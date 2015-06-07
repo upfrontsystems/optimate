@@ -125,44 +125,9 @@ def childview(request):
     if qry != None:
         for child in qry.Children:
             if child.type == 'ResourceCategory':
-                subitem = []
-                if len(child.Children) > 0:
-                    subitem = [{'Name': '...', 'NodeType': 'Default'}]
-
-                nodetypeabbr = 'C'
-                resourcecategories.append({
-                    'Name': child.Name,
-                    'Description': child.Description,
-                    'ID': child.ID,
-                    'Subitem': subitem,
-                    'NodeType': child.type,
-                    'NodeTypeAbbr' : nodetypeabbr
-                    })
+                resourcecategories.append(child.toChildDict())
             else:
-                subitem = []
-                if len(child.Children) > 0:
-                    subitem = [{'Name': '...', 'NodeType': 'Default'}]
-
-                nodetypeabbr = ''
-                if child.type == "Project":
-                    nodetypeabbr = 'P'
-                elif child.type == "Resource":
-                    nodetypeabbr = 'R'
-                elif child.type == "BudgetItem":
-                    nodetypeabbr = 'I'
-                elif child.type == "BudgetGroup":
-                    nodetypeabbr = 'G'
-                elif child.type == "Component":
-                    nodetypeabbr = 'C'
-
-                childrenlist.append({
-                    'Name': child.Name,
-                    'Description': child.Description,
-                    'ID': child.ID,
-                    'Subitem': subitem,
-                    'NodeType': child.type,
-                    'NodeTypeAbbr' : nodetypeabbr
-                    })
+                childrenlist.append(child.toChildDict())
 
     # sort childrenlist
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'].upper())
@@ -1305,8 +1270,7 @@ def orderview(request):
     # build a list of the components used in the order from the order items
     componentslist = []
     for orderitem in order.OrderItems:
-        componentslist.append({'Name': orderitem.Component.Name,
-                                'ID': orderitem.Component.ID})
+        componentslist.append(orderitem.Component.toChildDict())
 
     componentslist = sorted(componentslist, key=lambda k: k['Name'])
     # get the date in json format

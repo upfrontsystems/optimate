@@ -49,11 +49,14 @@
                         <label class="col-sm-2 control-label" style="display: block;" >Overhead:
                         </label>
                         <table>
-                            <tr ng-repeat="overhead in componentOverheadList">
+                            <tr data-ng-repeat="overhead in componentOverheadList">
                                 <td>{{overhead.Name}} &nbsp;</td>
                                 <td>
-                                    <input type="checkbox" value="{{overhead.Name}}"
-                                           ng-model="overhead.selected">
+                                    <button class="custom-checkbox"
+                                          data-ng-click="overhead.selected = !overhead.selected">
+                                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[overhead.selected]">
+                                        </i>
+                                    </button>
                                 </td>
                             </tr>
                         </table>

@@ -1067,7 +1067,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$q', 'global
                             $scope.componentOverheadList[i].selected = true;
                         }
                     }
-                    $scope.formData['OverheadList'] = $scope.componentOverheadList
+                    $scope.formData['OverheadList'] = $scope.componentOverheadList;
                 }
             });
         }
@@ -1536,7 +1536,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             }).success(function(response){
                 $scope.formData = response;
                 $scope.componentsList = $scope.formData['ComponentsList'];
-                $scope.date = Date.parse($scope.formData['Date']);
+                $scope.date = new Date($scope.formData['Date']);
                 $scope.formData['NodeType'] = 'order';
             });
         }
@@ -1565,6 +1565,8 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         };
 
         $scope.toggleComponents = function(node){
+            var flag = (node.selected === true) ? undefined : true;
+            node.selected = flag;
             var componentid = node.ID;
             var result = $.grep($scope.componentsList, function(e) {
                     return e.ID == componentid;
