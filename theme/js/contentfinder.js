@@ -16,25 +16,19 @@ var ContentFinder = function(id, callback, multiselect) {
     self.callback = callback;
 
 
-    var open_dropdown = function(e) {
-        var tagName = $(e.target).prop('tagName');
-        if (tagName === 'UL' || tagName === 'INPUT') {
-            if (self.input.attr('value') === self.input.attr('data-placeholder')) {
-                self.input.attr('value', '');
-            }
-            self.input.focus();
-            self.dropdown.css({'left': 0});
+    self.open_dropdown = function() {
+        if (self.input.attr('value') === self.input.attr('data-placeholder')) {
+            self.input.attr('value', '');
         }
+        self.input.focus();
+        self.dropdown.css({'left': 0});
     };
-    var close_dropdown = function(e) {
-        var tagName = $(e.target).prop('tagName');
-        if (tagName === 'UL' || tagName === 'INPUT') {
-            if (self.input.attr('value') === '') {
-                self.input.attr('value', self.input.attr('data-placeholder'));
-            }
-            self.input.focus();
-            self.dropdown.css({'left': -9000});
+    self.close_dropdown = function() {
+        if (self.input.attr('value') === '') {
+            self.input.attr('value', self.input.attr('data-placeholder'));
         }
+        self.input.focus();
+        self.dropdown.css({'left': -9000});
     };
 
     var keyboard_navigation = function (evt) {
@@ -51,7 +45,7 @@ var ContentFinder = function(id, callback, multiselect) {
 
                 case 40:
                     // arrow down
-                    open_dropdown(evt);
+                    self.open_dropdown(evt);
                     if ($('.LSHighlight', self.results).length === 0) {
                         // highlight the first item in the list
                         self.results.children()
@@ -95,7 +89,7 @@ var ContentFinder = function(id, callback, multiselect) {
 
                 case 27:
                     // close dropdown on Escape
-                    close_dropdown(evt);
+                    self.close_dropdown();
                     break;
 
 
@@ -106,11 +100,12 @@ var ContentFinder = function(id, callback, multiselect) {
         }
     };
     self.choices
-        .toggle(open_dropdown, close_dropdown)
+        .toggle(self.open_dropdown, self.close_dropdown)
         .keydown(keyboard_navigation);
 
     // Delegated events, this way we need only attach one handler
     self.results.on('click', 'li.not-folderish', function(e){
+        e.preventDefault();
         self.result_click($(this));
     });
 
@@ -134,7 +129,6 @@ var ContentFinder = function(id, callback, multiselect) {
         e.preventDefault();
         self.listdir($(this).attr('data-uid'));
     });
-
 };
 
 ContentFinder.prototype.selected_uids = function() {
