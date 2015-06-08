@@ -14,27 +14,24 @@ var ContentFinder = function(id, callback, multiselect) {
     // self.single_backstroke_delete = this.options.single_backstroke_delete || false;
     self.single_backstroke_delete = false;
     self.callback = callback;
+    self.opened = false;
 
 
-    var open_dropdown = function(e) {
-        var tagName = $(e.target).prop('tagName');
-        if (tagName === 'UL' || tagName === 'INPUT') {
-            if (self.input.attr('value') === self.input.attr('data-placeholder')) {
-                self.input.attr('value', '');
-            }
-            self.input.focus();
-            self.dropdown.css({'left': 0});
+    self.open_dropdown = function() {
+        if (self.input.attr('value') === self.input.attr('data-placeholder')) {
+            self.input.attr('value', '');
         }
+        self.input.focus();
+        self.dropdown.css({'left': 0});
+        self.opened = true;
     };
-    var close_dropdown = function(e) {
-        var tagName = $(e.target).prop('tagName');
-        if (tagName === 'UL' || tagName === 'INPUT') {
-            if (self.input.attr('value') === '') {
-                self.input.attr('value', self.input.attr('data-placeholder'));
-            }
-            self.input.focus();
-            self.dropdown.css({'left': -9000});
+    self.close_dropdown = function() {
+        self.opened = false;
+        if (self.input.attr('value') === '') {
+            self.input.attr('value', self.input.attr('data-placeholder'));
         }
+        self.input.focus();
+        self.dropdown.css({'left': -9000});
     };
 
     var keyboard_navigation = function (evt) {
@@ -51,7 +48,7 @@ var ContentFinder = function(id, callback, multiselect) {
 
                 case 40:
                     // arrow down
-                    open_dropdown(evt);
+                    self.open_dropdown(evt);
                     if ($('.LSHighlight', self.results).length === 0) {
                         // highlight the first item in the list
                         self.results.children()
@@ -95,7 +92,7 @@ var ContentFinder = function(id, callback, multiselect) {
 
                 case 27:
                     // close dropdown on Escape
-                    close_dropdown(evt);
+                    self.close_dropdown();
                     break;
 
 
@@ -105,26 +102,24 @@ var ContentFinder = function(id, callback, multiselect) {
             evt.preventDefault();
         }
     };
-    self.choices
-        .toggle(open_dropdown, close_dropdown)
-        .keydown(keyboard_navigation);
+    self.choices.on('click', function(e){
+        e.preventDefault();
+        self.opened && self.close_dropdown() || self.open_dropdown();
+    }).keydown(keyboard_navigation);
 
     // Delegated events, this way we need only attach one handler
     self.results.on('click', 'li.not-folderish', function(e){
-        self.result_click($(e.target));
+        e.preventDefault();
+        self.result_click($(this));
     });
 
-    self.container.on('dblclick', 'li.folderish', function(e){
+    self.container.on('click', 'li.folderish', function(e){
         e.preventDefault();
-        e.stopPropagation();
         self.listdir($(this).data('uid'));
-    }).on('click', 'li.folderish', function(e){
-        self.result_click($(this));
     });
 
     self.container.on('click', 'a.open-folder', function(e){
         e.preventDefault();
-        e.stopPropagation();
         self.listdir($(this).parent().data('uid'));
     });
 
@@ -136,10 +131,13 @@ var ContentFinder = function(id, callback, multiselect) {
 
     self.container.on('click', '.internalpath a', function(e){
         e.preventDefault();
-        e.stopPropagation();
         self.listdir($(this).attr('data-uid'));
     });
 
+    // Remove items from choice box if you click the X
+    self.choices.on('click', 'a.search-choice-close', function(e){
+        self.choice_destroy($(this));
+    });
 };
 
 ContentFinder.prototype.selected_uids = function() {
@@ -249,6 +247,11 @@ ContentFinder.prototype.deselect_item = function(uid) {
     self.selecteditems = lst;
 };
 
+ContentFinder.prototype.clear_selection = function() {
+    $('.search-choice', this.choices).remove();
+    this.selecteditems = [];
+};
+
 ContentFinder.prototype.result_click = function(item) {
     var self = this,
         selected, i, html = [];
@@ -268,7 +271,7 @@ ContentFinder.prototype.result_click = function(item) {
             for (i=0; i<self.selectedresults.length; i++) {
                 selected = self.selectedresults[i];
                 if (selected.data('uid') === item.data('uid')) {
-                    selected.toggleClass('selected');
+                    selected.addClass('selected');
                     self.deselect_item(selected.data('uid'));
                 } else {
                     new_lst.push(selected);
@@ -278,7 +281,7 @@ ContentFinder.prototype.result_click = function(item) {
         } else {
             self.selectedresults.push(item);
             self.select_item(item.data('uid'));
-            item.toggleClass('selected');
+            item.removeClass('selected');
         }
     }
 
@@ -291,11 +294,6 @@ ContentFinder.prototype.result_click = function(item) {
     self.choices.prepend(html.join(''));
     self.input.focus();
 
-    $('a.search-choice-close', this.chosen)
-        .unbind('.selected')
-        .bind('click.selected', function() {
-            self.choice_destroy($(this));
-        });
     self.resize();
 };
 
@@ -316,14 +314,12 @@ ContentFinder.prototype.choice_destroy = function(link) {
 };
 
 ContentFinder.prototype.keydown_backstroke = function() {
-    console.log(this.pending_backstroke);
     var next_available_destroy;
     if (this.pending_backstroke) {
         this.choice_destroy(this.pending_backstroke.find("a").first());
         return this.clear_backstroke();
     } else {
         next_available_destroy = $("li.search-choice", this.choices).last();
-        console.log(next_available_destroy.length);
         if (next_available_destroy.length && !next_available_destroy.hasClass("search-choice-disabled")) {
             this.pending_backstroke = next_available_destroy;
             if (this.single_backstroke_delete) {

@@ -878,39 +878,23 @@ allControllers.controller('projectsController',['$scope', '$http', '$q', 'global
         $scope.loadResourceList = function(state){
             var currentid = $scope.currentNode.ID;
             $('.finder').each(function() {
-                var finder = new ContentFinder(this, function(id){
+                $scope.finder = new ContentFinder(this, function(id){
                     return $http({
                         method: 'GET',
                         url: globalServerURL + 'resource_list/' + id + '/'
                     })
                 });
-                finder.listdir(currentid);
+                if (state == 'add'){ $scope.finder.clear_selection(); }
+                $scope.finder.listdir(currentid);
             });
+        };
 
-            //$http(req).success(function(data) {
-            //    // instantiate the related items widget
-            //    $('.finder').each(function() {
-            //        $(document).on('click', function(event) {
-            //            if (!$(event.target).closest('#related_items_finder').length) {
-            //                finder.dropdown.css({'left': -9000});
-            //                // close the widget if it was left open last time
-            //                $('.finder-dropdown').attr('style','left: -9000px; width: 99.9%; top: 29px;');
-            //                // set the text in case it is blank
-            //                $('#inputResources').val('Click to search or browse');
-            //            }
-            //        });
-            //    });
-
-            //    if ( state == 'add' ) {
-            //        // remove any old remembered choices from last time
-            //        $('.search-choice').remove();
-            //    }
-            //    // close the widget if it was left open last time
-            //    $('.finder-dropdown').attr('style','left: -9000px; width: 99.9%; top: 29px;');
-            //    // set the text in case it is blank
-            //    $('#inputResources').val('Click to search or browse');
-            //    $('#inputResources').focus();
-            //});
+        // Not the most angular approach, but it does help it go away
+        // when you click outside the dropdown.
+        $scope.closeDropdown = function(e){
+            if (!e.isDefaultPrevented()){
+                $scope.finder && $scope.finder.close_dropdown();
+            }
         };
 
         // Load a list of the fields used in adding a project
