@@ -14,6 +14,7 @@ var ContentFinder = function(id, callback, multiselect) {
     // self.single_backstroke_delete = this.options.single_backstroke_delete || false;
     self.single_backstroke_delete = false;
     self.callback = callback;
+    self.opened = false;
 
 
     self.open_dropdown = function() {
@@ -22,8 +23,10 @@ var ContentFinder = function(id, callback, multiselect) {
         }
         self.input.focus();
         self.dropdown.css({'left': 0});
+        self.opened = true;
     };
     self.close_dropdown = function() {
+        self.opened = false;
         if (self.input.attr('value') === '') {
             self.input.attr('value', self.input.attr('data-placeholder'));
         }
@@ -99,9 +102,10 @@ var ContentFinder = function(id, callback, multiselect) {
             evt.preventDefault();
         }
     };
-    self.choices
-        .toggle(self.open_dropdown, self.close_dropdown)
-        .keydown(keyboard_navigation);
+    self.choices.on('click', function(e){
+        e.preventDefault();
+        self.opened && self.close_dropdown() || self.open_dropdown();
+    }).keydown(keyboard_navigation);
 
     // Delegated events, this way we need only attach one handler
     self.results.on('click', 'li.not-folderish', function(e){
