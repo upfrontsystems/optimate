@@ -116,7 +116,6 @@ var ContentFinder = function(id, callback, multiselect) {
 
     self.container.on('dblclick', 'li.folderish', function(e){
         e.preventDefault();
-        e.stopPropagation();
         self.listdir($(this).data('uid'));
     }).on('click', 'li.folderish', function(e){
         self.result_click($(this));
@@ -124,7 +123,6 @@ var ContentFinder = function(id, callback, multiselect) {
 
     self.container.on('click', 'a.open-folder', function(e){
         e.preventDefault();
-        e.stopPropagation();
         self.listdir($(this).parent().data('uid'));
     });
 
@@ -136,7 +134,6 @@ var ContentFinder = function(id, callback, multiselect) {
 
     self.container.on('click', '.internalpath a', function(e){
         e.preventDefault();
-        e.stopPropagation();
         self.listdir($(this).attr('data-uid'));
     });
 
@@ -316,14 +313,12 @@ ContentFinder.prototype.choice_destroy = function(link) {
 };
 
 ContentFinder.prototype.keydown_backstroke = function() {
-    console.log(this.pending_backstroke);
     var next_available_destroy;
     if (this.pending_backstroke) {
         this.choice_destroy(this.pending_backstroke.find("a").first());
         return this.clear_backstroke();
     } else {
         next_available_destroy = $("li.search-choice", this.choices).last();
-        console.log(next_available_destroy.length);
         if (next_available_destroy.length && !next_available_destroy.hasClass("search-choice-disabled")) {
             this.pending_backstroke = next_available_destroy;
             if (this.single_backstroke_delete) {
