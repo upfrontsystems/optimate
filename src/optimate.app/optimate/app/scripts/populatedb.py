@@ -1006,6 +1006,11 @@ if __name__ == '__main__':
 
         transaction.commit()
 
+        # Order.__table__.drop(engine)
+        # transaction.commit()
+        # OrderItem.__table__.drop(engine)
+        # transaction.commit()
+
         orderbook = xlrd.open_workbook(exceldatapath + 'Orders.xls')
         sheet = orderbook.sheet_by_index(0)
         codeindex = 0
@@ -1064,22 +1069,45 @@ if __name__ == '__main__':
         codeindex = 0
         orderidindex = 1
         compidindex = 2
+        quantityindex = 5
+        rateindex = 7
 
         print 'Converting Order Item table'
         for x in range(1, sheet.nrows):
             code = int(sheet.cell(x, codeindex).value)
             orderid = sheet.cell(x, orderidindex).value
             compid = sheet.cell(x, compidindex).value
+            try:
+                quantity = float(sheet.cell(x,
+                    quantityindex).value)
+            except ValueError, e:
+                quantity = 0
+            try:
+                rate = Decimal(sheet.cell(x,
+                    rateindex).value).quantize(Decimal('.01'))
+            except InvalidOperation, e:
+                rate = Decimal(0.00)
 
             # if the code has been changed assign it here
             if compid in changedcocodes:
                 if changedcocodes[compid] != 149999:
                     compid = changedcocodes[compid]
 
-                    orderitem = OrderItem(ID=code,
-                                    OrderID=orderid,
-                                    ComponentID=compid)
-                    DBSession.add(orderitem)
+            # get the existing orderitems of an order
+            # for those who have the same component
+            qry=DBSession.query(OrderItem).filter_by(OrderID=orderid). \
+                                filter_by(ComponentID=compid).first()
+            # if the component already exists just add the quantities
+            if qry:
+                qry.Quantity = qry.Quantity + quantity
+                transaction.commit()
+            else:
+                orderitem = OrderItem(ID=code,
+                                OrderID=orderid,
+                                ComponentID=compid,
+                                Quantity=quantity,
+                                Rate=rate)
+                DBSession.add(orderitem)
 
         transaction.commit()
 

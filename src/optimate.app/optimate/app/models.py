@@ -853,10 +853,7 @@ class Component(Node):
                 'ID': self.ID,
                 'Subitem': subitem,
                 'NodeType': self.type,
-                'NodeTypeAbbr' : 'C',
-                'Quantity': self.Quantity,
-                'Rate': "R" + '{:20,.2f}'.format(self.Rate),
-                'Total': "R" + '{:20,.2f}'.format(self.Total)}
+                'NodeTypeAbbr' : 'C'}
 
     def toDict(self):
         """ Return a dictionary of all the attributes of this Component
@@ -1354,11 +1351,33 @@ class OrderItem(Base):
     ID = Column(Integer, primary_key=True, index=True)
     OrderID = Column(Integer, ForeignKey('Order.ID'))
     ComponentID = Column(Integer, ForeignKey('Component.ID'))
+    Quantity = Column('Quantity', Float, default=0.0)
+    Rate = Column('Rate', Numeric)
 
     Order = relationship('Order',
                               backref=backref('OrderItems'))
     Component = relationship('Component',
                               backref=backref('OrderItem'))
+
+    @hybrid_property
+    def Total(self):
+        """ Return the total. Total is Quantity*Rate
+        """
+        return (Decimal(self.Quantity)*self.Rate).quantize(Decimal('.01'))
+
+    @Total.setter
+    def Total(self, total):
+        """ Set total property.
+        """
+        pass
+
+    def toDict(self):
+        """ Returns a dictionary of this OrderItem
+        """
+        return {'Name': self.Component.Name,
+                'Quantity': self.Quantity,
+                'Rate': str(self.Rate),
+                'Total': str(self.Total)}
 
     def __repr__(self):
         """Return a representation of this order item

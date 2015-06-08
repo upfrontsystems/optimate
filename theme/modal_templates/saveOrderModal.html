@@ -56,14 +56,16 @@
                                 </ul>
                             </div>
                         </div>
-                        <div class="form-group"
-                            ng-class="{'has-error': saveOrderModalForm.inputTaxRate.$invalid}">
-                            <label for="inputTaxRate" class="col-sm-2 control-label">Tax Rate:</label>
-                            <input type="text"
-                                   class="col-sm-7"
-                                   id="inputTaxRate"
-                                   name="inputTaxRate"
-                                   ng-model="formData['TaxRate']">
+                        <div class="form-group">
+                            <label for="inputTaxRate" class="col-sm-2 control-label">Tax:</label>
+                            <button class="custom-checkbox"
+                                    id="inputTaxRate"
+                                    name="inputTaxRate"
+                                    data-ng-click="formData['TaxRate'] = !formData['TaxRate']">
+                                  <i data-ng-class="{true:'fa fa-check-square-o',false:'fa fa-square-o'}[formData['TaxRate']]"
+                                      class="checkbox-icon">
+                                  </i>
+                            </button>
                         </div>
                         <div id="order_components" class="row form-group">
                             <table class="table table-hover">
@@ -94,15 +96,15 @@
                         </div>
                     </form>
                 </div>
+                <div collapse="isCollapsed">
+                    <div data-ng-include="'partials/orderTreeview.html'">
+                    </div>
+                </div>
                 <button class="btn btn-default"
                         data-ng-click="componentsButtonClicked()"
                         data-ng-disabled="saveOrderModalForm.inputProject.$invalid">
-                    {{addComponentsButton}}
+                    Add Components
                 </button>
-                <div collapse="isCollapsed">
-                    <div class="well well-lg" data-ng-include="'partials/orderTreeview.html'">
-                    </div>
-                </div>
             </div>
             <div class="modal-footer">
                 <button data-ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal"

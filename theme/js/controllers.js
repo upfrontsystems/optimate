@@ -1359,7 +1359,6 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         $scope.dateTimeNow();
         $scope.isDisabled = false;
         $scope.isCollapsed = true;
-        $scope.addComponentsButton = "Add Components";
         $scope.jsonorders = [];
         $scope.componentsList = [];
         // Pagination variables and functions
@@ -1429,22 +1428,18 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         $scope.componentsButtonClicked = function(){
             $scope.loadProject();
             $scope.isCollapsed = !$scope.isCollapsed;
-            if ($scope.isCollapsed){
-                $scope.addComponentsButton = "Add Components";
-            }
-            else{
-                $scope.addComponentsButton = "Back";
-            }
         }
 
 
         // Adding or editing an order
         $scope.save = function(){
-            // set the list of checked components
-            $scope.setComponentsList();
             // check if saving is disabled, if not disable it and save
             if (!$scope.isDisabled){
                 $scope.isDisabled = true;
+                // set the list of checked components
+                $scope.setComponentsList();
+                // set the tax rate
+                $scope.formData['TaxRate'] = $scope.formData['TaxRate'] ? 14 : 0;
                 // convert the date to json format
                 $scope.formData['Date'] = $scope.date.toJSON();
                 if ($scope.modalState == 'Edit'){
@@ -1453,6 +1448,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                         url: globalServerURL + $scope.formData['NodeType'] + '/' + $scope.formData['ID'] + '/',
                         data: $scope.formData
                     }).success(function (response) {
+                        response['TaxRate'] = (response['TaxRate'] > 0);
                         $scope.handleEdited(response);
                         $scope.formData = {'NodeType': $scope.formData['NodeType']};
                     });
@@ -1474,8 +1470,8 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         // add a new order to the list and sort
         $scope.handleNew = function(neworder){
             // the new order is added to the list
-            var low = $scope.jsonorders[0].ID;
-            var high = $scope.jsonorders[$scope.jsonorders.length - 1].ID + 2;
+            var high = $scope.jsonorders[0].ID + 2;
+            var low = $scope.jsonorders[$scope.jsonorders.length - 1].ID + 2;
             // only need to add it if it's id falls in the current section
             if (neworder.ID > low && neworder.ID < high){
                 $scope.jsonorders.push(neworder);
@@ -1483,7 +1479,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 $scope.jsonorders.sort(function(a, b) {
                     var idA = a.ID;
                     var idB = b.ID;
-                    return (idA < idB) ? -1 : (idA > idB) ? 1 : 0;
+                    return (idA > idB) ? -1 : (idA < idB) ? 1 : 0;
                 });
             }
             console.log ("Order added");
@@ -1510,11 +1506,11 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
 
         // When the Add button is pressed change the state and form data
         $scope.addingState = function (){
-            $scope.addComponentsButton = "Add Components";
+            $scope.formData = {'NodeType': 'order',
+                                'TaxRate': false};
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
             $scope.modalState = "Add";
-            $scope.formData = {'NodeType': 'order'};
             $scope.dateTimeNow();
             $scope.formData['Date'] = $scope.date;
             $scope.componentsList = [];
@@ -1526,7 +1522,6 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
 
         // When the edit button is pressed change the state and set the data
         $scope.editingState = function (){
-            $scope.addComponentsButton = "Add Components";
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
             $scope.modalState = "Edit";
@@ -1538,6 +1533,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 $scope.componentsList = $scope.formData['ComponentsList'];
                 $scope.date = new Date($scope.formData['Date']);
                 $scope.formData['NodeType'] = 'order';
+                $scope.formData['TaxRate'] = ($scope.formData['TaxRate'] > 0);
             });
         }
 

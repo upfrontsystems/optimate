@@ -252,18 +252,26 @@ div.order-tree-content{
     cursor: pointer;
 }
 
-div.order-node-description {
-    padding-left:5em;
-}
-
 button.custom-checkbox{
     background-color: Transparent;
     background-repeat:no-repeat;
     border: none;
     outline:none;
+}
+
+.align-right {
     float: right;
 }
 
 i.checkbox-icon {
     background-color: white;
+}
+
+/* overwriting bootstrap in order table */
+.currency {
+    text-align: right;
+}
+
+.table {
+    cursor: pointer;
 }

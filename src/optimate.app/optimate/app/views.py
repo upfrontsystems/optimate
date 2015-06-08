@@ -1138,8 +1138,8 @@ def ordersview(request):
     else:
         start = int(paramsdict['start'][0])
         end = int(paramsdict['end'][0])
-    section = DBSession.query(Order).slice(start,end).all()
-
+    section = DBSession.query(Order).order_by(
+                                    Order.ID.desc()).slice(start,end).all()
     orderlist = []
     for order in section:
         orderlist.append(order.toDict())
@@ -1270,7 +1270,7 @@ def orderview(request):
     # build a list of the components used in the order from the order items
     componentslist = []
     for orderitem in order.OrderItems:
-        componentslist.append(orderitem.Component.toChildDict())
+        componentslist.append(orderitem.toDict())
 
     componentslist = sorted(componentslist, key=lambda k: k['Name'])
     # get the date in json format
