@@ -497,8 +497,8 @@ allControllers.controller('unitsController', ['$scope', '$http', '$modal', '$log
 ]);
 
 // Controller for the projects and treeview
-allControllers.controller('projectsController',['$scope', '$http', '$q', 'globalServerURL', '$rootScope', 'sharedService', '$timeout',
-    function($scope, $http, $q, globalServerURL, $rootScope, sharedService, $timeout) {
+allControllers.controller('projectsController',['$scope', '$http', '$cacheFactory', 'globalServerURL', '$rootScope', 'sharedService', '$timeout',
+    function($scope, $http, $cacheFactory, globalServerURL, $rootScope, sharedService, $timeout) {
 
         toggleMenu('projects');
         // variable for disabling submit button after user clicked it
@@ -881,12 +881,18 @@ allControllers.controller('projectsController',['$scope', '$http', '$q', 'global
                 $scope.finder = new ContentFinder(this, function(id){
                     return $http({
                         method: 'GET',
+                        cache: $cacheFactory.get('optimate.resources'),
                         url: globalServerURL + 'resource_list/' + id + '/'
                     })
                 });
                 if (state == 'add'){ $scope.finder.clear_selection(); }
                 $scope.finder.listdir(currentid);
             });
+        };
+
+        $scope.refreshResourceList = function(){
+            $cacheFactory.get('optimate.resources').removeAll();
+            $scope.finder.listdir($scope.currentNode.ID);
         };
 
         // Not the most angular approach, but it does help it go away
@@ -1717,3 +1723,7 @@ allControllers.directive('smartFloat', function ($filter) {
         }
     };
 });
+
+allControllers.run(['$cacheFactory', function($cacheFactory){
+    $cacheFactory('optimate.resources')
+}]);
