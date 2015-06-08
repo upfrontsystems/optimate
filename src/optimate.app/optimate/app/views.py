@@ -10,6 +10,7 @@ from pyramid.view import view_config
 from decimal import Decimal
 from sqlalchemy.sql import collate
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy import func
 
 from pyramid.httpexceptions import (
     HTTPOk,
@@ -152,9 +153,26 @@ def childview(request):
 def getitem(request):
     """ Retrieves and returns all the information of a single item
     """
-    nodeid = parentid = request.matchdict['id']
+    nodeid = request.matchdict['id']
     qry = DBSession.query(Node).filter_by(ID=nodeid).first()
     return qry.toDict()
+
+
+@view_config(route_name="getcomponents", renderer='json')
+def getcomponents(request):
+    """ Retrieves and returns all the components in a node
+    """
+    nodeid = request.matchdict['id']
+    qry = DBSession.query(Node).filter_by(ID=nodeid).first()
+    componentslist = qry.getComponents()
+    itemlist = []
+    for comp in componentslist:
+        temp = comp.toChildDict()
+        temp['Quantity'] = 0
+        temp['Rate'] = 0
+        temp['Total'] = 0
+        itemlist.append(temp)
+    return itemlist
 
 
 @view_config(route_name="project_listing", renderer='json')
@@ -1149,8 +1167,8 @@ def ordersview(request):
 def orders_length(request):
     """ Returns the number of orders in the database
     """
-    qry = DBSession.query(Order).all()
-    return {'length': len(qry)}
+    rows = DBSession.query(func.count(Order.ID)).scalar()
+    return {'length': rows}
 
 @view_config(route_name='orderview', renderer='json')
 def orderview(request):

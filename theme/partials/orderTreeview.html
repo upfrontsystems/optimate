@@ -26,6 +26,20 @@
               class="checkbox-icon">
           </i>
       </button>
+      <button class="custom-checkbox align-right"
+              data-ng-show="{{node.NodeType == 'BudgetGroup'}}"
+              data-ng-click="toggleNode(node)">
+          <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o'}[node.selected]"
+              class="checkbox-icon">
+          </i>
+      </button>
+      <button class="custom-checkbox align-right"
+              data-ng-show="{{node.NodeType == 'BudgetItem'}}"
+              data-ng-click="toggleNode(node)">
+          <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o'}[node.selected]"
+              class="checkbox-icon">
+          </i>
+      </button>
   </div>
   <ol ui-tree-nodes ng-model="node.Subitem" data-ng-hide="!node.collapsed" data-type="{{node.NodeType}}">
       <li ng-repeat="node in node.Subitem"

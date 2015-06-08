@@ -16,6 +16,7 @@
                                     name="inputProject"
                                     data-ng-model="formData['ProjectID']"
                                     data-ng-options="project.ID as project.Name for project in projectsList"
+                                    data-ng-change="loadProject()"
                                     required>
                                 <option value="">Select a project</option>
                             </select>
@@ -91,6 +92,11 @@
                                           </button>
                                         </td>
                                     </tr>
+                                    </tr>
+                                        <td style="font: bold;">Order Total</td>
+                                        <td></td>
+                                        <td></td>
+                                        <td>{{selectedOrder.Total}}</td>
                                 </tbody>
                             </table>
                         </div>
@@ -101,12 +107,12 @@
                     </div>
                 </div>
                 <button class="btn btn-default"
-                        data-ng-click="componentsButtonClicked()"
+                        data-ng-click="isCollapsed = !isCollapsed"
                         data-ng-disabled="saveOrderModalForm.inputProject.$invalid">
                     Add Components
                 </button>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer" data-ng-show="isCollapsed">
                 <button data-ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal"
                  data-ng-disabled="!saveOrderModalForm.$valid" data-ng-click="save()">
                     Save

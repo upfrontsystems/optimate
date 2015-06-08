@@ -267,6 +267,11 @@ i.checkbox-icon {
     background-color: white;
 }
 
+li.order-filters {
+    width: 10%;
+    float:right;
+}
+
 /* overwriting bootstrap in order table */
 .currency {
     text-align: right;

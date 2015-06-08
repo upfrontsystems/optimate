@@ -556,8 +556,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$q', 'global
 
         // aux function - checks if object is already in list based on ID
         function containsObject(obj, list) {
-            var i;
-            for (i = 0; i < list.length; i++) {
+            for (var i = 0; i < list.length; i++) {
                 if (list[i].ID === obj.ID) {
                     return true;
                 }
@@ -650,7 +649,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$q', 'global
                 catch (exception) {
                 }
                 if ( open_projects.length != 0 ) {
-                    for (i = 0; i < open_projects.length; i++) {
+                    for (var i = 0; i < open_projects.length; i++) {
                         var id = open_projects[i];
                         var url = globalServerURL + 'projectview/' + id + '/'
                         $http.get(url).success(function(data) {
@@ -1188,7 +1187,7 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
         $scope.selectedUser = null;
         $scope.showActionsFor = function(obj) {
             $scope.selectedUser = obj;
-            for (i in $scope.users){
+            for (var i in $scope.users){
                 $scope.users[i].selected = false;
             }
             obj.selected = true;
@@ -1228,7 +1227,7 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
                 function(response){
                     var i;
                     $scope.data = response.data;
-                    for (i in $scope.newuser.roles){
+                    for (var i in $scope.newuser.roles){
                         var role = $scope.newuser.roles[i];
                         role.selected = (response.data.roles.indexOf(role.title) > -1);
                     }
@@ -1359,13 +1358,14 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         $scope.dateTimeNow();
         $scope.isDisabled = false;
         $scope.isCollapsed = true;
+        $scope.filters = [];
         $scope.jsonorders = [];
         $scope.componentsList = [];
         // Pagination variables and functions
         $scope.pageSize = 100;
         $scope.currentPage = 1;
         $scope.maxPageSize = 20;
-        $scope.orderListLength = $scope.maxPageSize;
+        $scope.orderListLength = $scope.maxPageSize + 1;
         // get the length of the list of all the orders
         $http.get(globalServerURL + 'orders/length').success(function(data){
             $scope.orderListLength = data['length'];
@@ -1389,8 +1389,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
 
         // aux function - checks if object is already in list based on ID
         function containsObject(objid, list) {
-            var i;
-            for (i = 0; i < list.length; i++) {
+            for (var i = 0; i < list.length; i++) {
                 if (list[i].ID === objid) {
                     return true;
                 }
@@ -1423,13 +1422,11 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $scope.supplierList = data;
         });
 
-
-        // when the add components button is clicked
-        $scope.componentsButtonClicked = function(){
-            $scope.loadProject();
-            $scope.isCollapsed = !$scope.isCollapsed;
-        }
-
+        $scope.clientList = [];
+        $http.get(globalServerURL + 'clients')
+        .success(function(data){
+            $scope.clientList = data;
+        });
 
         // Adding or editing an order
         $scope.save = function(){
@@ -1530,6 +1527,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 url: globalServerURL + $scope.formData['NodeType'] + '/' + $scope.selectedOrder.ID + '/'
             }).success(function(response){
                 $scope.formData = response;
+                $scope.loadProject()
                 $scope.componentsList = $scope.formData['ComponentsList'];
                 $scope.date = new Date($scope.formData['Date']);
                 $scope.formData['NodeType'] = 'order';
@@ -1591,7 +1589,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 $scope.componentsList.splice(i, 1);
                 // loop through all the open nodes and if the checked component
                 // is in it uncheck the component
-                for (i = 0; i<$scope.openProjectsList.length; i++){
+                for (var i = 0; i<$scope.openProjectsList.length; i++){
                     var subitem = $scope.openProjectsList[i].Subitem || [];
                     if (subitem.length > 0){
                         $scope.uncheckComponent(deleteid, subitem);
@@ -1616,6 +1614,55 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             }
         }
 
+        $scope.toggleNode= function(node){
+            // when a node that is not a component is selected
+            // flag the node, set the selection on all its children
+            // load the components in the node and toggle them in the
+            // component list
+            var flag = (node.selected === true) ? undefined : true;
+            node.selected = flag;
+            var nodeid = node.ID;
+            var subitems = node['Subitem'];
+            // select the subitems
+            for (var i = 0; i<subitems.length; i++){
+                subitems[i].selected = flag;
+                var subsubitem = subitems[i]['Subitem'] || [];
+                if (subsubitem.length > 0){
+                    $scope.toggleSubitems(subsubitem, flag);
+                }
+            }
+
+            // add the components to the list
+            $http.get(globalServerURL + nodeid + "/components")
+            .success(function(response){
+                for (var v = 0; v<response.length; v++){
+                    var comp = response[v];
+                    var compid = comp['ID'];
+                    var result = $.grep($scope.componentsList, function(e) {
+                        return e.ID == compid;
+                    });
+                    var i = $scope.componentsList.indexOf(result[0]);
+                    if (i>-1){
+                        $scope.componentsList.splice(i, 1);
+                    }
+                    else{
+                        $scope.componentsList.push(comp);
+                    }
+                }
+            });
+        };
+
+        $scope.toggleSubitems = function(subitem, selected){
+            // recursively select/unselect all the children of a node
+            for (var i = 0; i<subitem.length; i++){
+                subitem[i].selected = selected;
+                var subsubitem = subitem[i]['Subitem'] || [];
+                if (subsubitem.length > 0){
+                    $scope.toggleSubitems(subsubitem, selected);
+                }
+            }
+        };
+
         // if node head clicks, get the children of the node
         // and collapse or expand the node
         $scope.selectNodeHead = function(selectedNode) {
@@ -1627,13 +1674,17 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                     selectedNode.Subitem = data;
                     // check if any of the components are in the components list
                     // and select then
-                    for (i = 0; i<selectedNode.Subitem.length; i++){
+                    for (var i = 0; i<selectedNode.Subitem.length; i++){
                         if (selectedNode.Subitem[i].NodeType == 'Component'){
-                            for (b = 0; b<$scope.componentsList.length; b++){
+                            for (var b = 0; b<$scope.componentsList.length; b++){
                                 if ($scope.componentsList[b].ID == selectedNode.Subitem[i].ID){
                                     selectedNode.Subitem[i].selected = true;
                                 }
                             }
+                        }
+                        // for all the other node set the same state as the parent
+                        else {
+                            selectedNode.Subitem[i].selected = selectedNode.selected;
                         }
                     }
                     console.log("Children loaded");

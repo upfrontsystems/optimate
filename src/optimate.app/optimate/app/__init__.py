@@ -78,6 +78,7 @@ def main(global_config, **settings):
     config.add_route('deleteview', '/{id}/delete')
     config.add_route('pasteview', '/{id}/paste')
     config.add_route('costview', '/{id}/cost')
+    config.add_route('getcomponents', '/{id}/components')
 
     # the other views
     config.add_route('clientsview', '/clients')
