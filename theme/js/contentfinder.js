@@ -133,6 +133,11 @@ var ContentFinder = function(id, callback, multiselect) {
         e.preventDefault();
         self.listdir($(this).attr('data-uid'));
     });
+
+    // Remove items from choice box if you click the X
+    self.choices.on('click', 'a.search-choice-close', function(e){
+        self.choice_destroy($(this));
+    });
 };
 
 ContentFinder.prototype.selected_uids = function() {
@@ -284,11 +289,6 @@ ContentFinder.prototype.result_click = function(item) {
     self.choices.prepend(html.join(''));
     self.input.focus();
 
-    $('a.search-choice-close', this.chosen)
-        .unbind('.selected')
-        .bind('click.selected', function() {
-            self.choice_destroy($(this));
-        });
     self.resize();
 };
 
