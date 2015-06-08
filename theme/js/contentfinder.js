@@ -111,14 +111,12 @@ var ContentFinder = function(id, callback, multiselect) {
 
     // Delegated events, this way we need only attach one handler
     self.results.on('click', 'li.not-folderish', function(e){
-        self.result_click($(e.target));
+        self.result_click($(this));
     });
 
-    self.container.on('dblclick', 'li.folderish', function(e){
+    self.container.on('click', 'li.folderish', function(e){
         e.preventDefault();
         self.listdir($(this).data('uid'));
-    }).on('click', 'li.folderish', function(e){
-        self.result_click($(this));
     });
 
     self.container.on('click', 'a.open-folder', function(e){
