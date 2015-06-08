@@ -247,6 +247,11 @@ ContentFinder.prototype.deselect_item = function(uid) {
     self.selecteditems = lst;
 };
 
+ContentFinder.prototype.clear_selection = function() {
+    $('.search-choice', this.choices).remove();
+    this.selecteditems = [];
+};
+
 ContentFinder.prototype.result_click = function(item) {
     var self = this,
         selected, i, html = [];
