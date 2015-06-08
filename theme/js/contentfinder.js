@@ -257,7 +257,7 @@ ContentFinder.prototype.result_click = function(item) {
             for (i=0; i<self.selectedresults.length; i++) {
                 selected = self.selectedresults[i];
                 if (selected.data('uid') === item.data('uid')) {
-                    selected.toggleClass('selected');
+                    selected.addClass('selected');
                     self.deselect_item(selected.data('uid'));
                 } else {
                     new_lst.push(selected);
@@ -267,7 +267,7 @@ ContentFinder.prototype.result_click = function(item) {
         } else {
             self.selectedresults.push(item);
             self.select_item(item.data('uid'));
-            item.toggleClass('selected');
+            item.removeClass('selected');
         }
     }
 
