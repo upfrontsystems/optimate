@@ -372,7 +372,6 @@ def nodegridview(request):
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['name'].upper())
     sorted_rescatlist = sorted(rescatlist, key=lambda k: k['name'].upper())
     sorted_childrenlist = sorted_rescatlist+sorted_childrenlist
-    print sorted_childrenlist
     return {'list':sorted_childrenlist, 'emptycolumns': emptycolumns}
 
 
