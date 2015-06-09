@@ -5,7 +5,6 @@ allControllers.directive('customModals', function ($http, $compile, globalServer
         restrict: 'A',
         require: '?ngModel',
         transclude: true,
-        // controller: 'ModalInstanceCtrl',
         link: function(scope, el, attrs, transcludeFn){
             scope.formData = {'NodeType': attrs.modalType};
 
@@ -28,7 +27,7 @@ allControllers.directive('customModals', function ($http, $compile, globalServer
     };
 });
 
-// Directive for the slickgrid
+// Directive for the project slickgrid
 allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedService', '$http',
     function(globalServerURL, sharedService, $http) {
     return {
@@ -292,6 +291,107 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     }
                     console.log('id_'+ item.id + ' updated')
                 })
+            });
+        }
+    }
+}]);
+
+allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedService', '$http',
+    function(globalServerURL, sharedService, $http) {
+    return {
+        require: '?ngModel',
+        restrict: 'E',
+        replace: true,
+        template: '<div></div>',
+        link: function($scope, element, attrs) {
+
+            var grid;
+            var data = [];
+            var cell_large = 300;
+            var cell_medium = 75;
+            var cell_small = 50;
+            var columns = [
+                    {id: "name", name: "Component", field: "Name",
+                     width: cell_large, cssClass: "cell-title non-editable-column"},
+                    {id: "quantity", name: "Quantity", field: "Quantity", cssClass: "cell editable-column",
+                     width: cell_medium, editor: Slick.Editors.CustomEditor},
+                    {id: "rate", name: "Rate", field: "Rate", cssClass: "cell editable-column",
+                     width: cell_small, formatter: CurrencyFormatter, editor: Slick.Editors.CustomEditor},
+                    {id: "total", name: "Total", field: "Total",
+                     width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter}
+                    ];
+
+            var options = {
+                    editable: true,
+                    enableAddRow: true,
+                    enableCellNavigation: true,
+                    asyncEditorLoading: true,
+                    autoEdit: true,
+                    syncColumnCellResize: true,
+                    enableColumnReorder: true,
+                };
+
+            data = []
+            dataView = new Slick.Data.DataView();
+            grid = new Slick.Grid("#component-data-grid", dataView, columns, options);
+            grid.setSelectionModel(new Slick.CellSelectionModel());
+
+            dataView.onRowCountChanged.subscribe(function (e, args) {
+              grid.updateRowCount();
+              grid.render();
+            });
+
+            dataView.onRowsChanged.subscribe(function (e, args) {
+              grid.invalidateRows(args.rows);
+              grid.render();
+            });
+
+            // Formatter for displaying currencies
+            function CurrencyFormatter(row, cell, value, columnDef, dataContext) {
+                if (value != undefined){
+                    var parts = value.toString().split(".");
+                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    return parts.join(".");
+                }
+                else {
+                    return "";
+                }
+              }
+
+            grid.onAddNewRow.subscribe(function (e, args) {
+                var item = args.item;
+                grid.invalidateRow(data.length);
+                data.push(item);
+                grid.updateRowCount();
+                grid.render();
+            });
+
+            // observe the component list for changes and update the slickgrid
+            $scope.$watch(attrs.components, function(componentlist){
+                grid.setColumns(columns);
+                dataView.beginUpdate();
+                dataView.setItems(componentlist);
+                dataView.endUpdate();
+                grid.render();
+            }, true);
+
+            // on cell change post to the server and update the totals
+            grid.onCellChange.subscribe(function (e, ctx) {
+                var item = ctx.item
+                item.total = item.quantity*item.rate;
+                // var req = {
+                //     method: 'POST',
+                //     url: globalServerURL +'update_value/' + item.id + '/',
+                //     data: item}
+                // $http(req).success(function(data) {
+                //     if (data){
+                //         item.budg_cost = data['total'];
+                //         item.sub_cost = data['subtotal'];
+                //         dataView.updateItem(item.id, item);
+                //     }
+                //     console.log('id_'+ item.id + ' updated')
+                // })
+                console.log("Costs updated")
             });
         }
     }

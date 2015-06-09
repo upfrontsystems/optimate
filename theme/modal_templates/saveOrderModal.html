@@ -53,8 +53,8 @@
                                 </a>
                                 <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                                     <datetimepicker data-ng-model="date"
-                                                    minView='day'
-                                                    data-datetimepicker-config="{ dropdownSelector: '#dateDropdown' }"/>
+                                        data-datetimepicker-config="{ dropdownSelector: '#dateDropdown' ,
+                                                                        minView:'day'}"/>
                                 </ul>
                             </div>
                         </div>
@@ -70,36 +70,19 @@
                             </button>
                         </div>
                         <div id="order_components" class="row form-group">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Components</th>
-                                        <th>Quantity</th>
-                                        <th>Rate</th>
-                                        <th>Total</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr ng-repeat="comp in componentsList">
-                                        <td>{{comp.Name}}</td>
-                                        <td>{{comp.Quantity}}</td>
-                                        <td>{{comp.Rate}}</td>
-                                        <td>{{comp.Total}}</td>
-                                        <td>
-                                          <button data-ng-click="removeComponent(comp)"
-                                                  title="Remove">
-                                              <i class="fa fa-trash"></i>
-                                          </button>
-                                        </td>
-                                    </tr>
-                                    </tr>
-                                        <td style="font: bold;">Order Total</td>
-                                        <td></td>
-                                        <td></td>
-                                        <td>{{selectedOrder.Total}}</td>
-                                </tbody>
-                            </table>
+                            <div id="component-data-grid-outer">
+                                <componentslickgridjs id="component-data-grid"
+                                                    components="componentsList">
+                                </componentslickgridjs>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="inputTotal" class="col-sm-2 control-label">Order Total:</label>
+                            <p class="col-sm-7"
+                                    id="inputTotal"
+                                    name="inputTotal">
+                                {{selectedOrder.Total}}
+                            </p>
                         </div>
                     </form>
                 </div>

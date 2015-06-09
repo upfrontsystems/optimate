@@ -30,7 +30,7 @@
     .constant('dateTimePickerConfig', {
       dropdownSelector: null,
       minuteStep: 5,
-      minView: 'day',
+      minView: 'minute',
       startView: 'day'
     })
     .directive('datetimepicker', ['$log', 'dateTimePickerConfig', function datetimepickerDirective($log, defaultConfig) {

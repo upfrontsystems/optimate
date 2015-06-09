@@ -2,18 +2,38 @@
     <div class="container-fluid">
         <ul class="nav nav-pills">
             <li>
-                <a title="Add Order" data-ng-click="addingState()" data-target="#saveOrderModal"  data-toggle="modal"><i class="fa fa-plus-square"></i></a>
+                <a title="Add Order"
+                    data-ng-click="addingState()"
+                    data-target="#saveOrderModal"
+                    data-toggle="modal">
+                        <i class="fa fa-plus-square"></i>
+                </a>
             </li>
             <li ng-show="selectedOrder">
-                <a title="Edit Order" data-ng-click="editingState()" data-target="#saveOrderModal" data-toggle="modal"><i class="fa fa-pencil"></i></a>
+                <a title="Edit Order"
+                    data-ng-click="editingState()"
+                    data-target="#saveOrderModal"
+                    data-toggle="modal">
+                        <i class="fa fa-pencil"></i>
+                </a>
             </li>
             <li ng-show="selectedOrder">
-                <a title="Delete Order" data-target="#deleteOrderModal" data-toggle="modal"><i class="fa fa-trash"></i></a>
+                <a title="Delete Order"
+                    data-target="#deleteOrderModal"
+                    data-toggle="modal">
+                        <i class="fa fa-trash"></i>
+                </a>
+            </li>
+            <li class="order-filters">
+                <button data-ng-click="clearFilters(); loadOrderSection()">
+                    Clear
+                </button>
             </li>
             <li class="order-filters">
                 <select class="col-sm-7"
                         id="dateFilter"
-                        data-ng-model="filters.Date">
+                        data-ng-model="filters.Date"
+                        data-ng-change="loadOrderSection()">
                     <option value="">Date</option>
                 </select>
             </li>
@@ -21,7 +41,8 @@
                 <select class="col-sm-7"
                         id="supplierFilter"
                         data-ng-model="filters.Supplier"
-                        data-ng-options="supplier.ID as supplier.Name for supplier in supplierList">
+                        data-ng-options="supplier.ID as supplier.Name for supplier in supplierList"
+                        data-ng-change="loadOrderSection(); filterBy('supplier')">
                     <option value="">Supplier</option>
                 </select>
             </li>
@@ -29,7 +50,8 @@
                 <select class="col-sm-7"
                         id="clientFilter"
                         data-ng-model="filters.Client"
-                        data-ng-options="client.ID as client.Name for client in clientList">
+                        data-ng-options="client.ID as client.Name for client in clientList"
+                        data-ng-change="loadOrderSection(); filterBy('client')">
                     <option value="">Client</option>
                 </select>
             </li>
@@ -37,7 +59,8 @@
                 <select class="col-sm-7"
                         id="projectFilter"
                         data-ng-model="filters.Project"
-                        data-ng-options="project.ID as project.Name for project in projectsList">
+                        data-ng-options="project.ID as project.Name for project in projectsList"
+                        data-ng-change="loadOrderSection(); filterBy('project')">
                     <option value="">Project</option>
                 </select>
             </li>
@@ -63,6 +86,8 @@
     modal-type="order"
     modal-src="modal_templates/saveOrderModal.html">
 </div>
+
+
 
 <div id="deleteOrderModal" class="modal" tabindex='-1'>
     <div class="modal-dialog modal-sm">

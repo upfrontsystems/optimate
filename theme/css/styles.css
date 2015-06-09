@@ -1,4 +1,4 @@
-body {
+<div class="right">body {
     background: none repeat scroll 0 0;
     padding-top: 105px;
 }
@@ -279,4 +279,10 @@ li.order-filters {
 
 .table {
     cursor: pointer;
+}
+
+#component-data-grid {
+    width: 55%;
+    margin: 0 auto;
+    height: 80vh;
 }

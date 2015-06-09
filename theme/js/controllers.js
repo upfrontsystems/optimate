@@ -1342,7 +1342,6 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         $scope.dateTimeNow();
         $scope.isDisabled = false;
         $scope.isCollapsed = true;
-        $scope.filters = [];
         $scope.jsonorders = [];
         $scope.componentsList = [];
         // Pagination variables and functions
@@ -1350,10 +1349,34 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         $scope.currentPage = 1;
         $scope.maxPageSize = 20;
         $scope.orderListLength = $scope.maxPageSize + 1;
-        // get the length of the list of all the orders
-        $http.get(globalServerURL + 'orders/length').success(function(data){
-            $scope.orderListLength = data['length'];
-        });
+
+        // loading the project, client and supplier list
+        $scope.clearFilters = function(){
+            $scope.filters = [];
+            $http.get(globalServerURL + 'project_listing')
+            .success(function(data) {
+                $scope.projectsList = data;
+            });
+
+            $http.get(globalServerURL + 'suppliers')
+            .success(function(data){
+                $scope.supplierList = data;
+            });
+
+            $http.get(globalServerURL + 'clients')
+            .success(function(data){
+                $scope.clientList = data;
+            });
+
+            // get the length of the list of all the orders
+            $http.get(globalServerURL + 'orders/length').success(function(data){
+                $scope.orderListLength = data['length'];
+            });
+        }
+        $scope.projectsList = [];
+        $scope.supplierList = [];
+        $scope.clientList = [];
+        $scope.clearFilters();
 
         $scope.loadOrderSection = function(){
             var start = ($scope.currentPage-1)*$scope.pageSize;
@@ -1362,55 +1385,46 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 method: 'GET',
                 url: globalServerURL + 'orders',
                 params: {'start':start,
-                        'end': end}
+                        'end': end,
+                        'project': $scope.filters.Project,
+                        'client': $scope.filters.Client,
+                        'supplier': $scope.filters.Supplier}
             };
             $http(req).success(function(response) {
+                var length = response.pop();
                 $scope.jsonorders = response;
+                if (length){
+                    $scope.orderListLength = length;
+                }
                 console.log("Orders loaded");
             });
         }
         $scope.loadOrderSection();
 
-        // aux function - checks if object is already in list based on ID
-        function containsObject(objid, list) {
-            for (var i = 0; i < list.length; i++) {
-                if (list[i].ID === objid) {
-                    return true;
+        // filter the other filter options by project
+        $scope.filterBy = function(selection){
+            var req = {
+                method: 'GET',
+                url: globalServerURL + 'orders/filter',
+                params: {'project': $scope.filters.Project,
+                        'client': $scope.filters.Client,
+                        'supplier': $scope.filters.Supplier}
+            };
+            $http(req).success(function(response){
+                if (selection == 'project'){
+                    $scope.clientList = response['clients'];
+                    $scope.supplierList = response['suppliers'];
                 }
-            }
-            return false;
-        }
-        $scope.openProjectsList = [];
-        // load the project that has been selected into the tree
-        $scope.loadProject = function () {
-            var id = $scope.formData['ProjectID']
-            var url = globalServerURL + 'projectview/' + id + '/'
-            if (!(containsObject(id, $scope.openProjectsList))) {
-                $http.get(url).success(function(data) {
-                    // add the project, if not already in the list
-                    $scope.openProjectsList = [data[0]];
-                });
-            }
+                else if (selection == 'client'){
+                    $scope.projectsList = response['projects'];
+                    $scope.supplierList = response['suppliers'];
+                }
+                else {
+                    $scope.clientList = response['clients'];
+                    $scope.projectsList = response['projects'];
+                }
+            })
         };
-
-        // loading the project, client and supplier list
-        $scope.projectsList = [];
-        $http.get(globalServerURL + 'project_listing')
-        .success(function(data) {
-            $scope.projectsList = data;
-        });
-
-        $scope.supplierList = [];
-        $http.get(globalServerURL + 'suppliers')
-        .success(function(data){
-            $scope.supplierList = data;
-        });
-
-        $scope.clientList = [];
-        $http.get(globalServerURL + 'clients')
-        .success(function(data){
-            $scope.clientList = data;
-        });
 
         // Adding or editing an order
         $scope.save = function(){
@@ -1418,7 +1432,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             if (!$scope.isDisabled){
                 $scope.isDisabled = true;
                 // set the list of checked components
-                $scope.setComponentsList();
+                $scope.formData['ComponentsList'] = $scope.componentsList;
                 // set the tax rate
                 $scope.formData['TaxRate'] = $scope.formData['TaxRate'] ? 14 : 0;
                 // convert the date to json format
@@ -1538,35 +1552,29 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             });
         };
 
-        $scope.setComponentsList = function(){
-            $scope.formData['ComponentsList'] = $scope.componentsList;
-        };
-
         $scope.toggleComponents = function(node){
             var flag = (node.selected === true) ? undefined : true;
             node.selected = flag;
             var componentid = node.ID;
             var result = $.grep($scope.componentsList, function(e) {
-                    return e.ID == componentid;
+                    return e.id == componentid;
             });
             var i = $scope.componentsList.indexOf(result[0]);
             if (i>-1){
                 $scope.componentsList.splice(i, 1);
             }
             else{
+                // set id for use in slickgrid
+                node.id = node.ID;
                 $scope.componentsList.push(node);
             }
-        }
-
-        $scope.componentSelected = function(node){
-            $scope.componentsList.push(node);
         }
 
         // remove a component from the component list
         $scope.removeComponent = function(node){
             var deleteid = node.ID;
             var result = $.grep($scope.componentsList, function(e) {
-                    return e.ID == deleteid;
+                    return e.id == deleteid;
             });
             var i = $scope.componentsList.indexOf(result[0]);
             if (i>-1){
@@ -1623,7 +1631,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                     var comp = response[v];
                     var compid = comp['ID'];
                     var result = $.grep($scope.componentsList, function(e) {
-                        return e.ID == compid;
+                        return e.id == compid;
                     });
                     var i = $scope.componentsList.indexOf(result[0]);
                     if (i>-1){
@@ -1644,6 +1652,28 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 if (subsubitem.length > 0){
                     $scope.toggleSubitems(subsubitem, selected);
                 }
+            }
+        };
+
+        // aux function - checks if object is already in list based on ID
+        function containsObject(objid, list) {
+            for (var i = 0; i < list.length; i++) {
+                if (list[i].ID === objid) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        $scope.openProjectsList = [];
+        // load the project that has been selected into the tree
+        $scope.loadProject = function () {
+            var id = $scope.formData['ProjectID']
+            var url = globalServerURL + 'projectview/' + id + '/'
+            if (!(containsObject(id, $scope.openProjectsList))) {
+                $http.get(url).success(function(data) {
+                    // add the project, if not already in the list
+                    $scope.openProjectsList = [data[0]];
+                });
             }
         };
 

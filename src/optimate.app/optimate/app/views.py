@@ -171,6 +171,8 @@ def getcomponents(request):
         temp['Quantity'] = 0
         temp['Rate'] = 0
         temp['Total'] = 0
+        # add id for use in slickgrid
+        temp['id'] = comp.ID
         itemlist.append(temp)
     return itemlist
 
@@ -370,6 +372,7 @@ def nodegridview(request):
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['name'].upper())
     sorted_rescatlist = sorted(rescatlist, key=lambda k: k['name'].upper())
     sorted_childrenlist = sorted_rescatlist+sorted_childrenlist
+    print sorted_childrenlist
     return {'list':sorted_childrenlist, 'emptycolumns': emptycolumns}
 
 
@@ -1148,20 +1151,83 @@ def ordersview(request):
     """ The ordersview returns a list in json format of a section of the orders
         in the server database
     """
-    # cut the section
     paramsdict = request.params.dict_of_lists()
-    if 'start' not in paramsdict.keys():
+    paramkeys = paramsdict.keys()
+    qry = DBSession.query(Order).order_by(Order.ID.desc())
+    # filter the orders
+    setLength = False
+    if 'project' in paramkeys:
+        setLength = True
+        qry = qry.filter_by(ProjectID=paramsdict['project'][0])
+    if 'client' in paramkeys:
+        setLength = True
+        qry = qry.filter_by(ClientID=paramsdict['client'][0])
+    if 'supplier' in paramkeys:
+        setLength = True
+        qry = qry.filter_by(SupplierID=paramsdict['supplier'][0])
+    # cut the section
+    if 'start' not in paramkeys:
         start = 0
         end = -1
     else:
         start = int(paramsdict['start'][0])
         end = int(paramsdict['end'][0])
-    section = DBSession.query(Order).order_by(
-                                    Order.ID.desc()).slice(start,end).all()
+    section = qry.slice(start,end).all()
     orderlist = []
     for order in section:
         orderlist.append(order.toDict())
+    # check if the length needs to change
+    length = None
+    if setLength:
+        length = qry.count()
+    orderlist.append(length)
     return orderlist
+
+@view_config(route_name='orders_filter', renderer='json')
+def orders_filter(request):
+    """ Returns a list of the Projects, Clients, Suppliers used by an order
+        when ordered
+    """
+    qry = DBSession.query(Order)
+    paramsdict = request.params.dict_of_lists()
+    paramkeys = paramsdict.keys()
+    # filter by the selected filters
+    if 'project' in paramkeys:
+        qry = qry.filter_by(ProjectID=paramsdict['project'][0])
+        if 'client' in paramkeys:
+            qry = qry.filter_by(ProjectID=paramsdict['client'][0])
+            if 'supplier' in paramkeys:
+                qry = qry.filter_by(SupplierID=paramsdict['supplier'][0])
+        elif 'supplier' in paramkeys:
+            qry = qry.filter_by(SupplierID=paramsdict['supplier'][0])
+    elif 'client' in paramkeys:
+        qry = qry.filter_by(ProjectID=paramsdict['client'][0])
+        if 'supplier' in paramkeys:
+            qry = qry.filter_by(SupplierID=paramsdict['supplier'][0])
+    elif 'supplier' in paramkeys:
+        qry = qry.filter_by(SupplierID=paramsdict['supplier'][0])
+
+
+    # get the unique values the other filters are to be updated with
+    clients = qry.distinct(Order.ClientID)
+    clientlist = []
+    for client in clients:
+        if client.Client:
+            clientlist.append({'Name': client.Client.Name, 'ID': client.ClientID})
+    suppliers = qry.distinct(Order.SupplierID)
+    supplierlist = []
+    for supplier in suppliers:
+        if supplier.Supplier:
+            supplierlist.append({'Name': supplier.Supplier.Name, 'ID': supplier.SupplierID})
+    projects = qry.distinct(Order.ProjectID)
+    projectlist = []
+    for project in projects:
+        if project.Project:
+            projectlist.append({'Name': project.Project.Name, 'ID': project.ProjectID})
+    return {'projects': projectlist,
+            'clients': clientlist,
+            'suppliers': supplierlist}
+
 
 @view_config(route_name='orders_length', renderer='json')
 def orders_length(request):
