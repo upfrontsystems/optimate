@@ -204,11 +204,6 @@ if __name__ == '__main__':
             DBSession.add(project)
             DBSession.flush()
 
-            # add a default overhead to the project
-            defoverhead = Overhead(Name="Default",
-                                Percentage=0.0, ProjectID=project.ID)
-            DBSession.add(defoverhead)
-
         transaction.commit()
 
         print 'Adding resource categories'

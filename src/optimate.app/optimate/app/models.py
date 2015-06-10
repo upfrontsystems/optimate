@@ -816,6 +816,16 @@ class Component(Node):
         """
         pass
 
+    def overheadsList(self):
+        """ Return a list of all the overheads used for this component
+        """
+        overheadlist = []
+        for overhead in self.Overheads:
+            overheadlist.append({'overhead_name': overhead.Name,
+                                'percentage': str(overhead.Percentage*100)})
+
+        return overheadlist
+
     def copy(self, parentid):
         """ copy returns an exact duplicate of this component,
             but with the ParentID specified and a copied resource
@@ -879,11 +889,12 @@ class Component(Node):
 
     def getGridData(self):
         """ Return a dictionary of all the data needed for the slick grid
+
         """
         return {'name': self.Name,
             'id': self.ID,
             'node_type': self.type,
-            'markup': self.Markup*100.0,
+            'overheads': self.overheadsList(),
             'quantity': self.Quantity,
             'rate': str(self.Rate),
             'budg_cost': str(self.Total),

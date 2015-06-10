@@ -862,15 +862,19 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                             'Percentage': $scope.newOverhead.Percentage}
                 }
                 $http(req).success(function() {
-                    $scope.clearInput();
+                    $scope.newOverhead = undefined;
                     $scope.loadOverheads(projectid);
                     console.log("Overhead added");
                 });
             }
         }
 
-        // clear the overhead modal input fields
+        // add an overhead if it has been input
+        // and clear the overhead modal input fields
         $scope.clearInput = function(){
+            if ($scope.newOverhead){
+                $scope.addOverhead($scope.currentNode.ID);
+            }
             $scope.newOverhead = undefined;
         }
 
@@ -1049,14 +1053,18 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                                         '" class="search-choice-close" href="javascript:void(0)"></a></li>'
                     $('#related_items_finder .finder-choices').prepend(resource_html);
                     // update overheadlist
-                    var overheadlist = response['OverheadList'];
-                    var arrayLength = $scope.componentOverheadList.length;
-                    for (var i = 0; i < arrayLength; i++) {
-                        if (overheadlist.indexOf($scope.componentOverheadList[i].ID) != -1){
-                            $scope.componentOverheadList[i].selected = true;
+                    $http.get(globalServerURL + 'component_overheads/' + nodeid + '/')
+                    .success(function(data) {
+                        $scope.componentOverheadList = data;
+                        var overheadlist = response['OverheadList'];
+                        var arrayLength = $scope.componentOverheadList.length;
+                        for (var i = 0; i < arrayLength; i++) {
+                            if (overheadlist.indexOf($scope.componentOverheadList[i].ID) != -1){
+                                $scope.componentOverheadList[i].selected = true;
+                            }
                         }
-                    }
-                    $scope.formData['OverheadList'] = $scope.componentOverheadList;
+                        $scope.formData['OverheadList'] = $scope.componentOverheadList;
+                    });
                 }
             });
         }

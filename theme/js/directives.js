@@ -53,8 +53,6 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                      width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                     {id: "sub_cost", name: "Subtotal", field: "sub_cost",
                      width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                    {id: "markup", name: "Markup", field: "markup",
-                     width: cell_medium, cssClass: "cell non-editable-column"},
                     {id: "unit", name: "Unit", field: "unit",
                      width: cell_medium, cssClass: "cell  non-editable-column"},
                     // {id: "order_cost", name: "Order Cost", field: "order_cost",
@@ -109,7 +107,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     return value + " %";
                 }
                 else{
-                    return "";
+                    return "0";
                 }
               }
 
@@ -221,7 +219,36 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                         // otherwise loop through the data and grey out
                         // uneditable columns
                         else {
-                            newcolumns = columns;
+                            var overheadnames = [];
+                            // Add columns for the overheads in the components
+                            for (var i=0; i < data.length; i++){
+                                if (data[i]['node_type'] == 'Component'){
+                                    // get the list of overheads in the component
+                                    var overheadslist = data[i]['overheads'];
+                                        // get the name of the overhead
+                                        // check if it has not been used yet
+                                        // and add it to the columns list
+                                        for (var v=0; v < overheadslist.length; v++){
+                                            var overheadname = overheadslist[v].overhead_name;
+                                            if (overheadnames.indexOf(overheadname) < 0){
+                                                overheadnames.push(overheadname);
+                                            }
+                                            // create new entry in the component
+                                            data[i][overheadname] = overheadslist[v].percentage;
+                                        }
+                                }
+                            }
+                            // build the overhead columns
+                            var overheadcolumns = [];
+                            for (var i = 0; i<overheadnames.length; i++){
+                                overheadcolumns.push({id: overheadnames[i],
+                                                    name: overheadnames[i],
+                                                    field: overheadnames[i],
+                                                    width: cell_medium,
+                                                    formatter: MarkupFormatter,
+                                                    cssClass: "cell non-editable-column"})
+                            }
+                            newcolumns = columns.concat(overheadcolumns);
 
                             grid.setColumns(newcolumns);
                             dataView.beginUpdate();

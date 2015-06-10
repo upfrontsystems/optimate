@@ -284,7 +284,7 @@ def overheadlist(request):
         # build the list and only get the neccesary values
         for overhead in qry:
             overheadlist.append({'Name': overhead.Name,
-                            'Percentage': overhead.Percentage*100.0,
+                            'Percentage': str(overhead.Percentage*100.0),
                             'ID': overhead.ID})
         return sorted(overheadlist, key=lambda k: k['Name'].upper())
     elif request.method == 'DELETE':
