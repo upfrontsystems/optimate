@@ -1208,17 +1208,17 @@ def orders_filter(request):
 
 
     # get the unique values the other filters are to be updated with
-    clients = qry.distinct(Order.ClientID)
+    clients = qry.distinct(Order.ClientID).group_by(Order.ClientID)
     clientlist = []
     for client in clients:
         if client.Client:
             clientlist.append({'Name': client.Client.Name, 'ID': client.ClientID})
-    suppliers = qry.distinct(Order.SupplierID)
+    suppliers = qry.distinct(Order.SupplierID).group_by(Order.SupplierID)
     supplierlist = []
     for supplier in suppliers:
         if supplier.Supplier:
             supplierlist.append({'Name': supplier.Supplier.Name, 'ID': supplier.SupplierID})
-    projects = qry.distinct(Order.ProjectID)
+    projects = qry.distinct(Order.ProjectID).group_by(Order.ProjectID)
     projectlist = []
     for project in projects:
         if project.Project:
