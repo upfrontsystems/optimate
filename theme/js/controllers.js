@@ -1522,6 +1522,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $scope.modalState = "Add";
             $scope.dateTimeNow();
             $scope.formData['Date'] = $scope.date;
+            $scope.formData['Total'] = '0.00';
             $scope.componentsList = [];
             if ($scope.selectedOrder){
                 $('#order-'+$scope.selectedOrder.ID).removeClass('active');
@@ -1569,18 +1570,24 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         $scope.toggleComponents = function(node){
             var flag = (node.selected === true) ? undefined : true;
             node.selected = flag;
-            var componentid = node.ID;
+            var resourceid = node.ResourceID;
             var result = $.grep($scope.componentsList, function(e) {
-                    return e.id == componentid;
+                    return e.ResourceID == resourceid;
             });
             var i = $scope.componentsList.indexOf(result[0]);
+            // if the resource is already use in the list
+            // check if it is being added or removed
             if (i>-1){
-                $scope.componentsList.splice(i, 1);
+                var toggleQuantity = node.Quantity;
+                var operator = flag ? 1 : -1;
+                $scope.componentsList[i]['Quantity'] =
+                            $scope.componentsList[i]['Quantity'] + (operator*toggleQuantity);
+                // if the end quantity is negative remove the component
+                if ($scope.componentsList[i]['Quantity'] < 0){
+                    $scope.componentsList.splice(i, 1);
+                }
             }
             else{
-                // set values for use in slickgrid
-                node.id = node.ID;
-                node.node_type = 'Component';
                 $scope.componentsList.push(node);
             }
         }
@@ -1644,13 +1651,20 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             .success(function(response){
                 for (var v = 0; v<response.length; v++){
                     var comp = response[v];
-                    var compid = comp['ID'];
+                    var resourceid = comp.ResourceID;
                     var result = $.grep($scope.componentsList, function(e) {
-                        return e.id == compid;
+                        return e.ResourceID == resourceid;
                     });
                     var i = $scope.componentsList.indexOf(result[0]);
                     if (i>-1){
-                        $scope.componentsList.splice(i, 1);
+                        var toggleQuantity = comp.Quantity;
+                        var operator = flag ? 1 : -1;
+                        $scope.componentsList[i]['Quantity'] =
+                                    $scope.componentsList[i]['Quantity'] + (operator*toggleQuantity);
+                        // if the end quantity is negative remove the component
+                        if ($scope.componentsList[i]['Quantity'] < 0){
+                            $scope.componentsList.splice(i, 1);
+                        }
                     }
                     else{
                         $scope.componentsList.push(comp);
@@ -1670,27 +1684,21 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             }
         };
 
-        // aux function - checks if object is already in list based on ID
-        function containsObject(objid, list) {
-            for (var i = 0; i < list.length; i++) {
-                if (list[i].ID === objid) {
-                    return true;
-                }
-            }
-            return false;
-        }
         $scope.openProjectsList = [];
         // load the project that has been selected into the tree
         $scope.loadProject = function () {
             var id = $scope.formData['ProjectID']
-            var url = globalServerURL + 'projectview/' + id + '/'
-            if (!(containsObject(id, $scope.openProjectsList))) {
-                $http.get(url).success(function(data) {
-                    // add the project, if not already in the list
-                    $scope.openProjectsList = [data[0]];
-                });
-            }
+            $http.get(globalServerURL + 'projectview/' + id + '/')
+            .success(function(data) {
+                // add the project, if not already in the list
+                $scope.openProjectsList = [data[0]];
+            });
         };
+
+        // update the order total
+        $scope.updateOrderTotal = function(total){
+            $scope.formData['Total'] = total;
+        }
 
         // if node head clicks, get the children of the node
         // and collapse or expand the node
@@ -1699,7 +1707,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             if (!selectedNode.collapsed){
                 selectedNode.collapsed = true;
                 var parentid = selectedNode.ID;
-                $http.get(globalServerURL + parentid + '/').success(function(data) {
+                $http.get(globalServerURL + "orders/tree/" + parentid + '/').success(function(data) {
                     selectedNode.Subitem = data;
                     // check if any of the components are in the components list
                     // and select then

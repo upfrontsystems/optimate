@@ -281,8 +281,10 @@ li.order-filters {
     cursor: pointer;
 }
 
+#component-data-grid-outer {
+    height: 150px;
+}
 #component-data-grid {
     width: 60%;
-    margin: 0 auto;
-    height: 150px;
+    height: 100%;
 }

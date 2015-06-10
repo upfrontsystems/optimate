@@ -399,19 +399,36 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             });
 
             // observe the component list for changes and update the slickgrid
+            // calculate and update the order total as well
             $scope.$watch(attrs.components, function(componentlist){
-                grid.setColumns(columns);
-                dataView.beginUpdate();
-                dataView.setItems(componentlist);
-                dataView.endUpdate();
-                grid.render();
+                if (componentlist.length > 0){
+                    grid.setColumns(columns);
+                    dataView.beginUpdate();
+                    dataView.setItems(componentlist);
+                    dataView.endUpdate();
+                    grid.render();
+
+                    var total =0.0;
+                    for (var i=0;i<componentlist.length; i++){
+                        total += parseFloat(componentlist[i]['Total']);
+                    }
+                    var parts = total.toString().split(".");
+                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    $scope.updateOrderTotal(parts.join("."));
+                }
             }, true);
 
             // on cell change update the totals
             grid.onCellChange.subscribe(function (e, ctx) {
                 var item = ctx.item
+                var oldtotal = item.Total;
                 item.Total = item.Quantity*item.Rate;
                 dataView.updateItem(item.id, item);
+                var ordertotal = parseFloat($scope.formData['Total'].replace(/[^0-9-.]/g, ''));
+                var newtotal = ordertotal + (item.Total - oldtotal);
+                var parts = newtotal.toString().split(".");
+                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                $scope.updateOrderTotal(parts.join("."));
             });
         }
     }

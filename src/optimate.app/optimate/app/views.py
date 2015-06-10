@@ -149,6 +149,29 @@ def childview(request):
     return completelist
 
 
+@view_config(route_name="orders_tree_view", renderer='json')
+def orders_tree_view(request):
+    """ This view is for when the user requests the children of a node
+        in the order tree. The nodes used by the orders use a different format
+        than the projects tree view
+    """
+
+    parentid = request.matchdict['id']
+    childrenlist = []
+
+    qry = DBSession.query(Node).filter_by(ID=parentid).first()
+    # build the list and only get the neccesary values
+    if qry != None:
+        for child in qry.Children:
+            if child.type == 'Component':
+                childrenlist.append(child.toOrderDict())
+            elif child.type != 'ResourceCategory':
+                childrenlist.append(child.toChildDict())
+
+    # sort childrenlist
+    sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'].upper())
+    return sorted_childrenlist
+
 @view_config(route_name="getitem", renderer='json')
 def getitem(request):
     """ Retrieves and returns all the information of a single item
@@ -167,14 +190,7 @@ def getcomponents(request):
     componentslist = qry.getComponents()
     itemlist = []
     for comp in componentslist:
-        temp = comp.toChildDict()
-        temp['Quantity'] = 0
-        temp['Rate'] = 0
-        temp['Total'] = 0
-        # add values for use in slickgrid
-        temp['id'] = comp.ID
-        temp['node_type'] = 'Component'
-        itemlist.append(temp)
+        itemlist.append(comp.toOrderDict())
     return itemlist
 
 
@@ -1273,7 +1289,13 @@ def orderview(request):
         newid = neworder.ID
         componentslist = request.json_body.get('ComponentsList', [])
         for component in componentslist:
-            neworderitem = OrderItem(OrderID=newid, ComponentID=component['ID'])
+            quantity = float(component.get('Quantity', 0))
+            rate = component.get('Rate', 0)
+            rate = Decimal(rate).quantize(Decimal('.01'))
+            neworderitem = OrderItem(OrderID=newid,
+                                    ComponentID=component['ID'],
+                                    Quantity=quantity,
+                                    Rate = rate)
             DBSession.add(neworderitem)
         transaction.commit()
         # return the new order
@@ -1311,22 +1333,24 @@ def orderview(request):
 
         # get the list of component id's used in the form
         componentslist = request.json_body['ComponentsList']
-        newidlist = []
-        for component in componentslist:
-            newidlist.append(component['ID'])
         # get a list of id's used in the orderitems
         iddict = {}
         for orderitem in order.OrderItems:
             iddict[orderitem.ComponentID] = orderitem.ID
         # iterate through the new id's and add any new orders
         # remove the id from the list if it is there already
-        for newcompid in newidlist:
-            if newcompid not in iddict.keys():
-                neworderitem = OrderItem(ComponentID=newcompid,
-                                        OrderID=order.ID)
+        for component in componentslist:
+            if component['ID'] not in iddict.keys():
+                quantity = float(component.get('Quantity', 0))
+                rate = component.get('Rate', 0)
+                rate = Decimal(rate).quantize(Decimal('.01'))
+                neworderitem = OrderItem(OrderID=order.ID,
+                                        ComponentID=component['ID'],
+                                        Quantity=quantity,
+                                        Rate = rate)
                 DBSession.add(neworderitem)
             else:
-                del iddict[newcompid]
+                del iddict[component['ID']]
         # delete the leftover id's
         for oldid in iddict.values():
             deletethis = DBSession.query(OrderItem).filter_by(ID=oldid).first()
@@ -1344,16 +1368,20 @@ def orderview(request):
     # build a list of the components used in the order from the order items
     componentslist = []
     for orderitem in order.OrderItems:
-        componentslist.append(orderitem.toDict())
+        if orderitem.Component:
+            componentslist.append(orderitem.toDict())
 
     componentslist = sorted(componentslist, key=lambda k: k['Name'])
     # get the date in json format
     jsondate = order.Date.isoformat()
+    total = '0'
+    if order.Total:
+        total = str(order.Total)
     return {'ID': order.ID,
             'ProjectID': order.ProjectID,
             'SupplierID': order.SupplierID,
             'ClientID': order.ClientID,
-            'Total': str(order.Total),
+            'Total': total,
             'TaxRate': order.TaxRate,
             'ComponentsList': componentslist,
             'Date': jsondate}

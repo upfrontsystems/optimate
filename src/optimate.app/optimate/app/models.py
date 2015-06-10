@@ -865,6 +865,24 @@ class Component(Node):
                 'NodeType': self.type,
                 'NodeTypeAbbr' : 'C'}
 
+    def toOrderDict(self):
+        """ Returns a dictionary of this node used in the order tree view
+        """
+        subitem = []
+        total = self.Quantity*float(self.Rate)
+        return {'Name': self.Name,
+                'Description': self.Description,
+                'ID': self.ID,
+                'id': self.ID,
+                'ResourceID': self.ResourceID,
+                'Subitem': subitem,
+                'NodeType': self.type,
+                'node_type': self.type,
+                'NodeTypeAbbr' : 'C',
+                'Quantity': self.Quantity,
+                'Rate': str(self.Rate),
+                'Total': total}
+
     def toDict(self):
         """ Return a dictionary of all the attributes of this Component
             Also returns a list of the Overhead ID's used by this component
@@ -1337,9 +1355,9 @@ class Order(Base):
         else:
             clientname = ""
         if self.Total:
-            total = "R" + '{:20,.2f}'.format(self.Total)
+            total = '{:20,.2f}'.format(self.Total)
         else:
-            total = "R" + '{:20,.2f}'.format(0)
+            total = '{:20,.2f}'.format(0)
 
         return {'ID': self.ID,
                 'Project': projectname,
@@ -1385,14 +1403,15 @@ class OrderItem(Base):
     def toDict(self):
         """ Returns a dictionary of this OrderItem
         """
-        return {'ID': self.Component.ID,
-                'id': self.Component.ID,
+        return {'ID': self.ComponentID,
+                'id': self.ComponentID,
                 'Name': self.Component.Name,
                 'Quantity': self.Quantity,
                 'Rate': str(self.Rate),
                 'Total': str(self.Total),
                 'NodeType': 'Component',
-                'node_type': 'Component'}
+                'node_type': 'Component',
+                'ResourceID': self.Component.ResourceID}
 
     def getGridData(self):
         """ Returns a dictionary of this OrderItem for the slickgrid
