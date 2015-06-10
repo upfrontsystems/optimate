@@ -1193,17 +1193,9 @@ def orders_filter(request):
     # filter by the selected filters
     if 'project' in paramkeys:
         qry = qry.filter_by(ProjectID=paramsdict['project'][0])
-        if 'client' in paramkeys:
-            qry = qry.filter_by(ProjectID=paramsdict['client'][0])
-            if 'supplier' in paramkeys:
-                qry = qry.filter_by(SupplierID=paramsdict['supplier'][0])
-        elif 'supplier' in paramkeys:
-            qry = qry.filter_by(SupplierID=paramsdict['supplier'][0])
-    elif 'client' in paramkeys:
+    if 'client' in paramkeys:
         qry = qry.filter_by(ProjectID=paramsdict['client'][0])
-        if 'supplier' in paramkeys:
-            qry = qry.filter_by(SupplierID=paramsdict['supplier'][0])
-    elif 'supplier' in paramkeys:
+    if 'supplier' in paramkeys:
         qry = qry.filter_by(SupplierID=paramsdict['supplier'][0])
 
 

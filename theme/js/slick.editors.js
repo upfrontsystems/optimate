@@ -25,7 +25,7 @@
   function CustomEditor(args) {
     // A custom editor used in the Markup and Quantity columns
     // Since only BudgetItem and Component have Markup and Quantity attributes
-    // If the node type is amything else it will pass to empty functions and
+    // If the node type is anything else it will pass to empty functions and
     // the cell will be non-editable
 
     var node_type = args.item["node_type"]

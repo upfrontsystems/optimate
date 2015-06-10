@@ -313,7 +313,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             var columns = [
                     {id: "name", name: "Component", field: "Name",
                      width: cell_large, cssClass: "cell-title non-editable-column"},
-                    {id: "quantity", name: "Quantity", field: "Quantity", cssClass: "cell editable-column",
+                    {id: "Quantity", name: "Quantity", field: "Quantity", cssClass: "cell editable-column",
                      width: cell_medium, editor: Slick.Editors.CustomEditor},
                     {id: "rate", name: "Rate", field: "Rate", cssClass: "cell editable-column",
                      width: cell_small, formatter: CurrencyFormatter, editor: Slick.Editors.CustomEditor},
@@ -329,12 +329,18 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     autoEdit: true,
                     syncColumnCellResize: true,
                     enableColumnReorder: true,
+                    explicitInitialization: true
                 };
 
             data = []
             dataView = new Slick.Data.DataView();
             grid = new Slick.Grid("#component-data-grid", dataView, columns, options);
             grid.setSelectionModel(new Slick.CellSelectionModel());
+            // resize the slickgrid when modal is shown
+            $('#saveOrderModal').on('shown.bs.modal', function(){
+                 console.log("reloading grid");
+                 grid.init();
+            });
 
             dataView.onRowCountChanged.subscribe(function (e, args) {
               grid.updateRowCount();
@@ -368,6 +374,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
 
             // observe the component list for changes and update the slickgrid
             $scope.$watch(attrs.components, function(componentlist){
+                console.log(componentlist);
                 grid.setColumns(columns);
                 dataView.beginUpdate();
                 dataView.setItems(componentlist);
@@ -378,7 +385,8 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             // on cell change post to the server and update the totals
             grid.onCellChange.subscribe(function (e, ctx) {
                 var item = ctx.item
-                item.total = item.quantity*item.rate;
+                item.Total = item.Quantity*item.Rate;
+                console.log(item);
                 // var req = {
                 //     method: 'POST',
                 //     url: globalServerURL +'update_value/' + item.id + '/',
