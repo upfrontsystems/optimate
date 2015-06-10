@@ -1380,7 +1380,8 @@ class OrderItem(Base):
                 'Quantity': self.Quantity,
                 'Rate': str(self.Rate),
                 'Total': str(self.Total),
-                'NodeType': 'Component'}
+                'NodeType': 'Component',
+                'node_type': 'Component'}
 
     def getGridData(self):
         """ Returns a dictionary of this OrderItem for the slickgrid

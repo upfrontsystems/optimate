@@ -171,8 +171,9 @@ def getcomponents(request):
         temp['Quantity'] = 0
         temp['Rate'] = 0
         temp['Total'] = 0
-        # add id for use in slickgrid
+        # add values for use in slickgrid
         temp['id'] = comp.ID
+        temp['node_type'] = 'Component'
         itemlist.append(temp)
     return itemlist
 
@@ -1194,11 +1195,9 @@ def orders_filter(request):
     if 'project' in paramkeys:
         qry = qry.filter_by(ProjectID=paramsdict['project'][0])
     if 'client' in paramkeys:
-        qry = qry.filter_by(ProjectID=paramsdict['client'][0])
+        qry = qry.filter_by(ClientID=paramsdict['client'][0])
     if 'supplier' in paramkeys:
         qry = qry.filter_by(SupplierID=paramsdict['supplier'][0])
-
-
     # get the unique values the other filters are to be updated with
     clients = qry.distinct(Order.ClientID).group_by(Order.ClientID)
     clientlist = []

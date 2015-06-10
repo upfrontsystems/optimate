@@ -338,7 +338,6 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             grid.setSelectionModel(new Slick.CellSelectionModel());
             // resize the slickgrid when modal is shown
             $('#saveOrderModal').on('shown.bs.modal', function(){
-                 console.log("reloading grid");
                  grid.init();
             });
 
@@ -360,7 +359,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     return parts.join(".");
                 }
                 else {
-                    return "";
+                    return "0.00";
                 }
               }
 
@@ -374,7 +373,6 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
 
             // observe the component list for changes and update the slickgrid
             $scope.$watch(attrs.components, function(componentlist){
-                console.log(componentlist);
                 grid.setColumns(columns);
                 dataView.beginUpdate();
                 dataView.setItems(componentlist);
@@ -382,24 +380,11 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                 grid.render();
             }, true);
 
-            // on cell change post to the server and update the totals
+            // on cell change update the totals
             grid.onCellChange.subscribe(function (e, ctx) {
                 var item = ctx.item
                 item.Total = item.Quantity*item.Rate;
-                console.log(item);
-                // var req = {
-                //     method: 'POST',
-                //     url: globalServerURL +'update_value/' + item.id + '/',
-                //     data: item}
-                // $http(req).success(function(data) {
-                //     if (data){
-                //         item.budg_cost = data['total'];
-                //         item.sub_cost = data['subtotal'];
-                //         dataView.updateItem(item.id, item);
-                //     }
-                //     console.log('id_'+ item.id + ' updated')
-                // })
-                console.log("Costs updated")
+                dataView.updateItem(item.id, item);
             });
         }
     }

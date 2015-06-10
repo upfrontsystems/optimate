@@ -31,14 +31,6 @@
             </li>
             <li class="order-filters">
                 <select class="col-sm-7"
-                        id="dateFilter"
-                        data-ng-model="filters.Date"
-                        data-ng-change="loadOrderSection()">
-                    <option value="">Date</option>
-                </select>
-            </li>
-            <li class="order-filters">
-                <select class="col-sm-7"
                         id="supplierFilter"
                         data-ng-model="filters.Supplier"
                         data-ng-options="supplier.ID as supplier.Name for supplier in supplierList"

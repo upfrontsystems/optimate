@@ -1570,8 +1570,9 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 $scope.componentsList.splice(i, 1);
             }
             else{
-                // set id for use in slickgrid
+                // set values for use in slickgrid
                 node.id = node.ID;
+                node.node_type = 'Component';
                 $scope.componentsList.push(node);
             }
         }
