@@ -407,7 +407,6 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     dataView.setItems(componentlist);
                     dataView.endUpdate();
                     grid.render();
-
                     var total =0.0;
                     for (var i=0;i<componentlist.length; i++){
                         total += parseFloat(componentlist[i]['Total']);
@@ -424,7 +423,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                 var oldtotal = item.Total;
                 item.Total = item.Quantity*item.Rate;
                 dataView.updateItem(item.id, item);
-                var ordertotal = parseFloat($scope.formData['Total'].replace(/[^0-9-.]/g, ''));
+                var ordertotal = parseFloat($scope.modalForm.Total.replace(/[^0-9-.]/g, ''));
                 var newtotal = ordertotal + (item.Total - oldtotal);
                 var parts = newtotal.toString().split(".");
                 parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");

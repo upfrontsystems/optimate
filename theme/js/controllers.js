@@ -1346,8 +1346,8 @@ allControllers.controller('navController', ['$scope', 'SessionService',
 }]);
 
 // controller for the Order data from the server
-allControllers.controller('ordersController', ['$scope', '$http', 'globalServerURL',
-    function($scope, $http, globalServerURL) {
+allControllers.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$timeout',
+    function($scope, $http, globalServerURL, $timeout) {
 
         toggleMenu('orders');
         $scope.dateTimeNow = function() {
@@ -1358,6 +1358,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         $scope.isCollapsed = true;
         $scope.jsonorders = [];
         $scope.componentsList = [];
+        $scope.modalForm = [];
         // Pagination variables and functions
         $scope.pageSize = 100;
         $scope.currentPage = 1;
@@ -1451,6 +1452,8 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 $scope.formData['TaxRate'] = $scope.formData['TaxRate'] ? 14 : 0;
                 // convert the date to json format
                 $scope.formData['Date'] = $scope.date.toJSON();
+                // convert the total to a number
+                $scope.formData['Total'] = parseFloat($scope.modalForm.Total.replace(/[^0-9-.]/g, ''));;
                 if ($scope.modalState == 'Edit'){
                     $http({
                         method: 'PUT',
@@ -1522,7 +1525,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $scope.modalState = "Add";
             $scope.dateTimeNow();
             $scope.formData['Date'] = $scope.date;
-            $scope.formData['Total'] = '0.00';
+            $scope.modalForm.Total = '0.00';
             $scope.componentsList = [];
             if ($scope.selectedOrder){
                 $('#order-'+$scope.selectedOrder.ID).removeClass('active');
@@ -1545,6 +1548,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 $scope.date = new Date($scope.formData['Date']);
                 $scope.formData['NodeType'] = 'order';
                 $scope.formData['TaxRate'] = ($scope.formData['TaxRate'] > 0);
+                $scope.modalForm.Total = response.Total;
             });
         }
 
@@ -1567,28 +1571,67 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             });
         };
 
-        $scope.toggleComponents = function(node){
-            var flag = (node.selected === true) ? undefined : true;
-            node.selected = flag;
-            var resourceid = node.ResourceID;
+        $scope.toggleComponents = function(comp){
+            // set the component selected or unselected
+            var flag = (comp.selected === true) ? undefined : true;
+            comp.selected = flag;
+            // find the component in the component list
+            var searchid = comp.ID;
             var result = $.grep($scope.componentsList, function(e) {
-                    return e.ResourceID == resourceid;
+                return e.id == searchid;
             });
             var i = $scope.componentsList.indexOf(result[0]);
-            // if the resource is already use in the list
-            // check if it is being added or removed
+            // if the component is already in the list
             if (i>-1){
-                var toggleQuantity = node.Quantity;
-                var operator = flag ? 1 : -1;
-                $scope.componentsList[i]['Quantity'] =
-                            $scope.componentsList[i]['Quantity'] + (operator*toggleQuantity);
-                // if the end quantity is negative remove the component
-                if ($scope.componentsList[i]['Quantity'] < 0){
-                    $scope.componentsList.splice(i, 1);
+                // if the node is being deselected
+                if (!flag){
+                    // if the deselected component quantity
+                    // is the same or more than the current component
+                    // remove it
+                    if (comp.Quantity >= result[0].Quantity){
+                        $scope.componentsList.splice(i, 1);
+                    }
+                    // otherwise decrease the existing quantity
+                    else {
+                        $scope.componentsList[i]['Quantity'] = $scope.componentsList[i]['Quantity'] - comp.Quantity;
+                    }
                 }
             }
+            // if the component is not in the list
             else{
-                $scope.componentsList.push(node);
+                // check if the resource is already present
+                var resourceid = comp.ResourceID;
+                var rresult = $.grep($scope.componentsList, function(e) {
+                    return e.ResourceID == resourceid;
+                });
+                var ri = $scope.componentsList.indexOf(rresult[0]);
+                // if the node is being selected
+                if (flag){
+                    // before adding the component to the list
+                    // if the resource is already present
+                    // only add the component quantity to the existing
+                    // quantity
+                    if (ri>-1){
+                        $scope.componentsList[ri]['Quantity'] = $scope.componentsList[ri]['Quantity'] + comp.Quantity;
+                    }
+                    // otherwise add the component to the list
+                    else {
+                        $scope.componentsList.push(comp);
+                    }
+                }
+                // if the node is being deselected
+                else{
+                    // if the resource is already present
+                    // decrease the quantity of the component
+                    if (ri>-1){
+                        $scope.componentsList[ri]['Quantity'] = $scope.componentsList[ri]['Quantity'] - comp.Quantity;
+                        // if the quantity is negative now
+                        // remove the component from the list
+                        if ($scope.componentsList[ri]['Quantity']<0){
+                            $scope.componentsList.splice(ri, 1);
+                        }
+                    }
+                }
             }
         }
 
@@ -1645,29 +1688,68 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                     $scope.toggleSubitems(subsubitem, flag);
                 }
             }
-
             // add the components to the list
             $http.get(globalServerURL + nodeid + "/components")
             .success(function(response){
                 for (var v = 0; v<response.length; v++){
                     var comp = response[v];
-                    var resourceid = comp.ResourceID;
+                    // get the component in the component list
+                    var searchid = comp.ID;
                     var result = $.grep($scope.componentsList, function(e) {
-                        return e.ResourceID == resourceid;
+                        return e.id == searchid;
                     });
                     var i = $scope.componentsList.indexOf(result[0]);
+                    // if the component is already in the list
                     if (i>-1){
-                        var toggleQuantity = comp.Quantity;
-                        var operator = flag ? 1 : -1;
-                        $scope.componentsList[i]['Quantity'] =
-                                    $scope.componentsList[i]['Quantity'] + (operator*toggleQuantity);
-                        // if the end quantity is negative remove the component
-                        if ($scope.componentsList[i]['Quantity'] < 0){
-                            $scope.componentsList.splice(i, 1);
+                        // if the node is being deselected
+                        if (!flag){
+                            // if the deselected component quantity
+                            // is the same or more than the current component
+                            // remove it
+                            if (comp.Quantity >= result[0].Quantity){
+                                $scope.componentsList.splice(i, 1);
+                            }
+                            // otherwise decrease the existing quantity
+                            else {
+                                $scope.componentsList[i]['Quantity'] = $scope.componentsList[i]['Quantity'] - comp.Quantity;
+                            }
                         }
                     }
+                    // if the component is not in the list
                     else{
-                        $scope.componentsList.push(comp);
+                        // check if the resource is already present
+                        var resourceid = comp.ResourceID;
+                        var rresult = $.grep($scope.componentsList, function(e) {
+                            return e.ResourceID == resourceid;
+                        });
+                        var ri = $scope.componentsList.indexOf(rresult[0]);
+                        // if the node is being selected
+                        if (flag){
+                            // before adding the component to the list
+                            // if the resource is already present
+                            // only add the component quantity to the existing
+                            // quantity
+                            if (ri>-1){
+                                $scope.componentsList[ri]['Quantity'] = $scope.componentsList[ri]['Quantity'] + comp.Quantity;
+                            }
+                            // otherwise add the component to the list
+                            else {
+                                $scope.componentsList.push(comp);
+                            }
+                        }
+                        // if the node is being deselected
+                        else{
+                            // if the resource is already present
+                            // decrease the quantity of the component
+                            if (ri>-1){
+                                $scope.componentsList[ri]['Quantity'] = $scope.componentsList[ri]['Quantity'] - comp.Quantity;
+                                // if the quantity is negative now
+                                // remove the component from the list
+                                if ($scope.componentsList[ri]['Quantity']<0){
+                                    $scope.componentsList.splice(ri, 1);
+                                }
+                            }
+                        }
                     }
                 }
             });
@@ -1696,9 +1778,12 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         };
 
         // update the order total
+        // inside an apply function to ensure it updates the model
         $scope.updateOrderTotal = function(total){
-            $scope.formData['Total'] = total;
-        }
+            $timeout(function(){
+                $scope.modalForm.Total = total;
+            });
+        };
 
         // if node head clicks, get the children of the node
         // and collapse or expand the node

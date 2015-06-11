@@ -1274,7 +1274,8 @@ def orderview(request):
         date = request.json_body.get('Date', None)
         if date:
             date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
-
+        total = request.json_body.get('Total', 0)
+        total = Decimal(total).quantize(Decimal('.01'))
         neworder = Order(UserCode=user,
                             Authorisation=auth,
                             ProjectID=proj,
@@ -1282,7 +1283,8 @@ def orderview(request):
                             ClientID=client,
                             TaxRate=tax,
                             DeliveryAddress=address,
-                            Date=date)
+                            Date=date,
+                            Total=total)
         DBSession.add(neworder)
         DBSession.flush()
         # add the order items to the order
@@ -1321,6 +1323,8 @@ def orderview(request):
         date = request.json_body.get('Date', None)
         if date:
             date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
+        total = request.json_body.get('Total', 0)
+        total = Decimal(total).quantize(Decimal('.01'))
 
         order.UserCode=user
         order.Authorisation=auth
@@ -1330,26 +1334,37 @@ def orderview(request):
         order.TaxRate=tax
         order.DeliveryAddress=address
         order.Date = date
+        order.Total = total
 
-        # get the list of component id's used in the form
-        componentslist = request.json_body['ComponentsList']
         # get a list of id's used in the orderitems
         iddict = {}
         for orderitem in order.OrderItems:
             iddict[orderitem.ComponentID] = orderitem.ID
+        # get the list of components used in the form
+        componentslist = request.json_body['ComponentsList']
         # iterate through the new id's and add any new orders
         # remove the id from the list if it is there already
         for component in componentslist:
             if component['ID'] not in iddict.keys():
+                # add the new order item
                 quantity = float(component.get('Quantity', 0))
                 rate = component.get('Rate', 0)
                 rate = Decimal(rate).quantize(Decimal('.01'))
+
                 neworderitem = OrderItem(OrderID=order.ID,
                                         ComponentID=component['ID'],
                                         Quantity=quantity,
                                         Rate = rate)
                 DBSession.add(neworderitem)
             else:
+                # otherwise remove the id from the list and update the
+                # rate and quantity
+                orderitemid = iddict[component['ID']]
+                orderitem = DBSession.query(OrderItem).filter_by(
+                                    ID=orderitemid).first()
+                orderitem.Quantity = float(component['Quantity'])
+                rate = component['Rate']
+                orderitem.Rate = Decimal(rate).quantize(Decimal('.01'))
                 del iddict[component['ID']]
         # delete the leftover id's
         for oldid in iddict.values():
@@ -1374,9 +1389,9 @@ def orderview(request):
     componentslist = sorted(componentslist, key=lambda k: k['Name'])
     # get the date in json format
     jsondate = order.Date.isoformat()
-    total = '0'
+    total = '{:20,.2f}'.format(0).strip()
     if order.Total:
-        total = str(order.Total)
+        total = '{:20,.2f}'.format(float(order.Total)).strip()
     return {'ID': order.ID,
             'ProjectID': order.ProjectID,
             'SupplierID': order.SupplierID,

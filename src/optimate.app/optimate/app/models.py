@@ -1355,9 +1355,9 @@ class Order(Base):
         else:
             clientname = ""
         if self.Total:
-            total = '{:20,.2f}'.format(self.Total)
+            total = '{:20,.2f}'.format(self.Total).strip()
         else:
-            total = '{:20,.2f}'.format(0)
+            total = '{:20,.2f}'.format(0).strip()
 
         return {'ID': self.ID,
                 'Project': projectname,
