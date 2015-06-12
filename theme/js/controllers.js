@@ -1576,62 +1576,19 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             var flag = (comp.selected === true) ? undefined : true;
             comp.selected = flag;
             // find the component in the component list
-            var searchid = comp.ID;
-            var result = $.grep($scope.componentsList, function(e) {
-                return e.id == searchid;
-            });
-            var i = $scope.componentsList.indexOf(result[0]);
+            var i = $scope.componentsList.map(function(e)
+                { return e.id; }).indexOf(comp.ID);
             // if the component is already in the list
-            if (i>-1){
-                // if the node is being deselected
-                if (!flag){
-                    // if the deselected component quantity
-                    // is the same or more than the current component
-                    // remove it
-                    if (comp.Quantity >= result[0].Quantity){
-                        $scope.componentsList.splice(i, 1);
-                    }
-                    // otherwise decrease the existing quantity
-                    else {
-                        $scope.componentsList[i]['Quantity'] = $scope.componentsList[i]['Quantity'] - comp.Quantity;
-                    }
-                }
+            // and the node is deselected
+            if ((i>-1) &(!flag)){
+                // remove it
+                $scope.componentsList.splice(i, 1);
             }
             // if the component is not in the list
-            else{
-                // check if the resource is already present
-                var resourceid = comp.ResourceID;
-                var rresult = $.grep($scope.componentsList, function(e) {
-                    return e.ResourceID == resourceid;
-                });
-                var ri = $scope.componentsList.indexOf(rresult[0]);
-                // if the node is being selected
-                if (flag){
-                    // before adding the component to the list
-                    // if the resource is already present
-                    // only add the component quantity to the existing
-                    // quantity
-                    if (ri>-1){
-                        $scope.componentsList[ri]['Quantity'] = $scope.componentsList[ri]['Quantity'] + comp.Quantity;
-                    }
-                    // otherwise add the component to the list
-                    else {
-                        $scope.componentsList.push(comp);
-                    }
-                }
-                // if the node is being deselected
-                else{
-                    // if the resource is already present
-                    // decrease the quantity of the component
-                    if (ri>-1){
-                        $scope.componentsList[ri]['Quantity'] = $scope.componentsList[ri]['Quantity'] - comp.Quantity;
-                        // if the quantity is negative now
-                        // remove the component from the list
-                        if ($scope.componentsList[ri]['Quantity']<0){
-                            $scope.componentsList.splice(ri, 1);
-                        }
-                    }
-                }
+            // and the node is being selected
+            else if ((i==-1) & flag){
+                // add the component
+                $scope.componentsList.push(comp);
             }
         }
 
@@ -1693,63 +1650,20 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             .success(function(response){
                 for (var v = 0; v<response.length; v++){
                     var comp = response[v];
-                    // get the component in the component list
-                    var searchid = comp.ID;
-                    var result = $.grep($scope.componentsList, function(e) {
-                        return e.id == searchid;
-                    });
-                    var i = $scope.componentsList.indexOf(result[0]);
+                    // find the component in the component list
+                    var i = $scope.componentsList.map(function(e)
+                        { return e.id; }).indexOf(comp.ID);
                     // if the component is already in the list
-                    if (i>-1){
-                        // if the node is being deselected
-                        if (!flag){
-                            // if the deselected component quantity
-                            // is the same or more than the current component
-                            // remove it
-                            if (comp.Quantity >= result[0].Quantity){
-                                $scope.componentsList.splice(i, 1);
-                            }
-                            // otherwise decrease the existing quantity
-                            else {
-                                $scope.componentsList[i]['Quantity'] = $scope.componentsList[i]['Quantity'] - comp.Quantity;
-                            }
-                        }
+                    // and the node is deselected
+                    if ((i>-1) &(!flag)){
+                        // remove it
+                        $scope.componentsList.splice(i, 1);
                     }
                     // if the component is not in the list
-                    else{
-                        // check if the resource is already present
-                        var resourceid = comp.ResourceID;
-                        var rresult = $.grep($scope.componentsList, function(e) {
-                            return e.ResourceID == resourceid;
-                        });
-                        var ri = $scope.componentsList.indexOf(rresult[0]);
-                        // if the node is being selected
-                        if (flag){
-                            // before adding the component to the list
-                            // if the resource is already present
-                            // only add the component quantity to the existing
-                            // quantity
-                            if (ri>-1){
-                                $scope.componentsList[ri]['Quantity'] = $scope.componentsList[ri]['Quantity'] + comp.Quantity;
-                            }
-                            // otherwise add the component to the list
-                            else {
-                                $scope.componentsList.push(comp);
-                            }
-                        }
-                        // if the node is being deselected
-                        else{
-                            // if the resource is already present
-                            // decrease the quantity of the component
-                            if (ri>-1){
-                                $scope.componentsList[ri]['Quantity'] = $scope.componentsList[ri]['Quantity'] - comp.Quantity;
-                                // if the quantity is negative now
-                                // remove the component from the list
-                                if ($scope.componentsList[ri]['Quantity']<0){
-                                    $scope.componentsList.splice(ri, 1);
-                                }
-                            }
-                        }
+                    // and the node is being selected
+                    else if ((i==-1) & flag){
+                        // add the component
+                        $scope.componentsList.push(comp);
                     }
                 }
             });

@@ -868,20 +868,16 @@ class Component(Node):
     def toOrderDict(self):
         """ Returns a dictionary of this node used in the order tree view
         """
-        subitem = []
         total = self.Quantity*float(self.Rate)
         return {'Name': self.Name,
-                'Description': self.Description,
                 'ID': self.ID,
                 'id': self.ID,
-                'ResourceID': self.ResourceID,
-                'Subitem': subitem,
-                'NodeType': self.type,
-                'node_type': self.type,
-                'NodeTypeAbbr' : 'C',
                 'Quantity': self.Quantity,
                 'Rate': str(self.Rate),
-                'Total': total}
+                'Total': total,
+                'NodeType': self.type,
+                'node_type': self.type,
+                'NodeTypeAbbr' : 'C'}
 
     def toDict(self):
         """ Return a dictionary of all the attributes of this Component
@@ -1403,15 +1399,15 @@ class OrderItem(Base):
     def toDict(self):
         """ Returns a dictionary of this OrderItem
         """
-        return {'ID': self.ComponentID,
+        return {'Name': self.Component.Name,
+                'ID': self.ComponentID,
                 'id': self.ComponentID,
-                'Name': self.Component.Name,
                 'Quantity': self.Quantity,
                 'Rate': str(self.Rate),
                 'Total': str(self.Total),
                 'NodeType': 'Component',
                 'node_type': 'Component',
-                'ResourceID': self.Component.ResourceID}
+                'NodeTypeAbbr' : 'C',}
 
     def getGridData(self):
         """ Returns a dictionary of this OrderItem for the slickgrid

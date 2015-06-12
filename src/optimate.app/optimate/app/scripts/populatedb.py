@@ -1088,21 +1088,12 @@ if __name__ == '__main__':
                 if changedcocodes[compid] != 149999:
                     compid = changedcocodes[compid]
 
-            # get the existing orderitems of an order
-            # for those who have the same component
-            qry=DBSession.query(OrderItem).filter_by(OrderID=orderid). \
-                                filter_by(ComponentID=compid).first()
-            # if the component already exists just add the quantities
-            if qry:
-                qry.Quantity = qry.Quantity + quantity
-                transaction.commit()
-            else:
-                orderitem = OrderItem(ID=code,
-                                OrderID=orderid,
-                                ComponentID=compid,
-                                Quantity=quantity,
-                                Rate=rate)
-                DBSession.add(orderitem)
+            orderitem = OrderItem(ID=code,
+                            OrderID=orderid,
+                            ComponentID=compid,
+                            Quantity=quantity,
+                            Rate=rate)
+            DBSession.add(orderitem)
 
         transaction.commit()
 
