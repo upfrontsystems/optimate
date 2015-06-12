@@ -21,7 +21,8 @@ from optimate.app.models import (
     Supplier,
     CompanyInformation,
     Order,
-    OrderItem
+    OrderItem,
+    User
 )
 
 from sqlalchemy import (
@@ -33,6 +34,7 @@ from sqlalchemy import (
 )
 
 import sys
+import json
 import transaction
 from sqlalchemy import exc
 from sqlalchemy.exc import IntegrityError
@@ -852,17 +854,8 @@ if __name__ == '__main__':
 
         # iterate through all the resource categories
         qry = DBSession.query(ResourceCategory).all()
-        length = len(qry)
-        percentile = length/100.0
-        x = 1
         print "Percentage done: "
         for rc in qry:
-            if x == int(percentile * counter):
-                counter += 1
-                stdout.write('\r%d' % counter + '%')
-                stdout.flush()
-                sleep(1)
-            x+=1
             childlist = rc.Children
             childlist = list(childlist)
             if len(childlist)>0:
@@ -1095,6 +1088,14 @@ if __name__ == '__main__':
                             Rate=rate)
             DBSession.add(orderitem)
 
+        transaction.commit()
+
+        print "Adding admin user"
+        user = User()
+        user.username = u'admin'
+        user.set_password('admin')
+        user.roles = json.dumps(['Administrator'])
+        DBSession().merge(user)
         transaction.commit()
 
     print '\ndone'

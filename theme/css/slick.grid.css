@@ -174,3 +174,26 @@ classes should alter those!
     position: absolute;
     border: 2px dashed black;
 }
+
+#optimate-data-grid {
+    height: 82vh;
+}
+
+.slick-header-columns {
+    font-size: 0.7em;
+}
+
+/* Slickgrid table styles */
+.cell-title {
+    font-weight: bold;
+}
+
+.cell {
+    text-align: right;
+    font: 0.8em;
+}
+
+.cell-effort-driven {
+    text-align: center;
+}
+

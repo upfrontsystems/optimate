@@ -33,53 +33,33 @@ body {
     z-index: 999;
 }
 
+/* derive the cost row height from heigh of nav bars *//*
+costs.row {
+    height: calc(100% - 102px);
+}
+*/
+
 /* treeview div */
 .left {
     width: 40%;
     display: inline-block;
     vertical-align: top;
-    padding-left: 1px;
+    overflow: auto;
+    height: 82vh;
 }
 
 /* slickgrid div */
 .right {
-    width: 59.5%;
-    max-width: 855px;
+    width:60%;
     display: inline-block;
     vertical-align: top;
     float: right;
-}
-
-/* angular treeview info box */
-.info-box {
-    margin: 4px 0 30px 0;
-    padding:4px;
-    background-color: #eee;
-    border-radius: 3px;
-    font-size:13px;
-}
-
-/* Slickgrid table styles */
-.cell-title {
-    font-weight: bold;
-}
-
-.cell {
-    text-align: right;
-    font: 0.8em;
-}
-
-.cell-effort-driven {
-    text-align: center;
+    overflow:auto;
 }
 
 #main-container {
     width: 100%;
     display: inline-block;
-}
-
-#optimate-data-grid {
-    height: 80vh;
 }
 
 input.editor-text {
@@ -90,10 +70,6 @@ input.editor-text {
     outline: 0 none;
     padding: 0;
     width: 100%;
-}
-
-.slick-header-columns {
-    font-size: 0.7em;
 }
 
 .hide {
@@ -119,79 +95,6 @@ input.editor-text {
   -webkit-box-sizing: border-box;
      -moz-box-sizing: border-box;
           box-sizing: border-box;
-}
-
-/* icons for the tree nodes */
-@font-face {
-    font-family: "../fonts/fontawesome";
-    src:url("../fonts/fontawesome-webfont.eot");
-    src:url("../fonts/fontawesome-webfont.eot?#iefix") format("embedded-opentype"),
-    url("../fonts/fontawesome-webfont.ttf") format("truetype"),
-    url("../fonts/fontawesome-webfont.woff") format("woff"),
-    url("../fonts/fontawesome-webfont.svg#fontawesome") format("svg");
-    url("../fonts/fontawesome.otf");
-    font-weight: normal;
-    font-style: normal;
-}
-
-.circle {
-    border-radius: 50%;
-    width: 12px;
-    height: 12px;
-    display: inline-block;
-    color: #fff;
-    padding: 2px 5px 8px 5px;
-    margin: 2px;
-    font-style: bold;
-    font-size: 0.8em;
-}
-
-.circle.Project {
-    background: #00c752;
-}
-
-a.project-button {
-    color: #00c752;
-}
-
-.circle.BudgetGroup {
-    background: #39a8ee;
-}
-
-a.budget-group-button {
-    color: #39a8ee;
-}
-
-.circle.BudgetItem {
-    background: #b75eea;
-}
-
-a.budget-item-button {
-    color: #b75eea;
-}
-
-.circle.Component {
-    background: #4dd0e2;
-}
-
-a.component-button {
-    color: #4dd0e2;
-}
-
-.circle.Resource {
-    background: #f06292;
-}
-
-a.resource-button {
-    color: #f06292;
-}
-
-.circle.ResourceCategory {
-    background: #a9385e;
-}
-
-a.resource-category-button {
-    color: #a9385e;
 }
 
 .col-sm-7 {
@@ -282,7 +185,7 @@ li.order-filters {
 }
 
 #component-data-grid-outer {
-    height: 150px;
+    height: 120px;
 }
 #component-data-grid {
     width: 60%;

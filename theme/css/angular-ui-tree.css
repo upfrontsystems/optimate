@@ -88,10 +88,82 @@ div[ui-tree] li .normal {
     line-height: 20px;
 }
 
-
 .angular-ui-tree-drag {
     position: absolute;
     pointer-events: none;
     z-index: 999;
     opacity: .8;
+}
+
+/* icons for the tree nodes */
+@font-face {
+    font-family: "../fonts/fontawesome";
+    src:url("../fonts/fontawesome-webfont.eot");
+    src:url("../fonts/fontawesome-webfont.eot?#iefix") format("embedded-opentype"),
+    url("../fonts/fontawesome-webfont.ttf") format("truetype"),
+    url("../fonts/fontawesome-webfont.woff") format("woff"),
+    url("../fonts/fontawesome-webfont.svg#fontawesome") format("svg");
+    url("../fonts/fontawesome.otf");
+    font-weight: normal;
+    font-style: normal;
+}
+
+.circle {
+    border-radius: 50%;
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+    color: #fff;
+    padding: 2px 5px 8px 5px;
+    margin: 2px;
+    font-style: bold;
+    font-size: 0.8em;
+}
+
+.circle.Project {
+    background: #00c752;
+}
+
+a.project-button {
+    color: #00c752;
+}
+
+.circle.BudgetGroup {
+    background: #39a8ee;
+}
+
+a.budget-group-button {
+    color: #39a8ee;
+}
+
+.circle.BudgetItem {
+    background: #b75eea;
+}
+
+a.budget-item-button {
+    color: #b75eea;
+}
+
+.circle.Component {
+    background: #4dd0e2;
+}
+
+a.component-button {
+    color: #4dd0e2;
+}
+
+.circle.Resource {
+    background: #f06292;
+}
+
+a.resource-button {
+    color: #f06292;
+}
+
+.circle.ResourceCategory {
+    background: #a9385e;
+}
+
+a.resource-category-button {
+    color: #a9385e;
 }
