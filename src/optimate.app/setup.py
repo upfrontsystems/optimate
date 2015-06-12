@@ -24,6 +24,7 @@ requires = [
     'docutils',
     'xlrd',
     'PyCrypto', # For secure authentication tokens
+    'xhtml2pdf',
     ]
 
 setup(name='optimate.app',
