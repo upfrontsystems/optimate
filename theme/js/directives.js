@@ -79,6 +79,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     autoEdit: true,
                     syncColumnCellResize: true,
                     enableColumnReorder: true,
+                    autoHeight: true
                 };
 
             data = []

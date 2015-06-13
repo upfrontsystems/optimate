@@ -1,3 +1,10 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+
 body {
     background: none repeat scroll 0 0;
     padding-top: 105px;
@@ -33,33 +40,105 @@ body {
     z-index: 999;
 }
 
-/* derive the cost row height from heigh of nav bars *//*
-costs.row {
-    height: calc(100% - 102px);
+
+.flex-box {
+    display: flex;
+    /*height: -moz-calc(100% - 102px);
+    height: -webkit-calc(100% - 102px);
+    height: calc(100% - 102px);*/
+    height: 83vh;
 }
-*/
+
+.left {
+    flex: 1;
+    resize: horizontal;
+    order: 1;
+    overflow: auto;
+}
+
+.right {
+    flex: 1.5;
+    resize: horizontal;
+    order: 2;
+    overflow:auto;
+}
+
+/*html, body, .main-container, .main-container > div, .flex-box {
+  display: flex;
+  flex: 1;
+}
+html { height: 100% }
+body { margin: 0 }
+.left, .right {
+  flex: 1;
+  overflow: auto;
+}*/
+
+/*.content {
+    display: table;
+    border-collapse: collapse;
+    width: 100%;
+    height: calc(100% - 50px);
+}
+.left, .right {
+    display: table-cell;
+    vertical-align: top;
+}
+.left {
+    background: aqua;
+}
+.right {
+    background: yellow;
+}*/
+
+/* flex solution for height */
+/*.box {
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+}
+
+.box .row {
+  border: 1px dotted grey;
+  flex: 0 1 30px;
+}
+
+.box .row.header {
+  flex: 0 1 auto;
+}
+
+.box .row.content {
+  flex: 1 1 auto;
+}
+
+.box .row.footer {
+  flex: 0 1 40px;
+}*/
+
 
 /* treeview div */
-.left {
+/*.left {
     width: 40%;
     display: inline-block;
     vertical-align: top;
     overflow: auto;
-    height: 82vh;
-}
+    background:red;
+}*/
+
+
 
 /* slickgrid div */
-.right {
+/*.right {
     width:60%;
     display: inline-block;
     vertical-align: top;
     float: right;
     overflow:auto;
-}
+    background:green;
+}*/
 
-#main-container {
-    width: 100%;
-    display: inline-block;
+.main-container {
+    height: 100%;
 }
 
 input.editor-text {

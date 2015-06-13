@@ -1,0 +1,93 @@
+<div id="selectProjectModal" class="modal fade" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close"
+                        data-dismiss="modal" aria-hidden="true">&times;
+                </button>
+                <h3 class="modal-title">Open Project</h3>
+            </div>
+            <div class="modal-body">
+                <span> Select project: </span>
+                <span>
+                    <select id="project-select">
+                        <option ng-repeat="obj in projectsList" value="{{obj.ID}}">{{obj.Name}}</option>
+                    </select>
+                </span>
+            </div>
+            <div class="modal-footer">
+                <button type="select" class="btn btn-primary" data-ng-click="loadProject()" data-dismiss="modal">Open</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="debugProjectModal" class="modal fade" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close"
+                        data-dismiss="modal" aria-hidden="true">&times;
+                </button>
+                <h3 class="modal-title">Selected node information</h3>
+            </div>
+            <div class="modal-body">
+                <div class="info-box">
+                    <span>
+                        <b>ID: </b>{{currentNode.ID}}<br>
+                        <b>Description: </b>{{currentNode.Description}}<br>
+                        <b>Type: </b>{{currentNode.NodeType}}<br>
+                    </span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="select" class="btn btn-primary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="deleteConfirmation" class="modal" tabindex='-1'>
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h4>Delete {{currentNode.NodeType}}: {{currentNode.Name}}</h4>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary delete-node" data-dismiss="modal" data-ng-click="deleteThisNode(currentNode.ID)">Delete</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- template for the overheads modal -->
+<div custom-modals modal-id="editOverheads"
+    modal-src="modal_templates/editOverheads.html">
+</div>
+
+<!-- div directives for the custom modals -->
+<div custom-modals modal-id="addBudgetGroup"
+    modal-type="{{addingNodeType}}"
+    modal-src="modal_templates/addBudgetGroup.html">
+</div>
+<div custom-modals modal-id="addBudgetItem"
+    modal-type="{{addingNodeType}}"
+    modal-src="modal_templates/addBudgetItem.html">
+</div>
+<div custom-modals modal-id="addComponent"
+    modal-type="{{addingNodeType}}"
+    modal-src="modal_templates/addComponent.html">
+</div>
+<div custom-modals modal-id="addResource"
+    modal-type="{{addingNodeType}}"
+    modal-src="modal_templates/addResource.html">
+</div>
+<div custom-modals modal-id="addResourceCategory"
+    modal-type="{{addingNodeType}}"
+    modal-src="modal_templates/addResourceCategory.html">
+</div>
+<div custom-modals modal-id="addProject"
+    modal-type="{{addingNodeType}}"
+    modal-src="modal_templates/addProject.html">
+</div>
