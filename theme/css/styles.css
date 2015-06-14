@@ -1,6 +1,5 @@
 html,
 body {
-  height: 100%;
   margin: 0;
 }
 
@@ -41,14 +40,16 @@ body {
 }
 
 
+/* flex box container for slickgrid and tree */
+/* minus top padding of 105 pixels */
 .flex-box {
     display: flex;
-    /*height: -moz-calc(100% - 102px);
-    height: -webkit-calc(100% - 102px);
-    height: calc(100% - 102px);*/
-    height: 83vh;
+    height: -moz-calc(100vh - 105px);
+    height: -webkit-calc(100vh - 105px);
+    height: calc(100vh - 105px);
 }
 
+/* tree container */
 .left {
     flex: 1;
     resize: horizontal;
@@ -56,89 +57,12 @@ body {
     overflow: auto;
 }
 
+/* slickgrid container */
 .right {
     flex: 1.5;
     resize: horizontal;
     order: 2;
     overflow:auto;
-}
-
-/*html, body, .main-container, .main-container > div, .flex-box {
-  display: flex;
-  flex: 1;
-}
-html { height: 100% }
-body { margin: 0 }
-.left, .right {
-  flex: 1;
-  overflow: auto;
-}*/
-
-/*.content {
-    display: table;
-    border-collapse: collapse;
-    width: 100%;
-    height: calc(100% - 50px);
-}
-.left, .right {
-    display: table-cell;
-    vertical-align: top;
-}
-.left {
-    background: aqua;
-}
-.right {
-    background: yellow;
-}*/
-
-/* flex solution for height */
-/*.box {
-  display: flex;
-  flex-flow: column;
-  height: 100%;
-}
-
-.box .row {
-  border: 1px dotted grey;
-  flex: 0 1 30px;
-}
-
-.box .row.header {
-  flex: 0 1 auto;
-}
-
-.box .row.content {
-  flex: 1 1 auto;
-}
-
-.box .row.footer {
-  flex: 0 1 40px;
-}*/
-
-
-/* treeview div */
-/*.left {
-    width: 40%;
-    display: inline-block;
-    vertical-align: top;
-    overflow: auto;
-    background:red;
-}*/
-
-
-
-/* slickgrid div */
-/*.right {
-    width:60%;
-    display: inline-block;
-    vertical-align: top;
-    float: right;
-    overflow:auto;
-    background:green;
-}*/
-
-.main-container {
-    height: 100%;
 }
 
 input.editor-text {
