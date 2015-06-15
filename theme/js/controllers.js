@@ -1081,6 +1081,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 // XXX here refresh project list in case the name of node has been updated
                 // set the current node name to the name in the modal form
                 $scope.currentNode.Name = $scope.formData['Name'];
+                sharedService.reloadSlickgrid($scope.formData['ID']);
             });
         }
 
@@ -1466,6 +1467,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         $scope.save = function(){
             // check if saving is disabled, if not disable it and save
             if (!$scope.isDisabled){
+                console.log($scope.formData);
                 $scope.isDisabled = true;
                 // set the list of checked components
                 $scope.formData['ComponentsList'] = $scope.componentsList;
