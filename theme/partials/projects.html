@@ -17,7 +17,7 @@
 <div ng-include="'modal_templates/projectsPageModals.html'"></div>
 
 <div class="flex-box">
-    <div class="left">
+    <div resizable r-directions="['right']" r-flex="true" class="left">
         <div ui-tree="treeOptions" id="tree-root">
             <ol ui-tree-nodes="" ng-model="projectsRoot.Subitem" data-type="{{projectsRoot.NodeType}}">
                 <li data-ng-repeat="node in projectsRoot.Subitem"
@@ -27,7 +27,7 @@
             </ol>
         </div>
     </div>
-    <div class="right">
+    <div resizable r-directions="['left']" r-flex="true" class="right">
         <projectslickgridjs id="optimate-data-grid"></projectslickgridjs>
     </div>
 </div>
