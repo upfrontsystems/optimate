@@ -66,6 +66,7 @@ def options_view(request):
     """ This view will be called for all OPTIONS requests. """
     return {"success": True}
 
+
 @view_config(route_name='auth', renderer='json')
 def auth(request):
     """ Implements a kind of auth service.
@@ -118,8 +119,6 @@ def childview(request):
         parentid = request.matchdict['parentid']
     childrenlist = []
     resourcecategories = []
-    start = request.params.get('start')
-    end = request.params.get('end')
 
     qry = DBSession.query(Node).filter_by(ID=parentid).first()
     # build the list and only get the neccesary values
@@ -136,15 +135,6 @@ def childview(request):
     sorted_categories = sorted(resourcecategories, key=lambda k: k['Name'].upper())
 
     completelist = sorted_categories + sorted_childrenlist
-
-    try:
-        start = int(start)
-        end = int(end)
-    except Exception:
-        return completelist
-
-    if start >= 0 and end >= 0 and start <= end:
-        return completelist[int(start):int(end)]
 
     return completelist
 
@@ -171,6 +161,7 @@ def orders_tree_view(request):
     # sort childrenlist
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'].upper())
     return sorted_childrenlist
+
 
 @view_config(route_name="getitem", renderer='json')
 def getitem(request):
@@ -256,6 +247,7 @@ def resource_list(request):
             "uid": uid } for uid, title, url in pathlist(resourcecategory)],
         "items": items
     }
+
 
 @view_config(route_name="resourcetypes", renderer='json')
 def resourcetypes(request):
@@ -423,6 +415,7 @@ def update_value(request):
                 return {'total': newtotal, 'subtotal': newsubtotal}
             except ValueError, e:
                 print e
+
 
 @view_config(route_name="addview", renderer='json')
 def additemview(request):
@@ -1199,6 +1192,7 @@ def ordersview(request):
     orderlist.append(length)
     return orderlist
 
+
 @view_config(route_name='orders_filter', renderer='json')
 def orders_filter(request):
     """ Returns a list of the Projects, Clients, Suppliers used by an order
@@ -1241,6 +1235,7 @@ def orders_length(request):
     """
     rows = DBSession.query(func.count(Order.ID)).scalar()
     return {'length': rows}
+
 
 @view_config(route_name='orderview', renderer='json')
 def orderview(request):
@@ -1436,6 +1431,7 @@ def usersview(request):
             'username': user.username,
             'roles': user.roles and json.loads(user.roles) or []
         } for user in users]
+
 
 @view_config(route_name='userview', renderer='json')
 def userview(request):
