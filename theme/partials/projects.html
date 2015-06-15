@@ -16,8 +16,34 @@
 
 <div ng-include="'modal_templates/projectsPageModals.html'"></div>
 
-<div class="flex-box">
-    <div resizable r-directions="['right']" r-flex="true" class="left">
+<div class="container-fluid">
+    <div id="costs" class="row">
+        <div id="left">
+            <div ui-tree="treeOptions"
+                id="tree-root">
+                <ol ui-tree-nodes="" ng-model="projectsRoot.Subitem" data-type="{{projectsRoot.NodeType}}">
+                    <li ng-repeat="node in projectsRoot.Subitem"
+                        data-type="{{node.NodeType}}"
+                        ui-tree-node
+                        ng-include="'partials/angularTree.html'"></li>
+                </ol>
+            </div>
+        </div>
+        <div id="sidebar-resizer"
+            resizer="vertical"
+            resizer-width="6"
+            resizer-left="#left"
+            resizer-right="#right"
+            resizer-max="1000">
+        </div>
+        <div id="right">
+            <projectslickgridjs id="optimate-data-grid"></projectslickgridjs>
+        </div>
+    </div>
+</div>
+
+<!-- <div class="flex-box">
+    <div id="left">
         <div ui-tree="treeOptions" id="tree-root">
             <ol ui-tree-nodes="" ng-model="projectsRoot.Subitem" data-type="{{projectsRoot.NodeType}}">
                 <li data-ng-repeat="node in projectsRoot.Subitem"
@@ -27,7 +53,14 @@
             </ol>
         </div>
     </div>
-    <div resizable r-directions="['left']" r-flex="true" class="right">
+    <div id="sidebar-resizer"
+        resizer="vertical"
+        resizer-width="6"
+        resizer-left="#left"
+        resizer-right="#right"
+        resizer-max="1000">
+    </div>
+    <div id="right">
         <projectslickgridjs id="optimate-data-grid"></projectslickgridjs>
     </div>
-</div>
+</div> -->
