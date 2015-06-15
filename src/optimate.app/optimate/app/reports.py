@@ -36,10 +36,16 @@ def projectbudget(request):
     qry = DBSession.query(Node).filter_by(ID=nodeid).first()
     # iterate through project and recursively get all nodes of a project
     data = qry.getNodes()
-    print len(data)
+
+    # inject node data into template
+    values = []
+    for entry in data:        
+        values.append(entry.Name)
 
     # render template
-    template_data = render('templates/projectbudgetreport.pt',{},
+    template_data = render('templates/projectbudgetreport.pt',
+                           {'fields': values,
+                            'project_name': qry.Name},
                            request=request)
     html = StringIO(template_data.encode('utf-8'))
 
