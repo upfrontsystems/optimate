@@ -1159,6 +1159,27 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 });
             }
         }
+
+        $scope.getReport = function (report, nodeid) {
+            if ( report == 'projectbudget' ) {
+                $http({method: 'GET', url:globalServerURL + 'project_budget_report/' + nodeid + '/'},
+                      {responseType:'arraybuffer'
+                }).success(function (response) {
+                    var file = new Blob([response], {type: 'application/pdf'});
+                    var fileURL = URL.createObjectURL(file);
+                    var result = document.getElementsByClassName("pdf_download");
+                    var anchor = angular.element(result);
+                    anchor.attr({
+                        href: fileURL,
+                        target: '_blank',
+                        download: 'report.pdf'
+                    })[0].click();
+                }).error(function(data, status, headers, config) {
+                    console.log("Pdf download error")
+                });
+            }
+        };
+
 }]);
 
 allControllers.controller('usersController', ['$scope', '$http', '$modal', 'globalServerURL',
