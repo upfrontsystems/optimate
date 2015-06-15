@@ -8,9 +8,35 @@ from pyramid.renderers import render
 from StringIO import StringIO
 from xhtml2pdf import pisa
 
+from optimate.app.models import (
+    DBSession,
+    Node,
+    Project,
+    BudgetGroup,
+    BudgetItem,
+    Component,
+    ResourceType,
+    ResourceCategory,
+    Resource,
+    Unit,
+    City,
+    Overhead,
+    Client,
+    Supplier,
+    CompanyInformation,
+    User,
+    Order,
+    OrderItem
+)
+
 @view_config(route_name="projectbudget")
 def projectbudget(request):
-    # TODO create html report
+
+    nodeid = request.matchdict['id']
+    qry = DBSession.query(Node).filter_by(ID=nodeid).first()
+    # iterate through project and recursively get all nodes of a project
+    data = qry.getNodes()
+    print len(data)
 
     # render template
     template_data = render('templates/projectbudgetreport.pt',{},

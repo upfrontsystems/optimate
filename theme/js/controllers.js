@@ -1160,9 +1160,9 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }
         }
 
-        $scope.getReport = function ( report ) {
+        $scope.getReport = function (report, nodeid) {
             if ( report == 'projectbudget' ) {
-                $http({method: 'GET', url:globalServerURL + 'project_budget_report'},
+                $http({method: 'GET', url:globalServerURL + 'project_budget_report/' + nodeid + '/'},
                       {responseType:'arraybuffer'
                 }).success(function (response) {
                     var file = new Blob([response], {type: 'application/pdf'});

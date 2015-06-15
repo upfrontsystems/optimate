@@ -101,7 +101,7 @@ def main(global_config, **settings):
     config.add_route('userview', '/users/{username}', factory=makeProtected(Administrator))
 
     # Reports
-    config.add_route('projectbudget', '/project_budget_report')
+    config.add_route('projectbudget', '/project_budget_report/{id}/')
 
     config.scan()
     return config.make_wsgi_app()
