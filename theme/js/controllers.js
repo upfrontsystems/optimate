@@ -1182,6 +1182,23 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     console.log("Pdf download error")
                 });
             }
+            else if ( report == 'resourcelist' ) {
+                $http({method: 'GET', url:globalServerURL + 'resource_list_report/' + nodeid + '/'},
+                      {responseType:'arraybuffer'
+                }).success(function (response) {
+                    var file = new Blob([response], {type: 'application/pdf'});
+                    var fileURL = URL.createObjectURL(file);
+                    var result = document.getElementsByClassName("pdf_download");
+                    var anchor = angular.element(result);
+                    anchor.attr({
+                        href: fileURL,
+                        target: '_blank',
+                        download: 'report.pdf'
+                    })[0].click();
+                }).error(function(data, status, headers, config) {
+                    console.log("Pdf download error")
+                });
+            }
         };
 
 }]);
