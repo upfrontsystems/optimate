@@ -6,8 +6,7 @@ var myApp = angular.module('myApp', [
                     'ui.tree',
                     'services',
                     'ui.bootstrap.datetimepicker',
-                    'angularMoment',
-                    'angularResizable']);
+                    'angularMoment']);
 
 myApp.config(['$routeProvider', '$httpProvider',
   function($routeProvider, $httpProvider) {

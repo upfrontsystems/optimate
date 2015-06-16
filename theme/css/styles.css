@@ -38,103 +38,32 @@ body {
     z-index: 999;
 }
 
-/*#costs {
+/* calculate tree and grid height minus top padding */
+#costs {
     height: -moz-calc(100vh - 105px);
     height: -webkit-calc(100vh - 105px);
     height: calc(100vh - 105px);
 }
+
+/* tree class */
 #left {
-    width: 40%;
+    width: calc(40% - 1px);
     height: 100%;
     display: inline-block;
     vertical-align: top;
     overflow: auto;
+    border-right: 1px solid gainsboro;
 }
 
+/* slickgrid class */
 #right {
     display: inline-block;
     vertical-align: top;
-    width: 59.5%;
+    width: 60%;
     height: 100%;
     float: right;
     overflow:auto;
 }
-
-#sidebar-resizer {
-    background-color: #666;
-    position: absolute;
-    top: 102px;
-    bottom: 0;
-    left: 40%;
-    width: 2px;
-    cursor: e-resize;
-}
-
-#sidebar-resizer:hover{
-    background-color: #AAA;
-}*/
-
-/* flex box container for slickgrid and tree */
-/* minus top padding of 105 pixels */
-.flex-box {
-    display: flex;
-    height: -moz-calc(100vh - 105px);
-    height: -webkit-calc(100vh - 105px);
-    height: calc(100vh - 105px);
-}
-
-#left {
-    flex: 1;
-    order: 1;
-    overflow: auto;
-}
-
-#right {
-    flex: 1.5;
-    order: 3;
-    overflow:auto;
-}
-
-/*main {
-    display: flex;
-    height: 100%;
-    padding-bottom: $footer-height;
-    background: #fff;
-}
-.content {
-    flex: 1;
-    display: flex;
-    flex-flow: column nowrap;
-    justify-content: space-around;
-    align-content: space-around;
-    padding: $spacing/2;
-}
-.row {
-    min-height: 30px;
-    flex: 1;
-    display: flex;
-    flex-flow: row nowrap;
-    justify-content: space-around;
-    align-content: space-around;
-    &.resizable {
-        flex: 0 0 300px;
-    }
-}
-section {
-    box-sizing: border-box;
-    border-radius: 10px;
-    padding: 1.25em 1.75em;
-    background: #ddd;
-    border: $spacing/2 solid #fff;
-    flex: 1;
-    min-width: 30px;
-    &.resizable {
-        flex: 0 0 300px;
-    }
-}
-#one { background: $color4; color: darken($color4, 30); }
-#two { background: $color3; color: darken($color3, 30); }
-#three { background: $color5; color: darken($color5, 30); }*/
 
 input.editor-text {
     background: none repeat scroll 0 0 transparent;

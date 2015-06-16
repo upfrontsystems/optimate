@@ -108,56 +108,54 @@
     modal-src="modal_templates/addProject.html">
 </div>
 
-
-<!-- <div class="container-fluid">
+<div class="container-fluid">
     <div id="costs" class="row">
         <div id="left">
-            <div ui-tree="treeOptions"
-                id="tree-root">
-                <ol ui-tree-nodes="" ng-model="projectsRoot.Subitem" data-type="{{projectsRoot.NodeType}}">
-                    <li ng-repeat="node in projectsRoot.Subitem"
-                        data-type="{{node.NodeType}}"
-                        ui-tree-node
-                        ng-include="'partials/angularTree.html'"></li>
-                </ol>
+            <div id="tree-outer">
+                <div ui-tree="treeOptions" id="tree-root">
+                    <ol ui-tree-nodes="" ng-model="projectsRoot.Subitem">
+                        <li ng-repeat="node in projectsRoot.Subitem"
+                            ui-tree-node
+                            ng-include="'partials/angularTree.html'"></li>
+                    </ol>
+                </div>
             </div>
         </div>
-        <div id="sidebar-resizer"
-            resizer="vertical"
-            resizer-width="6"
-            resizer-left="#left"
-            resizer-right="#right"
-            resizer-max="1000">
-        </div>
         <div id="right">
-            <projectslickgridjs id="optimate-data-grid"></projectslickgridjs>
+            <div id="optimate-data-grid-outer">
+                <projectslickgridjs id="optimate-data-grid"></projectslickgridjs>
+            </div>
         </div>
-    </div>
-</div> -->
-<!--
-<div class="content">
-    <div class="row" r-flex="true">
-        <section id="one" resizable r-directions="['right']" r-flex="true">
-            <p>Works with flexbox.</p>
-        </section>
-        <section id="two">
-            <p>2</p>
-        </section>
-    </div>
-</div> -->
-
-<div class="flex-box">
-    <div id="left">
-        <div ui-tree="treeOptions" id="tree-root">
-            <ol ui-tree-nodes="" ng-model="projectsRoot.Subitem" data-type="{{projectsRoot.NodeType}}">
-                <li data-ng-repeat="node in projectsRoot.Subitem"
-                    data-type="{{node.NodeType}}"
-                    ui-tree-node
-                    data-ng-include="'partials/angularTree.html'"></li>
-            </ol>
-        </div>
-    </div>
-    <div id="right" resizable r-directions="['left']" r-flex="true">
-        <projectslickgridjs id="optimate-data-grid"></projectslickgridjs>
     </div>
 </div>
+
+<script>
+$(document).ready(function() {
+
+// init
+var leftPanel = $("#left_slide_panel");
+var resize= $("#left");
+var containerWidth = $("#costs").width();
+
+$(resize).resizable({
+      handles: 'e',
+      maxWidth: (containerWidth - 30),
+      minWidth: 30,
+      resize: function(event, ui){
+          var currentWidth = ui.size.width;
+
+          // padding for the 1px border
+          var padding = 1;
+
+          // this accounts for some lag in the ui.size value, if you take this away
+          // you'll get some instable behaviour
+          $(this).width(currentWidth);
+
+          // set the content panel width
+          $("#right").width(containerWidth - currentWidth - 1);
+      }
+});
+
+
+});
+</script>
