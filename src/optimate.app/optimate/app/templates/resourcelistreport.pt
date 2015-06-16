@@ -1,0 +1,20 @@
+<html>
+
+<body>
+    <h1>Resource List for ${project_name}</h1>
+
+    <table>
+        <tr>
+            <th>Description</th>
+            <th>Rate</th>
+            <th>Quantity</th>
+        </tr>
+        <tr tal:repeat="node nodes">
+            <td class="${node[1]}">${node[0].Name}</td>
+            <td></td>
+            <td></td>
+        </tr>
+    </table>
+
+</body>
+</html>
