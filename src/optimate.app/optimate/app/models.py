@@ -211,7 +211,11 @@ class Project(Node):
         for child in self.Children:
             if child.type != 'ResourceCategory':
                 nodelist.append(child)
-                nodelist += child.getNodes()
+        sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())
+        nodelist = []
+        for child in sorted_nodelist:
+            nodelist.append(child)
+            nodelist += [child.getNodes()]
         return nodelist
 
     def toDict(self):
@@ -388,9 +392,13 @@ class BudgetGroup(Node):
         """
         nodelist = []
         for child in self.Children:
+            nodelist.append(child)
+        sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())
+        nodelist = []
+        for child in sorted_nodelist:
             if child.type != 'Component':
                 nodelist.append(child)
-                nodelist += child.getNodes()
+                nodelist += [child.getNodes()]
             else:
                 nodelist.append(child)
         return nodelist
@@ -615,9 +623,13 @@ class BudgetItem(Node):
         """
         nodelist = []
         for child in self.Children:
+            nodelist.append(child)
+        sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())
+        nodelist = []
+        for child in sorted_nodelist:
             if child.type != 'Component':
                 nodelist.append(child)
-                nodelist += child.getNodes()
+                nodelist += [child.getNodes()]
             else:
                 nodelist.append(child)
         return nodelist
