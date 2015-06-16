@@ -11,8 +11,8 @@
             <th>Rate</th>
             <th>Total</th>
         </tr>
-        <tr tal:repeat="field fields">
-            <td class="${field[1]}">${field[0]}</td>
+        <tr tal:repeat="node nodes">
+            <td class="${node[1]}">${node[0].Name}</td>
             <td></td>
             <td></td>
             <td></td>

@@ -32,13 +32,16 @@ from optimate.app.models import (
 
 def all_nodes(node, data, level):
     level +=1
-#    print level
+    nodelist = []
     for child in node.Children:
         if child.type != 'ResourceCategory':
+            nodelist.append(child)
+    sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())    
+    for child in sorted_nodelist:
+        if child.type != 'ResourceCategory':            
             data.append((child, level))
-            print child.Name
             if child.type != 'Component':
-                data += all_nodes(child, data, level)
+                data += all_nodes(child, [], level)
     return data
 
 
@@ -46,22 +49,21 @@ def all_nodes(node, data, level):
 def projectbudget(request):
 
     nodeid = request.matchdict['id']
-    print "generating report"
+    print "generating report data"
     project = DBSession.query(Node).filter_by(ID=nodeid).first()
 
     # inject node data into template
     nodes = []
     nodes = all_nodes(project, [], 0)
 
-    print "rendering report"
-
+    print "rendering report template"
     # render template
     template_data = render('templates/projectbudgetreport.pt',
-                           {'fields': values,
-                            'project_name': qry.Name},
+                           {'nodes': nodes,
+                            'project_name': project.Name},
                            request=request)
     html = StringIO(template_data.encode('utf-8'))
-    print "rendered!!"
+    print "template rendered"
 
     # Generate the pdf
     pdf = StringIO()
@@ -71,7 +73,7 @@ def projectbudget(request):
     pdfcontent = pdf.getvalue()
     pdf.close()
 
-    print "more rendered!"
+    print "pdf rendered"
 
     filename = "project_budget"
     now = datetime.datetime.now()
@@ -87,5 +89,5 @@ def projectbudget(request):
     response.headers.add("Cache-Control", "no-store")
     response.headers.add("Pragma", "no-cache")
 
-    print "final rendered!"
+    print "returned to frontend"
     return response
