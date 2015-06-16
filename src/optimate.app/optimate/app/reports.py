@@ -29,25 +29,39 @@ from optimate.app.models import (
     OrderItem
 )
 
+
+def create_values_list(values, level, data):
+    for entry in data:
+        if isinstance(entry, list):
+            if entry != []:
+                values += create_values_list(values, level+1, entry)
+        else:
+            # 0 = name, 1 = css class, 2 = x, 3 = x, 4 = x
+            values.append([entry.Name, 'level_' +str(level)])
+    return values
+
 @view_config(route_name="projectbudget")
 def projectbudget(request):
 
     nodeid = request.matchdict['id']
+    print "generating report"
     qry = DBSession.query(Node).filter_by(ID=nodeid).first()
-    # iterate through project and recursively get all nodes of a project
+    # iterate through project and recursively get all nodes of a project in 
+    # sorted order
     data = qry.getNodes()
 
     # inject node data into template
     values = []
-    for entry in data:        
-        values.append(entry.Name)
+    values = create_values_list(values, 1, data[0:2]) # XXX Change it to all later once it works
 
+    print "rendering report"
     # render template
     template_data = render('templates/projectbudgetreport.pt',
                            {'fields': values,
                             'project_name': qry.Name},
                            request=request)
     html = StringIO(template_data.encode('utf-8'))
+    print "rendered!!"
 
     # Generate the pdf
     pdf = StringIO()
@@ -70,4 +84,6 @@ def projectbudget(request):
     response.headers.add('Last-Modified', last_modified)
     response.headers.add("Cache-Control", "no-store")
     response.headers.add("Pragma", "no-cache")
+
+    print "all done!"
     return response

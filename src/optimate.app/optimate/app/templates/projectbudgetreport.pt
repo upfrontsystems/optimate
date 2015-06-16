@@ -12,7 +12,7 @@
             <th>Total</th>
         </tr>
         <tr tal:repeat="field fields">
-            <td>${field}</td>
+            <td class="${field[1]}">${field[0]}</td>
             <td></td>
             <td></td>
             <td></td>
