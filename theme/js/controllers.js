@@ -1181,13 +1181,14 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         target: '_blank',
                         download: 'report.pdf'
                     })[0].click();
+                    // clear the anchor so that everytime a new report is linked
                     anchor.attr({
                         href: '',
                         target: '',
                         download: ''
                     });
                 }).error(function(data, status, headers, config) {
-                    console.log("Pdf download error")
+                    console.log("Project budget pdf download error")
                 });
             }
             else if ( report == 'resourcelist' ) {
@@ -1206,13 +1207,14 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         target: '_blank',
                         download: 'report.pdf'
                     })[0].click();
+                    // clear the anchor so that everytime a new report is linked
                     anchor.attr({
                         href: '',
                         target: '',
                         download: ''
                     });
                 }).error(function(data, status, headers, config) {
-                    console.log("Pdf download error")
+                    console.log("Resource list pdf download error")
                 });
             }
         };
