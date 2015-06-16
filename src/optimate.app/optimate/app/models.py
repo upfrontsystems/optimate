@@ -204,20 +204,6 @@ class Project(Node):
                 componentslist += child.getComponents()
         return componentslist
 
-    def getNodes(self):
-        """Returns a list of all the Nodes of a Project
-        """
-        nodelist = []
-        for child in self.Children:
-            if child.type != 'ResourceCategory':
-                nodelist.append(child)
-        sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())
-        nodelist = []
-        for child in sorted_nodelist:
-            nodelist.append(child)
-            nodelist += [child.getNodes()]
-        return nodelist
-
     def toDict(self):
         if len(self.Children) == 0:
             subitem = []
@@ -386,22 +372,6 @@ class BudgetGroup(Node):
             else:
                 componentlist += child.getComponents()
         return componentlist
-
-    def getNodes(self):
-        """Returns a list of all the Nodes of a Budget Group
-        """
-        nodelist = []
-        for child in self.Children:
-            nodelist.append(child)
-        sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())
-        nodelist = []
-        for child in sorted_nodelist:
-            if child.type != 'Component':
-                nodelist.append(child)
-                nodelist += [child.getNodes()]
-            else:
-                nodelist.append(child)
-        return nodelist
 
     def toChildDict(self):
         """ Returns a dictionary of this node used in the childview
@@ -617,22 +587,6 @@ class BudgetItem(Node):
             else:
                 componentlist += child.getComponents()
         return componentlist
-
-    def getNodes(self):
-        """Returns a list of all the Nodes of a Budget Item
-        """
-        nodelist = []
-        for child in self.Children:
-            nodelist.append(child)
-        sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())
-        nodelist = []
-        for child in sorted_nodelist:
-            if child.type != 'Component':
-                nodelist.append(child)
-                nodelist += [child.getNodes()]
-            else:
-                nodelist.append(child)
-        return nodelist
 
     def toChildDict(self):
         """ Returns a dictionary of this node used in the childview
