@@ -10,7 +10,7 @@
             <th>Quantity</th>
         </tr>
         <tr tal:repeat="node nodes">
-            <td class="${node[1]}">${node[0].Name}</td>
+            <td style="width = 400px" class="${node[1]}">${node[0].Name}</td>
             <td></td>
             <td></td>
         </tr>

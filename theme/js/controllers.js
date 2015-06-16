@@ -1178,6 +1178,11 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         target: '_blank',
                         download: 'report.pdf'
                     })[0].click();
+                    anchor.attr({
+                        href: '',
+                        target: '',
+                        download: ''
+                    });
                 }).error(function(data, status, headers, config) {
                     console.log("Pdf download error")
                 });
@@ -1195,6 +1200,11 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         target: '_blank',
                         download: 'report.pdf'
                     })[0].click();
+                    anchor.attr({
+                        href: '',
+                        target: '',
+                        download: ''
+                    });
                 }).error(function(data, status, headers, config) {
                     console.log("Pdf download error")
                 });

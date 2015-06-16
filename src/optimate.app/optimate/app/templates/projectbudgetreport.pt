@@ -5,18 +5,18 @@
 
     <table>
         <tr>
-            <th>Description</th>
-            <th>Unit</th> 
-            <th>Quantity</th>
-            <th>Rate</th>
-            <th>Total</th>
+            <th style="text-align:left">Description</th>
+            <th style="text-align:right">Unit</th> 
+            <th style="text-align:right">Quantity</th>
+            <th style="text-align:right">Rate</th>
+            <th style="text-align:right">Total</th>
         </tr>
         <tr tal:repeat="node nodes">
-            <td class="${node[1]}">${node[0].Name}</td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>            
+            <td style="width: 450px" class="${node[1]}">${node[0].Name}</td>
+            <td style="width: 70px; text-align:right" tal:content="node[0].Unit|nothing" ></td>
+            <td style="width: 70px; text-align:right" tal:content="node[0].Quantity|nothing" ></td>
+            <td style="width: 70px; text-align:right" tal:content="node[0].Rate|nothing" ></td>
+            <td style="width: 70px; text-align:right" tal:content="node[0].Total|nothing" ></td>
         </tr>
     </table>
 
