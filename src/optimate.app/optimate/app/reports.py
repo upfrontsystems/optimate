@@ -30,31 +30,31 @@ from optimate.app.models import (
 )
 
 
-def create_values_list(values, level, data):
-    for entry in data:
-        if isinstance(entry, list):
-            if entry != []:
-                values += create_values_list(values, level+1, entry)
-        else:
-            # 0 = name, 1 = css class, 2 = x, 3 = x, 4 = x
-            values.append([entry.Name, 'level_' +str(level)])
-    return values
+def all_nodes(node, data, level):
+    level +=1
+#    print level
+    for child in node.Children:
+        if child.type != 'ResourceCategory':
+            data.append((child, level))
+            print child.Name
+            if child.type != 'Component':
+                data += all_nodes(child, data, level)
+    return data
+
 
 @view_config(route_name="projectbudget")
 def projectbudget(request):
 
     nodeid = request.matchdict['id']
     print "generating report"
-    qry = DBSession.query(Node).filter_by(ID=nodeid).first()
-    # iterate through project and recursively get all nodes of a project in 
-    # sorted order
-    data = qry.getNodes()
+    project = DBSession.query(Node).filter_by(ID=nodeid).first()
 
     # inject node data into template
-    values = []
-    values = create_values_list(values, 1, data[0:2]) # XXX Change it to all later once it works
+    nodes = []
+    nodes = all_nodes(project, [], 0)
 
     print "rendering report"
+
     # render template
     template_data = render('templates/projectbudgetreport.pt',
                            {'fields': values,
@@ -71,6 +71,8 @@ def projectbudget(request):
     pdfcontent = pdf.getvalue()
     pdf.close()
 
+    print "more rendered!"
+
     filename = "project_budget"
     now = datetime.datetime.now()
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
@@ -85,5 +87,5 @@ def projectbudget(request):
     response.headers.add("Cache-Control", "no-store")
     response.headers.add("Pragma", "no-cache")
 
-    print "all done!"
+    print "final rendered!"
     return response
