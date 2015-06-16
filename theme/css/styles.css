@@ -45,14 +45,20 @@ body {
     height: calc(100vh - 105px);
 }
 
-/* tree class */
+/* tree class for resizable*/
 #left {
-    width: calc(40% - 1px);
-    height: 100%;
+    width: 40%;
+    height: 99%;
     display: inline-block;
     vertical-align: top;
+}
+
+/* outer tree class for overflow*/
+#tree-outer {
+    width: 100%;
+    height: 99%;
+    display: inline-block;
     overflow: auto;
-    border-right: 1px solid gainsboro;
 }
 
 /* slickgrid class */
@@ -63,6 +69,13 @@ body {
     height: 100%;
     float: right;
     overflow:auto;
+}
+
+/* handle on the right resize handle*/
+.ui-resizable-e {
+    width: 2px;
+    right: -2px;
+    background: gainsboro;
 }
 
 input.editor-text {

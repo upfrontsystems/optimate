@@ -144,15 +144,12 @@ $(resize).resizable({
       resize: function(event, ui){
           var currentWidth = ui.size.width;
 
-          // padding for the 1px border
-          var padding = 1;
-
           // this accounts for some lag in the ui.size value, if you take this away
           // you'll get some instable behaviour
           $(this).width(currentWidth);
 
           // set the content panel width
-          $("#right").width(containerWidth - currentWidth - 1);
+          $("#right").width(containerWidth - currentWidth);
       }
 });
 
