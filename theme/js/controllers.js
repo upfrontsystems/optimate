@@ -1170,16 +1170,18 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 var spinner = new Spinner().spin(target[0]);
                 $http({method: 'GET', url:globalServerURL + 'project_budget_report/' + nodeid + '/'},
                       {responseType:'arraybuffer'
-                }).success(function (response) {
+                }).success(function (response, status, headers, config) {
                     spinner.stop(); // stop the spinner - ajax call complete
                     var file = new Blob([response], {type: 'application/pdf'});
                     var fileURL = URL.createObjectURL(file);
                     var result = document.getElementsByClassName("pdf_download");
                     var anchor = angular.element(result);
+                    var filename_header = headers('Content-Disposition');
+                    var filename = filename_header.split('filename=')[1];
                     anchor.attr({
                         href: fileURL,
                         target: '_blank',
-                        download: 'report.pdf'
+                        download: filename
                     })[0].click();
                     // clear the anchor so that everytime a new report is linked
                     anchor.attr({
@@ -1196,16 +1198,18 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 var spinner = new Spinner().spin(target[0]);
                 $http({method: 'GET', url:globalServerURL + 'resource_list_report/' + nodeid + '/'},
                       {responseType:'arraybuffer'
-                }).success(function (response) {
+                }).success(function (response, status, headers, config) {
                     spinner.stop(); // stop the spinner - ajax call complete
                     var file = new Blob([response], {type: 'application/pdf'});
                     var fileURL = URL.createObjectURL(file);
                     var result = document.getElementsByClassName("pdf_download");
                     var anchor = angular.element(result);
+                    var filename_header = headers('Content-Disposition');
+                    var filename = filename_header.split('filename=')[1];
                     anchor.attr({
                         href: fileURL,
                         target: '_blank',
-                        download: 'report.pdf'
+                        download: filename
                     })[0].click();
                     // clear the anchor so that everytime a new report is linked
                     anchor.attr({
