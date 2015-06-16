@@ -21,6 +21,9 @@ allControllers.factory('sharedService', ['$rootScope',
             $rootScope.$broadcast('handleReloadSlickgrid');
         }
 
+        shared.reloadOrderSlickgrid = function(){
+            $rootScope.$broadcast('handleReloadOrderSlickgrid');
+        }
         return shared;
 }]);
 
@@ -1368,8 +1371,8 @@ allControllers.controller('navController', ['$scope', 'SessionService',
 }]);
 
 // controller for the Order data from the server
-allControllers.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$timeout',
-    function($scope, $http, globalServerURL, $timeout) {
+allControllers.controller('ordersController', ['$scope', '$http', 'globalServerURL', 'sharedService', '$timeout',
+    function($scope, $http, globalServerURL, sharedService, $timeout) {
 
         toggleMenu('orders');
         $scope.dateTimeNow = function() {
@@ -1700,6 +1703,13 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 if (subsubitem.length > 0){
                     $scope.toggleSubitems(subsubitem, selected);
                 }
+            }
+        };
+
+        $scope.toggleComponentsGrid = function(){
+            $scope.isCollapsed = !$scope.isCollapsed;
+            if ($scope.isCollapsed){
+                sharedService.reloadOrderSlickgrid();
             }
         };
 

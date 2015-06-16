@@ -324,8 +324,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
     }
 }]);
 
-allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedService', '$http',
-    function(globalServerURL, sharedService, $http) {
+allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedService', '$http', '$timeout',
+    function(globalServerURL, sharedService, $http, $timeout) {
     return {
         require: '?ngModel',
         restrict: 'E',
@@ -429,6 +429,14 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                 var parts = newtotal.toString().split(".");
                 parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                 $scope.updateOrderTotal(parts.join("."));
+            });
+
+            // listening for the handle to reload the order slickgrid
+            // timeout to wait until the modal has finished rendering
+            $scope.$on('handleReloadOrderSlickgrid', function(){
+                $timeout(function(){
+                    grid.resizeCanvas();
+                });
             });
         }
     }
