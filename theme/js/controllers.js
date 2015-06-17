@@ -906,7 +906,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         // when you click outside the dropdown.
         $scope.closeDropdown = function(e){
             if (!e.isDefaultPrevented()){
-                $scope.finder && $scope.finder.close_dropdown();
+                $scope.finder && $scope.finder.opened && $scope.finder.close_dropdown();
             }
         };
 
