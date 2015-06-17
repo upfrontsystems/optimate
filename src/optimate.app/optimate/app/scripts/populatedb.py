@@ -112,12 +112,81 @@ if __name__ == '__main__':
         errornode = Project(Name='ErrorNode', ID=149999, ParentID=0)
         DBSession.add(errornode)
 
+        print "Adding admin user"
+        user = User()
+        user.username = u'admin'
+        user.set_password('admin')
+        user.roles = json.dumps(['Administrator'])
+        DBSession().merge(user)
+        transaction.commit()
+
+        # add the cities used in the clients, suppliers, and projects
+        projectbook = xlrd.open_workbook(exceldatapath + 'Projects.xls')
+        sheet = projectbook.sheet_by_index(0)
+        cityindex = 9
+
+        print "Building City table"
+        for x in range(1, sheet.nrows):
+            try:
+                city = sheet.cell(x, cityindex).value
+                city = city.encode('ascii')
+            except UnicodeEncodeError, u:
+                city = unicodedata.normalize('NFKD',
+                                    name).encode('ascii', 'ignore')
+
+            if len(city) > 0:
+                existingcity = DBSession.query(City).filter_by(Name=city).first()
+                if not existingcity:
+                    newcity = City(Name=city)
+                    DBSession.add(newcity)
+                    transaction.commit()
+
+        clientbook = xlrd.open_workbook(exceldatapath + 'Client.xls')
+        sheet = clientbook.sheet_by_index(0)
+        cityindex = 3
+
+        for x in range(1, sheet.nrows):
+            try:
+                city = sheet.cell(x, cityindex).value
+                city = city.encode('ascii')
+            except UnicodeEncodeError, u:
+                city = unicodedata.normalize('NFKD',
+                                    name).encode('ascii', 'ignore')
+
+            if len(city) > 0:
+                existingcity = DBSession.query(City).filter_by(Name=city).first()
+                if not existingcity:
+                    newcity = City(Name=city)
+                    DBSession.add(newcity)
+                    transaction.commit()
+
+        supplierbook = xlrd.open_workbook(exceldatapath + 'Supplier.xls')
+        sheet = supplierbook.sheet_by_index(0)
+        cityindex = 3
+
+        for x in range(1, sheet.nrows):
+            try:
+                city = sheet.cell(x, cityindex).value
+                city = city.encode('ascii')
+            except UnicodeEncodeError, u:
+                city = unicodedata.normalize('NFKD',
+                                    name).encode('ascii', 'ignore')
+
+            if len(city) > 0:
+                existingcity = DBSession.query(City).filter_by(Name=city).first()
+                if not existingcity:
+                    newcity = City(Name=city)
+                    DBSession.add(newcity)
+                    transaction.commit()
+
+
         # open the excel projects spreadsheet
         projectbook = xlrd.open_workbook(exceldatapath + 'Projects.xls')
         sheet = projectbook.sheet_by_index(0)
         codeindex = 0
         nameindex = 1
         descriptionindex = 2
+        cityindex = 9
         budgetcostindex = 12
         ordercostindex = 13
         claimedcostindex = 15
@@ -148,6 +217,12 @@ if __name__ == '__main__':
             except UnicodeEncodeError, u:
                 description = unicodedata.normalize('NFKD',
                                     description).encode('ascii', 'ignore')
+            try:
+                city = sheet.cell(x, cityindex).value
+                city = city.encode('ascii')
+            except UnicodeEncodeError, u:
+                city = unicodedata.normalize('NFKD',
+                                    name).encode('ascii', 'ignore')
 
             # convert the costs to Decimal and if there are issues set it to 0
             try:
@@ -191,10 +266,15 @@ if __name__ == '__main__':
             except InvalidOperation, e:
                 actprofit = Decimal(0.00)
 
+            cityid = None
+            if len(city) > 0:
+                cityid = DBSession.query(City).filter_by(Name=city).first().ID
+
             # build the project and add it to the database
             project = Project(ID=code, Name=name,
                               Description=description,
                               ParentID=0,
+                              CityID=cityid,
                               _Total = budgetcost,
                               OrderCost=ordercost,
                               RunningCost=running,
@@ -913,6 +993,18 @@ if __name__ == '__main__':
         faxindex = 9
         contactindex = 10
 
+        cityindex = 3
+
+        for x in range(1, sheet.nrows):
+            try:
+                city = sheet.cell(x, cityindex).value
+                city = city.encode('ascii')
+            except UnicodeEncodeError, u:
+                city = unicodedata.normalize('NFKD',
+                                    name).encode('ascii', 'ignore')
+
+
+
         print 'Converting Client table'
         for x in range(1, sheet.nrows):
             try:
@@ -936,11 +1028,14 @@ if __name__ == '__main__':
             except UnicodeEncodeError, u:
                 contact = unicodedata.normalize('NFKD',
                                         contact).encode('ascii', 'ignore')
+            cityid = None
+            if len(city) > 0:
+                cityid = DBSession.query(City).filter_by(Name=city).first().ID
 
             client = Client(ID=code,
                             Name=name,
                             Address=address,
-                            City=city,
+                            CityID=cityid,
                             StateProvince=state,
                             Zipcode=zipno,
                             Phone=phone,
@@ -979,11 +1074,14 @@ if __name__ == '__main__':
             except UnicodeEncodeError, u:
                 contact = unicodedata.normalize('NFKD',
                                     contact).encode('ascii', 'ignore')
+            cityid = None
+            if len(city) > 0:
+                cityid = DBSession.query(City).filter_by(Name=city).first().ID
 
             supplier = Supplier(ID=code,
                             Name=name,
                             Address=address,
-                            City=city,
+                            CityID=cityid,
                             StateProvince=state,
                             Zipcode=zipno,
                             Phone=phone,
@@ -1088,14 +1186,6 @@ if __name__ == '__main__':
                             Rate=rate)
             DBSession.add(orderitem)
 
-        transaction.commit()
-
-        print "Adding admin user"
-        user = User()
-        user.username = u'admin'
-        user.set_password('admin')
-        user.roles = json.dumps(['Administrator'])
-        DBSession().merge(user)
         transaction.commit()
 
     print '\ndone'

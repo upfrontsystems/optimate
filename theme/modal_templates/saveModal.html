@@ -11,7 +11,7 @@
                         ng-class="{'has-error': saveModalForm.inputName.$invalid}">
                         <label for="inputName" class="col-sm-2 control-label">Name:</label>
                         <input type="text"
-                               class="col-sm-7"                        
+                               class="col-sm-7"
                                id="inputName"
                                name="inputName"
                                ng-model="formData['Name']"
@@ -22,7 +22,7 @@
                         ng-class="{'has-error': saveModalForm.inputAddress.$invalid}">
                         <label for="inputAddress" class="col-sm-2 control-label">Address:</label>
                         <textarea id="inputAddress"
-                                  class="col-sm-7"                        
+                                  class="col-sm-7"
                                   name="inputAddress"
                                   ng-model="formData['Address']"
                                   rows="5" cols="40">
@@ -31,17 +31,19 @@
                     <div class="form-group"
                         ng-class="{'has-error': saveModalForm.inputCity.$invalid}">
                         <label for="inputCity" class="col-sm-2 control-label">City:</label>
-                        <input type="text"
-                               class="col-sm-7"                        
-                               id="inputCity"
-                               name="inputCity"
-                               ng-model="formData['City']">
+                        <select class="col-sm-7"
+                                id="inputCity"
+                                name="inputCity"
+                                data-ng-model="formData['City']"
+                                data-ng-options="city.ID as city.Name for city in cityList">
+                            <option value="">Select a city</option>
+                        </select>
                     </div>
                     <div class="form-group"
                         ng-class="{'has-error': saveModalForm.inputStateProvince.$invalid}">
                         <label for="inputStateProvince" class="col-sm-2 control-label">State/Province:</label>
                         <input type="text"
-                               class="col-sm-7"                        
+                               class="col-sm-7"
                                id="inputStateProvince"
                                name="inputStateProvince"
                                ng-model="formData['StateProvince']">
@@ -50,7 +52,7 @@
                         ng-class="{'has-error': saveModalForm.inputStateCountry.$invalid}">
                         <label for="inputStateCountry" class="col-sm-2 control-label">Country:</label>
                         <input type="text"
-                               class="col-sm-7"                        
+                               class="col-sm-7"
                                id="inputStateCountry"
                                name="inputStateCountry"
                                ng-model="formData['Country']">
@@ -59,7 +61,7 @@
                         ng-class="{'has-error': saveModalForm.inputZip.$invalid}">
                         <label for="inputZip" class="col-sm-2 control-label">Zip Code:</label>
                         <input type="text"
-                               class="col-sm-7"                        
+                               class="col-sm-7"
                                id="inputZip"
                                name="inputZip"
                                ng-model="formData['Zipcode']">
@@ -68,16 +70,16 @@
                         ng-class="{'has-error': saveModalForm.inputPhone.$invalid}">
                         <label for="inputPhone" class="col-sm-2 control-label">Phone:</label>
                         <input type="text"
-                               class="col-sm-7"                        
+                               class="col-sm-7"
                                id="inputPhone"
                                name="inputPhone"
                                ng-model="formData['Phone']">
                     </div>
                     <div class="form-group"
-                        ng-class="{'has-error': saveModalForm.inputCity.$invalid}">                    
+                        ng-class="{'has-error': saveModalForm.inputCity.$invalid}">
                         <label for="inputFax" class="col-sm-2 control-label">Fax:</label>
                         <input type="text"
-                               class="col-sm-7"                        
+                               class="col-sm-7"
                                id="inputFax"
                                name="inputFax"
                                ng-model="formData['Fax']">
@@ -86,16 +88,16 @@
                         ng-class="{'has-error': saveModalForm.inputCellular.$invalid}">
                         <label for="inputCellular" class="col-sm-2 control-label">Cellular:</label>
                         <input type="text"
-                               class="col-sm-7"                        
+                               class="col-sm-7"
                                id="inputCellular"
                                name="inputCellular"
                                ng-model="formData['Cellular']">
                     </div>
                     <div class="form-group"
-                        ng-class="{'has-error': saveModalForm.inputContact.$invalid}">                   
+                        ng-class="{'has-error': saveModalForm.inputContact.$invalid}">
                         <label for="inputContact" class="col-sm-2 control-label">Contact:</label>
                         <input type="text"
-                               class="col-sm-7"                        
+                               class="col-sm-7"
                                id="inputContact"
                                name="inputContact"
                                ng-model="formData['Contact']">

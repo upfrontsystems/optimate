@@ -267,6 +267,10 @@ class City(Base):
 
     Projects = relationship('Project',
                          backref=backref('City'))
+    Clients = relationship('Client',
+                         backref=backref('City'))
+    Suppliers = relationship('Supplier',
+                         backref=backref('City'))
 
     def __repr__(self):
         return '<City(Name="%s", ID="%d")>' % (
@@ -1216,13 +1220,13 @@ class Unit(Base):
 
 
 class Client(Base):
-    """A table containing the data relavent to a client of Optimate
+    """ A table containing the data relevant to a client of Optimate
     """
     __tablename__ = 'Client'
     ID = Column(Integer, primary_key=True, index=True)
     Name = Column(Text(50))
     Address = Column(Text(100))
-    City = Column(Text(50))
+    CityID = Column(Integer, ForeignKey('City.ID'))
     StateProvince = Column(Text(50))
     Country = Column(Text(50))
     Zipcode = Column(Text(50))
@@ -1232,6 +1236,23 @@ class Client(Base):
     Contact = Column(Text(50))
     VAT = Column(Text(50))
     RegNo = Column(Text(50))
+
+    def toDict(self):
+        """ Return a dictionary of this Client
+        """
+        return {'Name': self.Name,
+                'ID': self.ID,
+                'Address': self.Address,
+                'City': self.CityID,
+                'StateProvince': self.StateProvince,
+                'Country': self.Country,
+                'Zipcode': self.Zipcode,
+                'Phone': self.Phone,
+                'Fax': self.Fax,
+                'Cellular': self.Cellular,
+                'Contact': self.Contact,
+                'VAT': self.VAT,
+                'RegNo': self.RegNo}
 
     def __repr__(self):
         """Return a representation of this client
@@ -1247,7 +1268,7 @@ class Supplier(Base):
     ID = Column(Integer, primary_key=True, index=True)
     Name = Column(Text(50))
     Address = Column(Text(100))
-    City = Column(Text(50))
+    CityID = Column(Integer, ForeignKey('City.ID'))
     StateProvince = Column(Text(50))
     Country = Column(Text(50))
     Zipcode = Column(Text(50))
@@ -1255,6 +1276,21 @@ class Supplier(Base):
     Fax = Column(Text(50))
     Cellular = Column(Text(50))
     Contact = Column(Text(50))
+
+    def toDict(self):
+        """ Return a dictionary of this Supplier
+        """
+        return {'Name': self.Name,
+                'ID': self.ID,
+                'Address': self.Address,
+                'City': self.CityID,
+                'StateProvince': self.StateProvince,
+                'Country': self.Country,
+                'Zipcode': self.Zipcode,
+                'Phone': self.Phone,
+                'Fax': self.Fax,
+                'Cellular': self.Cellular,
+                'Contact': self.Contact}
 
     def __repr__(self):
         """Return a representation of this supplier

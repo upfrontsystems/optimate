@@ -157,6 +157,16 @@ allControllers.controller('clientsController', ['$scope', '$http', 'globalServer
             $scope.jsonclients = data;
         });
 
+        // load the city list
+        $scope.cityList = [{"Name": "Loading..."}];
+        var req = {
+            method: 'GET',
+            url: globalServerURL + 'cities'
+        }
+        $http(req).success(function(data) {
+            $scope.cityList = data;
+        });
+
         // Adding or editing a client
         $scope.save = function(){
             // check if saving is disabled, if not disable it and save
@@ -272,6 +282,16 @@ allControllers.controller('suppliersController', ['$scope', '$http', 'globalServ
 
         $http.get(globalServerURL + 'suppliers').success(function(data){
             $scope.jsonsuppliers = data;
+        });
+
+        // load the city list
+        $scope.cityList = [{"Name": "Loading..."}];
+        var req = {
+            method: 'GET',
+            url: globalServerURL + 'cities'
+        }
+        $http(req).success(function(data) {
+            $scope.cityList = data;
         });
 
         // Adding or editing a supplier
@@ -1501,7 +1521,6 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         $scope.save = function(){
             // check if saving is disabled, if not disable it and save
             if (!$scope.isDisabled){
-                console.log($scope.formData);
                 $scope.isDisabled = true;
                 // set the list of checked components
                 $scope.formData['ComponentsList'] = $scope.componentsList;

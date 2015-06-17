@@ -785,19 +785,7 @@ def clientsview(request):
     clientlist = []
 
     for client in qry:
-        clientlist.append({'Name': client.Name,
-                            'ID': client.ID,
-                            'Address': client.Address,
-                            'City': client.City,
-                            'StateProvince': client.StateProvince,
-                            'Country': client.Country,
-                            'Zipcode': client.Zipcode,
-                            'Phone': client.Phone,
-                            'Fax': client.Fax,
-                            'Cellular': client.Cellular,
-                            'Contact': client.Contact,
-                            'VAT': client.VAT,
-                            'RegNo': client.RegNo})
+        clientlist.append(client.toDict())
     return sorted(clientlist, key=lambda k: k['Name'].upper())
 
 
@@ -825,7 +813,7 @@ def clientview(request):
     if request.method == 'POST':
         newclient = Client(Name=request.json_body['Name'],
             Address=request.json_body.get('Address', ''),
-            City=request.json_body.get('City', ''),
+            CityID=request.json_body.get('City', None),
             StateProvince=request.json_body.get('StateProvince', ''),
             Country=request.json_body.get('Country', ''),
             Zipcode=request.json_body.get('Zipcode', ''),
@@ -844,7 +832,7 @@ def clientview(request):
                     Client).filter_by(ID=request.matchdict['id']).first()
         client.Name=request.json_body['Name']
         client.Address=request.json_body.get('Address', '')
-        client.City=request.json_body.get('City', '')
+        client.CityID=request.json_body.get('City', None)
         client.StateProvince=request.json_body.get('StateProvince', '')
         client.Country=request.json_body.get('Country', '')
         client.Zipcode=request.json_body.get('Zipcode', '')
@@ -859,19 +847,7 @@ def clientview(request):
     # otherwise return the selected client
     clientid = request.matchdict['id']
     client = DBSession.query(Client).filter_by(ID=clientid).first()
-
-    clientdict = {'Name': client.Name,
-                    'ID': client.ID,
-                    'Address': client.Address,
-                    'City': client.City,
-                    'StateProvince': client.StateProvince,
-                    'Country': client.Country,
-                    'Zipcode': client.Zipcode,
-                    'Phone': client.Phone,
-                    'Fax': client.Fax,
-                    'Cellular': client.Cellular,
-                    'Contact': client.Contact}
-    return clientdict
+    return client.toDict()
 
 
 @view_config(route_name='suppliersview', renderer='json')
@@ -883,17 +859,7 @@ def suppliersview(request):
     supplierlist = []
 
     for supplier in qry:
-        supplierlist.append({'Name': supplier.Name,
-                            'ID': supplier.ID,
-                            'Address': supplier.Address,
-                            'City': supplier.City,
-                            'StateProvince': supplier.StateProvince,
-                            'Country': supplier.Country,
-                            'Zipcode': supplier.Zipcode,
-                            'Phone': supplier.Phone,
-                            'Fax': supplier.Fax,
-                            'Cellular': supplier.Cellular,
-                            'Contact': supplier.Contact})
+        supplierlist.append(supplier.toDict())
     return sorted(supplierlist, key=lambda k: k['Name'].upper())
 
 
@@ -921,7 +887,7 @@ def supplierview(request):
     if request.method == 'POST':
         newsupplier = Supplier(Name=request.json_body['Name'],
             Address=request.json_body.get('Address', ''),
-            City=request.json_body.get('City', ''),
+            CityID=request.json_body.get('City', None),
             StateProvince=request.json_body.get('StateProvince', ''),
             Country=request.json_body.get('Country', ''),
             Zipcode=request.json_body.get('Zipcode', ''),
@@ -941,7 +907,7 @@ def supplierview(request):
                     Supplier).filter_by(ID=request.matchdict['id']).first()
         supplier.Name=request.json_body['Name']
         supplier.Address=request.json_body.get('Address', '')
-        supplier.City=request.json_body.get('City', '')
+        supplier.CityID=request.json_body.get('City', None)
         supplier.StateProvince=request.json_body.get('StateProvince', '')
         supplier.Country=request.json_body.get('Country', '')
         supplier.Zipcode=request.json_body.get('Zipcode', '')
@@ -949,26 +915,13 @@ def supplierview(request):
         supplier.Phone=request.json_body.get('Phone', '')
         supplier.Cellular=request.json_body.get('Cellular', '')
         supplier.Contact=request.json_body.get('Contact', '')
-
         transaction.commit()
         return HTTPOk()
 
     # otherwise return the selected supplier
     supplierid = request.matchdict['id']
     supplier = DBSession.query(Supplier).filter_by(ID=supplierid).first()
-
-    supplierdict = {'Name': supplier.Name,
-                    'ID': supplier.ID,
-                    'Address': supplier.Address,
-                    'City': supplier.City,
-                    'StateProvince': supplier.StateProvince,
-                    'Country': supplier.Country,
-                    'Zipcode': supplier.Zipcode,
-                    'Phone': supplier.Phone,
-                    'Fax': supplier.Fax,
-                    'Cellular': supplier.Cellular,
-                    'Contact': supplier.Contact}
-    return supplierdict
+    return supplier.toDict()
 
 
 @view_config(route_name="company_information", renderer='json')
