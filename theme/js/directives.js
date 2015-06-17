@@ -286,7 +286,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             // listening for the handle to reload the slickgrid
             $scope.$on('handleReloadSlickgrid', function(){
                 var nodeid = sharedService.reloadId;
-                var url = globalServerURL +'nodegridview/' + nodeid + '/'
+                var url = globalServerURL +'node/' + nodeid + '/grid/'
                 var target = document.getElementsByClassName('slick-viewport');
                 var spinner = new Spinner().spin(target[0]);
 
@@ -309,7 +309,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 var item = ctx.item
                 var req = {
                     method: 'POST',
-                    url: globalServerURL +'update_value/' + item.id + '/',
+                    url: globalServerURL +'node/' + item.id + '/update_value/',
                     data: item}
                 $http(req).success(function(data) {
                     if (data){

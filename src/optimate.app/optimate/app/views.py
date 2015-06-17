@@ -104,7 +104,7 @@ def auth(request):
 
 
 @view_config(route_name="rootview", renderer='json')
-@view_config(route_name="childview", renderer='json')
+@view_config(route_name="node_children", renderer='json')
 def childview(request):
     """ This view is for when the user requests the children of an item.
         The parent's id is derived from the path of the request,
@@ -163,261 +163,29 @@ def orders_tree_view(request):
     return sorted_childrenlist
 
 
-@view_config(route_name="getitem", renderer='json')
-def getitem(request):
-    """ Retrieves and returns all the information of a single item
+@view_config(route_name="nodeview", renderer='json')
+def nodeview(request):
+    """ Manage single operations on a node
+        The operation is determined by the HTTP method
     """
+    if request.method == 'POST':
+        # add a node
+        return additemview(request)
+
+    if request.method == 'PUT':
+        # edit a node
+        return edititemview(request)
+
+    if request.method == 'DELETE':
+        # delete a node
+        return deleteitemview(request)
+
+    # otherwise return the node
     nodeid = request.matchdict['id']
     qry = DBSession.query(Node).filter_by(ID=nodeid).first()
     return qry.toDict()
 
 
-@view_config(route_name="getcomponents", renderer='json')
-def getcomponents(request):
-    """ Retrieves and returns all the components in a node
-    """
-    nodeid = request.matchdict['id']
-    qry = DBSession.query(Node).filter_by(ID=nodeid).first()
-    componentslist = qry.getComponents()
-    itemlist = []
-    for comp in componentslist:
-        itemlist.append(comp.toOrderDict())
-    return itemlist
-
-
-@view_config(route_name="project_listing", renderer='json')
-def project_listing(request):
-    """ Returns a list of all the Projects in the database
-    """
-    projects = []
-    # Get all the Projects in the Project table
-    qry = DBSession.query(Project).all()
-    # build the list and only get the neccesary values
-    for project in qry:
-        projects.append({'Name': project.Name,
-                         'ID': project.ID})
-    return sorted(projects, key=lambda k: k['Name'].upper())
-
-
-@view_config(route_name="resource_list", renderer='json')
-def resource_list(request):
-    """ Returns a list of all the resources in the
-        node's project's resourcecategory in a format
-        that the related items widget can read
-    """
-    nodeid = request.matchdict['id']
-    currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
-
-    # Look up the node, if it isn't a resource category, find the topmost
-    # resource category and use that. Otherwise this is a sub-folder listing.
-    if type(currentnode) is ResourceCategory:
-        resourcecategory = currentnode
-    else:
-        nodeid = currentnode.getProjectID()
-        resourcecategory = DBSession.query(ResourceCategory).filter_by(
-                ParentID=nodeid).first()
-
-    # if it doesnt exist return the empty list
-    if not resourcecategory:
-        return {
-            "path": [ {"url": request.route_url('resource_list', id=nodeid)} ],
-            "items": []
-        }
-
-    items = [{
-        'title': item.Name,
-        'uid': item.ID,
-        'normalized_type': item.type == 'ResourceCategory' and 'folder' or 'document', # FIXME
-        'folderish': item.type == 'ResourceCategory',
-    } for item in sorted(resourcecategory.Children, key=lambda o: o.Name.upper())]
-
-    def pathlist(node):
-        p = node.Parent
-        if p is not None and type(p) is not Project:
-            for u in pathlist(p):
-                yield u
-        yield (node.ID,
-            getattr(node, 'Name', None),
-            request.route_url('resource_list', id=node.ID))
-
-    return {
-        "path": [{
-            "url": url,
-            "title": title,
-            "uid": uid } for uid, title, url in pathlist(resourcecategory)],
-        "items": items
-    }
-
-
-@view_config(route_name="resourcetypes", renderer='json')
-def resourcetypes(request):
-    """ Returns a list of all the resource types in the database
-    """
-    restypelist = []
-    # Get all the unique Resources in the Resource table
-    qry = DBSession.query(ResourceType).all()
-    # build the list and only get the neccesary values
-    for restype in qry:
-        restypelist.append({'Name': restype.Name})
-    return sorted(restypelist, key=lambda k: k['Name'].upper())
-
-
-@view_config(route_name="component_overheads", renderer='json')
-def componentoverheads(request):
-    """ Get a list of the Overheads a component can use
-    """
-    nodeid = request.matchdict['id']
-
-    currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
-    projectid = currentnode.getProjectID()
-    overheads = DBSession.query(
-                Overhead).filter_by(ProjectID=projectid).all()
-    overheadlist = []
-    for overhead in overheads:
-        overheadlist.append({'Name': overhead.Name,
-                            'ID': overhead.ID,
-                            'selected': False})
-    return sorted(overheadlist, key=lambda k: k['Name'].upper())
-
-
-@view_config(route_name="overhead_list", renderer='json')
-def overheadlist(request):
-    """ Perform operations on the Overhead table table depending on the method
-    """
-    if request.method == 'GET':
-        projectid = request.matchdict['id']
-        overheadlist = []
-        # Get all the unique Resources in the Resource table
-        qry = DBSession.query(Overhead).filter_by(ProjectID=projectid)
-        # build the list and only get the neccesary values
-        for overhead in qry:
-            overheadlist.append({'Name': overhead.Name,
-                            'Percentage': str(overhead.Percentage*100.0),
-                            'ID': overhead.ID})
-        return sorted(overheadlist, key=lambda k: k['Name'].upper())
-    elif request.method == 'DELETE':
-        deleteid = request.matchdict['id']
-        # Deleting it from the table deleted the object
-        deletethis = DBSession.query(
-            Overhead).filter_by(ID=deleteid).first()
-        qry = DBSession.delete(deletethis)
-
-        if qry == 0:
-            return HTTPNotFound()
-        transaction.commit()
-
-        return HTTPOk()
-    elif request.method == 'POST':
-        projectid = request.matchdict['id']
-        name = request.json_body['Name']
-        perc = (float(request.json_body.get('Percentage', 0)))/100.0
-        # Build a new overhead with the data
-        newoverhead = Overhead(Name = name,
-                                Percentage = perc,
-                                ProjectID =projectid)
-        DBSession.add(newoverhead)
-        transaction.commit()
-        return HTTPOk()
-
-
-@view_config(route_name="projectview", renderer='json')
-def projectview(request):
-    """ Return the project specified by the projectid
-    """
-    projectid = request.matchdict['projectid']
-
-    project = []
-    # Execute the sql query on the Node table to find the parent
-    qry = DBSession.query(Project).filter_by(ID=projectid).first()
-    # build the list and only get the neccesary values
-    if qry != None:
-        project.append({'Name': qry.Name,
-                        'Description': qry.Description,
-                        'ID': qry.ID,
-                        'Subitem': [{'Name': '...'}],
-                        'NodeType': qry.type,
-                        'NodeTypeAbbr' : 'P'
-                        })
-    return project
-
-
-@view_config(route_name="nodegridview", renderer='json')
-def nodegridview(request):
-    """ This view is for when the user requests the children of an item.
-        The parent's id is derived from the path of the request,
-        or if there is no id in the path the root id '0' is assumed.
-        It extracts the children from the object,
-        adds it to a list and returns it to the JSON renderer
-        in a format that is acceptable to Slickgrid.
-    """
-
-    parentid = request.matchdict['parentid']
-
-    childrenlist = []
-    # Execute the sql query on the Node table to find the parent
-    qry = DBSession.query(Node).filter_by(ParentID=parentid).all()
-    if qry == []:
-        # if the node doesnt have any children, query for the node's data instead
-        qry = DBSession.query(Node).filter_by(ID=parentid).all()
-
-    # Filter out all the Budgetitems and Components
-    # Test if the result is the same length as the query
-    # Therefore there will be empty columns
-    emptyresult = DBSession.query(Node).filter(Node.ParentID==parentid,
-                                            Node.type != 'BudgetItem',
-                                            Node.type != 'Component').all()
-    emptycolumns = len(emptyresult) == len(qry)
-
-    # put the ResourceCategories in another list that is appended first
-    rescatlist = []
-
-    # Get the griddata dict from each child and add it to the list
-    for child in qry:
-        if child.type == 'ResourceCategory':
-            rescatlist.append(child.getGridData())
-        else:
-            childrenlist.append(child.getGridData())
-
-    sorted_childrenlist = sorted(childrenlist, key=lambda k: k['name'].upper())
-    sorted_rescatlist = sorted(rescatlist, key=lambda k: k['name'].upper())
-    sorted_childrenlist = sorted_rescatlist+sorted_childrenlist
-    return {'list':sorted_childrenlist, 'emptycolumns': emptycolumns}
-
-
-@view_config(route_name="update_value", renderer='json')
-def update_value(request):
-    """ This view recieves a node ID along with other data parameters on the
-        request. It uses the node ID to select and update the node's
-        corresponding data in the database. This new data is provided through
-        request parameters.
-        Only Resources, BudgetItems and Component type nodes can have their
-        fields modified through this view, and only rate and quantity parameters
-        can be updated this way. The rate parameters can only be updated on
-        Resource type nodes.
-    """
-    nodeid = request.matchdict['id']
-    result = DBSession.query(Node).filter_by(ID=nodeid).first()
-    if result.type in ['Resource']:
-        # update the data - only rate can be modified
-        if request.params.get('rate') != None:
-            try:
-                result.Rate = float(request.params.get('rate'))
-            except ValueError:
-                pass # do not do anything
-    elif result.type in ['BudgetItem', 'Component']:
-        # update the data - only quantity and/or markup can be modified
-        if 'quantity' in request.json_body.keys():
-            try:
-                result.Quantity = float(request.json_body['quantity'])
-                newtotal = str(result.Total)
-                newsubtotal = str(result.Subtotal())
-                # return the new total
-                return {'total': newtotal, 'subtotal': newsubtotal}
-            except ValueError, e:
-                print e
-
-
-@view_config(route_name="addview", renderer='json')
 def additemview(request):
     """ The additemview is called when a POST request is sent from the client.
         The method adds a new node with attributes as specified by the user
@@ -540,7 +308,6 @@ def additemview(request):
     return {'ID': newid}
 
 
-@view_config(route_name="editview", renderer='json')
 def edititemview(request):
     """ The edittemview is called when a PUT request is sent from the client.
         The method updates the specified node with properties as specified by the user.
@@ -630,13 +397,11 @@ def edititemview(request):
     return HTTPOk()
 
 
-@view_config(route_name="deleteview", renderer='json')
 def deleteitemview(request):
     """ The deleteitemview is called using
         the address from the node to be deleted.
         The node ID is sent in the request, and it is deleted from the tables.
     """
-
     # Get the id of the node to be deleted from the path
     deleteid = request.matchdict['id']
 
@@ -658,13 +423,237 @@ def deleteitemview(request):
     return {"parentid": parentid}
 
 
-@view_config(route_name="pasteview", renderer='json')
-def pasteitemview(request):
-    """ The pasteitemview is sent the path of the node that is to be copied.
+@view_config(route_name="node_components", renderer='json')
+def node_components(request):
+    """ Retrieves and returns all the components in a node
+    """
+    nodeid = request.matchdict['id']
+    qry = DBSession.query(Node).filter_by(ID=nodeid).first()
+    componentslist = qry.getComponents()
+    itemlist = []
+    for comp in componentslist:
+        itemlist.append(comp.toOrderDict())
+    return itemlist
+
+
+@view_config(route_name="projects", renderer='json')
+def projects(request):
+    """ Returns a list of all the Projects in the database
+    """
+    projects = []
+    # Get all the Projects in the Project table
+    qry = DBSession.query(Project).all()
+    # build the list and only get the neccesary values
+    for project in qry:
+        projects.append({'Name': project.Name,
+                         'ID': project.ID})
+    return sorted(projects, key=lambda k: k['Name'].upper())
+
+
+@view_config(route_name="project_resources", renderer='json')
+def project_resources(request):
+    """ Returns a list of all the resources in the
+        node's project's resourcecategory in a format
+        that the related items widget can read
+    """
+    nodeid = request.matchdict['id']
+    currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
+
+    # Look up the node, if it isn't a resource category, find the topmost
+    # resource category and use that. Otherwise this is a sub-folder listing.
+    if type(currentnode) is ResourceCategory:
+        resourcecategory = currentnode
+    else:
+        nodeid = currentnode.getProjectID()
+        resourcecategory = DBSession.query(ResourceCategory).filter_by(
+                ParentID=nodeid).first()
+
+    # if it doesnt exist return the empty list
+    if not resourcecategory:
+        return {
+            "path": [ {"url": request.route_url('project_resources', id=nodeid)} ],
+            "items": []
+        }
+
+    items = [{
+        'title': item.Name,
+        'uid': item.ID,
+        'normalized_type': item.type == 'ResourceCategory' and 'folder' or 'document', # FIXME
+        'folderish': item.type == 'ResourceCategory',
+    } for item in sorted(resourcecategory.Children, key=lambda o: o.Name.upper())]
+
+    def pathlist(node):
+        p = node.Parent
+        if p is not None and type(p) is not Project:
+            for u in pathlist(p):
+                yield u
+        yield (node.ID,
+            getattr(node, 'Name', None),
+            request.route_url('project_resources', id=node.ID))
+
+    return {
+        "path": [{
+            "url": url,
+            "title": title,
+            "uid": uid } for uid, title, url in pathlist(resourcecategory)],
+        "items": items
+    }
+
+
+@view_config(route_name="resourcetypes", renderer='json')
+def resourcetypes(request):
+    """ Returns a list of all the resource types in the database
+    """
+    restypelist = []
+    # Get all the ResourceTypes
+    qry = DBSession.query(ResourceType).all()
+    # return a list of the ResourceType names
+    for restype in qry:
+        restypelist.append({'Name': restype.Name})
+    return sorted(restypelist, key=lambda k: k['Name'].upper())
+
+
+@view_config(route_name="component_overheads", renderer='json')
+def component_overheads(request):
+    """ Get a list of the Overheads a component can use
+    """
+    nodeid = request.matchdict['id']
+
+    currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
+    projectid = currentnode.getProjectID()
+    overheads = DBSession.query(
+                Overhead).filter_by(ProjectID=projectid).all()
+    overheadlist = []
+    for overhead in overheads:
+        overheadlist.append({'Name': overhead.Name,
+                            'ID': overhead.ID,
+                            'selected': False})
+    return sorted(overheadlist, key=lambda k: k['Name'].upper())
+
+
+@view_config(route_name="project_overheads", renderer='json')
+def project_overheads(request):
+    """ Perform operations on the Overheads of a specified Project
+        depending on the method
+    """
+    if request.method == 'GET':
+        projectid = request.matchdict['id']
+        overheadlist = []
+        # Get all the overheads used by this project
+        qry = DBSession.query(Overhead).filter_by(ProjectID=projectid)
+        # build the list and only get the neccesary values
+        for overhead in qry:
+            overheadlist.append({'Name': overhead.Name,
+                            'Percentage': str(overhead.Percentage*100.0),
+                            'ID': overhead.ID})
+        return sorted(overheadlist, key=lambda k: k['Name'].upper())
+    elif request.method == 'DELETE':
+        deleteid = request.matchdict['id']
+        # Deleting it from the table deleted the object
+        deletethis = DBSession.query(
+            Overhead).filter_by(ID=deleteid).first()
+        qry = DBSession.delete(deletethis)
+
+        if qry == 0:
+            return HTTPNotFound()
+        transaction.commit()
+
+        return HTTPOk()
+    elif request.method == 'POST':
+        projectid = request.matchdict['id']
+        name = request.json_body['Name']
+        perc = (float(request.json_body.get('Percentage', 0)))/100.0
+        # Build a new overhead with the data
+        newoverhead = Overhead(Name = name,
+                                Percentage = perc,
+                                ProjectID =projectid)
+        DBSession.add(newoverhead)
+        transaction.commit()
+        return HTTPOk()
+
+
+@view_config(route_name="node_grid", renderer='json')
+def node_grid(request):
+    """ This view is for when the user requests the children of an item.
+        The parent's id is from the path of the request,
+        or if there is no id in the path the root id '0' is assumed.
+        It extracts the children from the object,
+        adds it to a list and returns it to the JSON renderer
+        in the format that is used by the Slickgrid.
+    """
+
+    parentid = request.matchdict['parentid']
+
+    childrenlist = []
+    # Execute the sql query on the Node table to find the parent
+    qry = DBSession.query(Node).filter_by(ParentID=parentid).all()
+    if qry == []:
+        # if the node doesnt have any children, query for the node's data instead
+        qry = DBSession.query(Node).filter_by(ID=parentid).all()
+
+    # Filter out all the Budgetitems and Components
+    # Test if the result is the same length as the query
+    # Therefore there will be empty columns
+    emptyresult = DBSession.query(Node).filter(Node.ParentID==parentid,
+                                            Node.type != 'BudgetItem',
+                                            Node.type != 'Component').all()
+    emptycolumns = len(emptyresult) == len(qry)
+
+    # put the ResourceCategories in another list that is appended first
+    rescatlist = []
+
+    # Get the griddata dict from each child and add it to the list
+    for child in qry:
+        if child.type == 'ResourceCategory':
+            rescatlist.append(child.getGridData())
+        else:
+            childrenlist.append(child.getGridData())
+
+    sorted_childrenlist = sorted(childrenlist, key=lambda k: k['name'].upper())
+    sorted_rescatlist = sorted(rescatlist, key=lambda k: k['name'].upper())
+    sorted_childrenlist = sorted_rescatlist+sorted_childrenlist
+    return {'list':sorted_childrenlist, 'emptycolumns': emptycolumns}
+
+
+@view_config(route_name="node_update_value", renderer='json')
+def node_update_value(request):
+    """ This view recieves a node ID along with other data parameters on the
+        request. It uses the node ID to select and update the node's
+        corresponding data in the database. This new data is provided through
+        request parameters.
+        Only Resources, BudgetItems and Component type nodes can have their
+        fields modified through this view, and only rate and quantity parameters
+        can be updated this way. The rate parameters can only be updated on
+        Resource type nodes.
+    """
+    nodeid = request.matchdict['id']
+    result = DBSession.query(Node).filter_by(ID=nodeid).first()
+    if result.type in ['Resource']:
+        # update the data - only rate can be modified
+        if request.params.get('rate') != None:
+            try:
+                result.Rate = float(request.params.get('rate'))
+            except ValueError:
+                pass # do not do anything
+    elif result.type in ['BudgetItem', 'Component']:
+        # update the data - only quantity can be modified
+        if 'quantity' in request.json_body.keys():
+            try:
+                result.Quantity = float(request.json_body['quantity'])
+                newtotal = str(result.Total)
+                newsubtotal = str(result.Subtotal())
+                # return the new total
+                return {'total': newtotal, 'subtotal': newsubtotal}
+            except ValueError, e:
+                print e
+
+
+@view_config(route_name="node_paste", renderer='json')
+def node_paste(request):
+    """ The node_paste is sent the path of the node that is to be copied.
         That node is then found in the db, copied with the new parent's id,
         and added to the current node.
     """
-
     # Find the source object to be copied from the path in the request body
     sourceid = request.json_body["ID"]
     # Find the object to be copied to from the path
@@ -767,8 +756,8 @@ def pasteitemview(request):
     return HTTPOk()
 
 
-@view_config(route_name="costview", renderer='json')
-def costview(request):
+@view_config(route_name="node_cost", renderer='json')
+def node_cost(request):
     """ The costview is called using the address from the node to be costed.
         The node ID is sent in the request, and the total cost of that node
         is calculated recursively from it's children.

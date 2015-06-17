@@ -194,9 +194,9 @@ class Project(Node):
                 source.paste(child.copy(source.ID), child.Children)
 
     def getComponents(self):
-        """Returns a list of all the Resources that are used by the children of
-           the project. The resources are retrieved from its children and any
-           children that are components return their resource
+        """ Returns a list of all the Resources that are used by the children of
+            the project. The resources are retrieved from its children and any
+            children that are components return their resource
         """
         componentslist = []
         for child in self.Children:
@@ -205,11 +205,10 @@ class Project(Node):
         return componentslist
 
     def toDict(self):
-        if len(self.Children) == 0:
-            subitem = []
-        else:
-            subitem = [{'Name':''}]
         return {'Name': self.Name,
+                'Description': self.Description,
+                'ID': self.ID,
+                'Subitem': [{'Name': '...'}],
                 'Client' : self.ClientID,
                 'City' : self.CityID,
                 'SiteAddress' : self.SiteAddress,
@@ -221,7 +220,9 @@ class Project(Node):
                 'income_rec': str(self.IncomeRecieved),
                 'client_cost': str(self.ClientCost),
                 'proj_profit': str(self.ProjectedProfit),
-                'act_profit': str(self.ActualProfit)}
+                'act_profit': str(self.ActualProfit),
+                'NodeType': self.type,
+                'NodeTypeAbbr' : 'P'}
 
     def toChildDict(self):
         """ Returns a dictionary of this node used in the childview
@@ -388,10 +389,6 @@ class BudgetGroup(Node):
                 'NodeTypeAbbr' : 'G'}
 
     def toDict(self):
-        if len(self.Children) == 0:
-            subitem = []
-        else:
-            subitem = [{'Name':''}]
         return {'Name': self.Name,
                 'Description' : self.Description,
                 'budg_cost': str(self.Total),
@@ -604,13 +601,7 @@ class BudgetItem(Node):
 
     def toDict(self):
         """ Returns a dictionary of all the attributes of this object.
-            If the object has any children a list with one element is added,
-            otherwise only an empty list is added.
         """
-        if len(self.Children) == 0:
-            subitem = []
-        else:
-            subitem = [{'Name':''}]
         return {'Name': self.Name,
                 'Description' : self.Description,
                 'Quantity' : self._Quantity,
@@ -1058,19 +1049,10 @@ class ResourceCategory(Node):
                 'NodeTypeAbbr' : 'C'}
 
     def toDict(self):
-        """ Returns a dictionary of this ResourceCategory, which only contains
-            its name and a list indicating it has children or not
+        """ Returns a dictionary of this ResourceCategory
         """
         return {'Name': self.Name,
-                'Description' : self.Description,
-                'budg_cost': '-',
-                'order_cost': '-',
-                'run_cost': '-',
-                'claim_cost': '-',
-                'income_rec': '-',
-                'client_cost': '-',
-                'proj_profit': '-',
-                'act_profit': '-'}
+                'Description' : self.Description}
 
     def getGridData(self):
         """ Returns a dictionary with the data needed for the slick grid
@@ -1190,15 +1172,7 @@ class Resource(Node):
                 'Description': self.Description,
                 'Rate': str(self._Rate),
                 'ResourceType': self.Type,
-                'Unit': int(self.UnitID),
-                'budg_cost': '-',
-                'order_cost': '-',
-                'run_cost': '-',
-                'claim_cost': '-',
-                'income_rec': '-',
-                'client_cost': '-',
-                'proj_profit': '-',
-                'act_profit': '-'}
+                'Unit': self.UnitID}
 
     def getGridData(self):
         return {'name': self.Name,
@@ -1206,7 +1180,7 @@ class Resource(Node):
                 'unit': self.unitName(),
                 'node_type': self.type,
                 'rate': str(self.Rate),
-                'type': str(self.Type)}
+                'type': self.Type}
 
     def __eq__(self, other):
         """Test for equality, for now testing based on the name
