@@ -30,10 +30,14 @@ def all_nodes(node, data, level):
             nodelist.append(child)
     sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())    
     for child in sorted_nodelist:
-        if child.type != 'ResourceCategory':            
-            data.append((child, level))
+        if child.type != 'ResourceCategory':
+            if child.type == 'BudgetGroup':
+                data.append((child, range(level-1), 'bold'))
+            else:
+                data.append((child, range(level-1), 'normal'))
             if child.type != 'Component':
-                data += all_nodes(child, [], level)
+                if level != 3: # restrict level to level3 only
+                    data += all_nodes(child, [], level)
     return data
 
 
@@ -62,7 +66,7 @@ def projectbudget(request):
     pdf.close()
 
     print "pdf rendered"
-    filename = "project_budget"
+    filename = "project_budget_report"
     now = datetime.datetime.now()
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
     last_modified = formatdate(time.mktime(now.timetuple()))
@@ -71,6 +75,8 @@ def projectbudget(request):
                         body=pdfcontent)
     response.headers.add('Content-Disposition',
                          "attachment; filename=%s.pdf" % nice_filename)
+    # needed so that in a cross-domain situation the header is visible
+    response.headers.add('Access-Control-Expose-Headers','Content-Disposition')
     response.headers.add("Content-Length", str(len(pdfcontent)))
     response.headers.add('Last-Modified', last_modified)
     response.headers.add("Cache-Control", "no-store")
@@ -86,7 +92,7 @@ def all_resources(node, data, level):
             nodelist.append(child)
     sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())    
     for child in sorted_nodelist:
-        data.append((child, level))
+        data.append((child, range(level-1)))
         if child.type != 'Resource':
             data += all_resources(child, [], level)
     return data
@@ -115,7 +121,7 @@ def resourcelist(request):
     pdfcontent = pdf.getvalue()
     pdf.close()
 
-    filename = "project_budget"
+    filename = "resource_list_report"
     now = datetime.datetime.now()
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
     last_modified = formatdate(time.mktime(now.timetuple()))
@@ -123,6 +129,8 @@ def resourcelist(request):
                         body=pdfcontent)
     response.headers.add('Content-Disposition',
                          "attachment; filename=%s.pdf" % nice_filename)
+    # needed so that in a cross-domain situation the header is visible
+    response.headers.add('Access-Control-Expose-Headers','Content-Disposition')
     response.headers.add("Content-Length", str(len(pdfcontent)))
     response.headers.add('Last-Modified', last_modified)
     response.headers.add("Cache-Control", "no-store")

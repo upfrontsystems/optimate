@@ -5,14 +5,20 @@
 
     <table>
         <tr>
-            <th>Description</th>
-            <th>Rate</th>
-            <th>Quantity</th>
+            <th style="text-align:left">Description</th>
+            <th style="text-align:right">Rate</th>
+            <th style="text-align:right">Quantity</th>
         </tr>
+        <tr></tr>
         <tr tal:repeat="node nodes">
-            <td class="${node[1]}">${node[0].Name}</td>
-            <td></td>
-            <td></td>
+            <td style="width: 600px">
+                <div>
+                    <span tal:repeat="x node[1]">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    ${node[0].Name}
+                </div>
+            </td>
+            <td style="width: 70px; text-align:right" tal:content="node[0].Rate|nothing" ></td>
+            <td style="width: 70px; text-align:right" tal:content="node[0].Quantity|nothing" ></td>
         </tr>
     </table>
 

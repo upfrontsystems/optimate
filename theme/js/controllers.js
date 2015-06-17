@@ -876,18 +876,17 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
         // Load the resources the user can select from the resource list
         $scope.loadResourceList = function(state){
-            var currentid = $scope.currentNode.ID;
-            $('.finder').each(function() {
-                $scope.finder = new ContentFinder(this, function(id){
-                    return $http({
-                        method: 'GET',
-                        cache: $cacheFactory.get('optimate.resources'),
-                        url: globalServerURL + 'project/' + id + '/resources/'
-                    })
-                });
-                if (state == 'add'){ $scope.finder.clear_selection(); }
-                $scope.finder.listdir(currentid);
+            var currentid = $scope.currentNode.ID,
+                finder = $('.finder').get(0);
+            $scope.finder = $scope.finder || new ContentFinder(finder, function(id){
+                return $http({
+                    method: 'GET',
+                    cache: $cacheFactory.get('optimate.resources'),
+                    url: globalServerURL + 'project/' + id + '/resources/'
+                })
             });
+            if (state == 'add'){ $scope.finder.clear_selection(); }
+            $scope.finder.listdir(currentid);
         };
 
         $scope.refreshResourceList = function(){
@@ -899,7 +898,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         // when you click outside the dropdown.
         $scope.closeDropdown = function(e){
             if (!e.isDefaultPrevented()){
-                $scope.finder && $scope.finder.close_dropdown();
+                $scope.finder && $scope.finder.opened && $scope.finder.close_dropdown();
             }
         };
 
@@ -1159,37 +1158,59 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
         $scope.getReport = function (report, nodeid) {
             if ( report == 'projectbudget' ) {
+                var target = document.getElementsByClassName('pdf_download');
+                var spinner = new Spinner().spin(target[0]);
                 $http({method: 'GET', url:globalServerURL + 'project_budget_report/' + nodeid + '/'},
                       {responseType:'arraybuffer'
-                }).success(function (response) {
+                }).success(function (response, status, headers, config) {
+                    spinner.stop(); // stop the spinner - ajax call complete
                     var file = new Blob([response], {type: 'application/pdf'});
                     var fileURL = URL.createObjectURL(file);
                     var result = document.getElementsByClassName("pdf_download");
                     var anchor = angular.element(result);
+                    var filename_header = headers('Content-Disposition');
+                    var filename = filename_header.split('filename=')[1];
                     anchor.attr({
                         href: fileURL,
                         target: '_blank',
-                        download: 'report.pdf'
+                        download: filename
                     })[0].click();
+                    // clear the anchor so that everytime a new report is linked
+                    anchor.attr({
+                        href: '',
+                        target: '',
+                        download: ''
+                    });
                 }).error(function(data, status, headers, config) {
-                    console.log("Pdf download error")
+                    console.log("Project budget pdf download error")
                 });
             }
             else if ( report == 'resourcelist' ) {
+                var target = document.getElementsByClassName('pdf_download');
+                var spinner = new Spinner().spin(target[0]);
                 $http({method: 'GET', url:globalServerURL + 'resource_list_report/' + nodeid + '/'},
                       {responseType:'arraybuffer'
-                }).success(function (response) {
+                }).success(function (response, status, headers, config) {
+                    spinner.stop(); // stop the spinner - ajax call complete
                     var file = new Blob([response], {type: 'application/pdf'});
                     var fileURL = URL.createObjectURL(file);
                     var result = document.getElementsByClassName("pdf_download");
                     var anchor = angular.element(result);
+                    var filename_header = headers('Content-Disposition');
+                    var filename = filename_header.split('filename=')[1];
                     anchor.attr({
                         href: fileURL,
                         target: '_blank',
-                        download: 'report.pdf'
+                        download: filename
                     })[0].click();
+                    // clear the anchor so that everytime a new report is linked
+                    anchor.attr({
+                        href: '',
+                        target: '',
+                        download: ''
+                    });
                 }).error(function(data, status, headers, config) {
-                    console.log("Pdf download error")
+                    console.log("Resource list pdf download error")
                 });
             }
         };

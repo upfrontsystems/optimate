@@ -5,7 +5,7 @@ var ContentFinder = function(id, callback, multiselect) {
     self.multiselect = multiselect || false;
     self.activeresults = [];
     self.selecteditems = [];
-    self.selectedresults = [];
+    self.selectedresults = []; // Only used for multi-select
     self.choices = $('.finder-choices', self.container);
     self.dropdown = $('.finder-dropdown', self.container);
     self.results = $('.finder-results', self.container);
@@ -200,12 +200,15 @@ ContentFinder.prototype._listdir = function(data) {
        this is necessary since selecteditems contains items selected
        across all folders
     */
-    self.selectedresults = [];
-    for (i=0; i<self.selecteditems.length; i++) {
-        selected = self.selecteditems[i];
-        result = $('li[data-uid="' + selected.uid + '"]', this.container);
-        if (result.length > 0) {
-            self.selectedresults.push(result);
+    if (self.multiselect){
+        self.selectedresults = [];
+        for (i=0; i<self.selecteditems.length; i++) {
+            var selected = self.selecteditems[i];
+            self.dropdown.find('li').each(function(){
+                if ($(this).data('uid') == selected.uid) {
+                    self.selectedresults.push($(this));
+                }
+            });
         }
     }
 
@@ -256,12 +259,8 @@ ContentFinder.prototype.result_click = function(item) {
     var self = this,
         selected, i, html = [];
     if (!self.multiselect) {
-        selected = self.selectedresults[0];
-        if (selected !== undefined && item !== selected) {
-            selected.removeClass('selected');
-            self.deselect_item(selected.data('uid'));
-        }
-        self.selectedresults = [item];
+        self.dropdown.find('.selected').removeClass('selected');
+        self.clear_selection();
         item.addClass('selected');
         self.select_item(item.data('uid'));
     } else {
@@ -271,7 +270,7 @@ ContentFinder.prototype.result_click = function(item) {
             for (i=0; i<self.selectedresults.length; i++) {
                 selected = self.selectedresults[i];
                 if (selected.data('uid') === item.data('uid')) {
-                    selected.addClass('selected');
+                    selected.removeClass('selected');
                     self.deselect_item(selected.data('uid'));
                 } else {
                     new_lst.push(selected);
@@ -281,7 +280,7 @@ ContentFinder.prototype.result_click = function(item) {
         } else {
             self.selectedresults.push(item);
             self.select_item(item.data('uid'));
-            item.removeClass('selected');
+            item.addClass('selected');
         }
     }
 
