@@ -30,10 +30,11 @@ def all_nodes(node, data, level):
             nodelist.append(child)
     sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())    
     for child in sorted_nodelist:
-        if child.type != 'ResourceCategory':            
-            data.append((child, 'level' + str(level)))
+        if child.type != 'ResourceCategory':             
+            data.append((child, range(level-1)))
             if child.type != 'Component':
-                data += all_nodes(child, [], level)
+                if level != 3: # restrict level to level3 only
+                    data += all_nodes(child, [], level)
     return data
 
 
@@ -88,7 +89,7 @@ def all_resources(node, data, level):
             nodelist.append(child)
     sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())    
     for child in sorted_nodelist:
-        data.append((child, 'level' + str(level)))
+        data.append((child, range(level-1)))
         if child.type != 'Resource':
             data += all_resources(child, [], level)
     return data
