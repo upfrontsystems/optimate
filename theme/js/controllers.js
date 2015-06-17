@@ -883,18 +883,17 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
         // Load the resources the user can select from the resource list
         $scope.loadResourceList = function(state){
-            var currentid = $scope.currentNode.ID;
-            $('.finder').each(function() {
-                $scope.finder = new ContentFinder(this, function(id){
-                    return $http({
-                        method: 'GET',
-                        cache: $cacheFactory.get('optimate.resources'),
-                        url: globalServerURL + 'resource_list/' + id + '/'
-                    })
-                });
-                if (state == 'add'){ $scope.finder.clear_selection(); }
-                $scope.finder.listdir(currentid);
+            var currentid = $scope.currentNode.ID,
+                finder = $('.finder').get(0);
+            $scope.finder = $scope.finder || new ContentFinder(finder, function(id){
+                return $http({
+                    method: 'GET',
+                    cache: $cacheFactory.get('optimate.resources'),
+                    url: globalServerURL + 'resource_list/' + id + '/'
+                })
             });
+            if (state == 'add'){ $scope.finder.clear_selection(); }
+            $scope.finder.listdir(currentid);
         };
 
         $scope.refreshResourceList = function(){
