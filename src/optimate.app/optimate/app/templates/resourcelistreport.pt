@@ -9,6 +9,7 @@
             <th style="text-align:right">Rate</th>
             <th style="text-align:right">Quantity</th>
         </tr>
+        <tr></tr>
         <tr tal:repeat="node nodes">
             <td style="width: 600px">
                 <div>

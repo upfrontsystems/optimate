@@ -1,4 +1,12 @@
 <html>
+<style>
+.bold {
+    font-weight: bold;
+}
+.normal {
+    font-weight: normal;
+}
+</style>
 
 <body>
     <h1>Project Budget for ${project_name}</h1>
@@ -11,9 +19,10 @@
             <th style="text-align:right">Rate</th>
             <th style="text-align:right">Total</th>
         </tr>
+        <tr></tr>
         <tr tal:repeat="node nodes">
             <td style="width: 450px">
-                <div>
+                <div class="${node[2]}">
                     <span tal:repeat="x node[1]">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                     ${node[0].Name}
                 </div>
