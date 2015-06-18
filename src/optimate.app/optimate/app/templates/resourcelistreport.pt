@@ -1,4 +1,12 @@
 <html>
+<style>
+.bold {
+    font-weight: bold;
+}
+.normal {
+    font-weight: normal;
+}
+</style>
 
 <body>
     <h1>Resource List for ${project_name}</h1>
@@ -12,13 +20,13 @@
         <tr></tr>
         <tr tal:repeat="node nodes">
             <td style="width: 600px">
-                <div>
+                <div class="${node[3]}">
                     <span tal:repeat="x node[1]">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                     ${node[0].Name}
                 </div>
             </td>
             <td style="width: 70px; text-align:right" tal:content="node[0].Rate|nothing" ></td>
-            <td style="width: 70px; text-align:right" tal:content="node[0].Quantity|nothing" ></td>
+            <td style="width: 70px; text-align:right" tal:content="node[2]|nothing" ></td>
         </tr>
     </table>
 

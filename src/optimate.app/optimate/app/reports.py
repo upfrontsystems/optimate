@@ -88,12 +88,16 @@ def all_resources(node, data, level):
     level +=1
     nodelist = []
     for child in node.Children:
-        if child.type != 'BudgetGroup':
-            nodelist.append(child)
+        nodelist.append(child)
     sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())    
     for child in sorted_nodelist:
-        data.append((child, range(level-1)))
-        if child.type != 'Resource':
+        if child.type == 'Resource':
+            quantity = 0
+            for component in child.Components:
+                quantity += component.Quantity
+            data.append((child, range(level-1), quantity, 'normal'))
+        else: # ResourceCategory
+            data.append((child, range(level-1), None, 'bold'))
             data += all_resources(child, [], level)
     return data
 
