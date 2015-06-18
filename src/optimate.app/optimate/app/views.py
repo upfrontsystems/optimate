@@ -105,7 +105,7 @@ def auth(request):
 
 @view_config(route_name="rootview", renderer='json')
 @view_config(route_name="node_children", renderer='json')
-def childview(request):
+def node_children(request):
     """ This view is for when the user requests the children of an item.
         The parent's id is derived from the path of the request,
         or if there is no id in the path the root id '0' is assumed.
@@ -183,7 +183,10 @@ def nodeview(request):
     # otherwise return the node
     nodeid = request.matchdict['id']
     qry = DBSession.query(Node).filter_by(ID=nodeid).first()
-    return qry.toDict()
+    if qry:
+        return qry.toDict()
+    else:
+        return HTTPNotFound()
 
 
 def additemview(request):
@@ -197,6 +200,7 @@ def additemview(request):
     name = request.json_body['Name']
     desc = request.json_body.get('Description', '')
     quantity = float(request.json_body.get('Quantity', 0))
+    itemquantity = float(request.json_body.get('ItemQuantity', 0))
     rate = request.json_body.get('Rate', 0)
     rate = Decimal(rate).quantize(Decimal('.01'))
     resourcetype = request.json_body.get('ResourceType', '')
@@ -229,6 +233,14 @@ def additemview(request):
         DBSession.add(newnode)
         DBSession.flush()
         newid = newnode.ID
+        # generate a code for the resource
+        if len(name) < 3:
+            name = name.upper() + (3-len(name))*'X'
+        else:
+            name = name[:3].upper()
+        numerseq = '0'*(4-len(str(newid))) + str(newid)
+        finalcode = name+numerseq
+        newnode.Code = finalcode
     elif objecttype == 'Project':
         newnode = Project(Name=name,
                         Description=desc,
@@ -262,6 +274,7 @@ def additemview(request):
 
         newcomp = Component(ResourceID=resource.ID,
                             _Quantity = quantity,
+                            _ItemQuantity=itemquantity,
                             ParentID=parentid)
 
         DBSession.add(newcomp)
@@ -284,6 +297,7 @@ def additemview(request):
             newnode = BudgetItem(Name=name,
                             Description=desc,
                             _Quantity = quantity,
+                            _ItemQuantity = itemquantity,
                             ParentID=parentid)
         elif objecttype == 'ResourceCategory':
             newnode = ResourceCategory(Name=name,
@@ -348,6 +362,7 @@ def edititemview(request):
             component.ResourceID = resource.ID
 
         component._Quantity=quantity
+        component._ItemQuantity=request.json_body.get('ItemQuantity', 0.0)
         component.Overheads[:] = []
 
         # get the list of overheads used in the checkboxes
@@ -371,6 +386,7 @@ def edititemview(request):
         budgetitem.Name=name
         budgetitem.Description=desc
         budgetitem.Quantity=quantity
+        budgetitem.ItemQuantity=request.json_body.get('ItemQuantity', 0.0)
 
     elif objecttype == 'ResourceCategory':
         resourcecategory = DBSession.query(ResourceCategory).filter_by(ID=nodeid).first()
@@ -637,9 +653,9 @@ def node_update_value(request):
                 pass # do not do anything
     elif result.type in ['BudgetItem', 'Component']:
         # update the data - only quantity can be modified
-        if 'quantity' in request.json_body.keys():
+        if request.params.get('quantity') != None:
             try:
-                result.Quantity = float(request.json_body['quantity'])
+                result.Quantity = float(request.params.get('quantity'))
                 newtotal = str(result.Total)
                 newsubtotal = str(result.Subtotal())
                 # return the new total
@@ -1061,13 +1077,15 @@ def cityview(request):
         deleteid = request.matchdict['id']
         # Deleting it from the node table deletes the object
         deletethis = DBSession.query(City).filter_by(ID=deleteid).first()
-        # only delete if this City is not in use by any Project
+        # only delete if this City is not in use by any other table
         if len(deletethis.Projects) == 0:
-            qry = DBSession.delete(deletethis)
-            if qry == 0:
-                return HTTPNotFound()
-            transaction.commit()
-            return {'status': 'remove'}
+            if len(deletethis.Clients) == 0:
+                if len(deletethis.Suppliers) == 0:
+                    qry = DBSession.delete(deletethis)
+                    if qry == 0:
+                        return HTTPNotFound()
+                    transaction.commit()
+                    return {'status': 'remove'}
         return {'status': 'keep'}
 
     # if the method is post, add a new city

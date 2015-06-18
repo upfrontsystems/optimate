@@ -40,12 +40,21 @@
                                name="inputQuantity"
                                ng-model="formData['Quantity']">
                     </div>
+                    <div class="form-group"
+                        ng-class="{'has-error': addBudgetItemForm.inputItemQuantity.$invalid}">
+                        <label for="inputItemQuantity" class="col-sm-2 control-label">Item Quantity:</label>
+                        <input type="number"
+                               class="col-sm-7"
+                               id="inputItemQuantity"
+                               name="inputItemQuantity"
+                               ng-model="formData['ItemQuantity']">
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal"
                   ng-disabled="!addBudgetItemForm.$valid" ng-click="addNode()">Save</button>
-                <button ng-show="modalState == 'Edit'" class="btn btn-primary" data-dismiss="modal" 
+                <button ng-show="modalState == 'Edit'" class="btn btn-primary" data-dismiss="modal"
                  ng-disabled="!addBudgetItemForm.$valid" ng-click="saveNodeEdits()">Update</button>
                 <button class="btn btn-default" ng-click="cancel()" data-dismiss="modal">Cancel</button>
             </div>

@@ -8,53 +8,82 @@
              Suppliers view
              The POST, PUT, DELETE versions of client and supplier view
 """
+from pyramid.paster import (
+    get_appsettings,
+    setup_logging,
+)
 
+from sqlalchemy import (
+    Column,
+    Index,
+    Integer,
+    Text,
+    ForeignKey,
+    create_engine,
+    exc,
+    engine_from_config,
+)
+
+from optimate.app.models import (
+    DBSession,
+    Base,
+    Node,
+    Project,
+    BudgetGroup,
+    BudgetItem,
+    Component,
+    ResourceType,
+    Unit,
+    City,
+    Overhead,
+    ResourceCategory,
+    Resource,
+    Client,
+    Supplier,
+    CompanyInformation,
+    Order,
+    OrderItem,
+    User
+)
+
+import sys
+import json
+from sqlalchemy.sql import exists
+from pyramid.scripts.common import parse_vars
+from sqlalchemy.orm import sessionmaker
+from datetime import datetime
+import os
 import unittest
 import transaction
 from pyramid import testing
-from optimate.app.models import DBSession
 from decimal import Decimal
 
 def _initTestingDB():
     """ Build a database with default data
     """
-
-    from sqlalchemy import create_engine
-    from optimate.app.models import (
-        Node,
-        Project,
-        BudgetGroup,
-        BudgetItem,
-        Component,
-        ResourceType,
-        ResourceCategory,
-        Resource,
-        Client,
-        Supplier,
-        City,
-        Unit,
-        Overhead,
-        Base
-    )
     engine = create_engine('sqlite://')
     Base.metadata.create_all(engine)
     DBSession.configure(bind=engine)
     with transaction.manager:
-
-        client1 = Client (Name='TestClientOne',
-                        ID=1)
-        client2 = Client (Name='TestClientTwo',
-                        ID=2)
-        client3 = Client (Name='TestClientThree',
-                        ID=3)
-        supplier = Supplier(Name='TestSupplierName')
-
         city1 = City(Name='Cape Town',
                     ID=1)
         city2 = City(Name='Pretoria',
                     ID=2)
         city3 = City(Name='Durban',
                     ID=3)
+
+        client1 = Client (Name='TestClientOne',
+                        ID=1,
+                        CityID=city1.ID)
+        client2 = Client (Name='TestClientTwo',
+                        ID=2,
+                        CityID=city2.ID)
+        client3 = Client (Name='TestClientThree',
+                        ID=3,
+                        CityID=city3.ID)
+        supplier = Supplier(Name='TestSupplierName',
+                        ID=1,
+                        CityID=city1.ID)
 
         unit1 = Unit(Name='mm',
                     ID=1)
@@ -92,6 +121,7 @@ def _initTestingDB():
                         ID=3,
                         Description='TestBIDesc',
                         _Quantity=5.0,
+                        _ItemQuantity=5.0,
                         ParentID=budgetgroup.ID)
         rescat = ResourceCategory(Name='Resource List',
                         ID=9,
@@ -116,11 +146,13 @@ def _initTestingDB():
         comp = Component(ID=7,
                         ResourceID = res.ID,
                         _Quantity=5.0,
+                        _ItemQuantity=5.0,
                         ParentID=budgetitem.ID)
         comp.Overheads.append(overhead)
         compa = Component(ID=11,
                         ResourceID=resa.ID,
                         _Quantity=7.0,
+                        _ItemQuantity=7.0,
                         ParentID=budgetitem.ID)
 
 
@@ -143,6 +175,7 @@ def _initTestingDB():
         budgetitemb = BudgetItem(Name='TestBBIName',
                         ID=6,
                         _Quantity=10.0,
+                        _ItemQuantity=10.0,
                         Description='TestBBIDesc',
                         ParentID=budgetgroupb.ID)
         rescatb = ResourceCategory(Name='Resource List',
@@ -168,16 +201,19 @@ def _initTestingDB():
         compb = Component(ID=8,
                         ResourceID=resb.ID,
                         _Quantity=5.0,
+                        _ItemQuantity=5.0,
                         ParentID=budgetitemb.ID)
         compb.Overheads.append(overheadb)
         budgetitemc = BudgetItem(Name='TestCBIName',
                         ID=13,
                         _Quantity=6.0,
+                        _ItemQuantity=6.0,
                         Description='TestCBIDesc',
                         ParentID=budgetgroupb.ID)
         compc = Component(ID=14,
                         ResourceID=resduplicate.ID,
                         _Quantity=8.0,
+                        _ItemQuantity=8.0,
                         ParentID=budgetitemc.ID)
         compc.Overheads.append(overheadb)
 
@@ -208,11 +244,13 @@ def _initTestingDB():
         budgetitemd = BudgetItem(Name='TestDBIName',
                         ID=22,
                         _Quantity=39.0,
+                        _ItemQuantity=39.0,
                         Description='TestDBIDesc',
                         ParentID=budgetgroupd.ID)
         budgetiteme = BudgetItem(Name='TestEBIName',
                         ID=23,
                         _Quantity=16.3,
+                        _ItemQuantity=16.3,
                         Description='TestEBIDesc',
                         ParentID=budgetgroupc.ID)
         rescatc = ResourceCategory(ID=24,
@@ -230,12 +268,14 @@ def _initTestingDB():
         compd = Component(ID=26,
                         ResourceID=resbduplicate.ID,
                         _Quantity=7.01,
+                        _ItemQuantity=7.01,
                         ParentID=budgetitemd.ID)
         compd.Overheads.append(overheadd)
         compd.Overheads.append(overheadc)
         compe = Component(ID=27,
                         ResourceID=resbduplicate.ID,
                         _Quantity=15.0,
+                        _ItemQuantity=15.0,
                         ParentID=budgetiteme.ID)
         compe.Overheads.append(overheadd)
         compe.Overheads.append(overheadc)
@@ -379,18 +419,40 @@ def _initTestingDB():
 
 
 def _registerRoutes(config):
-    config.add_route('root', '/')
-    config.add_route('childview', '/{parentid}/')
-    config.add_route('addview', '/{id}/add')
-    config.add_route('deleteview', '/{id}/delete')
-    config.add_route('pasteview', '/{id}/paste')
-    config.add_route('clientview', '/clients')
-    config.add_route('supplierview', '/suppliers')
+    # the optimate project data views
+    config.add_route('rootview', '/')
+    config.add_route('node_children', 'node/{parentid}/children/')
+    config.add_route('nodeview', 'node/{id}/')
+    config.add_route('projects', '/projects/')
+    config.add_route('project_resources', '/project/{id}/resources/')
+    config.add_route('project_overheads', '/project/{id}/overheads/')
+    config.add_route('component_overheads', '/component/{id}/overheads/')
+    config.add_route('resourcetypes', '/resourcetypes')
+    config.add_route('node_grid', '/node/{parentid}/grid/')
+    config.add_route('node_update_value', '/node/{id}/update_value/')
+    config.add_route('node_paste', 'node/{id}/paste/')
+    config.add_route('node_cost', 'node/{id}/cost/')
+    config.add_route('node_components', 'node/{id}/components/')
+
+    # the other views
+    config.add_route('clientsview', '/clients')
+    config.add_route('suppliersview', '/suppliers')
+    config.add_route('clientview', '/client/{id}/')
+    config.add_route('supplierview', '/supplier/{id}/')
+    config.add_route('unitsview', '/units')
+    config.add_route('unitview', '/unit/{id}/')
+    config.add_route('citiesview', '/cities')
+    config.add_route('cityview', '/city/{id}/')
+    config.add_route('ordersview', '/orders')
+    config.add_route('orderview', '/order/{id}/')
+    config.add_route('orders_length', '/orders/length')
+    config.add_route('orders_filter', '/orders/filter')
+    config.add_route('orders_tree_view', '/orders/tree/{id}/')
 
 
 class TestChildViewSuccessCondition(unittest.TestCase):
     """ Test if the Root view functions correctly.
-        It also calls the childview but without a url path,
+        It also calls the node_children but without a url path,
         the default root id '0' is then used in the view
     """
 
@@ -403,8 +465,8 @@ class TestChildViewSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def _callFUT(self, request):
-        from optimate.app.views import childview
-        return childview(request)
+        from optimate.app.views import node_children
+        return node_children(request)
 
     def test_root_view(self):
         _registerRoutes(self.config)
@@ -438,7 +500,7 @@ class TestChildViewSuccessCondition(unittest.TestCase):
 
 
 class TestProjectListingSuccessCondition(unittest.TestCase):
-    """ Test if the project_listing view works and returns
+    """ Test if the projects view works and returns
         a list of all the projects
     """
 
@@ -451,8 +513,8 @@ class TestProjectListingSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def _callFUT(self, request):
-        from optimate.app.views import project_listing
-        return project_listing(request)
+        from optimate.app.views import projects
+        return projects(request)
 
     def test_it(self):
         _registerRoutes(self.config)
@@ -465,7 +527,7 @@ class TestProjectListingSuccessCondition(unittest.TestCase):
         self.assertEqual(response[2]['Name'], 'TestPName')
 
 class TestProjectViewSuccessCondition(unittest.TestCase):
-    """ Test if the projectview works and returns the project specified
+    """ Test if the nodeview works and returns the project specified
     """
 
     def setUp(self):
@@ -477,26 +539,26 @@ class TestProjectViewSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def _callFUT(self, request):
-        from optimate.app.views import projectview
-        return projectview(request)
+        from optimate.app.views import nodeview
+        return nodeview(request)
 
     def test_it(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
-        request.matchdict = {'projectid': 1}
+        request.matchdict = {'id': 1}
         response = self._callFUT(request)
 
         # assert returns true if the correct project is returned
-        self.assertEqual(response[0]['Name'], 'TestPName')
+        self.assertEqual(response['Name'], 'TestPName')
 
-        # test that nothing is returned when a different node id is given
+        # test that nothing is returned when a non existent node id is given
         _registerRoutes(self.config)
         request = testing.DummyRequest()
-        request.matchdict = {'projectid': 5}
+        request.matchdict = {'id': 100}
         response = self._callFUT(request)
 
-        # assert returns true if there is nothing in the response
-        self.assertEqual(len(response), 0)
+        # assert returns true if the response code is 404
+        self.assertEqual(response.code, 404)
 
 class TestNodeGridViewSuccessCondition(unittest.TestCase):
     """ Test if the nodegrid view works for all types
@@ -511,8 +573,8 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def _callFUT(self, request):
-        from optimate.app.views import nodegridview
-        return nodegridview(request)
+        from optimate.app.views import node_grid
+        return node_grid(request)
 
     def test_project_gridview(self):
         _registerRoutes(self.config)
@@ -583,8 +645,8 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def _callFUT(self, request):
-        from optimate.app.views import update_value
-        return update_value(request)
+        from optimate.app.views import node_update_value
+        return node_update_value(request)
 
     def test_update_resource_rate(self):
         _registerRoutes(self.config)
@@ -596,8 +658,8 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         # now the project cost should have changed
         request = testing.DummyRequest()
         request.matchdict = {'id': 1}
-        from optimate.app.views import costview
-        response = costview(request)
+        from optimate.app.views import node_cost
+        response = node_cost(request)
         self.assertEqual(response['Cost'], '656.25')
 
     def test_update_duplicate_resource_rate(self):
@@ -610,8 +672,8 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         # now the project cost should have changed
         request = testing.DummyRequest()
         request.matchdict = {'id': 19}
-        from optimate.app.views import costview
-        response = costview(request)
+        from optimate.app.views import node_cost
+        response = node_cost(request)
         self.assertEqual(response['Cost'], '6015.17')
 
     def test_update_component_quantity(self):
@@ -624,8 +686,8 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         # now the project cost should have changed
         request = testing.DummyRequest()
         request.matchdict = {'id': 1}
-        from optimate.app.views import costview
-        response = costview(request)
+        from optimate.app.views import node_cost
+        response = node_cost(request)
         self.assertEqual(response['Cost'], '612.50')
 
     def test_update_budgetitem_quantity(self):
@@ -638,12 +700,12 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         # now the project cost should have changed
         request = testing.DummyRequest()
         request.matchdict = {'id': 1}
-        from optimate.app.views import costview
-        response = costview(request)
+        from optimate.app.views import node_cost
+        response = node_cost(request)
         self.assertEqual(response['Cost'], '4812.50')
 
 class TestAddItemSuccessCondition(unittest.TestCase):
-    """ Test if the additemview functions correctly when adding a budgetgroup
+    """ Test if the nodeview functions correctly when adding a budgetgroup
         Using default data and adding it as the child of one of the objects.
     """
 
@@ -656,8 +718,8 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def _callFUT(self, request):
-        from optimate.app.views import additemview
-        return additemview(request)
+        from optimate.app.views import nodeview
+        return nodeview(request)
 
     def test_add_budgetgroup(self):
         _registerRoutes(self.config)
@@ -670,6 +732,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         })
         # add it to id:1 the project
         request.matchdict = {'id': 1}
+        request.method = 'POST'
         response = self._callFUT(request)
         # assert if the response from the add view is OK
         self.assertEqual(response.keys(), ['ID'])
@@ -677,8 +740,8 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         # Create another request for the child of the node added to
         request = testing.DummyRequest()
         request.matchdict = {'parentid': 1}
-        from optimate.app.views import childview
-        response = childview(request)
+        from optimate.app.views import node_children
+        response = node_children(request)
         # true if the name of the child added to the node is 'AddingName'
         self.assertEqual(response[1]['Name'], 'AddingName')
 
@@ -690,6 +753,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
             'Name': 'TestResource',
             'Description': 'Test resource',
             'Quantity': 4,
+            'ItemQuantity': 4,
             'NodeType': 'Component',
             'OverheadList':[{'Name': 'OverheadB',
                                 'ID':2,
@@ -697,6 +761,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         })
         # add it to id:6 the budgetitemb
         request.matchdict = {'id': 6}
+        request.method = 'POST'
         response = self._callFUT(request)
 
         # assert if the response from the add view is OK
@@ -705,8 +770,8 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         # do another test to see if the cost is correct
         request = testing.DummyRequest()
         request.matchdict = {'id': 4}
-        from optimate.app.views import costview
-        response = costview(request)
+        from optimate.app.views import node_cost
+        response = node_cost(request)
         self.assertEqual(response['Cost'], '1185.00')
 
     def test_add_whole_project(self):
@@ -720,6 +785,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         })
         # add it to id:0 the root
         request.matchdict = {'id': 0}
+        request.method = 'POST'
         response = self._callFUT(request)
         # assert if the response from the add view has data
         self.assertEqual(response.keys(), ['ID'])
@@ -729,8 +795,8 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         # get the resource category id
         request = testing.DummyRequest()
         request.matchdict = {'parentid': projectid}
-        from optimate.app.views import childview
-        response = childview(request)
+        from optimate.app.views import node_children
+        response = node_children(request)
         rescatid = response[0]['ID']
 
         # Add a resource
@@ -744,6 +810,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         })
         # add it to the resource category
         request.matchdict = {'id': rescatid}
+        request.method = 'POST'
         response = self._callFUT(request)
         # assert if the response from the add view has data
         self.assertEqual(response.keys(), ['ID'])
@@ -758,6 +825,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         })
         # add it to the parent
         request.matchdict = {'id': projectid}
+        request.method = 'POST'
         response = self._callFUT(request)
         # assert if the response from the add view is OK
         self.assertEqual(response.keys(), ['ID'])
@@ -770,9 +838,11 @@ class TestAddItemSuccessCondition(unittest.TestCase):
             'Description': 'Adding test item',
             'NodeType': 'BudgetItem',
             'Quantity': 10.0,
+            'ItemQuantity': 10.0,
         })
         # add it to the parent
         request.matchdict = {'id': newid}
+        request.method = 'POST'
         response = self._callFUT(request)
         # assert if the response from the add view is OK
         self.assertEqual(response.keys(), ['ID'])
@@ -785,10 +855,12 @@ class TestAddItemSuccessCondition(unittest.TestCase):
             'Description': 'Adding test item',
             'NodeType': 'Component',
             'Quantity': 10.0,
+            'ItemQuantity': 10.0,
             'OverheadList': []
         })
         # add it to the parent
         request.matchdict = {'id': newid}
+        request.method = 'POST'
         response = self._callFUT(request)
         # assert if the response from the add view is OK
         self.assertEqual(response.keys(), ['ID'])
@@ -796,8 +868,8 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         # test the total  of the project
         request = testing.DummyRequest()
         request.matchdict = {'id': projectid}
-        from optimate.app.views import costview
-        response = costview(request)
+        from optimate.app.views import node_cost
+        response = node_cost(request)
         # true if the cost is correct
         self.assertEqual(response['Cost'], '2900.00')
 
@@ -815,14 +887,15 @@ class TestDeleteviewSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def _callFUT(self, request):
-        from optimate.app.views import deleteitemview
-        return deleteitemview(request)
+        from optimate.app.views import nodeview
+        return nodeview(request)
 
     def test_it(self):
         # delete the budgetgroup with id 2
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.matchdict = {'id': 2}
+        request.method = 'DELETE'
         response = self._callFUT(request)
         # true if the response from deleteview is the parentid
         self.assertEqual(response['parentid'], 1)
@@ -830,16 +903,16 @@ class TestDeleteviewSuccessCondition(unittest.TestCase):
         # check now that no nodes have that budgetgroup as a parent
         request = testing.DummyRequest()
         request.matchdict = {'parentid': 2}
-        from optimate.app.views import childview
-        response = childview(request)
+        from optimate.app.views import node_children
+        response = node_children(request)
         self.assertEqual(len(response), 0)
 
         # do another test to see if the cost is correct on the project id 1
         # since it has no children it's cost should be 0
         request = testing.DummyRequest()
         request.matchdict = {'id': 1}
-        from optimate.app.views import costview
-        response = costview(request)
+        from optimate.app.views import node_cost
+        response = node_cost(request)
         self.assertEqual(response['Cost'], '0.00')
 
 
@@ -857,8 +930,8 @@ class TestPasteviewSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def _callFUT(self, request):
-        from optimate.app.views import pasteitemview
-        return pasteitemview(request)
+        from optimate.app.views import node_paste
+        return node_paste(request)
 
     def test_it(self):
         _registerRoutes(self.config)
@@ -880,15 +953,15 @@ class TestPasteviewSuccessCondition(unittest.TestCase):
         # (two budgetgroups and the resourcecategory)
         request = testing.DummyRequest()
         request.matchdict = {'parentid': 4}
-        from optimate.app.views import childview
-        response = childview(request)
+        from optimate.app.views import node_children
+        response = node_children(request)
         self.assertEqual(len(response), 3)
 
         # do another test to see if the cost is correct
         request = testing.DummyRequest()
         request.matchdict = {'id': 4}
-        from optimate.app.views import costview
-        response = costview(request)
+        from optimate.app.views import node_cost
+        response = node_cost(request)
         self.assertEqual(response['Cost'], '1366.25')
 
 class TestCutAndPasteSuccessCondition(unittest.TestCase):
@@ -904,8 +977,8 @@ class TestCutAndPasteSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def _callFUT(self, request):
-        from optimate.app.views import pasteitemview
-        return pasteitemview(request)
+        from optimate.app.views import node_paste
+        return node_paste(request)
 
     def test_it(self):
         _registerRoutes(self.config)
@@ -927,15 +1000,15 @@ class TestCutAndPasteSuccessCondition(unittest.TestCase):
         # (two budgetgroups and the resourcecategory)
         request = testing.DummyRequest()
         request.matchdict = {'parentid': 4}
-        from optimate.app.views import childview
-        response = childview(request)
+        from optimate.app.views import node_children
+        response = node_children(request)
         self.assertEqual(len(response), 3)
 
         # do another test to see if the children of project id 1 is now 1
         request = testing.DummyRequest()
         request.matchdict = {'parentid': 1}
-        from optimate.app.views import childview
-        response = childview(request)
+        from optimate.app.views import node_children
+        response = node_children(request)
         self.assertEqual(len(response), 1)
 
 class TestCostviewSuccessCondition(unittest.TestCase):
@@ -951,8 +1024,8 @@ class TestCostviewSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def _callFUT(self, request):
-        from optimate.app.views import costview
-        return costview(request)
+        from optimate.app.views import node_cost
+        return node_cost(request)
 
     def test_project_cost(self):
         _registerRoutes(self.config)
@@ -1125,7 +1198,7 @@ class TestClientsviewSuccessCondition(unittest.TestCase):
 
 
 class TestClientSuccessCondition(unittest.TestCase):
-    """ Test if the Client deletes successfully
+    """ Test if the Client operations run successfully
     """
 
     def setUp(self):
@@ -1154,7 +1227,7 @@ class TestClientSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest(json_body={
             'Name': 'AddingName',
             'Address': 'address',
-            'City': 'city',
+            'City': 1,
             'StateProvince': 'sp',
             'Country': 'country',
             'Zipcode': 'zip',
@@ -1180,7 +1253,7 @@ class TestClientSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest(json_body={
             'Name': 'EditedName',
             'Address': 'address',
-            'City': 'city',
+            'City': 2,
             'StateProvince': 'sp',
             'Country': 'country',
             'Zipcode': 'zip',
@@ -1225,7 +1298,7 @@ class TestSuppliersviewSuccessCondition(unittest.TestCase):
         self.assertEqual(response[0]['Name'], 'TestSupplierName')
 
 class TestSupplierSuccessCondition(unittest.TestCase):
-    """ Test if the Suppler deletes successfully
+    """ Test if the Suppler operations run successfully
     """
 
     def setUp(self):
@@ -1254,7 +1327,7 @@ class TestSupplierSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest(json_body={
             'Name': 'AddingName',
             'Address': 'address',
-            'City': 'city',
+            'City': 2,
             'StateProvince': 'sp',
             'Country': 'country',
             'Zipcode': 'zip',
@@ -1280,7 +1353,7 @@ class TestSupplierSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest(json_body={
             'Name': 'EditedName',
             'Address': 'address',
-            'City': 'city',
+            'City': 3,
             'StateProvince': 'sp',
             'Country': 'country',
             'Zipcode': 'zip',
