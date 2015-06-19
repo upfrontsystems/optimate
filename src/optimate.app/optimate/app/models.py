@@ -92,8 +92,8 @@ class Node(Base):
         else:
             return parent.getProjectID()
 
-        def __repr__(self):
-            return '<Node(ID="%s", ParentID="%s")>' % (self.ID, self.ParentID)
+    def __repr__(self):
+        return '<Node(ID="%s", ParentID="%s")>' % (self.ID, self.ParentID)
 
 
 class Project(Node):
