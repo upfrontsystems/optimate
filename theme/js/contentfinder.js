@@ -81,12 +81,17 @@ var ContentFinder = function(id, callback, multiselect) {
                     }
                     break;
 
+
+                case 39:
                 case 13:
-                    // select item on Enter
+                    // select item on Enter or right-arrow
                     if ($('.LSHighlight', self.results).length !== 0) {
                         $('.LSHighlight', self.results)
                             .first()
                             .click();
+                    } else if (self.input.val()) {
+                        // Do a search
+                        self.search(self.input.val());
                     }
                     break;
 
@@ -155,6 +160,15 @@ ContentFinder.prototype.listdir = function(id) {
         self._listdir(response.data);
     }, function(){
         alert('Cannot list folder contents');
+    });
+}
+
+ContentFinder.prototype.search = function(search){
+    var self = this;
+    self.callback(null, search).then(function(response){
+        self._listdir(response.data);
+    }, function(){
+        alert('Cannot search');
     });
 }
 
