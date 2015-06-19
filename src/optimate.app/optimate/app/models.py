@@ -87,10 +87,11 @@ class Node(Base):
             whose parent is the root
         """
         parent = self.Parent
-        if parent.ID == 0:
-            return self.ID
-        else:
-            return parent.getProjectID()
+        while parent and parent.ID != 0:
+            parent = parent.Parent
+
+        assert parent, "Tree is broken"
+        return self.ID
 
     def __repr__(self):
         return '<Node(ID="%s", ParentID="%s")>' % (self.ID, self.ParentID)
