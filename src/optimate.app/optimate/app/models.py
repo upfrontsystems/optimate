@@ -1570,3 +1570,33 @@ class User(Base):
         h = hashlib.sha256((salt + password).encode('utf-8')).hexdigest()
         self.salt = unicode(salt)
         self.password = unicode(h)
+
+class Invoice(Base):
+    """ Table for invoices
+    """
+    __tablename__ = 'Invoice'
+    ID = Column(Integer, primary_key=True)
+    OrderID = Column(Integer, ForeignKey('Order.ID'))
+    InvoiceNumber = Column(Integer)
+    Date = Column(DateTime)
+    Amount = Column(Numeric)
+
+    Order = relationship('Order',
+                              backref=backref('Invoices'))
+
+    def toDict(self):
+        """ Returns a dictionary of this Invoice
+        """
+        # get the date in json format
+        jsondate = self.Date.isoformat()
+        return {'ID': self.ID,
+                'OrderID': self.OrderID,
+                'InvoiceNumber': self.InvoiceNumber,
+                'Date': jsondate,
+                'Amount' : str(self.Amount)}
+
+    def __repr__(self):
+        """Return a representation of this invoice
+        """
+        return '<Invoice(ID="%s", OrderID="%s", InvoiceNumber="%s")>' % (
+            self.ID, self.OrderID, self.InvoiceNumber)

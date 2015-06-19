@@ -43,7 +43,8 @@ from optimate.app.models import (
     CompanyInformation,
     User,
     Order,
-    OrderItem
+    OrderItem,
+    Invoice
 )
 
 # the categories the resources fall into
@@ -1125,15 +1126,19 @@ def ordersview(request):
     qry = DBSession.query(Order).order_by(Order.ID.desc())
     # filter the orders
     setLength = False
-    if 'project' in paramkeys:
+    if 'Project' in paramkeys:
         setLength = True
-        qry = qry.filter_by(ProjectID=paramsdict['project'][0])
-    if 'client' in paramkeys:
+        qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
+    if 'Client' in paramkeys:
         setLength = True
-        qry = qry.filter_by(ClientID=paramsdict['client'][0])
-    if 'supplier' in paramkeys:
+        qry = qry.filter_by(ClientID=paramsdict['Client'][0])
+    if 'Supplier' in paramkeys:
         setLength = True
-        qry = qry.filter_by(SupplierID=paramsdict['supplier'][0])
+        qry = qry.filter_by(SupplierID=paramsdict['Supplier'][0])
+    if 'OrderNumber' in paramkeys:
+        setLength = True
+        qry = qry.filter(Order.ID.like(paramsdict['OrderNumber'][0]+'%'))
+
     # cut the section
     if 'start' not in paramkeys:
         start = 0
@@ -1156,18 +1161,20 @@ def ordersview(request):
 @view_config(route_name='orders_filter', renderer='json')
 def orders_filter(request):
     """ Returns a list of the Projects, Clients, Suppliers used by an order
-        when ordered
+        when filtered
     """
     qry = DBSession.query(Order)
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
     # filter by the selected filters
-    if 'project' in paramkeys:
-        qry = qry.filter_by(ProjectID=paramsdict['project'][0])
-    if 'client' in paramkeys:
-        qry = qry.filter_by(ClientID=paramsdict['client'][0])
-    if 'supplier' in paramkeys:
-        qry = qry.filter_by(SupplierID=paramsdict['supplier'][0])
+    if 'Project' in paramkeys:
+        qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
+    if 'Client' in paramkeys:
+        qry = qry.filter_by(ClientID=paramsdict['Client'][0])
+    if 'Supplier' in paramkeys:
+        qry = qry.filter_by(SupplierID=paramsdict['Supplier'][0])
+    if 'OrderNumber' in paramkeys:
+        qry = qry.filter(Order.ID.like(paramsdict['OrderNumber'][0]+'%'))
     # get the unique values the other filters are to be updated with
     clients = qry.distinct(Order.ClientID).group_by(Order.ClientID)
     clientlist = []
@@ -1421,3 +1428,76 @@ def userview(request):
         'username': user.username,
         'roles': user.roles and json.loads(user.roles) or []
     }
+
+@view_config(route_name='invoicesview', renderer='json')
+def invoicesview(request):
+    """ The invoicesview returns a list in json format of all the invoices
+    """
+    invoicelist = []
+    qry = DBSession.query(Invoice).all()
+    for invoice in qry:
+        invoicelist.append(invoice.toDict())
+    return invoicelist
+
+@view_config(route_name='invoiceview', renderer='json')
+def invoiceview(request):
+    """ The invoiceview handles different cases for individual invoices
+        depending on the http method
+    """
+    # if the method is delete, delete the invoice
+    if request.method == 'DELETE':
+        deleteid = request.matchdict['id']
+        # Deleting it from the table deletes the object
+        deletethis = DBSession.query(Invoice).filter_by(ID=deleteid).first()
+
+        qry = DBSession.delete(deletethis)
+        if qry == 0:
+            return HTTPNotFound()
+        transaction.commit()
+
+        return HTTPOk()
+
+    # if the method is post, add a new invoice
+    if request.method == 'POST':
+        orderid = request.json_body['OrderID']
+        invoicenumber = request.json_body['InvoiceNumber']
+        # convert to date from json format
+        date = request.json_body.get('Date', None)
+        if date:
+            date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
+        amount = request.json_body.get('Amount', Decimal(0.00))
+        amount = Decimal(amount).quantize(Decimal('.01'))
+
+        newinvoice = Invoice(OrderID=orderid,
+                            InvoiceNumber=invoicenumber,
+                            Date=date,
+                            Amount=amount)
+        DBSession.add(newinvoice)
+        DBSession.flush()
+        newid = newinvoice.ID
+        # return the new invoice
+        newinvoice = DBSession.query(Invoice).filter_by(ID=newid).first()
+        return newinvoice.toDict()
+
+    # if the method is put, edit an existing invoice
+    if request.method == 'PUT':
+        invoice = DBSession.query(
+                    Invoice).filter_by(ID=request.matchdict['id']).first()
+
+        date = request.json_body.get('Date', None)
+        if date:
+            date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
+        amount = request.json_body.get('TaxRate', Decimal(0.00))
+        amount = Decimal(amount).quantize(Decimal('.01'))
+
+        transaction.commit()
+        # return the edited invoice
+        invoice = DBSession.query(
+                    Invoice).filter_by(ID=request.matchdict['id']).first()
+        return invoice.toDict()
+
+    # otherwise return the selected invoice
+    invoiceid = request.matchdict['id']
+    invoice = DBSession.query(Invoice).filter_by(ID=invoiceid).first()
+
+    return invoice.toDict()
