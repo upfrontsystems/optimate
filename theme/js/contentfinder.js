@@ -43,6 +43,8 @@ var ContentFinder = function(id, callback, multiselect) {
                     if (self.multiselect && backstroke_length < 1 && 
                         self.selecteditems.length > 0) {
                         return self.keydown_backstroke();
+                    } else {
+                        return true; // prevent the evt.preventDefault below.
                     }
                     break;
 
