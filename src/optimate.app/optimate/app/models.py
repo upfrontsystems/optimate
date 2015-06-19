@@ -86,12 +86,12 @@ class Node(Base):
         """ Recursively calls the parent of this node until it finds the project
             whose parent is the root
         """
-        parent = self.Parent
-        while parent and parent.ID != 0:
-            parent = parent.Parent
+        ptr = self
+        while ptr.Parent and ptr.Parent.ID != 0:
+            ptr = ptr.Parent
 
-        assert parent, "Tree is broken"
-        return self.ID
+        assert ptr.Parent, "Tree is broken"
+        return ptr.ID
 
     def __repr__(self):
         return '<Node(ID="%s", ParentID="%s")>' % (self.ID, self.ParentID)
