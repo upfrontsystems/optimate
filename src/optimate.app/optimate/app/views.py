@@ -1189,10 +1189,13 @@ def orderview(request):
         deleteid = request.matchdict['id']
         # Deleting it from the table deletes the object
         deletethis = DBSession.query(Order).filter_by(ID=deleteid).first()
-
+        projectid = deletethis.ProjectID
         qry = DBSession.delete(deletethis)
         if qry == 0:
             return HTTPNotFound()
+
+        project = DBSession.query(Project).filter_by(ID=projectid).first()
+        project.updateOrdered()
         transaction.commit()
 
         return HTTPOk()

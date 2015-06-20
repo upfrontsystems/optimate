@@ -115,6 +115,8 @@ class Project(Node):
     CityID = Column(Integer, ForeignKey('City.ID'))
     SiteAddress = Column(Text(50))
     FileNumber = Column(Text(50))
+    Ordered = Column(Numeric(12, 2), ForeignKey('Order.Total'))
+    Invoiced = Column(Numeric(12, 2), default=Decimal(0.00))
     _Total = Column('Total', Numeric)
 
     Clients = relationship('Client',
@@ -166,20 +168,22 @@ class Project(Node):
         but with the ParentID specified.
         """
         copied = Project(Name=self.Name,
-                         Description=self.Description,
-                         ParentID=parentid,
-                         ClientID=self.ClientID,
-                         CityID=self.CityID,
-                         SiteAddress=self.SiteAddress,
-                         FileNumber=self.FileNumber,
-                         _Total = self.Total,
-                         OrderCost=self.OrderCost,
-                         ClaimedCost=self.ClaimedCost,
-                         RunningCost=self.RunningCost,
-                         IncomeRecieved=self.IncomeRecieved,
-                         ClientCost=self.ClientCost,
-                         ProjectedProfit=self.ProjectedProfit,
-                         ActualProfit=self.ActualProfit)
+                        Description=self.Description,
+                        ParentID=parentid,
+                        ClientID=self.ClientID,
+                        CityID=self.CityID,
+                        SiteAddress=self.SiteAddress,
+                        FileNumber=self.FileNumber,
+                        _Total = self.Total,
+                        OrderCost=self.OrderCost,
+                        ClaimedCost=self.ClaimedCost,
+                        RunningCost=self.RunningCost,
+                        IncomeRecieved=self.IncomeRecieved,
+                        ClientCost=self.ClientCost,
+                        ProjectedProfit=self.ProjectedProfit,
+                        ActualProfit=self.ActualProfit,
+                        Ordered=self.Ordered,
+                        Invoiced=self.Invoiced)
 
         return copied
 
@@ -252,6 +256,12 @@ class Project(Node):
             'proj_profit': str(self.ProjectedProfit.quantize(Decimal('.01'))),
             'act_profit': str(self.ActualProfit.quantize(Decimal('.01')))}
 
+    def updateOrdered(self):
+        """ Updates the Ordered amount for all the children of this node
+        """
+        for child in self.Children:
+            child.updateOrdered(self.Ordered)
+
     def __repr__(self):
         """ Return a representation of this project
         """
@@ -290,6 +300,8 @@ class BudgetGroup(Node):
     Name = Column(Text(50))
     Description = Column(Text(100))
     _Total = Column('Total', Numeric)
+    Ordered = Column(Numeric(12, 2), default=Decimal(0.00))
+    Invoiced = Column(Numeric(12, 2), default=Decimal(0.00))
 
     __mapper_args__ = {
         'polymorphic_identity': 'BudgetGroup',
@@ -343,16 +355,18 @@ class BudgetGroup(Node):
            but with the ParentID specified.
         """
         copied = BudgetGroup(Name=self.Name,
-                             Description=self.Description,
-                             ParentID=parentid,
-                             _Total = self.Total,
-                             OrderCost=self.OrderCost,
-                             ClaimedCost=self.ClaimedCost,
-                             RunningCost=self.RunningCost,
-                             IncomeRecieved=self.IncomeRecieved,
-                             ClientCost=self.ClientCost,
-                             ProjectedProfit=self.ProjectedProfit,
-                             ActualProfit=self.ActualProfit)
+                            Description=self.Description,
+                            ParentID=parentid,
+                            _Total = self.Total,
+                            OrderCost=self.OrderCost,
+                            ClaimedCost=self.ClaimedCost,
+                            RunningCost=self.RunningCost,
+                            IncomeRecieved=self.IncomeRecieved,
+                            ClientCost=self.ClientCost,
+                            ProjectedProfit=self.ProjectedProfit,
+                            ActualProfit=self.ActualProfit,
+                            Ordered=self.Ordered,
+                            Invoiced=self.Invoiced)
 
         return copied
 
@@ -418,6 +432,13 @@ class BudgetGroup(Node):
             'proj_profit': str(self.ProjectedProfit.quantize(Decimal('.01'))),
             'act_profit': str(self.ActualProfit.quantize(Decimal('.01')))}
 
+    def updateOrdered(self, ordered):
+        """ Updates the Ordered amount for all the children of this node
+        """
+        self.Ordered = ordered
+        for child in self.Children:
+            child.updateOrdered(ordered)
+
     def __repr__(self):
         """Return a representation of this budgetgroup
         """
@@ -438,6 +459,8 @@ class BudgetItem(Node):
     _Quantity = Column('Quantity', Float, default=0.0)
     _Rate = Column('Rate', Numeric)
     _Total = Column('Total', Numeric)
+    Ordered = Column(Numeric(12, 2), default=Decimal(0.00))
+    Invoiced = Column(Numeric(12, 2), default=Decimal(0.00))
 
     __mapper_args__ = {
         'polymorphic_identity': 'BudgetItem',
@@ -562,7 +585,9 @@ class BudgetItem(Node):
                             IncomeRecieved=self.IncomeRecieved,
                             ClientCost=self.ClientCost,
                             ProjectedProfit=self.ProjectedProfit,
-                            ActualProfit=self.ActualProfit)
+                            ActualProfit=self.ActualProfit,
+                            Ordered=self.Ordered,
+                            Invoiced=self.Invoiced)
 
         return copied
 
@@ -638,6 +663,13 @@ class BudgetItem(Node):
             'proj_profit': str(self.ProjectedProfit.quantize(Decimal('.01'))),
             'act_profit': str(self.ActualProfit.quantize(Decimal('.01')))}
 
+    def updateOrdered(self, ordered):
+        """ Updates the Ordered amount for all the children of this node
+        """
+        self.Ordered = ordered
+        for child in self.Children:
+            child.updateOrdered(ordered)
+
     def __repr__(self):
         """ return a representation of this budgetitem
         """
@@ -666,6 +698,8 @@ class Component(Node):
     ResourceID = Column(Integer, ForeignKey('Resource.ID'))
     _Quantity = Column('Quantity', Float, default=0.0)
     _Total = Column('Total', Numeric)
+    Ordered = Column(Numeric(12, 2), default=Decimal(0.00))
+    Invoiced = Column(Numeric(12, 2), default=Decimal(0.00))
 
     Resource = relationship('Resource',
                             foreign_keys='Component.ResourceID',
@@ -836,7 +870,9 @@ class Component(Node):
                             IncomeRecieved=self.IncomeRecieved,
                             ClientCost=self.ClientCost,
                             ProjectedProfit=self.ProjectedProfit,
-                            ActualProfit=self.ActualProfit)
+                            ActualProfit=self.ActualProfit,
+                            Ordered=self.Ordered,
+                            Invoiced=self.Invoiced)
         return copied
 
     def paste(self, source, sourcechildren):
@@ -917,6 +953,11 @@ class Component(Node):
             'client_cost': str(self.ClientCost.quantize(Decimal('.01'))),
             'proj_profit': str(self.ProjectedProfit.quantize(Decimal('.01'))),
             'act_profit': str(self.ActualProfit.quantize(Decimal('.01')))}
+
+    def updateOrdered(self, ordered):
+        """ Updates the Ordered amount for this node
+        """
+        self.Ordered = ordered
 
     def __repr__(self):
         """ return a representation of this component
