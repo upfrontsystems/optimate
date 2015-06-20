@@ -935,7 +935,6 @@ if __name__ == '__main__':
 
         # iterate through all the resource categories
         qry = DBSession.query(ResourceCategory).all()
-        print "Percentage done: "
         for rc in qry:
             childlist = rc.Children
             childlist = list(childlist)
@@ -970,8 +969,6 @@ if __name__ == '__main__':
                     except StopIteration:
                         for resource in grouping:
                             resource.ParentID = otherid
-
-        stdout.write('\n')
 
         # Client.__table__.drop(engine)
         # transaction.commit()
@@ -1168,7 +1165,7 @@ if __name__ == '__main__':
                 quantity = float(sheet.cell(x,
                     quantityindex).value)
             except ValueError, e:
-                quantity = 0
+                quantity = 0.0
             try:
                 rate = Decimal(sheet.cell(x,
                     rateindex).value).quantize(Decimal('.01'))
@@ -1177,15 +1174,20 @@ if __name__ == '__main__':
 
             # if the code has been changed assign it here
             if compid in changedcocodes:
-                if changedcocodes[compid] != 149999:
-                    compid = changedcocodes[compid]
+                compid = changedcocodes[compid]
 
-            orderitem = OrderItem(ID=code,
-                            OrderID=orderid,
-                            ComponentID=compid,
-                            Quantity=quantity,
-                            Rate=rate)
-            DBSession.add(orderitem)
+            if compid != 149999:
+                # make sure the component exists
+                comp = DBSession.query(Component).filter_by(ID=compid).first()
+                if comp:
+                    comp.Ordered = Decimal(quantity * float(rate)
+                        ).quantize(Decimal('.01'))
+                    orderitem = OrderItem(ID=code,
+                                    OrderID=orderid,
+                                    ComponentID=compid,
+                                    Quantity=quantity,
+                                    Rate=rate)
+                    DBSession.add(orderitem)
 
         transaction.commit()
 

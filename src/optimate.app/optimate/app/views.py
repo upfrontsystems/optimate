@@ -1214,13 +1214,13 @@ def orderview(request):
         deleteid = request.matchdict['id']
         # Deleting it from the table deletes the object
         deletethis = DBSession.query(Order).filter_by(ID=deleteid).first()
-        projectid = deletethis.ProjectID
+        # update the component ordered amounts
+        for orderitem in deletethis.OrderItems:
+            orderitem.Component.Ordered = (orderitem.Component.Ordered -
+                                                orderitem.Total)
         qry = DBSession.delete(deletethis)
         if qry == 0:
             return HTTPNotFound()
-
-        project = DBSession.query(Project).filter_by(ID=projectid).first()
-        project.updateOrdered()
         transaction.commit()
 
         return HTTPOk()
@@ -1267,6 +1267,9 @@ def orderview(request):
         transaction.commit()
         # return the new order
         neworder = DBSession.query(Order).filter_by(ID=newid).first()
+        # update the component ordered amounts
+        for orderitem in neworder.OrderItems:
+            orderitem.Component.Ordered = orderitem.Total
         return neworder.toDict()
 
     # if the method is put, edit an existing order
@@ -1340,6 +1343,9 @@ def orderview(request):
         # return the edited order
         order = DBSession.query(
                     Order).filter_by(ID=request.matchdict['id']).first()
+        # update the component ordered amounts
+        for orderitem in order.OrderItems:
+            orderitem.Component.Ordered = orderitem.Total
         return order.toDict()
 
     # otherwise return the selected order
@@ -1478,6 +1484,18 @@ def invoiceview(request):
         DBSession.add(newinvoice)
         DBSession.flush()
         newid = newinvoice.ID
+        # update the component invoiced amounts
+        order = DBSession.query(Order).filter_by(ID=orderid).first()
+        for orderitem in order.OrderItems:
+            if order.Total > 0:
+                proportion = orderitem.Total/order.Total
+                if proportion > 0:
+                    orderitem.Component.Invoiced = amount/proportion
+                else:
+                    orderitem.Component.Invoiced = 0
+            else:
+                orderitem.Component.Invoiced = 0
+        transaction.commit()
         # return the new invoice
         newinvoice = DBSession.query(Invoice).filter_by(ID=newid).first()
         return newinvoice.toDict()

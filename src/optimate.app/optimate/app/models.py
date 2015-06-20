@@ -115,7 +115,7 @@ class Project(Node):
     CityID = Column(Integer, ForeignKey('City.ID'))
     SiteAddress = Column(Text(50))
     FileNumber = Column(Text(50))
-    Ordered = Column(Numeric(12, 2), ForeignKey('Order.Total'))
+    Ordered = Column(Numeric(12, 2), default=Decimal(0.00))
     Invoiced = Column(Numeric(12, 2), default=Decimal(0.00))
     _Total = Column('Total', Numeric)
 
@@ -256,12 +256,6 @@ class Project(Node):
             'proj_profit': str(self.ProjectedProfit.quantize(Decimal('.01'))),
             'act_profit': str(self.ActualProfit.quantize(Decimal('.01')))}
 
-    def updateOrdered(self):
-        """ Updates the Ordered amount for all the children of this node
-        """
-        for child in self.Children:
-            child.updateOrdered(self.Ordered)
-
     def __repr__(self):
         """ Return a representation of this project
         """
@@ -300,8 +294,8 @@ class BudgetGroup(Node):
     Name = Column(Text(50))
     Description = Column(Text(100))
     _Total = Column('Total', Numeric)
-    Ordered = Column(Numeric(12, 2), default=Decimal(0.00))
-    Invoiced = Column(Numeric(12, 2), default=Decimal(0.00))
+    _Ordered = Column('Ordered', Numeric(12, 2), default=Decimal(0.00))
+    _Invoiced = Column('Invoiced', Numeric(12, 2), default=Decimal(0.00))
 
     __mapper_args__ = {
         'polymorphic_identity': 'BudgetGroup',
@@ -309,7 +303,7 @@ class BudgetGroup(Node):
     }
 
     def recalculateTotal(self):
-        """recursively recalculate the total of all the node in the hierarchy
+        """ Recursively recalculate the total of all the node in the hierarchy
         """
         total = Decimal(0.00)
         for child in self.Children:
@@ -318,7 +312,7 @@ class BudgetGroup(Node):
         return self._Total
 
     def resetTotal(self):
-        """return the sum of the totals of this node's children
+        """ Return the sum of the totals of this node's children
         """
         total = Decimal(0.00)
         for child in self.Children:
@@ -327,7 +321,7 @@ class BudgetGroup(Node):
 
     @hybrid_property
     def Total(self):
-        """Get the total property, reset the Total if it is None
+        """ Get the total property, reset the Total if it is None
         """
         if self._Total == None:
             self.resetTotal()
@@ -350,9 +344,41 @@ class BudgetGroup(Node):
         else:
             parent.Total = parent.Total + difference
 
+    @hybrid_property
+    def Ordered(self):
+        """ Get the Ordered property
+        """
+        return self._Ordered.quantize(Decimal('.01'))
+
+    @Ordered.setter
+    def Ordered(self, ordered):
+        """ When the order is changed the parent's order is updated.
+        """
+        oldamount = self.Ordered
+        self._Ordered = Decimal(ordered).quantize(Decimal('.01'))
+        difference = self._Ordered - oldamount
+        # update the parent with the new total
+        self.Parent.Ordered = self.Parent.Ordered + difference
+
+    @hybrid_property
+    def Invoiced(self):
+        """ Get the Invoiced property
+        """
+        return self._Invoiced.quantize(Decimal('.01'))
+
+    @Invoiced.setter
+    def Invoiced(self, invoiced):
+        """ When the invoice is changed the parent's invoiced is updated.
+        """
+        oldamount = self.Invoiced
+        self._Invoiced = Decimal(invoiced).quantize(Decimal('.01'))
+        difference = self._Invoiced - oldamount
+        # update the parent with the new total
+        self.Parent.Invoiced = self.Parent.Invoiced + difference
+
     def copy(self, parentid):
-        """copy returns an exact duplicate of this object,
-           but with the ParentID specified.
+        """ Copy returns an exact duplicate of this object,
+            but with the ParentID specified.
         """
         copied = BudgetGroup(Name=self.Name,
                             Description=self.Description,
@@ -371,8 +397,9 @@ class BudgetGroup(Node):
         return copied
 
     def paste(self, source, sourcechildren):
-        """paste appends a source object to the children of this node,
-        and then recursively does the same with each child of the source object.
+        """ Paste appends a source object to the children of this node,
+            and then recursively does the same with each child
+            of the source object.
         """
         self.Children.append(source)
         # if the child is of type component copy the component with the
@@ -381,9 +408,9 @@ class BudgetGroup(Node):
             source.paste(child.copy(source.ID), child.Children)
 
     def getComponents(self):
-        """Returns a list of all the Resources that are used by the children of
-           the budgetgroup. The resources are retrieved from its children and any
-           children that are components return their resource
+        """ Returns a list of all the Resources that are used by the children of
+            the budgetgroup. The resources are retrieved from its children and any
+            children that are components return their resource
         """
         componentlist = []
         for child in self.Children:
@@ -459,8 +486,8 @@ class BudgetItem(Node):
     _Quantity = Column('Quantity', Float, default=0.0)
     _Rate = Column('Rate', Numeric)
     _Total = Column('Total', Numeric)
-    Ordered = Column(Numeric(12, 2), default=Decimal(0.00))
-    Invoiced = Column(Numeric(12, 2), default=Decimal(0.00))
+    _Ordered = Column('Ordered', Numeric(12, 2), default=Decimal(0.00))
+    _Invoiced = Column('Invoiced', Numeric(12, 2), default=Decimal(0.00))
     _ItemQuantity = Column('Item Quantity', Float, default=1.0)
     _ItemTotal = Column('Item Total', Numeric)
 
@@ -629,6 +656,38 @@ class BudgetItem(Node):
         """
         return ""
 
+    @hybrid_property
+    def Ordered(self):
+        """ Get the Ordered property
+        """
+        return self._Ordered.quantize(Decimal('.01'))
+
+    @Ordered.setter
+    def Ordered(self, ordered):
+        """ When the order is changed the parent's order is updated.
+        """
+        oldamount = self.Ordered
+        self._Ordered = Decimal(ordered).quantize(Decimal('.01'))
+        difference = self._Ordered - oldamount
+        # update the parent with the new total
+        self.Parent.Ordered = self.Parent.Ordered + difference
+
+    @hybrid_property
+    def Invoiced(self):
+        """ Get the Invoiced property
+        """
+        return self._Invoiced.quantize(Decimal('.01'))
+
+    @Invoiced.setter
+    def Invoiced(self, invoiced):
+        """ When the invoice is changed the parent's invoiced is updated.
+        """
+        oldamount = self.Invoiced
+        self._Invoiced = Decimal(invoiced).quantize(Decimal('.01'))
+        difference = self._Invoiced - oldamount
+        # update the parent with the new total
+        self.Parent.Invoiced = self.Parent.Invoiced + difference
+
     def copy(self, parentid):
         """ Copy returns an exact duplicate of this object,
             but with the ParentID specified.
@@ -761,8 +820,8 @@ class Component(Node):
     ResourceID = Column(Integer, ForeignKey('Resource.ID'))
     _Quantity = Column('Quantity', Float, default=0.0)
     _Total = Column('Total', Numeric)
-    Ordered = Column(Numeric(12, 2), default=Decimal(0.00))
-    Invoiced = Column(Numeric(12, 2), default=Decimal(0.00))
+    _Ordered = Column('Ordered', Numeric(12, 2), default=Decimal(0.00))
+    _Invoiced = Column('Invoiced', Numeric(12, 2), default=Decimal(0.00))
     _ItemQuantity = Column('Item Quantity', Float, default=1.0)
     _ItemTotal = Column('Item Total', Numeric)
 
@@ -962,6 +1021,38 @@ class Component(Node):
         """
         pass
 
+    @hybrid_property
+    def Ordered(self):
+        """ Get the Ordered property
+        """
+        return self._Ordered.quantize(Decimal('.01'))
+
+    @Ordered.setter
+    def Ordered(self, ordered):
+        """ When the order is changed the parent's order is updated.
+        """
+        oldamount = self.Ordered
+        self._Ordered = Decimal(ordered).quantize(Decimal('.01'))
+        difference = self._Ordered - oldamount
+        # update the parent with the new total
+        self.Parent.Ordered = self.Parent.Ordered + difference
+
+    @hybrid_property
+    def Invoiced(self):
+        """ Get the Invoiced property
+        """
+        return self._Invoiced.quantize(Decimal('.01'))
+
+    @Invoiced.setter
+    def Invoiced(self, invoiced):
+        """ When the invoice is changed the parent's invoiced is updated.
+        """
+        oldamount = self.Invoiced
+        self._Invoiced = Decimal(invoiced).quantize(Decimal('.01'))
+        difference = self._Invoiced - oldamount
+        # update the parent with the new total
+        self.Parent.Invoiced = self.Parent.Invoiced + difference
+
     def overheadsList(self):
         """ Return a list of all the overheads used for this component
         """
@@ -969,7 +1060,6 @@ class Component(Node):
         for overhead in self.Overheads:
             overheadlist.append({'overhead_name': overhead.Name,
                                 'percentage': str(overhead.Percentage*100)})
-
         return overheadlist
 
     def copy(self, parentid):
@@ -1500,11 +1590,11 @@ class Order(Base):
     Status = Column(Text(10))
 
     Project = relationship('Project',
-                              backref=backref('Order'))
+                              backref=backref('Orders'))
     Supplier = relationship('Supplier',
-                              backref=backref('Order'))
+                              backref=backref('Orders'))
     Client = relationship('Client',
-                              backref=backref('Order'))
+                              backref=backref('Orders'))
 
     def toDict(self):
         """ Returns a JSON dict of the order
@@ -1547,8 +1637,9 @@ class OrderItem(Base):
     ID = Column(Integer, primary_key=True, index=True)
     OrderID = Column(Integer, ForeignKey('Order.ID'))
     ComponentID = Column(Integer, ForeignKey('Component.ID'))
-    Quantity = Column('Quantity', Float, default=0.0)
-    Rate = Column('Rate', Numeric)
+    Quantity = Column(Float, default=0.0)
+    Rate = Column(Numeric(12, 2), default=Decimal(0.00))
+    _Total = Column('Total', Numeric(12, 2))
 
     Order = relationship('Order',
                               backref=backref('OrderItems'))
@@ -1559,13 +1650,16 @@ class OrderItem(Base):
     def Total(self):
         """ Return the total. Total is Quantity*Rate
         """
-        return (Decimal(self.Quantity)*self.Rate).quantize(Decimal('.01'))
+        if not self._Total:
+            self._Total = (Decimal(
+                self.Quantity)*self.Rate).quantize(Decimal('.01'))
+        return self._Total
 
     @Total.setter
     def Total(self, total):
         """ Set total property.
         """
-        pass
+        self._Total = Decimal(total).quantize(Decimal('.01'))
 
     def toDict(self):
         """ Returns a dictionary of this OrderItem
