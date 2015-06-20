@@ -22,7 +22,8 @@ from optimate.app.models import (
     CompanyInformation,
     Order,
     OrderItem,
-    User
+    User,
+    Invoice
 )
 
 from sqlalchemy import (

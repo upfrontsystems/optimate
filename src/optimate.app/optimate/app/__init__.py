@@ -91,6 +91,8 @@ def main(global_config, **settings):
     config.add_route('orders_length', '/orders/length')
     config.add_route('orders_filter', '/orders/filter')
     config.add_route('orders_tree_view', '/orders/tree/{id}/')
+    config.add_route('invoicesview', '/invoices')
+    config.add_route('invoiceview', '/invoice/{id}/')
 
     # Editing users
     config.add_route('usersview', '/users', factory=makeProtected(Administrator))

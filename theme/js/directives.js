@@ -310,7 +310,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 var req = {
                     method: 'POST',
                     url: globalServerURL +'node/' + item.id + '/update_value/',
-                    data: item}
+                    data: item
+                }
                 $http(req).success(function(data) {
                     if (data){
                         item.budg_cost = data['total'];

@@ -461,6 +461,8 @@ class BudgetItem(Node):
     _Total = Column('Total', Numeric)
     Ordered = Column(Numeric(12, 2), default=Decimal(0.00))
     Invoiced = Column(Numeric(12, 2), default=Decimal(0.00))
+    _ItemQuantity = Column('Item Quantity', Float, default=1.0)
+    _ItemTotal = Column('Item Total', Numeric)
 
     __mapper_args__ = {
         'polymorphic_identity': 'BudgetItem',
@@ -474,39 +476,81 @@ class BudgetItem(Node):
         for child in self.Children:
             rate += child.recalculateTotal()
         self._Rate = rate
-        self._Total = Decimal((1.0+self.Markup) *
-            self.Quantity * float(self._Rate)).quantize(Decimal('.01'))
-        return self._Total
+        # self._Total = Decimal((1.0+self.Markup) *
+        #     self.Quantity * float(self._Rate)).quantize(Decimal('.01'))
+        # return self._Total
+        self._ItemTotal = Decimal(self.ItemQuantity *
+                                    float(self._Rate)).quantize(Decimal('.01'))
+        return self._ItemTotal
 
     def resetTotal(self):
         """the rate of a budgetitem is based on the totals of it's children
            and the total is equal to rate * quantity. The rate is reset, the
            total recalculated and returned
         """
+        # rate = Decimal(0.00)
+        # for child in self.Children:
+        #     rate += child.Total
+        # self._Rate = rate
+        # self.Total = (1.0+self.Markup) * self.Quantity * float(self._Rate)
         rate = Decimal(0.00)
         for child in self.Children:
-            rate += child.Total
+            rate += child.ItemTotal
         self._Rate = rate
-        self.Total = (1.0+self.Markup) * self.Quantity * float(self._Rate)
+        self.ItemTotal = self.ItemQuantity * float(self._Rate)
 
     @hybrid_property
     def Total(self):
         """ Get the Total, if the Total is none it is reset
         """
-        if self._Total == None:
-            self.resetTotal()
-        return self._Total.quantize(Decimal('.01'))
+        # if self._Total == None:
+        #     self.resetTotal()
+        # return self._Total.quantize(Decimal('.01'))
+        return self.ItemTotal
 
     @Total.setter
     def Total(self, total):
         """ Set the total, update the parent's Total with the difference
             between the old total and the new total
         """
-        if self._Total == None:
+        # if self._Total == None:
+        #     self.recalculateTotal()
+        # oldtotal = self.Total
+        # self._Total = Decimal(total).quantize(Decimal('.01'))
+        # difference = self._Total - oldtotal
+
+        # # update the parent with the new total
+        # # since the total has changed, change the rate of any parent
+        # # budgetitems, and then others
+        # parent = self.Parent
+        # if parent.type == 'BudgetItem':
+        #     parent.Rate = parent.Rate + difference
+        # else:
+        #     if parent._Total == None:
+        #         parent.resetTotal()
+        #     else:
+        #         parent.Total = parent.Total + difference
+
+        self.ItemTotal = total
+
+    @hybrid_property
+    def ItemTotal(self):
+        """ Get the Total, if the Total is none it is reset
+        """
+        if self._ItemTotal == None:
+            self.resetTotal()
+        return self._ItemTotal.quantize(Decimal('.01'))
+
+    @ItemTotal.setter
+    def ItemTotal(self, total):
+        """ Set the total, update the parent's Total with the difference
+            between the old total and the new total
+        """
+        if self._ItemTotal == None:
             self.recalculateTotal()
-        oldtotal = self.Total
-        self._Total = Decimal(total).quantize(Decimal('.01'))
-        difference = self._Total - oldtotal
+        oldtotal = self.ItemTotal
+        self._ItemTotal = Decimal(total).quantize(Decimal('.01'))
+        difference = self._ItemTotal - oldtotal
 
         # update the parent with the new total
         # since the total has changed, change the rate of any parent
@@ -554,15 +598,31 @@ class BudgetItem(Node):
     def Quantity(self):
         """ Get the Quantity
         """
-        return self._Quantity
+        # return self._Quantity
+        return self.ItemQuantity
 
     @Quantity.setter
     def Quantity(self, quantity):
         """ Set the Quantity and recalculate the total
         """
-        self._Quantity = quantity
+        # self._Quantity = quantity
+        # # when the quantity changes recalculate the total
+        # self.Total = (1.0+self.Markup) * self.Quantity * float(self.Rate)
+        self.ItemQuantity = quantity
+
+    @hybrid_property
+    def ItemQuantity(self):
+        """ Get the Quantity
+        """
+        return self._ItemQuantity
+
+    @ItemQuantity.setter
+    def ItemQuantity(self, quantity):
+        """ Set the Quantity and recalculate the total
+        """
+        self._ItemQuantity = quantity
         # when the quantity changes recalculate the total
-        self.Total = (1.0+self.Markup) * self.Quantity * float(self.Rate)
+        self.ItemTotal = self.Quantity * float(self.Rate)
 
     def Subtotal(self):
         """ Subtotal for a BudgetItem returns nothing
@@ -570,8 +630,8 @@ class BudgetItem(Node):
         return ""
 
     def copy(self, parentid):
-        """copy returns an exact duplicate of this object,
-           but with the ParentID specified.
+        """ Copy returns an exact duplicate of this object,
+            but with the ParentID specified.
         """
         copied = BudgetItem(Name=self.Name,
                             Description=self.Description,
@@ -579,6 +639,8 @@ class BudgetItem(Node):
                             _Quantity=self._Quantity,
                             _Rate=self._Rate,
                             _Total=self._Total,
+                            _ItemQuantity = self._ItemQuantity,
+                            _ItemTotal = self._ItemTotal,
                             OrderCost=self.OrderCost,
                             ClaimedCost=self.ClaimedCost,
                             RunningCost=self.RunningCost,
@@ -603,9 +665,9 @@ class BudgetItem(Node):
             source.paste(child.copy(source.ID), child.Children)
 
     def getComponents(self):
-        """Returns a list of all the Resources that are used by the children of
-           the budgetitem. The resources are retrieved from its children and any
-           children that are components return their resource
+        """ Returns a list of all the Resources that are used by the children of
+            the budgetitem. The resources are retrieved from its children and any
+            children that are components return their resource
         """
         componentlist = []
         for child in self.Children:
@@ -635,6 +697,7 @@ class BudgetItem(Node):
         return {'Name': self.Name,
                 'Description' : self.Description,
                 'Quantity' : self._Quantity,
+                'ItemQuantity': self.ItemQuantity,
                 'budg_cost': str(self.Total),
                 'order_cost': str(self.OrderCost),
                 'run_cost': str(self.RunningCost),
@@ -671,7 +734,7 @@ class BudgetItem(Node):
             child.updateOrdered(ordered)
 
     def __repr__(self):
-        """ return a representation of this budgetitem
+        """ Return a representation of this budgetitem
         """
         return '<BudgetItem(Name="%s", ID="%s", ParentID="%s")>' % (
             self.Name, self.ID, self.ParentID)
@@ -700,6 +763,8 @@ class Component(Node):
     _Total = Column('Total', Numeric)
     Ordered = Column(Numeric(12, 2), default=Decimal(0.00))
     Invoiced = Column(Numeric(12, 2), default=Decimal(0.00))
+    _ItemQuantity = Column('Item Quantity', Float, default=1.0)
+    _ItemTotal = Column('Item Total', Numeric)
 
     Resource = relationship('Resource',
                             foreign_keys='Component.ResourceID',
@@ -717,36 +782,71 @@ class Component(Node):
     def recalculateTotal(self):
         """ Recalculate the total of this Component
         """
-        self._Total = Decimal((1.0+self.Markup) *
-            self.Quantity * float(self.Rate)).quantize(Decimal('.01'))
-        return self._Total
+        # self._Total = Decimal((1.0+self.Markup) *
+        #     self.Quantity * float(self.Rate)).quantize(Decimal('.01'))
+        # return self._Total
+        self._ItemTotal = Decimal((1.0+self.Markup) *
+            self.ItemQuantity * float(self.Rate)).quantize(Decimal('.01'))
+        return self._ItemTotal
 
     def resetTotal(self):
         """ The total of a component is based on its rate and quantity
         """
         # After the total is set the total property is updated
-        self.Total = Decimal((1.0+self.Markup) *
-            self.Quantity * float(self.Rate)).quantize(Decimal('.01'))
+        # self.Total = (1.0+self.Markup) * self.Quantity * float(self.Rate)
+        self.ItemTotal = (1.0+self.Markup)*self.ItemQuantity*float(self.Rate)
 
     @hybrid_property
     def Total(self):
         """ Get the Total, if it is None reset it
         """
-        if self._Total == None:
-            self.resetTotal()
-        return self._Total.quantize(Decimal('.01'))
+        # if self._Total == None:
+        #     self.resetTotal()
+        # return self._Total.quantize(Decimal('.01'))
+        return self.ItemTotal
 
     @Total.setter
     def Total(self, total):
         """ Set the Total and update the parent with the new value
         """
-        if self._Total == None:
+        # if self._Total == None:
+        #     self.recalculateTotal()
+        # oldtotal = self.Total
+        # self._Total = Decimal(total).quantize(Decimal('.01'))
+        # difference = self._Total - oldtotal
+        # # since the total has changed, change the rate or total of the parent
+        # parent = self.Parent
+
+        # if difference != 0:
+        #     if parent.type == 'BudgetItem':
+        #         parent.Rate = parent.Rate + difference
+        #     else:
+        #         if parent._Total == None:
+        #             parent.resetTotal()
+        #         else:
+        #             parent.Total = parent.Total + difference
+
+        self.ItemTotal = total
+
+    @hybrid_property
+    def ItemTotal(self):
+        """ Get the Total, if the Total is none it is reset
+        """
+        if self._ItemTotal == None:
+            self.resetTotal()
+        return self._ItemTotal.quantize(Decimal('.01'))
+
+    @ItemTotal.setter
+    def ItemTotal(self, total):
+        """ Set the total, update the parent's Total with the difference
+            between the old total and the new total
+        """
+        if self._ItemTotal == None:
             self.recalculateTotal()
-        oldtotal = self.Total
-        self._Total = Decimal(total).quantize(Decimal('.01'))
-        difference = self._Total - oldtotal
-        # since the total has changed, change the rate of any parent
-        # components, budgetitems or others
+        oldtotal = self.ItemTotal
+        self._ItemTotal = Decimal(total).quantize(Decimal('.01'))
+        difference = self._ItemTotal - oldtotal
+        # since the total has changed, change the rate or total of the parent
         parent = self.Parent
 
         if difference != 0:
@@ -823,15 +923,31 @@ class Component(Node):
     def Quantity(self):
         """ Get the Quantity
         """
-        return self._Quantity
+        # return self._Quantity
+        return self.ItemQuantity
 
     @Quantity.setter
     def Quantity(self, quantity):
         """ Set the Quantity and change the total
         """
-        self._Quantity = quantity
-        # change the total when the quantity changes
-        self.Total = (1.0+self.Markup) * self.Quantity * float(self.Rate)
+        # self._Quantity = quantity
+        # # change the total when the quantity changes
+        # self.Total = (1.0+self.Markup) * self.Quantity * float(self.Rate)
+        self.ItemQuantity = quantity
+
+    @hybrid_property
+    def ItemQuantity(self):
+        """ Get the Quantity
+        """
+        return self._ItemQuantity
+
+    @ItemQuantity.setter
+    def ItemQuantity(self, quantity):
+        """ Set the Quantity and recalculate the total
+        """
+        self._ItemQuantity = quantity
+        # when the quantity changes recalculate the total
+        self.ItemTotal = (1.0+self.Markup) * self.ItemQuantity*float(self.Rate)
 
     @hybrid_property
     def Unit(self):
@@ -864,6 +980,8 @@ class Component(Node):
                             ResourceID = self.ResourceID,
                             _Quantity=self._Quantity,
                             _Total=self._Total,
+                            _ItemQuantity = self._ItemQuantity,
+                            _ItemTotal = self._ItemTotal,
                             OrderCost=self.OrderCost,
                             ClaimedCost=self.ClaimedCost,
                             RunningCost=self.RunningCost,
@@ -922,6 +1040,7 @@ class Component(Node):
 
         return {'Name': self.Name,
                 'Quantity': self.Quantity,
+                'ItemQuantity': self.ItemQuantity,
                 'ResourceID': self.ResourceID,
                 'ResourceName': resource.Name,
                 'OverheadList': overheadlist,
@@ -1493,3 +1612,33 @@ class User(Base):
         h = hashlib.sha256((salt + password).encode('utf-8')).hexdigest()
         self.salt = unicode(salt)
         self.password = unicode(h)
+
+class Invoice(Base):
+    """ Table for invoices
+    """
+    __tablename__ = 'Invoice'
+    ID = Column(Integer, primary_key=True)
+    OrderID = Column(Integer, ForeignKey('Order.ID'))
+    InvoiceNumber = Column(Integer)
+    Date = Column(DateTime)
+    Amount = Column(Numeric)
+
+    Order = relationship('Order',
+                              backref=backref('Invoices'))
+
+    def toDict(self):
+        """ Returns a dictionary of this Invoice
+        """
+        # get the date in json format
+        jsondate = self.Date.isoformat()
+        return {'ID': self.ID,
+                'OrderID': self.OrderID,
+                'InvoiceNumber': self.InvoiceNumber,
+                'Date': jsondate,
+                'Amount' : str(self.Amount)}
+
+    def __repr__(self):
+        """Return a representation of this invoice
+        """
+        return '<Invoice(ID="%s", OrderID="%s", InvoiceNumber="%s")>' % (
+            self.ID, self.OrderID, self.InvoiceNumber)

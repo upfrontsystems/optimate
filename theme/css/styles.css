@@ -186,9 +186,16 @@ i.checkbox-icon {
     background-color: white;
 }
 
-li.order-filters {
-    width: 10%;
-    float:right;
+li.filters-flexbox {
+    display: inline-flex;
+    justify-content: flex-end;
+    align-items: center;
+    float: right;
+    width: 70vw;
+}
+
+.order-filters {
+    flex: 1;
 }
 
 /* overwriting bootstrap in order table */

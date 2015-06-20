@@ -24,39 +24,50 @@
                         <i class="fa fa-trash"></i>
                 </a>
             </li>
-            <li class="order-filters">
-                <button data-ng-click="clearFilters(); loadOrderSection()">
-                    Clear
-                </button>
+            <li ng-show="selectedOrder">
+                <a title="Invoice"
+                    data-target="#invoiceOrderModal"
+                    data-ng-click="addingInvoice()"
+                    data-toggle="modal">
+                        <i class="fa fa-credit-card"></i>
+                </a>
             </li>
-            <li class="order-filters">
-                <select class="col-sm-7"
-                        id="supplierFilter"
-                        data-ng-model="filters.Supplier"
-                        data-ng-options="supplier.ID as supplier.Name for supplier in supplierList"
-                        data-ng-change="loadOrderSection(); filterBy('supplier')">
-                    <option value="">Supplier</option>
-                </select>
-            </li>
-            <li class="order-filters">
-                <select class="col-sm-7"
-                        id="clientFilter"
-                        data-ng-model="filters.Client"
-                        data-ng-options="client.ID as client.Name for client in clientList"
-                        data-ng-change="loadOrderSection(); filterBy('client')">
-                    <option value="">Client</option>
-                </select>
-            </li>
-            <li class="order-filters">
-                <select class="col-sm-7"
+            <li class="filters-flexbox">
+                <label class="order-filters">Filter by:</label>
+                <label for="filterOrderNumber" class="order-filters">Order Number:</label>
+                <input type="number"
+                       class="order-filters"
+                       id="filterOrderNumber"
+                       name="filterOrderNumber"
+                       data-ng-model="filters.OrderNumber"
+                       data-ng-model-options="{ debounce: 500 }"
+                       data-ng-change="loadOrderSection(); filterBy('ordernumber')">
+                <select class="order-filters"
                         id="projectFilter"
                         data-ng-model="filters.Project"
                         data-ng-options="project.ID as project.Name for project in projectsList"
                         data-ng-change="loadOrderSection(); filterBy('project')">
                     <option value="">Project</option>
                 </select>
-            </li>
-            <li class="order-filters currency"><label>Filter by:</label></li>
+                <select class="order-filters"
+                        id="clientFilter"
+                        data-ng-model="filters.Client"
+                        data-ng-options="client.ID as client.Name for client in clientList"
+                        data-ng-change="loadOrderSection(); filterBy('client')">
+                    <option value="">Client</option>
+                </select>
+                <select class="order-filters"
+                        id="supplierFilter"
+                        data-ng-model="filters.Supplier"
+                        data-ng-options="supplier.ID as supplier.Name for supplier in supplierList"
+                        data-ng-change="loadOrderSection(); filterBy('supplier')">
+                    <option value="">Supplier</option>
+                </select>
+                <button class="order-filters"
+                        data-ng-click="clearFilters(); loadOrderSection()">
+                    Clear
+                </button>
+            <li>
         </ul>
     </div>
 </nav>
@@ -79,13 +90,16 @@
     modal-src="modal_templates/saveOrderModal.html">
 </div>
 
-
+<div custom-modals modal-id="invoiceOrderModal"
+    modal-type="order"
+    modal-src="modal_templates/invoiceOrderModal.html">
+</div>
 
 <div id="deleteOrderModal" class="modal" tabindex='-1'>
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-body">
-                <h4>Delete order: {{selectedOrder.ID}}</h4>
+                <h4>Delete order {{selectedOrder.ID}}</h4>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" data-dismiss="modal" data-ng-click="deleteOrder()">Delete</button>
