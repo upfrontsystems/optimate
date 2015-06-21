@@ -1,12 +1,6 @@
 <html>
-<style>
-.bold {
-    font-weight: bold;
-}
-.normal {
-    font-weight: normal;
-}
-</style>
+
+    <link rel="stylesheet" tal:attributes="href string:${request.application_url}/static/css/reports.css">
 
 <body>
     <h1>Project Budget for ${project_name}</h1>
