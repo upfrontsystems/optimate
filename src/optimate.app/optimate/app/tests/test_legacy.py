@@ -583,8 +583,8 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def _callFUT(self, request):
-        from optimate.app.views import update_value
-        return update_value(request)
+        from optimate.app.views import node_update_value
+        return node_update_value(request)
 
     def test_update_resource_rate(self):
         _registerRoutes(self.config)

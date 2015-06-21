@@ -450,23 +450,38 @@ def projects(request):
     return sorted(projects, key=lambda k: k['Name'].upper())
 
 
+def search_resources(top, search):
+    # Search from the top down. Not terribly efficient, but we probably don't
+    # have more than a few hundred resources.
+    resources = top.getResources()
+    search = search.lower()
+    return [r for r in resources if search in r.Name.lower()]
+
 @view_config(route_name="project_resources", renderer='json')
+@view_config(route_name="resources", renderer='json')
 def project_resources(request):
     """ Returns a list of all the resources in the
         node's project's resourcecategory in a format
         that the related items widget can read
     """
     nodeid = request.matchdict['id']
-    currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
-
-    # Look up the node, if it isn't a resource category, find the topmost
-    # resource category and use that. Otherwise this is a sub-folder listing.
-    if type(currentnode) is ResourceCategory:
-        resourcecategory = currentnode
-    else:
-        nodeid = currentnode.getProjectID()
+    if request.matched_route.name == 'project_resources':
+        currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
         resourcecategory = DBSession.query(ResourceCategory).filter_by(
-                ParentID=nodeid).first()
+                ParentID=currentnode.getProjectID()).first()
+        if 'search' in request.params:
+            resources = search_resources(resourcecategory, request.params['search'])
+            return {
+                "path": [{ "url": None, "title": u'Search results', "uid": None }],
+                "items": [{
+                    'title': item.Name,
+                    'uid': item.ID,
+                    'normalized_type': item.type == 'ResourceCategory' and 'folder' or 'document',
+                    'folderish': item.type == 'ResourceCategory',
+                } for item in sorted(resources, key=lambda o: o.Name.upper())]
+            }
+    else:
+        resourcecategory = DBSession.query(Node).filter_by(ID=nodeid).first()
 
     # if it doesnt exist return the empty list
     if not resourcecategory:

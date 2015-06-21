@@ -895,23 +895,37 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         }
 
         // Load the resources the user can select from the resource list
+        $scope.searching = false;
         $scope.loadResourceList = function(state){
-            var currentid = $scope.currentNode.ID,
-                finder = $('.finder').get(0);
-            $scope.finder = $scope.finder || new ContentFinder(finder, function(id){
+            var finder = $('.finder').get(0);
+            $scope.finder = $scope.finder || new ContentFinder(finder, function(id, search){
+                var url,
+                    params = {};
+                if (id === undefined || id === null || search){
+                    url = globalServerURL + 'project/' + $scope.currentNode.ID + '/resources/';
+                } else {
+                    url = globalServerURL + 'resource/' + id + '/';
+                }
+                if (search) {
+                    params['search'] = search;
+                    $scope.searching = true;
+                } else {
+                    $scope.searching = false;
+                }
                 return $http({
                     method: 'GET',
                     cache: $cacheFactory.get('optimate.resources'),
-                    url: globalServerURL + 'project/' + id + '/resources/'
+                    params: params,
+                    url: url
                 })
             });
             if (state == 'add'){ $scope.finder.clear_selection(); }
-            $scope.finder.listdir(currentid);
+            $scope.finder.listdir();
         };
 
         $scope.refreshResourceList = function(){
             $cacheFactory.get('optimate.resources').removeAll();
-            $scope.finder.listdir($scope.currentNode.ID);
+            $scope.finder.listdir();
         };
 
         // Not the most angular approach, but it does help it go away

@@ -3,6 +3,21 @@ import transaction
 from pyramid import testing
 from pyramid.httpexceptions import HTTPUnauthorized, HTTPMethodNotAllowed
 
+from sqlalchemy import create_engine
+from optimate.app.models import Base, User, DBSession
+
+def initdb():
+    engine = create_engine('sqlite://')
+    Base.metadata.create_all(engine)
+    DBSession.configure(bind=engine)
+    with transaction.manager:
+        user = User(username='john')
+        user.set_password('john')
+        DBSession.add(user)
+        transaction.commit()
+    return DBSession
+
+
 class TestAuth(unittest.TestCase):
     def setUp(self):
         self.config = testing.setUp()
@@ -30,6 +45,8 @@ class TestAuth(unittest.TestCase):
         from optimate.app.views import auth
         from optimate.app.security import verify_token
 
+        initdb()
+
         request = testing.DummyRequest()
         request.registry.settings['optimate.app.secret'] = 'aardvark'
         request.json_body = {
@@ -41,7 +58,7 @@ class TestAuth(unittest.TestCase):
 
         request.method = 'POST'
         token = auth(request)['access_token']
-        validated, username = verify_token(request, token)
+        validated, username, roles = verify_token(request, token)
         self.assertTrue(validated, "token didn't validate")
         self.assertEqual(username, 'john')
 

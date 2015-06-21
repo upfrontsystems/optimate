@@ -30,6 +30,11 @@
                                             <span>Home</span>
                                         </span>
                                         <div class="pull-right">
+                                            <a ng-show="searching"
+                                               href=""
+                                               title="Abandon search"
+                                               ng-click="finder.listdir()"
+                                               ><i class="glyphicon glyphicon-trash"> </i></a>
                                             <a href=""
                                                title="Refresh list"
                                                ng-click="refreshResourceList()"
