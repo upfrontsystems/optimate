@@ -1180,13 +1180,16 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             if ( report == 'projectbudget' ) {
                 var target = document.getElementsByClassName('pdf_download');
                 var spinner = new Spinner().spin(target[0]);
-                $http({method: 'GET', url:globalServerURL + 'project_budget_report/' + nodeid + '/'},
-                      {responseType:'arraybuffer'
+                $http({
+                    method: 'POST',
+                    url: globalServerURL + 'project_budget_report/' + nodeid + '/',
+                    data: $scope.formData},
+                    {responseType: 'arraybuffer'
                 }).success(function (response, status, headers, config) {
                     spinner.stop(); // stop the spinner - ajax call complete
                     var file = new Blob([response], {type: 'application/pdf'});
                     var fileURL = URL.createObjectURL(file);
-                    var result = document.getElementsByClassName("pdf_download");
+                    var result = document.getElementsByClassName("pdf_hidden_download");
                     var anchor = angular.element(result);
                     var filename_header = headers('Content-Disposition');
                     var filename = filename_header.split('filename=')[1];
@@ -1195,7 +1198,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         target: '_blank',
                         download: filename
                     })[0].click();
-                    // clear the anchor so that everytime a new report is linked
+                    // clear the hidden anchor so that everytime a new report is linked
                     anchor.attr({
                         href: '',
                         target: '',

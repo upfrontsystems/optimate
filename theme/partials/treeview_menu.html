@@ -83,9 +83,10 @@
                     <i class="fa fa-bar-chart"></i></a>
                 </li>
                 <li>
-                    <a title="Project Budget Report" class="pdf_download"
-                    data-ng-click="getReport('projectbudget', currentNode.ID)">
+                    <a title="Project Budget Report" data-target="#projectBudgetReport"
+                    data-toggle="modal" class="pdf_download">
                     <i class="fa fa-file-pdf-o"></i></a>
+                    <a class="pdf_hidden_download"></a> <!-- hidden anchor for download hook -->
                 </li>
             </ul>
         </div>

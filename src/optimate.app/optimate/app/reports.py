@@ -46,8 +46,7 @@ def all_nodes(node, data, level, level_limit):
 def projectbudget(request):
     print "Generating Project Budget Report"
     nodeid = request.matchdict['id']
-#    level_limit = request.json_body['LevelLimit']
-    level_limit = 3
+    level_limit = request.json_body['LevelLimit']
 
     project = DBSession.query(Node).filter_by(ID=nodeid).first()
     # inject node data into template
