@@ -11,7 +11,7 @@
                 <form class="form-horizontal" name="projectBudgetReportForm" novalidate>
                     <div class="form-group"
                         ng-class="{'has-error': projectBudgetReportForm.inputLevelLimit.$invalid}">
-                        <label for="inputLevelLimit" class="col-sm-3 control-label">Specify Level Limit:</label>
+                        <label for="inputLevelLimit" class="col-sm-4">Specify Level Limit:</label>
                         <input type="number"
                                min="1"
                                class="col-sm-1"
@@ -19,6 +19,22 @@
                                name="inputLevelLimit"
                                ng-model="formData['LevelLimit']"
                                required>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4">Component types to include:
+                        </label>
+                        <table>
+                            <tr data-ng-repeat="ctype in componentTypeList">
+                                <td>
+                                    <button class="custom-checkbox"
+                                          data-ng-click="ctype.selected = !ctype.selected">
+                                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[ctype.selected]">
+                                        </i>
+                                    </button>
+                                </td>
+                                <td>{{ctype.Name}} &nbsp;</td>
+                            </tr>
+                        </table>
                     </div>
                 </form>
             </div>

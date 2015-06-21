@@ -11,18 +11,11 @@ from xhtml2pdf import pisa
 from optimate.app.models import (
     DBSession,
     Node,
-    Project,
-    BudgetGroup,
-    BudgetItem,
-    Component,
-    ResourceType,
-    ResourceCategory,
-    Resource,
     Order,
     OrderItem
 )
 
-def all_nodes(node, data, level, level_limit):
+def all_nodes(node, data, level, level_limit, component_filter):
     level +=1
     nodelist = []
     for child in node.Children:
@@ -33,12 +26,20 @@ def all_nodes(node, data, level, level_limit):
         if child.type != 'ResourceCategory':
             if child.type == 'BudgetGroup':
                 data.append((child, 'level' + str(level), 'bold'))
+            elif child.type == 'Component':
+                # no filtering selected
+                if len(component_filter) == 3:
+                    data.append((child, 'level' + str(level), 'normal'))
+                # filter by resource type
+                elif child.Resource.Type in component_filter:
+                    data.append((child, 'level' + str(level), 'normal'))
             else:
                 data.append((child, 'level' + str(level), 'normal'))
             if child.type != 'Component':
                 # restrict level as specified
                 if level != level_limit:
-                    data += all_nodes(child, [], level, level_limit)
+                    data += all_nodes(child, [], level, level_limit, 
+                        component_filter)
     return data
 
 
@@ -47,11 +48,16 @@ def projectbudget(request):
     print "Generating Project Budget Report"
     nodeid = request.matchdict['id']
     level_limit = request.json_body['LevelLimit']
+    ctypelist = request.json_body['ComponentTypeList']
+    component_filter = []
+    for record in ctypelist:
+        if record['selected']:
+            component_filter.append(record['Name'])
 
     project = DBSession.query(Node).filter_by(ID=nodeid).first()
     # inject node data into template
     nodes = []
-    nodes = all_nodes(project, [], 0, level_limit)
+    nodes = all_nodes(project, [], 0, level_limit, component_filter)
     # render template
     template_data = render('templates/projectbudgetreport.pt',
                            {'nodes': nodes,

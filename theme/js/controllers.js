@@ -986,6 +986,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 $scope.isDisabled = true;
                 var currentid = $scope.currentNode.ID;
                 $scope.formData['OverheadList'] = $scope.componentOverheadList || [];
+                console.log($scope.componentOverheadList)
                 $http({
                     method: 'POST',
                     url: globalServerURL + 'node/' + currentid + '/',
@@ -1176,10 +1177,20 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }
         }
 
+        $scope.loadComponentTypes = function() {
+            var ctypes = [
+                { Name:"Labour", selected:true },
+                { Name:"Material", selected:true },
+                { Name:"Subcontractor", selected:true }];
+            $scope.componentTypeList = ctypes
+                console.log("Component Type list loaded");
+        };
+
         $scope.getReport = function (report, nodeid) {
             if ( report == 'projectbudget' ) {
                 var target = document.getElementsByClassName('pdf_download');
                 var spinner = new Spinner().spin(target[0]);
+                $scope.formData['ComponentTypeList'] = $scope.componentTypeList || [];
                 $http({
                     method: 'POST',
                     url: globalServerURL + 'project_budget_report/' + nodeid + '/',
