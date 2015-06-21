@@ -4,3 +4,25 @@
 .normal {
     font-weight: normal;
 }
+
+td.level2 {
+    padding-left: 8px;
+}
+td.level3 {
+    padding-left: 16px;
+}
+td.level4 {
+    padding-left: 24px;
+}
+td.level5 {
+    padding-left: 32px;
+}
+td.level6 {
+    padding-left: 40px;
+}
+td.level7 {
+    padding-left: 48px;
+}
+td.level8 {
+    padding-left: 56px;
+}

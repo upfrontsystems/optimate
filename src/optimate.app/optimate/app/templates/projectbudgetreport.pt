@@ -15,11 +15,7 @@
         </tr>
         <tr></tr>
         <tr tal:repeat="node nodes">
-            <td style="width: 450px">
-                <div class="${node[2]}">
-                    <span tal:repeat="x node[1]">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                    ${node[0].Name}
-                </div>
+            <td class="${node[1]} ${node[2]}" style="width: 450px">${node[0].Name}
             </td>
             <td style="width: 70px; text-align:right" tal:content="node[0].Unit|nothing" ></td>
             <td style="width: 70px; text-align:right" tal:content="node[0].Quantity|nothing" ></td>

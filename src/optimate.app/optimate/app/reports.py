@@ -22,7 +22,7 @@ from optimate.app.models import (
     OrderItem
 )
 
-def all_nodes(node, data, level):
+def all_nodes(node, data, level, level_limit):
     level +=1
     nodelist = []
     for child in node.Children:
@@ -32,12 +32,13 @@ def all_nodes(node, data, level):
     for child in sorted_nodelist:
         if child.type != 'ResourceCategory':
             if child.type == 'BudgetGroup':
-                data.append((child, range(level-1), 'bold'))
+                data.append((child, 'level' + str(level), 'bold'))
             else:
-                data.append((child, range(level-1), 'normal'))
+                data.append((child, 'level' + str(level), 'normal'))
             if child.type != 'Component':
-                if level != 3: # restrict level to level3 only
-                    data += all_nodes(child, [], level)
+                # restrict level as specified
+                if level != level_limit:
+                    data += all_nodes(child, [], level, level_limit)
     return data
 
 
@@ -45,10 +46,13 @@ def all_nodes(node, data, level):
 def projectbudget(request):
     print "Generating Project Budget Report"
     nodeid = request.matchdict['id']
+#    level_limit = request.json_body['LevelLimit']
+    level_limit = 3
+
     project = DBSession.query(Node).filter_by(ID=nodeid).first()
     # inject node data into template
     nodes = []
-    nodes = all_nodes(project, [], 0)
+    nodes = all_nodes(project, [], 0, level_limit)
     # render template
     template_data = render('templates/projectbudgetreport.pt',
                            {'nodes': nodes,
@@ -95,9 +99,9 @@ def all_resources(node, data, level):
             quantity = 0
             for component in child.Components:
                 quantity += component.Quantity
-            data.append((child, range(level-1), quantity, 'normal'))
+            data.append((child, 'level' + str(level), 'normal', quantity))
         else: # ResourceCategory
-            data.append((child, range(level-1), None, 'bold'))
+            data.append((child, 'level' + str(level), 'bold', None))
             data += all_resources(child, [], level)
     return data
 
