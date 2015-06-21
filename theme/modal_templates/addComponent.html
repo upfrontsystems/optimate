@@ -46,7 +46,8 @@
                         ng-class="{'has-error': addComponentForm.inputQuantity.$invalid}">
                         <label for="inputQuantity" class="col-sm-2 control-label">Quantity:</label>
                         <input type="number"
-                               class="col-sm-7"
+                               min="1"
+                               class="col-sm-1"
                                id="inputQuantity"
                                name="inputQuantity"
                                ng-model="formData['Quantity']">
