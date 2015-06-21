@@ -4,7 +4,7 @@ from pyramid import testing
 from pyramid.httpexceptions import HTTPUnauthorized, HTTPMethodNotAllowed
 
 from sqlalchemy import create_engine
-from optimate.app.models import Base, User
+from optimate.app.models import Base, User, DBSession
 
 def initdb():
     engine = create_engine('sqlite://')
@@ -58,7 +58,7 @@ class TestAuth(unittest.TestCase):
 
         request.method = 'POST'
         token = auth(request)['access_token']
-        validated, username = verify_token(request, token)
+        validated, username, roles = verify_token(request, token)
         self.assertTrue(validated, "token didn't validate")
         self.assertEqual(username, 'john')
 
