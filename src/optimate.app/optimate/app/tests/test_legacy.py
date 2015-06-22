@@ -380,10 +380,10 @@ def _initTestingDB():
 
 def _registerRoutes(config):
     config.add_route('root', '/')
-    config.add_route('childview', '/{parentid}/')
+    config.add_route('node_children', '/{parentid}/')
     config.add_route('addview', '/{id}/add')
     config.add_route('deleteview', '/{id}/delete')
-    config.add_route('pasteview', '/{id}/paste')
+    config.add_route('node_paste', '/{id}/paste')
     config.add_route('clientview', '/clients')
     config.add_route('supplierview', '/suppliers')
 
@@ -438,7 +438,7 @@ class TestChildViewSuccessCondition(unittest.TestCase):
 
 
 class TestProjectListingSuccessCondition(unittest.TestCase):
-    """ Test if the project_listing view works and returns
+    """ Test if the project listing view works and returns
         a list of all the projects
     """
 
@@ -451,8 +451,8 @@ class TestProjectListingSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def _callFUT(self, request):
-        from optimate.app.views import project_listing
-        return project_listing(request)
+        from optimate.app.views import projects
+        return projects(request)
 
     def test_it(self):
         _registerRoutes(self.config)
@@ -477,6 +477,8 @@ class TestProjectViewSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def _callFUT(self, request):
+        # FIXME Seems nodeview now doubles for the old projectview. Do we need
+        # to test this?
         from optimate.app.views import projectview
         return projectview(request)
 
@@ -511,8 +513,8 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def _callFUT(self, request):
-        from optimate.app.views import nodegridview
-        return nodegridview(request)
+        from optimate.app.views import node_grid
+        return node_grid(request)
 
     def test_project_gridview(self):
         _registerRoutes(self.config)
@@ -596,8 +598,8 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         # now the project cost should have changed
         request = testing.DummyRequest()
         request.matchdict = {'id': 1}
-        from optimate.app.views import costview
-        response = costview(request)
+        from optimate.app.views import node_cost
+        response = node_cost(request)
         self.assertEqual(response['Cost'], '656.25')
 
     def test_update_duplicate_resource_rate(self):
@@ -610,8 +612,8 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         # now the project cost should have changed
         request = testing.DummyRequest()
         request.matchdict = {'id': 19}
-        from optimate.app.views import costview
-        response = costview(request)
+        from optimate.app.views import node_cost
+        response = node_cost(request)
         self.assertEqual(response['Cost'], '6015.17')
 
     def test_update_component_quantity(self):
@@ -624,8 +626,8 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         # now the project cost should have changed
         request = testing.DummyRequest()
         request.matchdict = {'id': 1}
-        from optimate.app.views import costview
-        response = costview(request)
+        from optimate.app.views import node_cost
+        response = node_cost(request)
         self.assertEqual(response['Cost'], '612.50')
 
     def test_update_budgetitem_quantity(self):
@@ -638,8 +640,8 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         # now the project cost should have changed
         request = testing.DummyRequest()
         request.matchdict = {'id': 1}
-        from optimate.app.views import costview
-        response = costview(request)
+        from optimate.app.views import node_cost
+        response = node_cost(request)
         self.assertEqual(response['Cost'], '4812.50')
 
 class TestAddItemSuccessCondition(unittest.TestCase):
@@ -705,8 +707,8 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         # do another test to see if the cost is correct
         request = testing.DummyRequest()
         request.matchdict = {'id': 4}
-        from optimate.app.views import costview
-        response = costview(request)
+        from optimate.app.views import node_cost
+        response = node_cost(request)
         self.assertEqual(response['Cost'], '1185.00')
 
     def test_add_whole_project(self):
@@ -796,8 +798,8 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         # test the total  of the project
         request = testing.DummyRequest()
         request.matchdict = {'id': projectid}
-        from optimate.app.views import costview
-        response = costview(request)
+        from optimate.app.views import node_cost
+        response = node_cost(request)
         # true if the cost is correct
         self.assertEqual(response['Cost'], '2900.00')
 
@@ -838,8 +840,8 @@ class TestDeleteviewSuccessCondition(unittest.TestCase):
         # since it has no children it's cost should be 0
         request = testing.DummyRequest()
         request.matchdict = {'id': 1}
-        from optimate.app.views import costview
-        response = costview(request)
+        from optimate.app.views import node_cost
+        response = node_cost(request)
         self.assertEqual(response['Cost'], '0.00')
 
 
@@ -857,8 +859,8 @@ class TestPasteviewSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def _callFUT(self, request):
-        from optimate.app.views import pasteitemview
-        return pasteitemview(request)
+        from optimate.app.views import node_paste
+        return node_paste(request)
 
     def test_it(self):
         _registerRoutes(self.config)
@@ -887,8 +889,8 @@ class TestPasteviewSuccessCondition(unittest.TestCase):
         # do another test to see if the cost is correct
         request = testing.DummyRequest()
         request.matchdict = {'id': 4}
-        from optimate.app.views import costview
-        response = costview(request)
+        from optimate.app.views import node_cost
+        response = node_cost(request)
         self.assertEqual(response['Cost'], '1366.25')
 
 class TestCutAndPasteSuccessCondition(unittest.TestCase):
@@ -904,8 +906,8 @@ class TestCutAndPasteSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def _callFUT(self, request):
-        from optimate.app.views import pasteitemview
-        return pasteitemview(request)
+        from optimate.app.views import node_paste
+        return node_paste(request)
 
     def test_it(self):
         _registerRoutes(self.config)
@@ -951,8 +953,8 @@ class TestCostviewSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def _callFUT(self, request):
-        from optimate.app.views import costview
-        return costview(request)
+        from optimate.app.views import node_cost
+        return node_cost(request)
 
     def test_project_cost(self):
         _registerRoutes(self.config)
