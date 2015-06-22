@@ -589,8 +589,14 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         return node_update_value(request)
 
     def test_update_resource_rate(self):
+        from optimate.app.views import node_cost
         _registerRoutes(self.config)
         request = testing.DummyRequest()
+
+        # check cost beforehand
+        request.matchdict = {'id': 1}
+        self.assertEqual(node_cost(request)['Cost'], '481.25')
+
         request.matchdict = {'id': 16}
         request.params = {'rate': 15}
         response = self._callFUT(request)
@@ -598,9 +604,12 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         # now the project cost should have changed
         request = testing.DummyRequest()
         request.matchdict = {'id': 1}
-        from optimate.app.views import node_cost
         response = node_cost(request)
         self.assertEqual(response['Cost'], '656.25')
+
+        # Component 11 should change it's cost (70 -> 105)
+        request.matchdict = {'id': 11}
+        self.assertEqual(node_cost(request)['Cost'], '105.00')
 
     def test_update_duplicate_resource_rate(self):
         _registerRoutes(self.config)
