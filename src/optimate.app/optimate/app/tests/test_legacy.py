@@ -506,6 +506,7 @@ def _registerRoutes(config):
     config.add_route('nodeview', 'node/{id}/')
     config.add_route('projects', '/projects/')
     config.add_route('project_resources', '/project/{id}/resources/')
+    config.add_route('resources', '/resource/{id}/')
     config.add_route('project_overheads', '/project/{id}/overheads/')
     config.add_route('component_overheads', '/component/{id}/overheads/')
     config.add_route('resourcetypes', '/resourcetypes')
@@ -520,6 +521,7 @@ def _registerRoutes(config):
     config.add_route('suppliersview', '/suppliers')
     config.add_route('clientview', '/client/{id}/')
     config.add_route('supplierview', '/supplier/{id}/')
+    config.add_route('company_information', '/company_information')
     config.add_route('unitsview', '/units')
     config.add_route('unitview', '/unit/{id}/')
     config.add_route('citiesview', '/cities')
@@ -529,6 +531,122 @@ def _registerRoutes(config):
     config.add_route('orders_length', '/orders/length')
     config.add_route('orders_filter', '/orders/filter')
     config.add_route('orders_tree_view', '/orders/tree/{id}/')
+    config.add_route('invoicesview', '/invoices')
+    config.add_route('invoiceview', '/invoice/{id}/')
+
+# class TestNodeComponentsViewSuccessCondition(unittest.TestCase):
+
+#     def setUp(self):
+#         self.session = _initTestingDB()
+#         self.config = testing.setUp()
+
+#     def tearDown(self):
+#         DBSession.remove()
+#         testing.tearDown()
+
+#     def _callFUT(self, request):
+#         from optimate.app.views import node_components
+#         return node_components(request)
+
+#     def test_it(self):
+#         _registerRoutes(self.config)
+#         request = testing.DummyRequest()
+#         response = self._callFUT(request)
+
+# class TestResourceTypesViewSuccessCondition(unittest.TestCase):
+
+#     def setUp(self):
+#         self.session = _initTestingDB()
+#         self.config = testing.setUp()
+
+#     def tearDown(self):
+#         DBSession.remove()
+#         testing.tearDown()
+
+#     def _callFUT(self, request):
+#         from optimate.app.views import resourcetypes
+#         return resourcetypes(request)
+
+#     def test_it(self):
+#         _registerRoutes(self.config)
+#         request = testing.DummyRequest()
+#         response = self._callFUT(request)
+
+# class TestProjectResourcesViewSuccessCondition(unittest.TestCase):
+
+#     def setUp(self):
+#         self.session = _initTestingDB()
+#         self.config = testing.setUp()
+
+#     def tearDown(self):
+#         DBSession.remove()
+#         testing.tearDown()
+
+#     def _callFUT(self, request):
+#         from optimate.app.views import project_resources
+#         return project_resources(request)
+
+#     def test_it(self):
+#         _registerRoutes(self.config)
+#         request = testing.DummyRequest()
+#         response = self._callFUT(request)
+
+# class TestResourcesViewSuccessCondition(unittest.TestCase):
+
+#     def setUp(self):
+#         self.session = _initTestingDB()
+#         self.config = testing.setUp()
+
+#     def tearDown(self):
+#         DBSession.remove()
+#         testing.tearDown()
+
+#     def _callFUT(self, request):
+#         from optimate.app.views import project_resources
+#         return project_resources(request)
+
+#     def test_it(self):
+#         _registerRoutes(self.config)
+#         request = testing.DummyRequest()
+#         response = self._callFUT(request)
+
+# class TestProjectOverheadsViewSuccessCondition(unittest.TestCase):
+
+#     def setUp(self):
+#         self.session = _initTestingDB()
+#         self.config = testing.setUp()
+
+#     def tearDown(self):
+#         DBSession.remove()
+#         testing.tearDown()
+
+#     def _callFUT(self, request):
+#         from optimate.app.views import project_overheads
+#         return project_overheads(request)
+
+#     def test_it(self):
+#         _registerRoutes(self.config)
+#         request = testing.DummyRequest()
+#         response = self._callFUT(request)
+
+# class TestComponentOverheadsViewSuccessCondition(unittest.TestCase):
+
+#     def setUp(self):
+#         self.session = _initTestingDB()
+#         self.config = testing.setUp()
+
+#     def tearDown(self):
+#         DBSession.remove()
+#         testing.tearDown()
+
+#     def _callFUT(self, request):
+#         from optimate.app.views import component_overheads
+#         return component_overheads(request)
+
+#     def test_it(self):
+#         _registerRoutes(self.config)
+#         request = testing.DummyRequest()
+#         response = self._callFUT(request)
 
 class TestChildViewSuccessCondition(unittest.TestCase):
     """ Test if the Root view functions correctly.
