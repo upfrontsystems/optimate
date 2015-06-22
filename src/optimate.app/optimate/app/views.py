@@ -273,7 +273,6 @@ def additemview(request):
         resource = new_list[0]
 
         newcomp = Component(ResourceID=resource.ID,
-                            _Quantity = quantity,
                             _ItemQuantity=itemquantity,
                             ParentID=parentid)
 
@@ -644,24 +643,28 @@ def node_update_value(request):
     """
     nodeid = request.matchdict['id']
     result = DBSession.query(Node).filter_by(ID=nodeid).first()
-    if result.type in ['Resource']:
-        # update the data - only rate can be modified
+    # only a resource's rate can be modified
+    if result.type == 'Resource':
         if request.params.get('rate') != None:
-            try:
-                result.Rate = float(request.params.get('rate'))
-            except ValueError:
-                pass # do not do anything
-    elif result.type in ['BudgetItem', 'Component']:
-        # update the data - only quantity can be modified
+            result.Rate = float(request.params.get('rate'))
+            return HTTPOk()
+    # a budgetitems quantity or itemquantity can be modified
+    elif result.type == 'BudgetItem':
+        newtotal = None
         if request.params.get('quantity') != None:
-            try:
-                result.Quantity = float(request.params.get('quantity'))
-                newtotal = str(result.Total)
-                newsubtotal = str(result.Subtotal())
-                # return the new total
-                return {'total': newtotal, 'subtotal': newsubtotal}
-            except ValueError, e:
-                print e
+            result.Quantity = float(request.params.get('quantity'))
+            newtotal = str(result.Total)
+        if request.params.get('itemquantity') != None:
+            result.ItemQuantity = float(request.params.get('quantity'))
+            newtotal = str(result.Total)
+        return {'total': newtotal, 'subtotal': None}
+    # only a components itemquantity can be modified
+    elif result.type == 'Component':
+        if request.params.get('itemquantity') != None:
+            result.ItemQuantity = float(request.params.get('itemquantity'))
+            newtotal = str(result.Total)
+            newsubtotal = str(result.Subtotal)
+            return {'total': newtotal, 'subtotal': newsubtotal}
 
 
 @view_config(route_name="node_paste", renderer='json')
@@ -717,6 +720,23 @@ def node_paste(request):
                     if component.ResourceID in copiedresourceIds:
                         component.ResourceID = copiedresourceIds[
                                                     component.ResourceID]
+
+                # copy the overheads the components use into the project
+                overheadids = {}
+                for component in sourcecomponents:
+                    newoverheads = []
+                    for overhead in component.Overheads:
+                        if overhead.ID not in overheadids.keys():
+                            newoverhead = overhead.copy(destprojectid)
+                            DBSession.add(newoverhead)
+                            DBSession.flush()
+                            overheadids[overhead.ID] = newoverhead
+                            newoverheads.append(newoverhead)
+                        else:
+                            newoverheads.append(overheadids[overhead.ID])
+                    component.Overheads[:] = []
+                    component.Overheads = newoverheads
+
             # set the source parent to the destination parent
             source.ParentID = destinationid
             transaction.commit()
@@ -763,6 +783,22 @@ def node_paste(request):
                         if component.ResourceID in copiedresourceIds:
                             component.ResourceID = copiedresourceIds[
                                                         component.ResourceID]
+
+                    # # copy the overheads the components use into the project
+                    # overheadids = {}
+                    # for component in sourcecomponents:
+                    #     for overhead in component.Overheads:
+                    #         if overhead.ID not in overheadids.keys():
+                    #             newoverhead = overhead.copy(destprojectid)
+                    #             DBSession.add(newoverhead)
+                    #             DBSession.flush()
+                    #             overheadids[overhead.ID] = newoverhead
+
+                    # for component in destcomponents:
+                    #     for overhead in component.Overheads:
+                    #         if overhead.ID in overheadids.keys():
+                    #             # replace the overhead with the copied one
+
         # reset the total
         if parentid != 0:
             reset = DBSession.query(Node).filter_by(ID=parentid).first()
