@@ -146,7 +146,7 @@ class Project(Node):
             total += child.Total
         self.Total = total
 
-    @hybrid_property
+    @property
     def Total(self):
         """Get property total. If the Total has not been set yet, it is set to
            zero and recalculated
@@ -313,7 +313,7 @@ class BudgetGroup(Node):
             total += child.Total
         self.Total = total
 
-    @hybrid_property
+    @property
     def Total(self):
         """Get the total property, reset the Total if it is None
         """
@@ -466,7 +466,7 @@ class BudgetItem(Node):
         self._Rate = rate
         self.Total = (1.0+self.Markup) * self.Quantity * float(self._Rate)
 
-    @hybrid_property
+    @property
     def Total(self):
         """ Get the Total, if the Total is none it is reset
         """
@@ -497,7 +497,7 @@ class BudgetItem(Node):
             else:
                 parent.Total = parent.Total + difference
 
-    @hybrid_property
+    @property
     def Markup(self):
         """ Get the markup of this budgetitem
         """
@@ -511,7 +511,7 @@ class BudgetItem(Node):
         # self._Markup = markup
         self.Total = (1.0+self.Markup) * self.Quantity * float(self.Rate)
 
-    @hybrid_property
+    @property
     def Rate(self):
         """ Get the Rate
         """
@@ -694,7 +694,7 @@ class Component(Node):
         self.Total = Decimal((1.0+self.Markup) *
             self.Quantity * float(self.Rate)).quantize(Decimal('.01'))
 
-    @hybrid_property
+    @property
     def Total(self):
         """ Get the Total, if it is None reset it
         """
@@ -730,7 +730,7 @@ class Component(Node):
         """
         return (self.Total/Decimal(1+self.Markup)).quantize(Decimal('.01'))
 
-    @hybrid_property
+    @property
     def Name(self):
         """ Get this Components Name, which returns the Resource's Name
         """
@@ -740,9 +740,10 @@ class Component(Node):
     def Name(self, name):
         """ Set this Components Name, which sets the Resource's Name
         """
+        # FIXME We probably don't want to do this. Raise ImplementedError?
         self.Resource.Name = name
 
-    @hybrid_property
+    @property
     def Description(self):
         """ Get the Description property
         """
@@ -754,7 +755,7 @@ class Component(Node):
         """
         self.Resource.Description = description
 
-    @hybrid_property
+    @property
     def Markup(self):
         """ Get the markup of this component
             It is a composite of all the Overhead percentages
@@ -771,7 +772,7 @@ class Component(Node):
         # self._Markup = markup
         self.Total = (1.0+self.Markup) * self.Quantity * float(self.Rate)
 
-    @hybrid_property
+    @property
     def Rate(self):
         """ Get the component's Rate, the Rate of this resource is returned
         """
@@ -799,7 +800,7 @@ class Component(Node):
         # change the total when the quantity changes
         self.Total = (1.0+self.Markup) * self.Quantity * float(self.Rate)
 
-    @hybrid_property
+    @property
     def Unit(self):
         """ Get the component's Unit, the Unit of this resource is returned
         """
@@ -964,7 +965,7 @@ class ResourceCategory(Node):
     def recalculateTotal(self):
         return Decimal(0.00)
 
-    @hybrid_property
+    @property
     def Total(self):
         return Decimal(0.00)
 
@@ -1124,7 +1125,7 @@ class Resource(Node):
             'inherit_condition': (ID == Node.ID),
         }
 
-    @hybrid_property
+    @property
     def Rate(self):
         """ Get the Rate of the Resource
         """
@@ -1395,7 +1396,7 @@ class OrderItem(Base):
     Component = relationship('Component',
                               backref=backref('OrderItem'))
 
-    @hybrid_property
+    @property
     def Total(self):
         """ Return the total. Total is Quantity*Rate
         """
