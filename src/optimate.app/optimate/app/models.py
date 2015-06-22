@@ -182,8 +182,8 @@ class Project(Node):
                         ClientCost=self.ClientCost,
                         ProjectedProfit=self.ProjectedProfit,
                         ActualProfit=self.ActualProfit,
-                        Ordered=self.Ordered,
-                        Invoiced=self.Invoiced)
+                        _Ordered=self.Ordered,
+                        _Invoiced=self.Invoiced)
 
         return copied
 
@@ -391,8 +391,8 @@ class BudgetGroup(Node):
                             ClientCost=self.ClientCost,
                             ProjectedProfit=self.ProjectedProfit,
                             ActualProfit=self.ActualProfit,
-                            Ordered=self.Ordered,
-                            Invoiced=self.Invoiced)
+                            _Ordered=self.Ordered,
+                            _Invoiced=self.Invoiced)
 
         return copied
 
@@ -667,8 +667,8 @@ class BudgetItem(Node):
                             ClientCost=self.ClientCost,
                             ProjectedProfit=self.ProjectedProfit,
                             ActualProfit=self.ActualProfit,
-                            Ordered=self.Ordered,
-                            Invoiced=self.Invoiced)
+                            _Ordered=self.Ordered,
+                            _Invoiced=self.Invoiced)
 
         return copied
 
@@ -1011,8 +1011,8 @@ class Component(Node):
                             ClientCost=self.ClientCost,
                             ProjectedProfit=self.ProjectedProfit,
                             ActualProfit=self.ActualProfit,
-                            Ordered=self.Ordered,
-                            Invoiced=self.Invoiced)
+                            _Ordered=self.Ordered,
+                            _Invoiced=self.Invoiced)
         return copied
 
     def paste(self, source, sourcechildren):
