@@ -66,7 +66,7 @@ class Node(Base):
     OrderCost = Column(Numeric(12, 2), default=Decimal(0.00))
     ClaimedCost = Column(Numeric(12, 2), default=Decimal(0.00))
     RunningCost=Column(Numeric(12, 2), default=Decimal(0.00))
-    IncomeRecieved=Column(Numeric(12, 2), default=Decimal(0.00))
+    IncomeRecieved=Column(Numeric(12, 2), default=Decimal(0.00)) # FIXME spelling
     ClientCost=Column(Numeric(12, 2), default=Decimal(0.00))
     ProjectedProfit=Column(Numeric(12, 2), default=Decimal(0.00))
     ActualProfit=Column(Numeric(12, 2), default=Decimal(0.00))
@@ -176,7 +176,7 @@ class Project(Node):
                          OrderCost=self.OrderCost,
                          ClaimedCost=self.ClaimedCost,
                          RunningCost=self.RunningCost,
-                         IncomeRecieved=self.IncomeRecieved,
+                         IncomeRecieved=self.IncomeRecieved, # FIXME spelling
                          ClientCost=self.ClientCost,
                          ProjectedProfit=self.ProjectedProfit,
                          ActualProfit=self.ActualProfit)
@@ -218,7 +218,7 @@ class Project(Node):
                 'order_cost': str(self.OrderCost),
                 'run_cost': str(self.RunningCost),
                 'claim_cost': str(self.ClaimedCost),
-                'income_rec': str(self.IncomeRecieved),
+                'income_rec': str(self.IncomeRecieved), # FIXME spelling
                 'client_cost': str(self.ClientCost),
                 'proj_profit': str(self.ProjectedProfit),
                 'act_profit': str(self.ActualProfit),
@@ -247,7 +247,7 @@ class Project(Node):
             'order_cost': str(self.OrderCost.quantize(Decimal('.01'))),
             'run_cost': str(self.RunningCost.quantize(Decimal('.01'))),
             'claim_cost': str(self.ClaimedCost.quantize(Decimal('.01'))),
-            'income_rec': str(self.IncomeRecieved.quantize(Decimal('.01'))),
+            'income_rec': str(self.IncomeRecieved.quantize(Decimal('.01'))), # FIXME spelling
             'client_cost': str(self.ClientCost.quantize(Decimal('.01'))),
             'proj_profit': str(self.ProjectedProfit.quantize(Decimal('.01'))),
             'act_profit': str(self.ActualProfit.quantize(Decimal('.01')))}
@@ -349,7 +349,7 @@ class BudgetGroup(Node):
                              OrderCost=self.OrderCost,
                              ClaimedCost=self.ClaimedCost,
                              RunningCost=self.RunningCost,
-                             IncomeRecieved=self.IncomeRecieved,
+                             IncomeRecieved=self.IncomeRecieved, # FIXME spelling
                              ClientCost=self.ClientCost,
                              ProjectedProfit=self.ProjectedProfit,
                              ActualProfit=self.ActualProfit)
@@ -400,7 +400,7 @@ class BudgetGroup(Node):
                 'order_cost': str(self.OrderCost),
                 'run_cost': str(self.RunningCost),
                 'claim_cost': str(self.ClaimedCost),
-                'income_rec': str(self.IncomeRecieved),
+                'income_rec': str(self.IncomeRecieved), # FIXME spelling
                 'client_cost': str(self.ClientCost),
                 'proj_profit': str(self.ProjectedProfit),
                 'act_profit': str(self.ActualProfit)}
@@ -413,7 +413,7 @@ class BudgetGroup(Node):
             'order_cost': str(self.OrderCost.quantize(Decimal('.01'))),
             'run_cost': str(self.RunningCost.quantize(Decimal('.01'))),
             'claim_cost': str(self.ClaimedCost.quantize(Decimal('.01'))),
-            'income_rec': str(self.IncomeRecieved.quantize(Decimal('.01'))),
+            'income_rec': str(self.IncomeRecieved.quantize(Decimal('.01'))), # FIXME spelling
             'client_cost': str(self.ClientCost.quantize(Decimal('.01'))),
             'proj_profit': str(self.ProjectedProfit.quantize(Decimal('.01'))),
             'act_profit': str(self.ActualProfit.quantize(Decimal('.01')))}
@@ -552,7 +552,7 @@ class BudgetItem(Node):
                             OrderCost=self.OrderCost,
                             ClaimedCost=self.ClaimedCost,
                             RunningCost=self.RunningCost,
-                            IncomeRecieved=self.IncomeRecieved,
+                            IncomeRecieved=self.IncomeRecieved, # FIXME spelling
                             ClientCost=self.ClientCost,
                             ProjectedProfit=self.ProjectedProfit,
                             ActualProfit=self.ActualProfit)
@@ -607,7 +607,7 @@ class BudgetItem(Node):
                 'order_cost': str(self.OrderCost),
                 'run_cost': str(self.RunningCost),
                 'claim_cost': str(self.ClaimedCost),
-                'income_rec': str(self.IncomeRecieved),
+                'income_rec': str(self.IncomeRecieved), # FIXME spelling
                 'client_cost': str(self.ClientCost),
                 'proj_profit': str(self.ProjectedProfit),
                 'act_profit': str(self.ActualProfit)}
@@ -626,7 +626,7 @@ class BudgetItem(Node):
             'order_cost': str(self.OrderCost.quantize(Decimal('.01'))),
             'run_cost': str(self.RunningCost.quantize(Decimal('.01'))),
             'claim_cost': str(self.ClaimedCost.quantize(Decimal('.01'))),
-            'income_rec': str(self.IncomeRecieved.quantize(Decimal('.01'))),
+            'income_rec': str(self.IncomeRecieved.quantize(Decimal('.01'))), # FIXME spelling
             'client_cost': str(self.ClientCost.quantize(Decimal('.01'))),
             'proj_profit': str(self.ProjectedProfit.quantize(Decimal('.01'))),
             'act_profit': str(self.ActualProfit.quantize(Decimal('.01')))}
@@ -645,33 +645,10 @@ association_table = Table('ComponentOverheadAssociation', Base.metadata,
     Column('OverheadID', Integer, ForeignKey('Overhead.ID'))
 )
 
-
-class Component(Node):
-    """ A component represents a unique component in the project.
-        It can be the child of a budgetitem
-        It has a many-to-one relationship with Resource, which
-        defines its Name, Description, and Rate.
-    """
-    __tablename__ = 'Component'
-    ID = Column(Integer,
-                ForeignKey('Node.ID', ondelete='CASCADE'),
-                primary_key=True)
-    ResourceID = Column(Integer, ForeignKey('Resource.ID'))
-    _Quantity = Column('Quantity', Float, default=0.0)
-    _Total = Column('Total', Numeric)
-
-    Resource = relationship('Resource',
-                            foreign_keys='Component.ResourceID',
-                            backref='Components')
-
-    Overheads = relationship('Overhead',
-                    secondary=association_table,
-                    backref='Components')
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'Component',
-        'inherit_condition': (ID == Node.ID),
-    }
+class ComponentMixin(object):
+    """ Contains common functionality between Component and SimpleComponent,
+        mixed into those respective classes using (potentially multiple)
+        inheritance. """
 
     def recalculateTotal(self):
         """ Recalculate the total of this Component
@@ -723,34 +700,6 @@ class Component(Node):
         """
         return (self.Total/Decimal(1+self.Markup)).quantize(Decimal('.01'))
 
-    @property
-    def Name(self):
-        """ Get this Components Name, which returns the Resource's Name
-        """
-        return self.Resource.Name
-
-    @property
-    def Description(self):
-        """ Get the Description property
-        """
-        return self.Resource.Description
-
-    @property
-    def Markup(self):
-        """ Get the markup of this component
-            It is a composite of all the Overhead percentages
-        """
-        composite = 1.0
-        for overhead in self.Overheads:
-            composite = composite*(overhead.Percentage+1.0)
-        return composite-1
-
-    @property
-    def Rate(self):
-        """ Get the component's Rate, the Rate of this resource is returned
-        """
-        return self.Resource.Rate
-
     @hybrid_property
     def Quantity(self):
         """ Get the Quantity
@@ -765,12 +714,141 @@ class Component(Node):
         # change the total when the quantity changes
         self.Total = (1.0+self.Markup) * self.Quantity * float(self.Rate)
 
+    def paste(self, source, sourcechildren):
+        """ Paste into this Component, make a copy of the resource the
+            component uses and add it the new component
+        """
+        # This is in the Mixin, as I foresee that pasting, if it is ever
+        # needed, will be rather similar for most things.
+        pass
+
+    def getComponents(self):
+        """ A component returns nothing
+        """
+        pass
+
+    def toChildDict(self):
+        """ Returns a dictionary of this node used in the childview
+        """
+        return {'Name': self.Name,
+                'Description': self.Description,
+                'ID': self.ID,
+                'Subitem': [],
+                'NodeType': self.type,
+                'NodeTypeAbbr' : 'C'}
+
+    def toOrderDict(self):
+        """ Returns a dictionary of this node used in the order tree view
+        """
+        total = self.Quantity*float(self.Rate)
+        return {'Name': self.Name,
+                'ID': self.ID,
+                'id': self.ID,
+                'Quantity': self.Quantity,
+                'Rate': str(self.Rate),
+                'Total': total,
+                'NodeType': self.type,
+                'node_type': self.type,
+                'NodeTypeAbbr' : 'C'}
+
+    def toDict(self):
+        """ Return a dictionary of all the attributes of this Component. This
+            is extended by the inheriting class.
+        """
+
+        return {'Name': self.Name,
+                'Quantity': self.Quantity,
+                'order_cost': str(self.OrderCost),
+                'run_cost': str(self.RunningCost),
+                'claim_cost': str(self.ClaimedCost),
+                'income_rec': str(self.IncomeRecieved), # FIXME spelling
+                'client_cost': str(self.ClientCost),
+                'proj_profit': str(self.ProjectedProfit),
+                'act_profit': str(self.ActualProfit)}
+
+    def getGridData(self):
+        """ Return a dictionary of all the data needed for the slick grid.
+            This is extended by inheriting classes.
+        """
+        return {
+            'name': self.Name,
+            'id': self.ID,
+            'node_type': self.type,
+            'quantity': self.Quantity,
+            'rate': str(self.Rate),
+            'budg_cost': str(self.Total),
+            'sub_cost':str(self.Subtotal()),
+            'order_cost': str(self.OrderCost.quantize(Decimal('.01'))),
+            'run_cost': str(self.RunningCost.quantize(Decimal('.01'))),
+            'claim_cost': str(self.ClaimedCost.quantize(Decimal('.01'))),
+            'income_rec': str(self.IncomeRecieved.quantize(Decimal('.01'))), # FIXME spelling
+            'client_cost': str(self.ClientCost.quantize(Decimal('.01'))),
+            'proj_profit': str(self.ProjectedProfit.quantize(Decimal('.01'))),
+            'act_profit': str(self.ActualProfit.quantize(Decimal('.01')))}
+
+
+class Component(Node, ComponentMixin):
+    """ A component represents a unique component in the project.
+        It can be the child of a budgetitem
+        It has a many-to-one relationship with Resource, which
+        defines its Name, Description, and Rate.
+    """
+    __tablename__ = 'Component'
+    ID = Column(Integer,
+                ForeignKey('Node.ID', ondelete='CASCADE'),
+                primary_key=True)
+    ResourceID = Column(Integer, ForeignKey('Resource.ID'))
+    _Quantity = Column('Quantity', Float, default=0.0)
+    _Total = Column('Total', Numeric)
+
+    Resource = relationship('Resource',
+                            foreign_keys='Component.ResourceID',
+                            backref='Components')
+
+    Overheads = relationship('Overhead',
+                    secondary=association_table,
+                    backref='Components')
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'Component',
+        'inherit_condition': (ID == Node.ID),
+    }
+
+    @property
+    def Name(self):
+        """ Get this Components Name, which returns the Resource's Name
+        """
+        return self.Resource.Name
+
+    @property
+    def Description(self):
+        """ Get the Description property
+        """
+        return self.Resource.Description
+
+    @property
+    def Rate(self):
+        """ Get the component's Rate, the Rate of this resource is returned
+        """
+        return self.Resource.Rate
+
     @property
     def Unit(self):
         """ Get the component's Unit, the Unit of this resource is returned
         """
         if self.Resource:
             return self.Resource.unitName()
+
+    @property
+    def Markup(self):
+        """ Get the markup of this component
+            It is a composite of all the Overhead percentages
+        """
+        composite = 1.0
+        for overhead in self.Overheads:
+            composite = composite*(overhead.Percentage+1.0)
+        return composite-1
+
 
     def overheadsList(self):
         """ Return a list of all the overheads used for this component
@@ -793,95 +871,100 @@ class Component(Node):
                             OrderCost=self.OrderCost,
                             ClaimedCost=self.ClaimedCost,
                             RunningCost=self.RunningCost,
-                            IncomeRecieved=self.IncomeRecieved,
+                            IncomeRecieved=self.IncomeRecieved, # FIXME spelling
                             ClientCost=self.ClientCost,
                             ProjectedProfit=self.ProjectedProfit,
                             ActualProfit=self.ActualProfit)
         return copied
 
-    def paste(self, source, sourcechildren):
-        """ Paste into this Component, make a copy of the resource the
-            component uses and add it the new component
-        """
-        pass
-
-    def getComponents(self):
-        """ A component returns nothing
-        """
-        pass
-
-    def toChildDict(self):
-        """ Returns a dictionary of this node used in the childview
-        """
-        subitem = []
-        return {'Name': self.Name,
-                'Description': self.Description,
-                'ID': self.ID,
-                'Subitem': subitem,
-                'NodeType': self.type,
-                'NodeTypeAbbr' : 'C'}
-
-    def toOrderDict(self):
-        """ Returns a dictionary of this node used in the order tree view
-        """
-        total = self.Quantity*float(self.Rate)
-        return {'Name': self.Name,
-                'ID': self.ID,
-                'id': self.ID,
-                'Quantity': self.Quantity,
-                'Rate': str(self.Rate),
-                'Total': total,
-                'NodeType': self.type,
-                'node_type': self.type,
-                'NodeTypeAbbr' : 'C'}
-
     def toDict(self):
         """ Return a dictionary of all the attributes of this Component
             Also returns a list of the Overhead ID's used by this component
         """
-        overheadlist = []
-        for overhead in self.Overheads:
-            overheadlist.append(overhead.ID)
+        overheadlist = [overhead.ID for overhead in self.Overheads]
         resource = DBSession.query(Resource).filter_by(ID=self.ResourceID).first()
 
-        return {'Name': self.Name,
-                'Quantity': self.Quantity,
-                'ResourceID': self.ResourceID,
-                'ResourceName': resource.Name,
-                'OverheadList': overheadlist,
-                'order_cost': str(self.OrderCost),
-                'run_cost': str(self.RunningCost),
-                'claim_cost': str(self.ClaimedCost),
-                'income_rec': str(self.IncomeRecieved),
-                'client_cost': str(self.ClientCost),
-                'proj_profit': str(self.ProjectedProfit),
-                'act_profit': str(self.ActualProfit)}
+        di = super(Component, self).toDict()
+        di.update({
+            'ResourceID': self.ResourceID,
+            'ResourceName': resource.Name,
+            'OverheadList': overheadlist
+        })
+        return di
 
     def getGridData(self):
         """ Return a dictionary of all the data needed for the slick grid
 
         """
-        return {'name': self.Name,
-            'id': self.ID,
-            'node_type': self.type,
+        di = super(Component, self).getGridData()
+        di.update({
             'overheads': self.overheadsList(),
-            'quantity': self.Quantity,
-            'rate': str(self.Rate),
-            'budg_cost': str(self.Total),
-            'sub_cost':str(self.Subtotal()),
-            'unit': self.Unit,
-            'order_cost': str(self.OrderCost.quantize(Decimal('.01'))),
-            'run_cost': str(self.RunningCost.quantize(Decimal('.01'))),
-            'claim_cost': str(self.ClaimedCost.quantize(Decimal('.01'))),
-            'income_rec': str(self.IncomeRecieved.quantize(Decimal('.01'))),
-            'client_cost': str(self.ClientCost.quantize(Decimal('.01'))),
-            'proj_profit': str(self.ProjectedProfit.quantize(Decimal('.01'))),
-            'act_profit': str(self.ActualProfit.quantize(Decimal('.01')))}
+            'unit': self.Unit
+        })
+        return di
 
     def __repr__(self):
         """ return a representation of this component
         """
         return '<Co(Name="%s", Quantity="%d", ID="%s", ParentID="%s")>' % (
+            self.Name, self.Quantity, self.ID, self.ParentID)
+
+class SimpleComponent(Base, ComponentMixin):
+    """ Similar to Component, but does not reference a resource. For adding
+        simple cost components in ad hoc fashion. """
+    __tablename__ = 'SimpleComponent'
+    ID = Column(Integer, ForeignKey('Node.ID', ondelete='CASCADE'),
+        primary_key=True)
+    Name = Column(Unicode(50))
+    Description = Column(Text(100))
+    _Quantity = Column('Quantity', Float, default=0.0)
+    _Total = Column('Total', Numeric)
+    UnitID = Column(Integer, ForeignKey('Unit.ID'))
+    Type = Column(Unicode(50), ForeignKey('ResourceType.Name'))
+    _Rate = Column('Rate', Numeric, default=Decimal(0.00))
+
+    Unit = relationship('Unit')
+
+    @property
+    def Markup(self):
+        """ Returns zero. No markup on simple components.
+        """
+        return 0.0
+
+    def copy(self, parentid):
+        """ copy returns an exact duplicate of this component,
+            but with the ParentID specified and a copied resource
+        """
+        return SimpleComponent(ParentID=parentid,
+                Name=self.Name,
+                Description=self.Description,
+                _Quantity=self._Quantity,
+                _Total=self._Total,
+                UnitID=self.UnitID,
+                Type=self.Type,
+                _Rate=self._Rate,
+                OrderCost=self.OrderCost,
+                ClaimedCost=self.ClaimedCost,
+                RunningCost=self.RunningCost,
+                IncomeRecieved=self.IncomeRecieved, # FIXME spelling! # FIXME spelling
+                ClientCost=self.ClientCost,
+                ProjectedProfit=self.ProjectedProfit,
+                ActualProfit=self.ActualProfit)
+
+    def getGridData(self):
+        """ Return a dictionary of all the data needed for the slick grid
+
+        """
+        di = super(Component, self).getGridData()
+        di.update({
+            'unit': self.Unit.Name
+        })
+        return di
+
+    def __repr__(self):
+        """ return a representation of this component
+        """
+        return '<SCo(Name="%s", Quantity="%d", ID="%s", ParentID="%s")>' % (
             self.Name, self.Quantity, self.ID, self.ParentID)
 
 
