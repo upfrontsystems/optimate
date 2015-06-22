@@ -32,86 +32,6 @@ function toggleMenu(itemclass) {
     $("li."+itemclass).toggleClass("active");
 }
 
-allControllers.controller('BasicExampleCtrl', ['$scope', function ($scope) {
-      $scope.remove = function(scope) {
-        scope.remove();
-      };
-
-      $scope.toggle = function(scope) {
-        scope.toggle();
-      };
-
-      $scope.moveLastToTheBeginning = function () {
-        var a = $scope.data.pop();
-        $scope.data.splice(0,0, a);
-      };
-
-      $scope.newSubItem = function(scope) {
-        var nodeData = scope.$modelValue;
-        nodeData.nodes.push({
-          id: nodeData.id * 10 + nodeData.nodes.length,
-          title: nodeData.title + '.' + (nodeData.nodes.length + 1),
-          nodes: []
-        });
-      };
-
-      $scope.collapseAll = function() {
-        $scope.$broadcast('collapseAll');
-      };
-
-      $scope.expandAll = function() {
-        $scope.$broadcast('expandAll');
-      };
-
-      $scope.data = [{
-        "id": 1,
-        "title": "node1",
-        "nodes": [
-          {
-            "id": 11,
-            "title": "node1.1",
-            "nodes": [
-              {
-                "id": 111,
-                "title": "node1.1.1",
-                "nodes": []
-              }
-            ]
-          },
-          {
-            "id": 12,
-            "title": "node1.2",
-            "nodes": []
-          }
-        ],
-      }, {
-        "id": 2,
-        "title": "node2",
-        "nodes": [
-          {
-            "id": 21,
-            "title": "node2.1",
-            "nodes": []
-          },
-          {
-            "id": 22,
-            "title": "node2.2",
-            "nodes": []
-          }
-        ],
-      }, {
-        "id": 3,
-        "title": "node3",
-        "nodes": [
-          {
-            "id": 31,
-            "title": "node3.1",
-            "nodes": []
-          }
-        ],
-      }];
-    }]);
-
 // controller for the Company Information data from the server
 allControllers.controller('companyinformationController', ['$scope', '$http', '$modal', '$log', 'globalServerURL',
     function($scope, $http, $modal, $log, globalServerURL) {
@@ -1505,9 +1425,10 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 url: globalServerURL + 'orders',
                 params: {'start':start,
                         'end': end,
-                        'project': $scope.filters.Project,
-                        'client': $scope.filters.Client,
-                        'supplier': $scope.filters.Supplier}
+                        'Project': $scope.filters.Project,
+                        'Client': $scope.filters.Client,
+                        'Supplier': $scope.filters.Supplier,
+                        'OrderNumber': $scope.filters.OrderNumber}
             };
             $http(req).success(function(response) {
                 var length = response.pop();
@@ -1525,9 +1446,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             var req = {
                 method: 'GET',
                 url: globalServerURL + 'orders/filter',
-                params: {'project': $scope.filters.Project,
-                        'client': $scope.filters.Client,
-                        'supplier': $scope.filters.Supplier}
+                params: $scope.filters
             };
             $http(req).success(function(response){
                 if (selection == 'project'){
@@ -1538,9 +1457,14 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                     $scope.projectsList = response['projects'];
                     $scope.supplierList = response['suppliers'];
                 }
-                else {
+                else if (selection == 'supplier'){
                     $scope.clientList = response['clients'];
                     $scope.projectsList = response['projects'];
+                }
+                else{
+                    $scope.projectsList = response['projects'];
+                    $scope.clientList = response['clients'];
+                    $scope.supplierList = response['suppliers'];
                 }
             })
         };
@@ -1583,6 +1507,22 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             }
         };
 
+        // adding an invoice
+        $scope.saveInvoice = function(){
+            if (!$scope.isDisabled){
+                $scope.isDisabled = true;
+                // convert the date to json format
+                $scope.invoiceFormData['Date'] = $scope.date.toJSON();
+                $http({
+                        method: 'POST',
+                        url: globalServerURL + 'invoice/0/',
+                        data: $scope.invoiceFormData
+                    }).success(function (response) {
+                        console.log("Invoice added");
+                    });
+                }
+        }
+
         // add a new order to the list and sort
         $scope.handleNew = function(neworder){
             // the new order is added to the list
@@ -1619,6 +1559,16 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $scope.selectedOrder = obj;
             $('#order-'+obj.ID).addClass('active').siblings().removeClass('active');
         };
+
+        $scope.addingInvoice = function(){
+            $scope.isDisabled = false;
+            $scope.modalState = "Add";
+            $scope.dateTimeNow();
+            // reset the invoice form data
+            $scope.invoiceFormData = {};
+            $scope.invoiceFormData['Date'] = $scope.date;
+            $scope.invoiceFormData['OrderID'] = $scope.selectedOrder.ID;
+        }
 
         // When the Add button is pressed change the state and form data
         $scope.addingState = function (){
