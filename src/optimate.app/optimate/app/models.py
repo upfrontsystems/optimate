@@ -504,13 +504,6 @@ class BudgetItem(Node):
         # return self._Markup
         return 0.0
 
-    @Markup.setter
-    def Markup(self, markup):
-        """ Set the markup value, and change the total accordingly
-        """
-        # self._Markup = markup
-        self.Total = (1.0+self.Markup) * self.Quantity * float(self.Rate)
-
     @property
     def Rate(self):
         """ Get the Rate
@@ -736,24 +729,11 @@ class Component(Node):
         """
         return self.Resource.Name
 
-    @Name.setter
-    def Name(self, name):
-        """ Set this Components Name, which sets the Resource's Name
-        """
-        # FIXME We probably don't want to do this. Raise ImplementedError?
-        self.Resource.Name = name
-
     @property
     def Description(self):
         """ Get the Description property
         """
         return self.Resource.Description
-
-    @Description.setter
-    def Description(self, description):
-        """ Set the Description property
-        """
-        self.Resource.Description = description
 
     @property
     def Markup(self):
@@ -765,26 +745,11 @@ class Component(Node):
             composite = composite*(overhead.Percentage+1.0)
         return composite-1
 
-    @Markup.setter
-    def Markup(self, markup):
-        """ Set the markup value, and change the total accordingly
-        """
-        # self._Markup = markup
-        self.Total = (1.0+self.Markup) * self.Quantity * float(self.Rate)
-
     @property
     def Rate(self):
         """ Get the component's Rate, the Rate of this resource is returned
         """
         return self.Resource.Rate
-
-    @Rate.setter
-    def Rate(self, rate):
-        """ The rate of the component is set by its resource
-            So it cant be set from the component
-        """
-        # change the total when the rate changes
-        self.Total = (1.0+self.Markup) * self.Quantity * float(rate)
 
     @hybrid_property
     def Quantity(self):
@@ -806,12 +771,6 @@ class Component(Node):
         """
         if self.Resource:
             return self.Resource.unitName()
-
-    @Unit.setter
-    def Unit(self, unit):
-        """ The Unit of the component is set by its resource
-        """
-        pass
 
     def overheadsList(self):
         """ Return a list of all the overheads used for this component
@@ -968,10 +927,6 @@ class ResourceCategory(Node):
     @property
     def Total(self):
         return Decimal(0.00)
-
-    @Total.setter
-    def Total(self, total):
-        pass
 
     def getResources(self):
         """ Returns a list of all the resources in this category
@@ -1138,7 +1093,7 @@ class Resource(Node):
         """
         self._Rate = Decimal(rate).quantize(Decimal('.01'))
         for comp in self.Components:
-            comp.Rate = self._Rate
+            comp.resetTotal()
 
     def unitName(self):
         if self.Unit:
@@ -1401,12 +1356,6 @@ class OrderItem(Base):
         """ Return the total. Total is Quantity*Rate
         """
         return (Decimal(self.Quantity)*self.Rate).quantize(Decimal('.01'))
-
-    @Total.setter
-    def Total(self, total):
-        """ Set total property.
-        """
-        pass
 
     def toDict(self):
         """ Returns a dictionary of this OrderItem
