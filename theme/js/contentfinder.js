@@ -1,4 +1,4 @@
-var ContentFinder = function(id, callback, multiselect) {
+var ContentFinder = function(id, search_callback, select_callback, multiselect) {
     // id may be a string, a dom element or a jquery.
     var self = this;
     self.container = $(id);
@@ -14,7 +14,8 @@ var ContentFinder = function(id, callback, multiselect) {
     self.input.attr('value', self.input.attr('data-placeholder'));
     // self.single_backstroke_delete = this.options.single_backstroke_delete || false;
     self.single_backstroke_delete = false;
-    self.callback = callback;
+    self.search_callback = search_callback;
+    self.select_callback = select_callback || (function(){});
     self.opened = false;
 
 
@@ -95,6 +96,7 @@ var ContentFinder = function(id, callback, multiselect) {
                             .click();
                     } else if (self.input.val()) {
                         self.close_dropdown(false);
+                        self.select_callback(null);
                     }
                     break;
 
@@ -175,7 +177,7 @@ ContentFinder.prototype.selected_uids = function() {
 
 ContentFinder.prototype.listdir = function(id) {
     var self = this;
-    self.callback(id).then(function(response){
+    self.search_callback(id).then(function(response){
         self._listdir(response.data);
     }, function(){
         alert('Cannot list folder contents');
@@ -184,7 +186,7 @@ ContentFinder.prototype.listdir = function(id) {
 
 ContentFinder.prototype.search = function(search){
     var self = this;
-    self.callback(null, search).then(function(response){
+    self.search_callback(null, search).then(function(response){
         self._listdir(response.data);
     }, function(){
         alert('Cannot search');
@@ -268,6 +270,8 @@ ContentFinder.prototype.select_item = function(uid) {
         item = self.data.items[i];
         if (item.uid === uid) {
             self.selecteditems.push(item);
+            self.select_callback(item);
+            break;
         }
     }
 };
@@ -295,8 +299,8 @@ ContentFinder.prototype.result_click = function(item) {
         self.dropdown.find('.selected').removeClass('selected');
         self.clear_selection();
         item.addClass('selected');
-        self.select_item(item.data('uid'));
         self.close_dropdown();
+        self.select_item(item.data('uid'));
         self.input.val('');
     } else {
         // remove item from list if it was deselected
@@ -317,6 +321,7 @@ ContentFinder.prototype.result_click = function(item) {
             self.select_item(item.data('uid'));
             item.addClass('selected');
         }
+        self.input.focus();
     }
 
     // add selections to search input
@@ -335,8 +340,6 @@ ContentFinder.prototype.result_click = function(item) {
     }
     $('.search-choice', self.choices).remove();
     self.choices.prepend($html);
-    self.input.focus();
-
     self.resize();
 };
 
