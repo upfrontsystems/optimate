@@ -26,3 +26,7 @@ td.level7 {
 td.level8 {
     padding-left: 56px;
 }
+
+div#pageNumber {
+    text-align: center;
+}

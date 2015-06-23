@@ -1,6 +1,19 @@
 <html>
 
     <link rel="stylesheet" tal:attributes="href string:${request.application_url}/static/css/reports.css">
+    <span tal:replace='structure string:<style>'/>
+        /* The default style */
+        @page {
+            @frame {
+                margin: 2cm;
+            }
+            @frame footer {
+                -pdf-frame-content: pageNumber;
+                height: 1cm;
+                bottom: 1cm;
+            }
+        }
+    <span tal:replace='structure string:</style>'/>
 
 <body>
     <h1>Project Budget for ${project_name}</h1>
@@ -15,14 +28,23 @@
         </tr>
         <tr></tr>
         <tr tal:repeat="node nodes">
-            <td class="${node[1]} ${node[2]}" style="width: 450px">${node[0].Name}
-            </td>
+            <tal:entry tal:condition="node">
+                <td class="${node[1]} ${node[2]}" style="width: 450px" tal:content="node[0].Name|nothing">
+                </td>
+            </tal:entry>
+            <tal:seperator tal:condition="node == None">
+                <td>&nbsp;</td>
+            </tal:seperator>
             <td style="width: 70px; text-align:right" tal:content="node[0].Unit|nothing" ></td>
             <td style="width: 70px; text-align:right" tal:content="node[0].Quantity|nothing" ></td>
             <td style="width: 70px; text-align:right" tal:content="node[0].Rate|nothing" ></td>
-            <td style="width: 70px; text-align:right" tal:content="node[0].Total|nothing" ></td>
+            <td style="width: 70px; text-align:right" tal:content="node[0].Total|nothing" ></td>            
         </tr>
     </table>
+
+    <div id="pageNumber">
+        <pdf:pagenumber>
+    </div>
 
 </body>
 </html>
