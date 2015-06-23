@@ -25,12 +25,13 @@ var ContentFinder = function(id, callback, multiselect) {
         self.dropdown.css({'left': 0});
         self.opened = true;
     };
-    self.close_dropdown = function() {
+    self.close_dropdown = function(focus) {
+        focus = (focus === undefined)?true:Boolean(focus);
         self.opened = false;
         if (self.input.attr('value') === '') {
             self.input.attr('value', self.input.attr('data-placeholder'));
         }
-        self.input.focus();
+        if(focus){ self.input.focus(); }
         self.dropdown.css({'left': -9000});
     };
 
