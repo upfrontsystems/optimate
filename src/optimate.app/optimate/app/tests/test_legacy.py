@@ -699,6 +699,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         # Add the default data using json in the request
         request = testing.DummyRequest(json_body={
             'Name': 'TestResource',
+            'uid': 18,
             'Description': 'Test resource',
             'Quantity': 4,
             'NodeType': 'Component',
@@ -793,6 +794,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         # Add a component
         request = testing.DummyRequest(json_body={
             'Name': 'AddingNewResource',
+            'uid': resid,
             'Description': 'Adding test item',
             'NodeType': 'Component',
             'Quantity': 10.0,
