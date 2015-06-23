@@ -94,8 +94,7 @@ var ContentFinder = function(id, callback, multiselect) {
                             .first()
                             .click();
                     } else if (self.input.val()) {
-                        // Do a search
-                        self.search(self.input.val());
+                        self.close_dropdown(false);
                     }
                     break;
 
@@ -106,6 +105,8 @@ var ContentFinder = function(id, callback, multiselect) {
 
 
                 default:
+                    // On typing, open the dropdown if it is closed
+                    if (!self.opened){ self.open_dropdown(); }
                     // Kill any pending search if new keys arrive
                     if (self.input_timeout !== null){
                         clearTimeout(self.input_timeout);
@@ -296,6 +297,7 @@ ContentFinder.prototype.result_click = function(item) {
         item.addClass('selected');
         self.select_item(item.data('uid'));
         self.close_dropdown();
+        self.input.val('');
     } else {
         // remove item from list if it was deselected
         if (item.hasClass('selected')) {
