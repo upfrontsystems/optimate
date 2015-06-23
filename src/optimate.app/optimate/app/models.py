@@ -657,9 +657,13 @@ class ComponentMixin(object):
             self.Quantity * float(self.Rate)).quantize(Decimal('.01'))
         return self._Total
 
-    def resetTotal(self):
-        """ The total of a component is based on its rate and quantity
+    def resetTotal(self, rate=None):
+        """ The total of a component is based on its rate and quantity.
+            Optional rate parameter is there to avoid repeated lookups of
+            self.Rate, which involves looking up the referenced Resource.
         """
+        if rate is None:
+            rate = self.Rate
         # After the total is set the total property is updated
         self.Total = Decimal((1.0+self.Markup) *
             self.Quantity * float(self.Rate)).quantize(Decimal('.01'))
@@ -1176,7 +1180,7 @@ class Resource(Node):
         """
         self._Rate = Decimal(rate).quantize(Decimal('.01'))
         for comp in self.Components:
-            comp.resetTotal()
+            comp.resetTotal(self._Rate)
 
     def unitName(self):
         if self.Unit:
