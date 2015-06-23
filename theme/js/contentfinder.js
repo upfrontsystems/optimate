@@ -96,7 +96,7 @@ var ContentFinder = function(id, search_callback, select_callback, multiselect) 
                             .click();
                     } else if (self.input.val()) {
                         self.close_dropdown(false);
-                        self.select_callback(null);
+                        self.select_callback(self.input.val());
                     }
                     break;
 
@@ -290,6 +290,7 @@ ContentFinder.prototype.deselect_item = function(uid) {
 ContentFinder.prototype.clear_selection = function() {
     $('.search-choice', this.choices).remove();
     this.selecteditems = [];
+    this.select_callback(null);
 };
 
 ContentFinder.prototype.result_click = function(item) {
@@ -344,17 +345,12 @@ ContentFinder.prototype.result_click = function(item) {
 };
 
 ContentFinder.prototype.choice_destroy = function(link) {
-    var uid = link.parent().parent().data('uid');
+    var uid = link.parent().data('uid');
     link.parent().remove();
-    el = $('li.active-result[data-uid="' + uid + '"]');
-    // only trigger result_click if the selected item is in the
-    // of selected results
-    if (el.length === 0) {
-        this.deselect_item(uid);
-        this.resize();
-    } else {
-        this.result_click(el);
-    }
+    this.deselect_item(uid);
+    this.resize();
+    // When nothing is selected, communicate that to the powers above.
+    if (!this.selecteditems.length) { this.select_callback(null); }
 };
 
 ContentFinder.prototype.keydown_backstroke = function() {
