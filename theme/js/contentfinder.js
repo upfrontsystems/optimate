@@ -280,6 +280,7 @@ ContentFinder.prototype.result_click = function(item) {
         self.clear_selection();
         item.addClass('selected');
         self.select_item(item.data('uid'));
+        self.close_dropdown();
     } else {
         // remove item from list if it was deselected
         if (item.hasClass('selected')) {
