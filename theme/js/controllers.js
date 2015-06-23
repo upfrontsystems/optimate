@@ -598,6 +598,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         // load the project that has been selected into the tree
         $scope.loadProject = function () {
             var id = $('#project-select').find(":selected").val()
+            console.log(id)
             var url = globalServerURL + 'node/' + id + '/'
             $http.get(url).success(function(data) {
                 if (!(containsObject(data, $scope.projectsRoot.Subitem))) {
@@ -1191,13 +1192,25 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }
         }
 
+        $scope.budgetgroupList = [];
+
         $scope.loadComponentTypes = function() {
             var ctypes = [
                 { Name:"Labour", selected:true },
                 { Name:"Material", selected:true },
                 { Name:"Subcontractor", selected:true }];
             $scope.componentTypeList = ctypes
-                console.log("Component Type list loaded");
+            $scope.printSelectedBudgetGroups = false;
+            console.log("Component Type list loaded");
+        };
+
+        $scope.openNodeList = [];
+        // load the node that has been selected into the tree for pdf printing
+        $scope.loadNodeForPrinting = function (id) {
+            $http.get(globalServerURL + 'node/' + id + '/')
+            .success(function(data) {
+                $scope.openNodeList = [data];
+            });
         };
 
         $scope.getReport = function (report, nodeid) {
@@ -1205,6 +1218,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 var target = document.getElementsByClassName('pdf_download');
                 var spinner = new Spinner().spin(target[0]);
                 $scope.formData['ComponentTypeList'] = $scope.componentTypeList || [];
+                $scope.formData['PrintSelectedBudgerGroups'] = $scope.printSelectedBudgetGroups;
+                $scope.formData['BudgetGroupList'] = $scope.budgetgroupList || [];
                 $http({
                     method: 'POST',
                     url: globalServerURL + 'project_budget_report/' + nodeid + '/',
@@ -1212,6 +1227,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     {responseType: 'arraybuffer'
                 }).success(function (response, status, headers, config) {
                     spinner.stop(); // stop the spinner - ajax call complete
+                    $scope.budgetgroupList = [] // clear selected budget group list 
                     var file = new Blob([response], {type: 'application/pdf'});
                     var fileURL = URL.createObjectURL(file);
                     var result = document.getElementsByClassName("pdf_hidden_download");
@@ -1260,6 +1276,44 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 }).error(function(data, status, headers, config) {
                     console.log("Resource list pdf download error")
                 });
+            }
+        };
+
+        $scope.toggleBudgetgroup = function(bgroup) {
+            // set the budgetgroup selected or unselected
+            var flag = (bgroup.selected === true) ? undefined : true;
+            bgroup.selected = flag;
+            // find the budgetgroup in the budgetgroup list
+            var i = $scope.budgetgroupList.map(function(e)
+                { return e.id; }).indexOf(bgroup.ID);
+            // if the budgetgroup is already in the list
+            // and the node is deselected
+            if ((i>-1) &(!flag)){
+                // remove it
+                $scope.budgetgroupList.splice(i, 1);
+            }
+            // if the budget group is not in the list
+            // and the node is being selected
+            else if ((i==-1) & flag){
+                // add the budgetgroup
+                $scope.budgetgroupList.push(bgroup);
+            }
+        }
+
+        // if node head clicks, get the children of the node
+        // and collapse or expand the node
+        $scope.selectNodeHead = function(selectedNode) {
+            // if the node is collapsed, get the data and expand the node
+            if (!selectedNode.collapsed){
+                selectedNode.collapsed = true;
+                var parentid = selectedNode.ID;
+                $http.get(globalServerURL + "reports/tree/" + parentid + '/').success(function(data) {
+                    selectedNode.Subitem = data;
+                    console.log("Children loaded");
+                });
+            }
+            else{
+                selectedNode.collapsed = false;
             }
         };
 
@@ -1732,7 +1786,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             }
         }
 
-        $scope.toggleNode= function(node){
+        $scope.toggleNode = function(node){
             // when a node that is not a component is selected
             // flag the node, set the selection on all its children
             // load the components in the node and toggle them in the
