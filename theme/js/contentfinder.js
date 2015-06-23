@@ -10,6 +10,7 @@ var ContentFinder = function(id, callback, multiselect) {
     self.dropdown = $('.finder-dropdown', self.container);
     self.results = $('.finder-results', self.container);
     self.input = $('.search-field input', self.container);
+    self.input_timeout = null;
     self.input.attr('value', self.input.attr('data-placeholder'));
     // self.single_backstroke_delete = this.options.single_backstroke_delete || false;
     self.single_backstroke_delete = false;
@@ -105,6 +106,19 @@ var ContentFinder = function(id, callback, multiselect) {
 
 
                 default:
+                    // Kill any pending search if new keys arrive
+                    if (self.input_timeout !== null){
+                        clearTimeout(self.input_timeout);
+                        self.input_timeout = null;
+                    }
+                    // Give the user half a second to type more of the search
+                    // term
+                    self.input_timeout = setTimeout(function(){
+                        if(self.input.val().length > 0){
+                            self.search(self.input.val());
+                        }
+                    }, 500);
+                    // Skip the preventDefault below.
                     return true;
             }
             evt.preventDefault();
