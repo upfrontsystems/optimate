@@ -249,6 +249,7 @@ def additemview(request):
     elif objecttype == 'Component':
         # Components need to reference a Resource
         # that already exists in the resource category
+        uid = request.json_body['uid']
         parent = DBSession.query(Node).filter_by(ID=parentid).first()
         rootparentid = parent.getProjectID()
         resourcecategory = DBSession.query(
@@ -256,7 +257,7 @@ def additemview(request):
                 ParentID=rootparentid).first()
 
         reslist = resourcecategory.getResources()
-        new_list = [x for x in reslist if x.Name == name]
+        new_list = [x for x in reslist if x.ID == uid]
         # get the resource used by the component
         resource = new_list[0]
 

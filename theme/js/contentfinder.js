@@ -145,6 +145,7 @@ var ContentFinder = function(id, callback, multiselect) {
     // Remove items from choice box if you click the X
     self.choices.on('click', 'a.search-choice-close', function(e){
         self.choice_destroy($(this));
+        e.preventDefault(); e.stopPropagation();
     });
 };
 
@@ -303,30 +304,37 @@ ContentFinder.prototype.result_click = function(item) {
     }
 
     // add selections to search input
+    $html = $();
     for (i=0; i < this.selecteditems.length; i++) {
-        item = this.selecteditems[i];
-        html.push('<li class="search-choice" title="' + item.title + '"><span class="selected-resource">' + item.title + '</span><a href="javascript:void(0)" class="search-choice-close" rel="3" data-uid="' + item.uid + '"></a></li>');        
+        var j = this.selecteditems[i];
+        var $li = $('<span>').addClass('selected-resource').text(j.title)
+            .add('<a>').last() // anchor sibling
+            .addClass('search-choice-close').attr('rel', 3).end() // back to span
+            .appendTo('<li>').parent()
+            .addClass('search-choice').attr('title', j.title)
+            .data('uid', j.uid);
+
+        $html = $html.add($li);
+        //html.push('<li class="search-choice" title="' + item.title + '"><span class="selected-resource">' + item.title + '</span><a href="javascript:void(0)" class="search-choice-close" rel="3" data-uid="' + item.uid + '"></a></li>');
     }
     $('.search-choice', self.choices).remove();
-    self.choices.prepend(html.join(''));
+    self.choices.prepend($html);
     self.input.focus();
 
     self.resize();
 };
 
 ContentFinder.prototype.choice_destroy = function(link) {
-    var self = this,
-        uid = link.attr('data-uid');
+    var uid = link.parent().parent().data('uid');
     link.parent().remove();
     el = $('li.active-result[data-uid="' + uid + '"]');
     // only trigger result_click if the selected item is in the
     // of selected results
     if (el.length === 0) {
-        self.deselect_item(uid);
-        self.resize();
-    }
-    else {
-        self.result_click(el);
+        this.deselect_item(uid);
+        this.resize();
+    } else {
+        this.result_click(el);
     }
 };
 

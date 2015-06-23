@@ -988,8 +988,11 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
         // Add the selected resource from the list to the form data as name
         $scope.selectedResource = function(){
-            var name = $('#related_items_finder .finder-choices .search-choice .selected-resource').html();
+            var selected = $('#related_items_finder .finder-choices .search-choice .selected-resource');
+                name = selected.text(),
+                uid = selected.parent().data('uid');
             $scope.formData['Name'] = name;
+            $scope.formData['uid'] = uid;
         };
 
         // When the addNode button is clicked on the modal a new node
@@ -1076,6 +1079,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 if (nodetype == 'Component') {
                     // update resource
                     // remove any old remembered choices from last time
+                    // FIXME this is yucky!
                     $('.search-choice').remove();
                     var resource_html = '<li title="undefined" class="search-choice">' +
                                         '<span class="selected-resource">' + $scope.formData['ResourceName'] +
