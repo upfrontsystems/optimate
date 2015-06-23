@@ -598,7 +598,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         // load the project that has been selected into the tree
         $scope.loadProject = function () {
             var id = $('#project-select').find(":selected").val()
-            console.log(id)
             var url = globalServerURL + 'node/' + id + '/'
             $http.get(url).success(function(data) {
                 if (!(containsObject(data, $scope.projectsRoot.Subitem))) {
