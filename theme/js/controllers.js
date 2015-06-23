@@ -1301,7 +1301,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
         // if node head clicks, get the children of the node
         // and collapse or expand the node
-        $scope.selectNodeHead = function(selectedNode) {
+        $scope.selectReportNodeHead = function(selectedNode) {
             // if the node is collapsed, get the data and expand the node
             if (!selectedNode.collapsed){
                 selectedNode.collapsed = true;
