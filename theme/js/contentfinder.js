@@ -324,8 +324,11 @@ ContentFinder.prototype.result_click = function(item) {
         }
         self.input.focus();
     }
+    self.update_selection();
+};
 
-    // add selections to search input
+ContentFinder.prototype.update_selection = function(){
+    // repaints the search input to include items in selecteditems
     $html = $();
     for (i=0; i < this.selecteditems.length; i++) {
         var j = this.selecteditems[i];
@@ -337,11 +340,10 @@ ContentFinder.prototype.result_click = function(item) {
             .data('uid', j.uid);
 
         $html = $html.add($li);
-        //html.push('<li class="search-choice" title="' + item.title + '"><span class="selected-resource">' + item.title + '</span><a href="javascript:void(0)" class="search-choice-close" rel="3" data-uid="' + item.uid + '"></a></li>');
     }
-    $('.search-choice', self.choices).remove();
-    self.choices.prepend($html);
-    self.resize();
+    $('.search-choice', this.choices).remove();
+    this.choices.prepend($html);
+    this.resize();
 };
 
 ContentFinder.prototype.choice_destroy = function(link) {
