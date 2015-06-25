@@ -1709,7 +1709,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         // When the Add button is pressed change the state and form data
         $scope.addingState = function (){
             $scope.formData = {'NodeType': 'order',
-                                'TaxRate': false};
+                                'TaxRate': true};
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
             $scope.modalState = "Add";
