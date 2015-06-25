@@ -32,6 +32,7 @@ from optimate.app.models import (
     BudgetGroup,
     BudgetItem,
     Component,
+    SimpleComponent,
     ResourceType,
     ResourceCategory,
     Resource,
@@ -247,35 +248,49 @@ def additemview(request):
         DBSession.add(newresourcecat)
         DBSession.flush()
     elif objecttype == 'Component':
-        # Components need to reference a Resource
-        # that already exists in the resource category
-        uid = request.json_body['uid']
-        parent = DBSession.query(Node).filter_by(ID=parentid).first()
-        rootparentid = parent.getProjectID()
-        resourcecategory = DBSession.query(
-                ResourceCategory).filter_by(
-                ParentID=rootparentid).first()
+        # Components need to reference a Resource. If they don't, we create
+        # a SimpleComponent instead.
+        uid = request.json_body.get('uid', None)
+        if uid is None:
+            rate = request.json_body.get('Rate', 0)
+            rate = Decimal(rate).quantize(Decimal('.01'))
 
-        reslist = resourcecategory.getResources()
-        new_list = [x for x in reslist if x.ID == uid]
-        # get the resource used by the component
-        resource = new_list[0]
+            newcomp = SimpleComponent(
+                ParentID=parentid,
+                Name=request.json_body['Name'],
+                Description=request.json_body['Description'],
+                _Quantity=quantity,
+                _Rate=rate,
+                Type=request.json_body['ResourceType'])
+            DBSession.add(newcomp)
+            DBSession.flush()
+        else:
+            parent = DBSession.query(Node).filter_by(ID=parentid).first()
+            rootparentid = parent.getProjectID()
+            resourcecategory = DBSession.query(
+                    ResourceCategory).filter_by(
+                    ParentID=rootparentid).first()
 
-        newcomp = Component(ResourceID=resource.ID,
-                            _Quantity = quantity,
-                            ParentID=parentid)
+            reslist = resourcecategory.getResources()
+            new_list = [x for x in reslist if x.ID == uid]
+            # get the resource used by the component
+            resource = new_list[0]
 
-        DBSession.add(newcomp)
-        DBSession.flush()
+            newcomp = Component(ResourceID=resource.ID,
+                                _Quantity = quantity,
+                                ParentID=parentid)
 
-        # get the list of overheads used in the checkboxes
-        checklist = request.json_body['OverheadList']
-        for record in checklist:
-            if record['selected']:
-                overheadid = record['ID']
-                overhead = DBSession.query(
-                            Overhead).filter_by(ID=overheadid).first()
-                newcomp.Overheads.append(overhead)
+            DBSession.add(newcomp)
+            DBSession.flush()
+
+            # get the list of overheads used in the checkboxes
+            checklist = request.json_body['OverheadList']
+            for record in checklist:
+                if record['selected']:
+                    overheadid = record['ID']
+                    overhead = DBSession.query(
+                                Overhead).filter_by(ID=overheadid).first()
+                    newcomp.Overheads.append(overhead)
     else:
         if objecttype == 'BudgetGroup':
             newnode = BudgetGroup(Name=name,
@@ -334,19 +349,19 @@ def edititemview(request):
         project.FileNumber=filenumber
 
     elif objecttype == 'Component':
+        uid = request.json_body['uid']
         component = DBSession.query(Component).filter_by(ID=nodeid).first()
 
         # if the name is different from current name, get the new resource
-        if component.Name != name:
+        if component.Resource.ID != uid:
+            # A different resource was linked to this component
             rootparentid = component.getProjectID()
             resourcecategory = DBSession.query(
                 ResourceCategory).filter_by(
                 ParentID=rootparentid).first()
             reslist = resourcecategory.getResources()
-            new_list = [x for x in reslist if x.Name == name]
-            # get the resource used by the component
-            resource = new_list[0]
-            component.ResourceID = resource.ID
+            assert uid in [x.ID for x in reslist], "Invalid resource id"
+            component.ResourceID = uid
 
         component._Quantity=quantity
         component.Overheads[:] = []
@@ -361,6 +376,17 @@ def edititemview(request):
                 newoverheads.append(overhead)
         component.Overheads = newoverheads
         component.resetTotal()
+
+    elif objecttype == 'SimpleComponent':
+        rate = request.json_body.get('Rate', 0)
+        rate = Decimal(rate).quantize(Decimal('.01'))
+        component = DBSession.query(SimpleComponent).filter_by(
+            ID=nodeid).first()
+        component.Name = name
+        component.Description = desc
+        component._Quantity=quantity
+        component._Rate=rate
+        component.Type=request.json_body['ResourceType']
 
     elif objecttype == 'BudgetGroup':
         budgetgroup = DBSession.query(BudgetGroup).filter_by(ID=nodeid).first()
@@ -476,6 +502,9 @@ def project_resources(request):
                 "path": [{ "url": None, "title": u'Search results', "uid": None }],
                 "items": [{
                     'title': item.Name,
+                    'description': item.Description.strip(),
+                    'rate': str(item.Rate),
+                    'type': item.Type,
                     'uid': item.ID,
                     'normalized_type': item.type == 'ResourceCategory' and 'folder' or 'document',
                     'folderish': item.type == 'ResourceCategory',
@@ -491,12 +520,17 @@ def project_resources(request):
             "items": []
         }
 
-    items = [{
+    l = lambda i, rate, type: (rate is not None) and dict(i, rate=str(rate), type=type) or i
+    items = [l({
         'title': item.Name,
+        'description': item.Description.strip(),
         'uid': item.ID,
         'normalized_type': item.type == 'ResourceCategory' and 'folder' or 'document', # FIXME
         'folderish': item.type == 'ResourceCategory',
-    } for item in sorted(resourcecategory.Children, key=lambda o: o.Name.upper())]
+    }, getattr(
+        item, 'Rate', None), getattr(
+        item, 'Type', None)) for item in sorted(
+        resourcecategory.Children, key=lambda o: o.Name.upper())]
 
     def pathlist(node):
         p = node.Parent
@@ -610,9 +644,11 @@ def node_grid(request):
     # Filter out all the Budgetitems and Components
     # Test if the result is the same length as the query
     # Therefore there will be empty columns
-    emptyresult = DBSession.query(Node).filter(Node.ParentID==parentid,
-                                            Node.type != 'BudgetItem',
-                                            Node.type != 'Component').all()
+    emptyresult = DBSession.query(Node).filter(
+            Node.ParentID==parentid,
+            Node.type != 'BudgetItem',
+            Node.type != 'Component',
+            Node.type != 'SimpleComponent').all()
     emptycolumns = len(emptyresult) == len(qry)
 
     # put the ResourceCategories in another list that is appended first
@@ -662,6 +698,15 @@ def node_update_value(request):
                 return {'total': newtotal, 'subtotal': newsubtotal}
             except ValueError, e:
                 print e
+    elif result.type == 'SimpleComponent':
+        if 'quantity' in request.json_body or 'rate' in request.json_body:
+            if 'quantity' in request.json_body:
+                result.Quantity = float(request.json_body['quantity'])
+            if 'rate' in request.json_body:
+                result.Rate = float(request.json_body['rate'])
+            return {
+                'total': str(result.Total), 'subtotal': str(result.Subtotal())
+            }
 
 
 @view_config(route_name="node_paste", renderer='json')
