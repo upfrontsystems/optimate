@@ -972,6 +972,10 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     $scope.formData = {'NodeType':$scope.formData['NodeType']};
                     sharedService.reloadSlickgrid(currentid);
                     $scope.loadNodeChildren(currentid);
+                    // expand the node if this is its first child
+                    if ($scope.currentNode.Subitem.length == 0){
+                        $scope.currentNode.collapsed = true;
+                    }
                     console.log("Node added");
                 });
             }
