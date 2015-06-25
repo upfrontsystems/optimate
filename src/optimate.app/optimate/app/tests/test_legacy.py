@@ -1622,5 +1622,5 @@ class TestInvoicedAmountViewSuccessCondition(unittest.TestCase):
         from optimate.app.views import nodeview
         response = nodeview(request)
         invoiced = response['Invoiced']
-        # the new order total should be the same as the project ordered total
+        # the new invoiced amount should be the same as the invoice amount
         self.assertEqual(invoiced, '124.00')
