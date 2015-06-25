@@ -175,7 +175,7 @@ def resourcelist(request):
 
     # inject node data into template
     nodes = []
-    if filter_by_supplier:
+    if filter_by_supplier and 'Supplier' in request.json_body:
         supplier = request.json_body['Supplier']
         nodes = all_resources(project, [], 0, supplier)
     else:
