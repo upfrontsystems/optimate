@@ -44,7 +44,8 @@ from optimate.app.models import (
     CompanyInformation,
     User,
     Order,
-    OrderItem
+    OrderItem,
+    Invoice
 )
 
 # the categories the resources fall into
@@ -106,7 +107,7 @@ def auth(request):
 
 @view_config(route_name="rootview", renderer='json')
 @view_config(route_name="node_children", renderer='json')
-def childview(request):
+def node_children(request):
     """ This view is for when the user requests the children of an item.
         The parent's id is derived from the path of the request,
         or if there is no id in the path the root id '0' is assumed.
@@ -184,7 +185,10 @@ def nodeview(request):
     # otherwise return the node
     nodeid = request.matchdict['id']
     qry = DBSession.query(Node).filter_by(ID=nodeid).first()
-    return qry.toDict()
+    if qry:
+        return qry.toDict()
+    else:
+        return HTTPNotFound()
 
 
 def additemview(request):
@@ -198,6 +202,7 @@ def additemview(request):
     name = request.json_body['Name']
     desc = request.json_body.get('Description', '')
     quantity = float(request.json_body.get('Quantity', 0))
+    itemquantity = float(request.json_body.get('ItemQuantity', 0))
     rate = request.json_body.get('Rate', 0)
     rate = Decimal(rate).quantize(Decimal('.01'))
     resourcetype = request.json_body.get('ResourceType', '')
@@ -230,6 +235,14 @@ def additemview(request):
         DBSession.add(newnode)
         DBSession.flush()
         newid = newnode.ID
+        # generate a code for the resource
+        if len(name) < 3:
+            name = name.upper() + (3-len(name))*'X'
+        else:
+            name = name[:3].upper()
+        numerseq = '0'*(4-len(str(newid))) + str(newid)
+        finalcode = name+numerseq
+        newnode.Code = finalcode
     elif objecttype == 'Project':
         newnode = Project(Name=name,
                         Description=desc,
@@ -275,10 +288,9 @@ def additemview(request):
             new_list = [x for x in reslist if x.ID == uid]
             # get the resource used by the component
             resource = new_list[0]
-
             newcomp = Component(ResourceID=resource.ID,
-                                _Quantity = quantity,
-                                ParentID=parentid)
+                            _ItemQuantity=itemquantity,
+                            ParentID=parentid)
 
             DBSession.add(newcomp)
             DBSession.flush()
@@ -300,6 +312,7 @@ def additemview(request):
             newnode = BudgetItem(Name=name,
                             Description=desc,
                             _Quantity = quantity,
+                            _ItemQuantity = itemquantity,
                             ParentID=parentid)
         elif objecttype == 'ResourceCategory':
             newnode = ResourceCategory(Name=name,
@@ -364,6 +377,7 @@ def edititemview(request):
             component.ResourceID = uid
 
         component._Quantity=quantity
+        component._ItemQuantity=request.json_body.get('ItemQuantity', 0.0)
         component.Overheads[:] = []
 
         # get the list of overheads used in the checkboxes
@@ -398,6 +412,7 @@ def edititemview(request):
         budgetitem.Name=name
         budgetitem.Description=desc
         budgetitem.Quantity=quantity
+        budgetitem.ItemQuantity=request.json_body.get('ItemQuantity', 0.0)
 
     elif objecttype == 'ResourceCategory':
         resourcecategory = DBSession.query(ResourceCategory).filter_by(ID=nodeid).first()
@@ -597,18 +612,6 @@ def project_overheads(request):
                             'Percentage': str(overhead.Percentage*100.0),
                             'ID': overhead.ID})
         return sorted(overheadlist, key=lambda k: k['Name'].upper())
-    elif request.method == 'DELETE':
-        deleteid = request.matchdict['id']
-        # Deleting it from the table deleted the object
-        deletethis = DBSession.query(
-            Overhead).filter_by(ID=deleteid).first()
-        qry = DBSession.delete(deletethis)
-
-        if qry == 0:
-            return HTTPNotFound()
-        transaction.commit()
-
-        return HTTPOk()
     elif request.method == 'POST':
         projectid = request.matchdict['id']
         name = request.json_body['Name']
@@ -619,6 +622,24 @@ def project_overheads(request):
                                 ProjectID =projectid)
         DBSession.add(newoverhead)
         transaction.commit()
+        return HTTPOk()
+
+@view_config(route_name="overheadview",renderer='json')
+def overheadview(request):
+    """ Perform operations on the Overheads in the database depending in the
+        HTTP method
+    """
+    if request.method == 'DELETE':
+        deleteid = request.matchdict['id']
+        # Deleting it from the table deletes the object
+        deletethis = DBSession.query(
+            Overhead).filter_by(ID=deleteid).first()
+        qry = DBSession.delete(deletethis)
+
+        if qry == 0:
+            return HTTPNotFound()
+        transaction.commit()
+
         return HTTPOk()
 
 
@@ -680,34 +701,28 @@ def node_update_value(request):
     """
     nodeid = request.matchdict['id']
     result = DBSession.query(Node).filter_by(ID=nodeid).first()
-    if result.type in ['Resource']:
-        # update the data - only rate can be modified
+    # only a resource's rate can be modified
+    if result.type == 'Resource':
         if request.params.get('rate') != None:
-            try:
-                result.Rate = float(request.params.get('rate'))
-            except ValueError:
-                pass # do not do anything
-    elif result.type in ['BudgetItem', 'Component']:
-        # update the data - only quantity can be modified
-        if 'quantity' in request.json_body.keys():
-            try:
-                result.Quantity = float(request.json_body['quantity'])
-                newtotal = str(result.Total)
-                newsubtotal = str(result.Subtotal())
-                # return the new total
-                return {'total': newtotal, 'subtotal': newsubtotal}
-            except ValueError, e:
-                print e
-    elif result.type == 'SimpleComponent':
-        if 'quantity' in request.json_body or 'rate' in request.json_body:
-            if 'quantity' in request.json_body:
-                result.Quantity = float(request.json_body['quantity'])
-            if 'rate' in request.json_body:
-                result.Rate = float(request.json_body['rate'])
-            return {
-                'total': str(result.Total), 'subtotal': str(result.Subtotal())
-            }
-
+            result.Rate = request.params.get('rate')
+            return HTTPOk()
+    # a budgetitems quantity or itemquantity can be modified
+    elif result.type == 'BudgetItem':
+        newtotal = None
+        if request.params.get('quantity') != None:
+            result.Quantity = float(request.params.get('quantity'))
+            newtotal = str(result.Total)
+        if request.params.get('itemquantity') != None:
+            result.ItemQuantity = float(request.params.get('quantity'))
+            newtotal = str(result.Total)
+        return {'total': newtotal, 'subtotal': None}
+    # only a components itemquantity can be modified
+    elif result.type == 'Component':
+        if request.params.get('itemquantity') != None:
+            result.ItemQuantity = float(request.params.get('itemquantity'))
+            newtotal = str(result.Total)
+            newsubtotal = str(result.Subtotal)
+            return {'total': newtotal, 'subtotal': newsubtotal}
 
 @view_config(route_name="node_paste", renderer='json')
 def node_paste(request):
@@ -762,6 +777,23 @@ def node_paste(request):
                     if component.ResourceID in copiedresourceIds:
                         component.ResourceID = copiedresourceIds[
                                                     component.ResourceID]
+
+                # copy the overheads the components use into the project
+                overheadids = {}
+                for component in sourcecomponents:
+                    newoverheads = []
+                    for overhead in component.Overheads:
+                        if overhead.ID not in overheadids.keys():
+                            newoverhead = overhead.copy(destprojectid)
+                            DBSession.add(newoverhead)
+                            DBSession.flush()
+                            overheadids[overhead.ID] = newoverhead
+                            newoverheads.append(newoverhead)
+                        else:
+                            newoverheads.append(overheadids[overhead.ID])
+                    component.Overheads[:] = []
+                    component.Overheads = newoverheads
+
             # set the source parent to the destination parent
             source.ParentID = destinationid
             transaction.commit()
@@ -808,6 +840,22 @@ def node_paste(request):
                         if component.ResourceID in copiedresourceIds:
                             component.ResourceID = copiedresourceIds[
                                                         component.ResourceID]
+
+                    # # copy the overheads the components use into the project
+                    # overheadids = {}
+                    # for component in sourcecomponents:
+                    #     for overhead in component.Overheads:
+                    #         if overhead.ID not in overheadids.keys():
+                    #             newoverhead = overhead.copy(destprojectid)
+                    #             DBSession.add(newoverhead)
+                    #             DBSession.flush()
+                    #             overheadids[overhead.ID] = newoverhead
+
+                    # for component in destcomponents:
+                    #     for overhead in component.Overheads:
+                    #         if overhead.ID in overheadids.keys():
+                    #             # replace the overhead with the copied one
+
         # reset the total
         if parentid != 0:
             reset = DBSession.query(Node).filter_by(ID=parentid).first()
@@ -1024,7 +1072,6 @@ def company_information(request):
                                  DefaultTaxrate='14.00')
         DBSession.add(company_information)
         DBSession.flush()
-        transaction.commit()
         qry = DBSession.query(CompanyInformation).filter_by(ID=0).first()
 
     data = {'Name': qry.Name,
@@ -1122,13 +1169,15 @@ def cityview(request):
         deleteid = request.matchdict['id']
         # Deleting it from the node table deletes the object
         deletethis = DBSession.query(City).filter_by(ID=deleteid).first()
-        # only delete if this City is not in use by any Project
+        # only delete if this City is not in use by any other table
         if len(deletethis.Projects) == 0:
-            qry = DBSession.delete(deletethis)
-            if qry == 0:
-                return HTTPNotFound()
-            transaction.commit()
-            return {'status': 'remove'}
+            if len(deletethis.Clients) == 0:
+                if len(deletethis.Suppliers) == 0:
+                    qry = DBSession.delete(deletethis)
+                    if qry == 0:
+                        return HTTPNotFound()
+                    transaction.commit()
+                    return {'status': 'remove'}
         return {'status': 'keep'}
 
     # if the method is post, add a new city
@@ -1168,15 +1217,19 @@ def ordersview(request):
     qry = DBSession.query(Order).order_by(Order.ID.desc())
     # filter the orders
     setLength = False
-    if 'project' in paramkeys:
+    if 'Project' in paramkeys:
         setLength = True
-        qry = qry.filter_by(ProjectID=paramsdict['project'][0])
-    if 'client' in paramkeys:
+        qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
+    if 'Client' in paramkeys:
         setLength = True
-        qry = qry.filter_by(ClientID=paramsdict['client'][0])
-    if 'supplier' in paramkeys:
+        qry = qry.filter_by(ClientID=paramsdict['Client'][0])
+    if 'Supplier' in paramkeys:
         setLength = True
-        qry = qry.filter_by(SupplierID=paramsdict['supplier'][0])
+        qry = qry.filter_by(SupplierID=paramsdict['Supplier'][0])
+    if 'OrderNumber' in paramkeys:
+        setLength = True
+        qry = qry.filter(Order.ID.like(paramsdict['OrderNumber'][0]+'%'))
+
     # cut the section
     if 'start' not in paramkeys:
         start = 0
@@ -1199,18 +1252,20 @@ def ordersview(request):
 @view_config(route_name='orders_filter', renderer='json')
 def orders_filter(request):
     """ Returns a list of the Projects, Clients, Suppliers used by an order
-        when ordered
+        when filtered
     """
     qry = DBSession.query(Order)
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
     # filter by the selected filters
-    if 'project' in paramkeys:
-        qry = qry.filter_by(ProjectID=paramsdict['project'][0])
-    if 'client' in paramkeys:
-        qry = qry.filter_by(ClientID=paramsdict['client'][0])
-    if 'supplier' in paramkeys:
-        qry = qry.filter_by(SupplierID=paramsdict['supplier'][0])
+    if 'Project' in paramkeys:
+        qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
+    if 'Client' in paramkeys:
+        qry = qry.filter_by(ClientID=paramsdict['Client'][0])
+    if 'Supplier' in paramkeys:
+        qry = qry.filter_by(SupplierID=paramsdict['Supplier'][0])
+    if 'OrderNumber' in paramkeys:
+        qry = qry.filter(Order.ID.like(paramsdict['OrderNumber'][0]+'%'))
     # get the unique values the other filters are to be updated with
     clients = qry.distinct(Order.ClientID).group_by(Order.ClientID)
     clientlist = []
@@ -1250,7 +1305,10 @@ def orderview(request):
         deleteid = request.matchdict['id']
         # Deleting it from the table deletes the object
         deletethis = DBSession.query(Order).filter_by(ID=deleteid).first()
-
+        # update the component ordered amounts
+        for orderitem in deletethis.OrderItems:
+            orderitem.Component.Ordered = (orderitem.Component.Ordered -
+                                                orderitem.Total)
         qry = DBSession.delete(deletethis)
         if qry == 0:
             return HTTPNotFound()
@@ -1300,6 +1358,9 @@ def orderview(request):
         transaction.commit()
         # return the new order
         neworder = DBSession.query(Order).filter_by(ID=newid).first()
+        # update the component ordered amounts
+        for orderitem in neworder.OrderItems:
+            orderitem.Component.Ordered = orderitem.Total
         return neworder.toDict()
 
     # if the method is put, edit an existing order
@@ -1339,7 +1400,7 @@ def orderview(request):
         for orderitem in order.OrderItems:
             iddict[orderitem.ComponentID] = orderitem.ID
         # get the list of components used in the form
-        componentslist = request.json_body['ComponentsList']
+        componentslist = request.json_body.get('ComponentsList', [])
         # iterate through the new id's and add any new orders
         # remove the id from the list if it is there already
         for component in componentslist:
@@ -1373,6 +1434,9 @@ def orderview(request):
         # return the edited order
         order = DBSession.query(
                     Order).filter_by(ID=request.matchdict['id']).first()
+        # update the component ordered amounts
+        for orderitem in order.OrderItems:
+            orderitem.Component.Ordered = orderitem.Total
         return order.toDict()
 
     # otherwise return the selected order
@@ -1386,7 +1450,9 @@ def orderview(request):
 
     componentslist = sorted(componentslist, key=lambda k: k['Name'])
     # get the date in json format
-    jsondate = order.Date.isoformat()
+    jsondate = None
+    if order.Date:
+        jsondate = order.Date.isoformat()
     total = '{:20,.2f}'.format(0).strip()
     if order.Total:
         total = '{:20,.2f}'.format(float(order.Total)).strip()
@@ -1464,3 +1530,90 @@ def userview(request):
         'username': user.username,
         'roles': user.roles and json.loads(user.roles) or []
     }
+
+@view_config(route_name='invoicesview', renderer='json')
+def invoicesview(request):
+    """ The invoicesview returns a list in json format of all the invoices
+    """
+    invoicelist = []
+    qry = DBSession.query(Invoice).all()
+    for invoice in qry:
+        invoicelist.append(invoice.toDict())
+    return invoicelist
+
+@view_config(route_name='invoiceview', renderer='json')
+def invoiceview(request):
+    """ The invoiceview handles different cases for individual invoices
+        depending on the http method
+    """
+    # if the method is delete, delete the invoice
+    if request.method == 'DELETE':
+        deleteid = request.matchdict['id']
+        # Deleting it from the table deletes the object
+        deletethis = DBSession.query(Invoice).filter_by(ID=deleteid).first()
+
+        qry = DBSession.delete(deletethis)
+        if qry == 0:
+            return HTTPNotFound()
+        transaction.commit()
+
+        return HTTPOk()
+
+    # if the method is post, add a new invoice
+    if request.method == 'POST':
+        orderid = request.json_body['OrderID']
+        invoicenumber = request.json_body['InvoiceNumber']
+        # convert to date from json format
+        date = request.json_body.get('Date', None)
+        if date:
+            date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
+        amount = request.json_body.get('Amount', Decimal(0.00))
+        amount = Decimal(amount).quantize(Decimal('.01'))
+
+        newinvoice = Invoice(OrderID=orderid,
+                            InvoiceNumber=invoicenumber,
+                            Date=date,
+                            Amount=amount)
+        DBSession.add(newinvoice)
+        DBSession.flush()
+        newid = newinvoice.ID
+        # update the component invoiced amounts
+        order = DBSession.query(Order).filter_by(ID=orderid).first()
+        for orderitem in order.OrderItems:
+            if order.Total > 0:
+                proportion = orderitem.Total/order.Total
+                if proportion > 0:
+                    orderitem.Component.Invoiced = amount/proportion
+                else:
+                    orderitem.Component.Invoiced = 0
+            else:
+                orderitem.Component.Invoiced = 0
+        transaction.commit()
+        # return the new invoice
+        newinvoice = DBSession.query(Invoice).filter_by(ID=newid).first()
+        return newinvoice.toDict()
+
+    # if the method is put, edit an existing invoice
+    if request.method == 'PUT':
+        invoice = DBSession.query(
+                    Invoice).filter_by(ID=request.matchdict['id']).first()
+
+        date = request.json_body.get('Date', None)
+        if date:
+            date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
+        amount = request.json_body.get('Amount', Decimal(0.00))
+        amount = Decimal(amount).quantize(Decimal('.01'))
+
+        invoice.Date = date
+        invoice.Amount = amount
+        transaction.commit()
+        # return the edited invoice
+        invoice = DBSession.query(
+                    Invoice).filter_by(ID=request.matchdict['id']).first()
+        return invoice.toDict()
+
+    # otherwise return the selected invoice
+    invoiceid = request.matchdict['id']
+    invoice = DBSession.query(Invoice).filter_by(ID=invoiceid).first()
+
+    return invoice.toDict()

@@ -70,6 +70,7 @@ def main(global_config, **settings):
     config.add_route('resources', '/resource/{id}/')
     config.add_route('project_overheads', '/project/{id}/overheads/')
     config.add_route('component_overheads', '/component/{id}/overheads/')
+    config.add_route('overheadview', '/overhead/{id}/')
     config.add_route('resourcetypes', '/resourcetypes')
     config.add_route('node_grid', '/node/{parentid}/grid/')
     config.add_route('node_update_value', '/node/{id}/update_value/')
@@ -92,6 +93,8 @@ def main(global_config, **settings):
     config.add_route('orders_length', '/orders/length')
     config.add_route('orders_filter', '/orders/filter')
     config.add_route('orders_tree_view', '/orders/tree/{id}/')
+    config.add_route('invoicesview', '/invoices')
+    config.add_route('invoiceview', '/invoice/{id}/')
 
     # Editing users
     config.add_route('usersview', '/users', factory=makeProtected(Administrator))
