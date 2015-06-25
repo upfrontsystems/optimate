@@ -29,7 +29,7 @@
     // the cell will be non-editable
 
     var node_type = args.item["node_type"]
-    if (node_type == "BudgetItem" || node_type == "Component"){
+    if (node_type == "BudgetItem" || node_type == "Component" || node_type == "SimpleComponent"){
       var $input;
       var defaultValue;
       var scope = this;
