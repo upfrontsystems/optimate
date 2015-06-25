@@ -1,0 +1,38 @@
+<html>
+
+    <link rel="stylesheet" tal:attributes="href string:${request.application_url}/static/css/reports.css">
+
+<body>
+    <table>
+        <tr>
+            <td style="width: 100px; text-align:left"><h1>Order: ${order.ID}</h1>
+            </td>
+            <td style="width: 700px; text-align:right"><h1>${order.Date}</h1>
+            </td>
+        </tr>
+    </table>
+    <div>&nbsp;</div>
+    <table>
+        <tr>
+            <td style="width: 100px; text-align:left"><h3>Project:</h3>
+            </td>
+            <td>${order.Project.Name}
+            </td>
+        </tr>
+        <tr>
+            <td style="width: 100px; text-align:left"><h3>Supplier:</h3>
+            </td>
+            <td>${order.Supplier.Name}
+            </td>
+        </tr>
+    </table>
+  <!--  <table>
+        <tr tal:repeat="component components">
+            <td tal:content="component.Name|nothing">
+            </td>
+        </tr>
+        <tr></tr>
+    </table> -->
+
+</body>
+</html>

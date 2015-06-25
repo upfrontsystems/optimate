@@ -1161,6 +1161,10 @@ class Resource(Node):
     UnitID = Column(Integer, ForeignKey('Unit.ID'))
     Type = Column(Text(50), ForeignKey('ResourceType.Name'))
     _Rate = Column('Rate', Numeric, default=Decimal(0.00))
+    SupplierID = Column(Integer, ForeignKey('Supplier.ID'))
+
+    Suppliers = relationship('Supplier',
+                              backref=backref('Resource'))
 
     __mapper_args__ = {
             'polymorphic_identity': 'Resource',
@@ -1220,7 +1224,8 @@ class Resource(Node):
                 'Description': self.Description,
                 'Rate': str(self._Rate),
                 'ResourceType': self.Type,
-                'Unit': self.UnitID}
+                'Unit': self.UnitID,
+                'Supplier': self.SupplierID}
 
     def getGridData(self):
         return {'name': self.Name,
