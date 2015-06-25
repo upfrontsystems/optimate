@@ -761,7 +761,10 @@ class ComponentMixin(object):
         """
 
         return {'Name': self.Name,
+                'Description': self.Description,
+                'Rate': str(self.Rate),
                 'Quantity': self.Quantity,
+                'ResourceType': self.Type,
                 'order_cost': str(self.OrderCost),
                 'run_cost': str(self.RunningCost),
                 'claim_cost': str(self.ClaimedCost),
@@ -844,6 +847,11 @@ class Component(Node, ComponentMixin):
             return self.Resource.unitName()
 
     @property
+    def Type(self):
+        if self.Resource:
+            return self.Resource.Type
+
+    @property
     def Markup(self):
         """ Get the markup of this component
             It is a composite of all the Overhead percentages
@@ -913,7 +921,7 @@ class Component(Node, ComponentMixin):
         return '<Co(Name="%s", Quantity="%d", ID="%s", ParentID="%s")>' % (
             self.Name, self.Quantity, self.ID, self.ParentID)
 
-class SimpleComponent(Base, ComponentMixin):
+class SimpleComponent(Node, ComponentMixin):
     """ Similar to Component, but does not reference a resource. For adding
         simple cost components in ad hoc fashion. """
     __tablename__ = 'SimpleComponent'
@@ -923,17 +931,37 @@ class SimpleComponent(Base, ComponentMixin):
     Description = Column(Text(100))
     _Quantity = Column('Quantity', Float, default=0.0)
     _Total = Column('Total', Numeric)
-    UnitID = Column(Integer, ForeignKey('Unit.ID'))
     Type = Column(Unicode(50), ForeignKey('ResourceType.Name'))
     _Rate = Column('Rate', Numeric, default=Decimal(0.00))
 
-    Unit = relationship('Unit')
+    __mapper_args__ = {
+        'polymorphic_identity': 'SimpleComponent',
+        'inherit_condition': (ID == Node.ID),
+    }
 
     @property
     def Markup(self):
         """ Returns zero. No markup on simple components.
         """
         return 0.0
+
+    @property
+    def Unit(self):
+        """ Has no unit. """
+        return None
+
+    @hybrid_property
+    def Rate(self):
+        """ Get the component's Rate, the Rate of this resource is returned
+        """
+        return self._Rate
+
+    @Rate.setter
+    def Rate(self, rate):
+        """ On a simple component, we can set the rate, and the total must
+            be updated. """
+        self._Rate = Decimal(rate).quantize(Decimal('.01'))
+        self.resetTotal(self._Rate)
 
     def copy(self, parentid):
         """ copy returns an exact duplicate of this component,
@@ -959,9 +987,9 @@ class SimpleComponent(Base, ComponentMixin):
         """ Return a dictionary of all the data needed for the slick grid
 
         """
-        di = super(Component, self).getGridData()
+        di = super(SimpleComponent, self).getGridData()
         di.update({
-            'unit': self.Unit.Name
+            'unit': self.Unit
         })
         return di
 
