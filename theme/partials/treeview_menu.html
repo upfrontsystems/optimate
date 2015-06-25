@@ -113,7 +113,7 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addComponent"
-                        data-ng-click="changeAddingType('Component'); loadResourceList('add'); loadComponentOverheads(currentNode.ID)"
+                        data-ng-click="changeAddingType('Component'); loadResourceList('add'); loadResourceRelatedList(); loadComponentOverheads(currentNode.ID)"
                        title="Add Component" class="component-button">
                         <i class="fa fa-plus-square"></i> C
                     </a>
@@ -193,7 +193,7 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addComponent"
-                        data-ng-click="changeAddingType('Component'); loadResourceList('add'); loadComponentOverheads(currentNode.ID)"
+                        data-ng-click="changeAddingType('Component'); loadResourceList('add'); loadResourceRelatedList(); loadComponentOverheads(currentNode.ID)"
                        title="Add Component" class="component-button">
                         <i class="fa fa-plus-square"></i> C
                     </a>
@@ -332,7 +332,7 @@
                 </li>
             </ul>
         </div>
-        <div data-ng-switch-when="Component">
+        <div data-ng-if="currentNode.NodeType == 'Component' || currentNode.NodeType == 'SimpleComponent'">
             <ul class="nav nav-pills no-top-margin">
                 <li>
                     <span role="button" class="separator">|
@@ -340,7 +340,7 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addComponent"
-                        data-ng-click="loadResourceList('edit'); loadComponentOverheads(currentNode.ID); editNode(currentNode.ID, currentNode.NodeType)"
+                        data-ng-click="loadResourceList('edit'); loadResourceRelatedList(); loadComponentOverheads(currentNode.ID); editNode(currentNode.ID, currentNode.NodeType)"
                         title="Edit Component">
                         <i class="fa fa-pencil"></i>
                     </a>

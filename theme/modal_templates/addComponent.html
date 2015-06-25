@@ -47,6 +47,14 @@
                             </div>
                         </div>
                     </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label"
+                               for="description">Description:</label>
+                        <textarea class="col-sm-7" id="description"
+                                  name="description"
+                                  ng-model="formData['Description']"
+                                  ng-disabled="addComponentForm.has_selection"></textarea>
+                    </div>
                     <div class="form-group"
                         ng-class="{'has-error': addComponentForm.inputQuantity.$invalid}">
                         <label for="inputQuantity" class="col-sm-2 control-label">Quantity:</label>
@@ -56,6 +64,26 @@
                                id="inputQuantity"
                                name="inputQuantity"
                                ng-model="formData['Quantity']">
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label"
+                               for="rate">Rate:</label>
+                        <input class="col-sm-7" id="rate"
+                               name="rate"
+                               ng-model="formData['Rate']"
+                               ng-disabled="addComponentForm.has_selection"/>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label"
+                               for="resourcetype">Type:</label>
+                        <select class="col-sm-7"
+                                id="resourcetype"
+                                name="resourcetype"
+                                ng-disabled="addComponentForm.has_selection"
+                                ng-model="formData['ResourceType']"
+                                ng-options="type.Name as type.Name for type in restypeList">
+                            <option value="">Select a type</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label class="col-sm-2 control-label" style="display: block;" >Overhead:

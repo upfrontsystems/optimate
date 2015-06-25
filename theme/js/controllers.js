@@ -918,6 +918,36 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     params: params,
                     url: url
                 })
+            }, function(item){
+                // Designed three-way. If item is a string, then the user
+                // wants to define his own component. If it is an object
+                // then he selected something. If it is null, he deselected
+                // an item or cleared the selection.
+                var $addComponent = $('#addComponent'),
+                    $description = $addComponent.find('#description');
+
+                if (item && item.indexOf){
+                    // String value
+                    $scope.addComponentForm.has_selection = false;
+                    $scope.formData.Description = '';
+                    $scope.formData.Rate = '';
+                    $scope.formData.ResourceType = '';
+                    $description.focus();
+                } else if(item){
+                    // object
+                    $scope.addComponentForm.has_selection = true;
+                    $scope.formData.Description = item.description;
+                    $scope.formData.Rate = item.rate;
+                    $scope.formData.ResourceType = item.type;
+                    $addComponent.find('#inputQuantity').focus();
+                } else {
+                    // null
+                    $scope.addComponentForm.has_selection = false;
+                    $scope.formData.Description = '';
+                    $scope.formData.Rate = '';
+                    $scope.formData.ResourceType = '';
+                    $addComponent.find('#inputResources').focus();
+                }
             });
             if (state == 'add'){ $scope.finder.clear_selection(); }
             $scope.finder.listdir();
@@ -986,13 +1016,18 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             });
         }
 
-        // Add the selected resource from the list to the form data as name
+        // Add the selected resource from the list to the form data as name, if
+        // nothing selected, add the text as name so a simple component can be
+        // created. Ideally we want to get this data from formData rather than
+        // using jquery here. TODO some day.
         $scope.selectedResource = function(){
             var selected = $('#related_items_finder .finder-choices .search-choice .selected-resource');
-                name = selected.text(),
-                uid = selected.parent().data('uid');
-            $scope.formData['Name'] = name;
-            $scope.formData['uid'] = uid;
+            if (selected.length){
+                $scope.formData['Name'] = selected.text();
+                $scope.formData['uid'] = selected.parent().data('uid');
+            } else {
+                $scope.formData['Name'] = $('#related_items_finder #inputResources').val();
+            }
         };
 
         // When the addNode button is clicked on the modal a new node
@@ -1076,16 +1111,23 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 $scope.formData['NodeType'] = nodetype;
                 $scope.formData['ID'] = nodeid;
                 // special case for component types
+                if (nodetype == 'SimpleComponent') {
+                    // populate the finder with current choice
+                    $scope.finder.input.val(response.Name)
+                }
                 if (nodetype == 'Component') {
-                    // update resource
-                    // remove any old remembered choices from last time
-                    // FIXME this is yucky!
-                    $('.search-choice').remove();
-                    var resource_html = '<li title="undefined" class="search-choice">' +
-                                        '<span class="selected-resource">' + $scope.formData['ResourceName'] +
-                                        '</span><a data-uid="' + $scope.formData['ResourceID'] +
-                                        '" class="search-choice-close" href="javascript:void(0)"></a></li>'
-                    $('#related_items_finder .finder-choices').prepend(resource_html);
+                    // populate the finder with current choice
+                    $scope.finder.selecteditems = [{
+                        uid: response.ID,
+                        title: response.Name,
+                        type: response.ResourceType,
+                        description: response.Description,
+                        folderish: false,
+                        normalized_type: 'document',
+                        rate: response.Rate
+                    }];
+                    $scope.finder.update_selection();
+
                     // update overheadlist
                     $http.get(globalServerURL + 'component/' + nodeid + '/overheads/')
                     .success(function(data) {
