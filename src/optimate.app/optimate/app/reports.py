@@ -43,21 +43,67 @@ def all_nodes(node, data, level, level_limit, component_filter):
     return data
 
 
+@view_config(route_name="reports_tree_view", renderer='json')
+def reports_tree_view(request):
+    """ This view is for when the user requests the children of a node
+        in the budget group selection tree. 
+        The nodes used by the orders use a different format than the projects 
+        tree view
+    """
+
+    parentid = request.matchdict['id']
+    childrenlist = []
+
+    qry = DBSession.query(Node).filter_by(ID=parentid).first()
+    # build the list and only get the neccesary values
+    if qry != None:
+        for child in qry.Children:
+            if child.type == 'Component':
+                childrenlist.append(child.toOrderDict())
+            elif child.type != 'ResourceCategory':
+                childrenlist.append(child.toChildDict())
+
+    # sort childrenlist
+    sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'].upper())
+    return sorted_childrenlist
+
+
 @view_config(route_name="projectbudget")
 def projectbudget(request):
     print "Generating Project Budget Report"
     nodeid = request.matchdict['id']
     level_limit = request.json_body['LevelLimit']
     ctypelist = request.json_body['ComponentTypeList']
+    print_bgroups = request.json_body['PrintSelectedBudgerGroups']
+    bgroup_list = request.json_body['BudgetGroupList']
+
     component_filter = []
     for record in ctypelist:
         if record['selected']:
             component_filter.append(record['Name'])
 
     project = DBSession.query(Node).filter_by(ID=nodeid).first()
+
     # inject node data into template
     nodes = []
-    nodes = all_nodes(project, [], 0, level_limit, component_filter)
+    if print_bgroups:
+        bgs = sorted(bgroup_list, key=lambda k: k['Name'].upper())
+        for bgroup in bgs:
+            bg_id = bgroup['ID']
+            qry = DBSession.query(Node).filter_by(ID=bg_id).first()
+            bg_parent_id = qry.ParentID
+            bg_parent = DBSession.query(Node).filter_by(ID=bg_parent_id).first()
+            
+            # start at the parent so we can display the context
+            nodes.append((qry, 'level1', 'bold'))
+            # group data
+            nodes += all_nodes(qry, [], 1, level_limit+1, component_filter)
+            # add blank line seperator between groups
+            nodes.append(None)
+    else:
+        nodes = all_nodes(project, [], 0, level_limit, component_filter)
+
+
     # render template
     template_data = render('templates/projectbudgetreport.pt',
                            {'nodes': nodes,

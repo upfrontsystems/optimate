@@ -280,7 +280,7 @@ if __name__ == '__main__':
                               OrderCost=ordercost,
                               RunningCost=running,
                               ClaimedCost=claimedcost,
-                              IncomeRecieved=income,
+                              IncomeReceived=income,
                               ClientCost=client,
                               ProjectedProfit=projprofit,
                               ActualProfit=actprofit)
@@ -435,7 +435,7 @@ if __name__ == '__main__':
                             OrderCost=ordercost,
                             RunningCost=running,
                             ClaimedCost=claimedcost,
-                            IncomeRecieved=income,
+                            IncomeReceived=income,
                             ClientCost=client,
                             ProjectedProfit=projprofit,
                             ActualProfit=actprofit)
@@ -600,7 +600,7 @@ if __name__ == '__main__':
                             OrderCost=ordercost,
                             RunningCost=running,
                             ClaimedCost=claimedcost,
-                            IncomeRecieved=income,
+                            IncomeReceived=income,
                             ClientCost=client,
                             ProjectedProfit=projprofit,
                             ActualProfit=actprofit)
@@ -858,7 +858,7 @@ if __name__ == '__main__':
                                         OrderCost=ordercost,
                                         RunningCost=running,
                                         ClaimedCost=claimedcost,
-                                        IncomeRecieved=income,
+                                        IncomeReceived=income,
                                         ClientCost=client,
                                         ProjectedProfit=projprofit,
                                         ActualProfit=actprofit)
@@ -872,7 +872,7 @@ if __name__ == '__main__':
                                     OrderCost=ordercost,
                                     RunningCost=running,
                                     ClaimedCost=claimedcost,
-                                    IncomeRecieved=income,
+                                    IncomeReceived=income,
                                     ClientCost=client,
                                     ProjectedProfit=projprofit,
                                     ActualProfit=actprofit)

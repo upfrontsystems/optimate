@@ -94,11 +94,15 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
 
             dataView.onRowCountChanged.subscribe(function (e, args) {
               grid.updateRowCount();
+              grid.resetActiveCell();
+              grid.setSelectedRows([]);
               grid.render();
             });
 
             dataView.onRowsChanged.subscribe(function (e, args) {
               grid.invalidateRows(args.rows);
+              grid.resetActiveCell();
+              grid.setSelectedRows([]);
               grid.render();
             });
 
@@ -129,6 +133,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 grid.invalidateRow(data.length);
                 data.push(item);
                 grid.updateRowCount();
+                grid.resetActiveCell();
+                grid.setSelectedRows([]);
                 grid.render();
             });
 
@@ -183,6 +189,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                         }
                         dataView.beginUpdate();
                         dataView.endUpdate();
+                        grid.resetActiveCell();
+                        grid.setSelectedRows([]);
                         grid.render();
                     }
                     else {
@@ -215,6 +223,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                             dataView.beginUpdate();
                             dataView.setItems(data);
                             dataView.endUpdate();
+                            grid.resetActiveCell();
+                            grid.setSelectedRows([]);
                             grid.render();
                         }
                         // otherwise loop through the data and grey out
@@ -268,6 +278,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                             }
                             dataView.beginUpdate();
                             dataView.endUpdate();
+                            grid.resetActiveCell();
+                            grid.setSelectedRows([]);
                             grid.render();
                         }
                     }
@@ -278,6 +290,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     dataView.beginUpdate();
                     dataView.setItems(data);
                     dataView.endUpdate();
+                    grid.resetActiveCell();
+                    grid.setSelectedRows([]);
                     grid.render();
                 }
                 console.log("Slickgrid data loaded");
@@ -301,6 +315,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 dataView.beginUpdate();
                 dataView.setItems([]);
                 dataView.endUpdate();
+                grid.resetActiveCell();
+                grid.setSelectedRows([]);
                 grid.render();
             });
 
@@ -372,11 +388,15 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
 
             dataView.onRowCountChanged.subscribe(function (e, args) {
               grid.updateRowCount();
+              grid.resetActiveCell();
+              grid.setSelectedRows([]);
               grid.render();
             });
 
             dataView.onRowsChanged.subscribe(function (e, args) {
               grid.invalidateRows(args.rows);
+              grid.resetActiveCell();
+              grid.setSelectedRows([]);
               grid.render();
             });
 
@@ -397,6 +417,8 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                 grid.invalidateRow(data.length);
                 data.push(item);
                 grid.updateRowCount();
+                grid.resetActiveCell();
+                grid.setSelectedRows([]);
                 grid.render();
             });
 
@@ -408,6 +430,8 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     dataView.beginUpdate();
                     dataView.setItems(componentlist);
                     dataView.endUpdate();
+                    grid.resetActiveCell();
+                    grid.setSelectedRows([]);
                     grid.render();
                     var total =0.0;
                     for (var i=0;i<componentlist.length; i++){
