@@ -121,6 +121,7 @@
             <thead>
                 <tr>
                     <th>Order Number</th>
+                    <th>Order Date</th>
                     <th>Project</th>
                     <th>Supplier</th>
                     <th>Client</th>
@@ -132,6 +133,7 @@
                 <tr ng-repeat="obj in jsonorders"
                     ng-click="showActionsFor(obj)" id="order-{{obj.ID}}">
                     <td>{{obj.ID}}</td>
+                    <td>{{obj.Date}}</td>
                     <td>{{obj.Project}}</td>
                     <td>{{obj.Supplier}}</td>
                     <td>{{obj.Client}}</td>

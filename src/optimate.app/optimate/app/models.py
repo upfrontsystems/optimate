@@ -7,6 +7,7 @@ from zope.sqlalchemy import ZopeTransactionExtension
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
 from decimal import *
+from datetime import datetime
 import sqlalchemy.types as types
 
 from sqlalchemy import (
@@ -1720,6 +1721,7 @@ class Order(Base):
             total = '{:20,.2f}'.format(0).strip()
 
         return {'ID': self.ID,
+                'Date': self.Date.strftime("%d %B %Y"),
                 'Project': projectname,
                 'Supplier': suppname,
                 'Client': clientname,
