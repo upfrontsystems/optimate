@@ -70,6 +70,7 @@ def main(global_config, **settings):
     config.add_route('resources', '/resource/{id}/')
     config.add_route('project_overheads', '/project/{id}/overheads/')
     config.add_route('component_overheads', '/component/{id}/overheads/')
+    config.add_route('overheadview', '/overhead/{id}/')
     config.add_route('resourcetypes', '/resourcetypes')
     config.add_route('node_grid', '/node/{parentid}/grid/')
     config.add_route('node_update_value', '/node/{id}/update_value/')

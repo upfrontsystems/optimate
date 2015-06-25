@@ -780,7 +780,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         $scope.deleteOverhead = function(overheadid, index){
             var req = {
                 method: 'DELETE',
-                url: globalServerURL + 'project/' + overheadid + '/overheads/'
+                url: globalServerURL + 'overhead/' + overheadid + '/'
             }
             $http(req).success(function() {
                 $scope.overheadList.splice(index, 1);
@@ -1594,7 +1594,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $scope.modalState = "Edit";
             $http({
                 method: 'GET',
-                url: globalServerURL + $scope.formData['NodeType'] + '/' + $scope.selectedOrder.ID + '/'
+                url: globalServerURL + 'order/' + $scope.selectedOrder.ID + '/'
             }).success(function(response){
                 $scope.formData = response;
                 $scope.loadProject()
