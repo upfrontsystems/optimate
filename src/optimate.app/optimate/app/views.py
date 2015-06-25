@@ -217,8 +217,10 @@ def additemview(request):
 
     # Determine the type of object to be added and build it
     if objecttype == 'Resource':
+        code = request.json_body['Code']
         newnode = Resource(Name=name,
                             Description = desc,
+                            Code=code,
                             UnitID=unit,
                             Type=resourcetype,
                             _Rate= rate,
@@ -422,14 +424,13 @@ def edititemview(request):
     elif objecttype == 'Resource':
         rate = request.json_body.get('Rate', 0)
         rate = Decimal(rate).quantize(Decimal('.01'))
-        resourcetype = request.json_body.get('ResourceType', '')
-        unit = request.json_body.get('Unit', '')
         resource = DBSession.query(Resource).filter_by(ID=nodeid).first()
         resource.Name=name
         resource.Description=desc
+        resource.Code = request.json_body['Code']
         resource._Rate=rate
-        resource.UnitID=unit
-        resource.Type=resourcetype
+        resource.UnitID=request.json_body.get('Unit', '')
+        resource.Type=request.json_body.get('ResourceType', '')
 
     else:
         return HTTPInternalServerError()

@@ -1137,6 +1137,10 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         console.log('Success: Node pasted');
                         sharedService.reloadSlickgrid(nodeid);
                         $scope.loadNodeChildren(nodeid);
+                        // expand the node if this is its first child
+                        if ($scope.currentNode.Subitem.length == 0){
+                            $scope.currentNode.collapsed = true;
+                        }
                     }).error(function(){
                         console.log("Server error");
                     });

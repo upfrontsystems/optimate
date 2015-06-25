@@ -1480,8 +1480,8 @@ class Resource(Node):
             return self.Unit.Name
 
     def copy(self, parentid):
-        """copy returns an exact duplicate of this object,
-        but with the ParentID specified.
+        """ Copy returns an exact duplicate of this object,
+            but with the ParentID specified.
         """
         copied = Resource(Name=self.Name,
                          Description=self.Description,
@@ -1513,6 +1513,7 @@ class Resource(Node):
         """
         return {'Name': self.Name,
                 'Description': self.Description,
+                'Code': self.Code,
                 'Rate': str(self._Rate),
                 'ResourceType': self.Type,
                 'Unit': self.UnitID}
