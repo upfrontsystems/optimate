@@ -817,7 +817,7 @@ class ComponentMixin(object):
             else:
                 parent.Total = parent.Total + difference
 
-    @hybrid_property
+    @property
     def ItemTotal(self):
         """ Get the ItemTotal. The ItemTotal = ItemQuantity * Rate
         """
@@ -1174,7 +1174,7 @@ class SimpleComponent(Node, ComponentMixin):
         primary_key=True)
     Name = Column(Unicode(50))
     Description = Column(Text(100))
-    _Quantity = Column('Quantity', Float, default=0.0)
+    _Quantity = Column('Quantity', Float)
     _Total = Column('Total', Numeric)
     Type = Column(Unicode(50), ForeignKey('ResourceType.Name'))
     _Rate = Column('Rate', Numeric, default=Decimal(0.00))
@@ -1200,7 +1200,8 @@ class SimpleComponent(Node, ComponentMixin):
 
     @hybrid_property
     def Rate(self):
-        """ Get the component's Rate, the Rate of this resource is returned
+        """ Get the component's Rate, the Rate of the
+            simple component is returned
         """
         return self._Rate
 
@@ -1682,6 +1683,15 @@ class Order(Base):
                               backref=backref('Orders'))
     Client = relationship('Client',
                               backref=backref('Orders'))
+
+    def resetTotal(self):
+        """ Recalculate the Order Total from it's OrderItems
+        """
+        total = 0
+        for orderitem in self.OrderItems:
+            total += orderitem.Total
+
+        self.Total = Decimal(total).quantize(Decimal('.01'))
 
     def toDict(self):
         """ Returns a JSON dict of the order

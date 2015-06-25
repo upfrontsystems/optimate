@@ -602,57 +602,62 @@ class TestResourceTypesViewSuccessCondition(unittest.TestCase):
         # test the name of the resource type
         self.assertEqual(response[0]['Name'], 'Labour')
 
-# class TestProjectResourcesViewSuccessCondition(unittest.TestCase):
-#     """ Test that a list of the Resources in a specified project is returned
-#     """
-#     def setUp(self):
-#         self.session = _initTestingDB()
-#         self.config = testing.setUp()
+class DummyProjectRoute(object):
+    name = 'project_resources'
 
-#     def tearDown(self):
-#         DBSession.remove()
-#         testing.tearDown()
+class TestProjectResourcesViewSuccessCondition(unittest.TestCase):
+    """ Test that a list of the Resources in a specified project is returned
+    """
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
 
-#     def _callFUT(self, request):
-#         from optimate.app.views import project_resources
-#         return project_resources(request)
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
 
-#     def test_it(self):
-#         _registerRoutes(self.config)
-#         request = testing.DummyRequest()
-#         request.matchdict['id'] = 19
-#         request.matched_route.name = 'project_resources'
-#         response = self._callFUT(request)
+    def _callFUT(self, request):
+        from optimate.app.views import project_resources
+        return project_resources(request)
 
-#         # test the correct resource is returned
-#         self.assertEqual(response[0]['items']['title'], 'TestResourceB')
+    def test_it(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict['id'] = 19
+        request.matched_route = DummyProjectRoute()
+        response = self._callFUT(request)
 
-# class TestResourcesViewSuccessCondition(unittest.TestCase):
-#     """ Test the resources of project_resources
-#     """
+        # test the correct resource is returned
+        self.assertEqual(response['items'][0]['title'], 'TestResourceB')
 
-#     def setUp(self):
-#         self.session = _initTestingDB()
-#         self.config = testing.setUp()
+class DummyResourcesRoute(object):
+    name = 'resources'
 
-#     def tearDown(self):
-#         DBSession.remove()
-#         testing.tearDown()
+class TestResourcesViewSuccessCondition(unittest.TestCase):
+    """ Test the resources of project_resources
+    """
 
-#     def _callFUT(self, request):
-#         from optimate.app.views import project_resources
-#         return project_resources(request)
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
 
-#     def test_it(self):
-#         _registerRoutes(self.config)
-#         request = testing.DummyRequest()
-#         response = self._callFUT(request)
-#         request.matchdict['id'] = 19
-#         request.matched_route.name = 'resources'
-#         response = self._callFUT(request)
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
 
-#         # test the correct resource is returned
-#         self.assertEqual(response[0]['items']['title'], 'TestResourceB')
+    def _callFUT(self, request):
+        from optimate.app.views import project_resources
+        return project_resources(request)
+
+    def test_it(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict['id'] = 24
+        request.matched_route = DummyResourcesRoute()
+        response = self._callFUT(request)
+
+        # test the correct resource is returned
+        self.assertEqual(response['items'][0]['title'], 'TestResourceB')
 
 class TestProjectOverheadsViewSuccessCondition(unittest.TestCase):
     """ Test the different methods of the overheads of a project
@@ -984,7 +989,7 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         self.assertEqual(node_cost(request)['Cost'], str(projtot))
 
         request.matchdict = {'id': 16}
-        request.params = {'rate': 15}
+        request.json_body = {'rate': 15}
         response = self._callFUT(request)
 
         # now the project cost should have changed
@@ -1006,7 +1011,7 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.matchdict = {'id': 25}
-        request.params = {'rate': 10}
+        request.json_body = {'rate': 10}
         response = self._callFUT(request)
 
         newresbduplicaterate = Decimal(10.00)
@@ -1037,7 +1042,7 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         # Update the itemquantity
         request = testing.DummyRequest()
         request.matchdict = {'id': 7}
-        request.params = {'itemquantity': 10}
+        request.json_body = {'itemquantity': 10}
         response = self._callFUT(request)
 
         # now the project cost should have changed
@@ -1052,13 +1057,16 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 3}
         request.json_body = {'quantity': 50}
         response = self._callFUT(request)
+        newbiq = 50.0
+        newbitot = Decimal(newbiq * float(birate)).quantize(Decimal('.01'))
+        newprojtot = newbitot
 
         # now the project cost should have changed
         request = testing.DummyRequest()
         request.matchdict = {'id': 1}
         from optimate.app.views import node_cost
         response = node_cost(request)
-        self.assertEqual(response['Cost'], '4812.50')
+        self.assertEqual(response['Cost'], str(newprojtot))
 
 class TestAddItemSuccessCondition(unittest.TestCase):
     """ Test if the nodeview functions correctly when adding a budgetgroup
@@ -1569,7 +1577,7 @@ class TestOrderedSuccessCondition(unittest.TestCase):
                             {'ID': 11, 'Quantity': 4, 'Rate': 7}]
         request.json_body = {'ProjectID': 1,
                             'SupplierID': 2,
-                            'Total': 20,
+                            'Total': 78,
                             'ComponentsList': componentslist}
         response = self._callFUT(request)
         # get the new order id
@@ -1615,7 +1623,7 @@ class TestInvoicedAmountViewSuccessCondition(unittest.TestCase):
                             {'ID': 11, 'Quantity': 4, 'Rate': 7}]
         request.json_body = {'ProjectID': 1,
                             'SupplierID': 2,
-                            'Total': 20,
+                            'Total': 78,
                             'ComponentsList': componentslist}
         from optimate.app.views import orderview
         response = orderview(request)
@@ -1627,7 +1635,7 @@ class TestInvoicedAmountViewSuccessCondition(unittest.TestCase):
         request.matchdict['id'] = 0
         request.json_body = {'OrderID':newid,
                                 'InvoiceNumber': '4567',
-                                'Amount': 124}
+                                'Amount': 56}
         response = self._callFUT(request)
 
         request = testing.DummyRequest()
@@ -1637,4 +1645,4 @@ class TestInvoicedAmountViewSuccessCondition(unittest.TestCase):
         response = nodeview(request)
         invoiced = response['Invoiced']
         # the new invoiced amount should be the same as the invoice amount
-        self.assertEqual(invoiced, '124.00')
+        self.assertEqual(invoiced, '56.00')

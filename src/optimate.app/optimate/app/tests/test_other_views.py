@@ -719,15 +719,13 @@ class TestCityViewSuccessCondition(unittest.TestCase):
         # the number of cities should still be four
         self.assertEqual(len(response), 4)
 
-class DummyOrder():
-        def dict_of_lists(self):
-            return {}
+class DummyOrder(object):
+    def dict_of_lists(self):
+        return {'Project': [1]}
 
 class TestOrdersViewSuccessCondition(unittest.TestCase):
     """ Test the ordersview
     """
-
-
     def setUp(self):
         self.session = _initTestingDB()
         self.config = testing.setUp()
@@ -743,10 +741,10 @@ class TestOrdersViewSuccessCondition(unittest.TestCase):
     def test_it(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
-        request.params = DummyOrder
+        request.params = DummyOrder()
         response = self._callFUT(request)
-        # number of orders should be one
-        self.assertEqual(len(response), 1)
+        # should return one order
+        self.assertEqual(response[1], 1)
 
 class TestOrdersFilterViewSuccessCondition(unittest.TestCase):
     """ Test if the filter works on orders
@@ -767,10 +765,10 @@ class TestOrdersFilterViewSuccessCondition(unittest.TestCase):
     def test_it(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
-        request.params['Project'] = 1
+        request.params = DummyOrder()
         response = self._callFUT(request)
         # the response should contain one client
-        self.assertEqual(response['clients']['Name'], 'TestClientOne')
+        self.assertEqual(response['clients'][0]['Name'], 'TestClientOne')
 
 class TestOrdersLengthViewSuccessCondition(unittest.TestCase):
     """

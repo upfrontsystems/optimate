@@ -1192,7 +1192,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     {responseType: 'arraybuffer'
                 }).success(function (response, status, headers, config) {
                     spinner.stop(); // stop the spinner - ajax call complete
-                    $scope.budgetgroupList = [] // clear selected budget group list 
+                    $scope.budgetgroupList = [] // clear selected budget group list
                     var file = new Blob([response], {type: 'application/pdf'});
                     var fileURL = URL.createObjectURL(file);
                     var result = document.getElementsByClassName("pdf_hidden_download");

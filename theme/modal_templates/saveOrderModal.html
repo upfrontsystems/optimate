@@ -8,6 +8,14 @@
             <div class="modal-body">
                 <div collapse="!isCollapsed">
                     <form class="form-horizontal"  name="saveOrderModalForm" novalidate>
+                        <div class="form-group">
+                            <label for="orderNumber" class="col-sm-2 control-label">Order Number:</label>
+                            <p class="col-sm-7"
+                                    id="orderNumber"
+                                    name="orderNumber">
+                                    {{selectedOrder.ID}}
+                            </p>
+                        </div>
                         <div class="form-group"
                             ng-class="{'has-error': saveOrderModalForm.inputProject.$invalid}">
                             <label for="inputProject" class="col-sm-2 control-label">Project:</label>

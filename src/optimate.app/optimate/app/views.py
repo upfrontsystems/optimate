@@ -703,26 +703,35 @@ def node_update_value(request):
     result = DBSession.query(Node).filter_by(ID=nodeid).first()
     # only a resource's rate can be modified
     if result.type == 'Resource':
-        if request.params.get('rate') != None:
-            result.Rate = request.params.get('rate')
+        if request.json_body.get('rate') != None:
+            result.Rate = request.json_body.get('rate')
             return HTTPOk()
     # a budgetitems quantity or itemquantity can be modified
     elif result.type == 'BudgetItem':
         newtotal = None
-        if request.params.get('quantity') != None:
-            result.Quantity = float(request.params.get('quantity'))
+        if request.json_body.get('quantity') != None:
+            result.Quantity = float(request.json_body.get('quantity'))
             newtotal = str(result.Total)
-        if request.params.get('itemquantity') != None:
-            result.ItemQuantity = float(request.params.get('quantity'))
+        if request.json_body.get('itemquantity') != None:
+            result.ItemQuantity = float(request.json_body.get('quantity'))
             newtotal = str(result.Total)
         return {'total': newtotal, 'subtotal': None}
     # only a components itemquantity can be modified
     elif result.type == 'Component':
-        if request.params.get('itemquantity') != None:
-            result.ItemQuantity = float(request.params.get('itemquantity'))
+        if request.json_body.get('itemquantity') != None:
+            result.ItemQuantity = float(request.json_body.get('itemquantity'))
             newtotal = str(result.Total)
             newsubtotal = str(result.Subtotal)
             return {'total': newtotal, 'subtotal': newsubtotal}
+    # a simplecomponents itemquantity or rate can be modified
+    elif result.type == 'SimpleComponent':
+        if request.json_body.get('itemquantity') != None:
+            result.ItemQuantity = float(request.json_body.get('itemquantity'))
+        if request.json_body.get('rate') != None:
+            result.Rate = request.json_body.get('rate')
+        newtotal = str(result.Total)
+        newsubtotal = str(result.Subtotal)
+        return {'total': newtotal, 'subtotal': newsubtotal}
 
 @view_config(route_name="node_paste", renderer='json')
 def node_paste(request):
@@ -1434,6 +1443,7 @@ def orderview(request):
         # return the edited order
         order = DBSession.query(
                     Order).filter_by(ID=request.matchdict['id']).first()
+        order.resetTotal()
         # update the component ordered amounts
         for orderitem in order.OrderItems:
             orderitem.Component.Ordered = orderitem.Total
@@ -1582,10 +1592,7 @@ def invoiceview(request):
         for orderitem in order.OrderItems:
             if order.Total > 0:
                 proportion = orderitem.Total/order.Total
-                if proportion > 0:
-                    orderitem.Component.Invoiced = amount/proportion
-                else:
-                    orderitem.Component.Invoiced = 0
+                orderitem.Component.Invoiced = amount * proportion
             else:
                 orderitem.Component.Invoiced = 0
         transaction.commit()

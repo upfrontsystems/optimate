@@ -453,6 +453,15 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                     $scope.updateOrderTotal(parts.join("."));
                 }
+                else {
+                    grid.setColumns(columns);
+                    dataView.beginUpdate();
+                    dataView.setItems([]);
+                    dataView.endUpdate();
+                    grid.resetActiveCell();
+                    grid.setSelectedRows([]);
+                    grid.render();
+                }
             }, true);
 
             // on cell change update the totals
