@@ -8,7 +8,7 @@
             <div class="modal-body">
                 <div collapse="!isCollapsed">
                     <form class="form-horizontal"  name="saveOrderModalForm" novalidate>
-                        <div class="form-group">
+                        <div class="form-group" data-ng-show="modalState == 'Edit'">
                             <label for="orderNumber" class="col-sm-2 control-label">Order Number:</label>
                             <p class="col-sm-7"
                                     id="orderNumber"
