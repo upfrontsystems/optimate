@@ -210,6 +210,8 @@ class Project(Node):
         return componentslist
 
     def toDict(self):
+        """ Return a dictionary of the attributes of this Project
+        """
         return {'Name': self.Name,
                 'Description': self.Description,
                 'ID': self.ID,
@@ -218,6 +220,8 @@ class Project(Node):
                 'City' : self.CityID,
                 'SiteAddress' : self.SiteAddress,
                 'FileNumber' : self.FileNumber,
+                'Ordered': str(self.Ordered),
+                'Invoiced': str(self.Invoiced),
                 'budg_cost': str(self.Total),
                 'order_cost': str(self.OrderCost),
                 'run_cost': str(self.RunningCost),
@@ -435,8 +439,12 @@ class BudgetGroup(Node):
                 'NodeTypeAbbr' : 'G'}
 
     def toDict(self):
+        """ Return a dictionary of the attributes of this BudgetGroup
+        """
         return {'Name': self.Name,
                 'Description' : self.Description,
+                'Ordered': str(self.Ordered),
+                'Invoiced': str(self.Invoiced),
                 'budg_cost': str(self.Total),
                 'order_cost': str(self.OrderCost),
                 'run_cost': str(self.RunningCost),
@@ -544,14 +552,8 @@ class BudgetItem(Node):
         difference = self._Total - oldtotal
 
         # update the parent with the new total
-        # since the total has changed, change the rate of any parent
-        # budgetitems, and then others
         if difference != 0:
-            parent = self.Parent
-            if parent.type == 'BudgetItem':
-                parent.Rate = parent.Rate + difference
-            else:
-                parent.Total = parent.Total + difference
+            self.Parent.Total = self.Parent.Total + difference
 
     @property
     def ItemTotal(self):
@@ -708,12 +710,14 @@ class BudgetItem(Node):
                 'NodeTypeAbbr' : 'I'}
 
     def toDict(self):
-        """ Returns a dictionary of all the attributes of this object.
+        """ Returns a dictionary of all the attributes of this BudgetItem
         """
         return {'Name': self.Name,
                 'Description' : self.Description,
                 'Quantity' : self._Quantity,
                 'ItemQuantity': self.ItemQuantity,
+                'Ordered': str(self.Ordered),
+                'Invoiced': str(self.Invoiced),
                 'budg_cost': str(self.Total),
                 'order_cost': str(self.OrderCost),
                 'run_cost': str(self.RunningCost),
@@ -823,17 +827,13 @@ class Component(Node):
         oldtotal = self.Total
         self._Total = Decimal(total).quantize(Decimal('.01'))
         difference = self._Total - oldtotal
-        # since the total has changed, change the rate or total of the parent
+        # since the total has changed, change the total of the parent
         parent = self.Parent
-
         if difference != 0:
-            if parent.type == 'BudgetItem':
-                parent.Rate = parent.Rate + difference
+            if parent._Total == None:
+                parent.resetTotal()
             else:
-                if parent._Total == None:
-                    parent.resetTotal()
-                else:
-                    parent.Total = parent.Total + difference
+                parent.Total = parent.Total + difference
 
     @hybrid_property
     def ItemTotal(self):
@@ -1003,13 +1003,19 @@ class Component(Node):
     def toOrderDict(self):
         """ Returns a dictionary of this node used in the order tree view
         """
-        total = self.Quantity*float(self.Rate)
+        # the default quantity is the components quantity minus
+        # the quantity of all its orders
+        orderitemsquantity = 0.0
+        for orderitem in self.OrderItems:
+            orderitemsquantity+=orderitem.Quantity
+        quantity = self.Quantity - orderitemsquantity
+        total = Decimal(quantity*float(self.Rate)).quantize(Decimal('.01'))
         return {'Name': self.Name,
                 'ID': self.ID,
                 'id': self.ID,
-                'Quantity': self.Quantity,
+                'Quantity': quantity,
                 'Rate': str(self.Rate),
-                'Total': total,
+                'Total': str(total),
                 'NodeType': self.type,
                 'node_type': self.type,
                 'NodeTypeAbbr' : 'C'}
@@ -1029,6 +1035,8 @@ class Component(Node):
                 'ResourceID': self.ResourceID,
                 'ResourceName': resource.Name,
                 'OverheadList': overheadlist,
+                'Ordered': str(self.Ordered),
+                'Invoiced': str(self.Invoiced),
                 'order_cost': str(self.OrderCost),
                 'run_cost': str(self.RunningCost),
                 'claim_cost': str(self.ClaimedCost),
@@ -1328,6 +1336,8 @@ class Resource(Node):
                 'NodeTypeAbbr' : 'R'}
 
     def toDict(self):
+        """ Return a dictionary of the attributes of this Resource
+        """
         return {'Name': self.Name,
                 'Description': self.Description,
                 'Rate': str(self._Rate),
@@ -1549,7 +1559,7 @@ class OrderItem(Base):
     Order = relationship('Order',
                               backref=backref('OrderItems'))
     Component = relationship('Component',
-                              backref=backref('OrderItem'))
+                              backref=backref('OrderItems'))
 
     @property
     def Total(self):
@@ -1612,7 +1622,7 @@ class Invoice(Base):
     __tablename__ = 'Invoice'
     ID = Column(Integer, primary_key=True)
     OrderID = Column(Integer, ForeignKey('Order.ID'))
-    InvoiceNumber = Column(Integer)
+    InvoiceNumber = Column(Text(50))
     Date = Column(DateTime)
     Amount = Column(Numeric)
 
@@ -1623,7 +1633,9 @@ class Invoice(Base):
         """ Returns a dictionary of this Invoice
         """
         # get the date in json format
-        jsondate = self.Date.isoformat()
+        jsondate = None
+        if self.Date:
+            jsondate = self.Date.isoformat()
         return {'ID': self.ID,
                 'OrderID': self.OrderID,
                 'InvoiceNumber': self.InvoiceNumber,

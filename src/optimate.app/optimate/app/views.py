@@ -578,18 +578,6 @@ def project_overheads(request):
                             'Percentage': str(overhead.Percentage*100.0),
                             'ID': overhead.ID})
         return sorted(overheadlist, key=lambda k: k['Name'].upper())
-    elif request.method == 'DELETE':
-        deleteid = request.matchdict['id']
-        # Deleting it from the table deleted the object
-        deletethis = DBSession.query(
-            Overhead).filter_by(ID=deleteid).first()
-        qry = DBSession.delete(deletethis)
-
-        if qry == 0:
-            return HTTPNotFound()
-        transaction.commit()
-
-        return HTTPOk()
     elif request.method == 'POST':
         projectid = request.matchdict['id']
         name = request.json_body['Name']
@@ -600,6 +588,24 @@ def project_overheads(request):
                                 ProjectID =projectid)
         DBSession.add(newoverhead)
         transaction.commit()
+        return HTTPOk()
+
+@view_config(route_name="overheadview",renderer='json')
+def overheadview(request):
+    """ Perform operations on the Overheads in the database depending in the
+        HTTP method
+    """
+    if request.method == 'DELETE':
+        deleteid = request.matchdict['id']
+        # Deleting it from the table deletes the object
+        deletethis = DBSession.query(
+            Overhead).filter_by(ID=deleteid).first()
+        qry = DBSession.delete(deletethis)
+
+        if qry == 0:
+            return HTTPNotFound()
+        transaction.commit()
+
         return HTTPOk()
 
 
@@ -662,7 +668,7 @@ def node_update_value(request):
     # only a resource's rate can be modified
     if result.type == 'Resource':
         if request.params.get('rate') != None:
-            result.Rate = float(request.params.get('rate'))
+            result.Rate = request.params.get('rate')
             return HTTPOk()
     # a budgetitems quantity or itemquantity can be modified
     elif result.type == 'BudgetItem':
@@ -1031,7 +1037,6 @@ def company_information(request):
                                  DefaultTaxrate='14.00')
         DBSession.add(company_information)
         DBSession.flush()
-        transaction.commit()
         qry = DBSession.query(CompanyInformation).filter_by(ID=0).first()
 
     data = {'Name': qry.Name,
@@ -1360,7 +1365,7 @@ def orderview(request):
         for orderitem in order.OrderItems:
             iddict[orderitem.ComponentID] = orderitem.ID
         # get the list of components used in the form
-        componentslist = request.json_body['ComponentsList']
+        componentslist = request.json_body.get('ComponentsList', [])
         # iterate through the new id's and add any new orders
         # remove the id from the list if it is there already
         for component in componentslist:
@@ -1410,7 +1415,9 @@ def orderview(request):
 
     componentslist = sorted(componentslist, key=lambda k: k['Name'])
     # get the date in json format
-    jsondate = order.Date.isoformat()
+    jsondate = None
+    if order.Date:
+        jsondate = order.Date.isoformat()
     total = '{:20,.2f}'.format(0).strip()
     if order.Total:
         total = '{:20,.2f}'.format(float(order.Total)).strip()
@@ -1559,9 +1566,11 @@ def invoiceview(request):
         date = request.json_body.get('Date', None)
         if date:
             date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
-        amount = request.json_body.get('TaxRate', Decimal(0.00))
+        amount = request.json_body.get('Amount', Decimal(0.00))
         amount = Decimal(amount).quantize(Decimal('.01'))
 
+        invoice.Date = date
+        invoice.Amount = amount
         transaction.commit()
         # return the edited invoice
         invoice = DBSession.query(

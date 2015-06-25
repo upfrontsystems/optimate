@@ -595,7 +595,6 @@ if __name__ == '__main__':
             bi = BudgetItem(ID=code, Name=name,
                             Description=description,
                             ParentID=parentcode,
-                            _ItemTotal=budgetcost,
                             _ItemQuantity=quantity,
                             _Rate=rate,
                             OrderCost=ordercost,
@@ -854,7 +853,6 @@ if __name__ == '__main__':
                         DBSession.add(resource)
                         co = Component(ID=code,
                                         ResourceID=resourceid,
-                                        _ItemTotal = budgetcost,
                                         _ItemQuantity = quantity,
                                         ParentID=parentcode,
                                         OrderCost=ordercost,
@@ -869,7 +867,6 @@ if __name__ == '__main__':
                         # the resource exists, create the component
                         co = Component(ID=code,
                                     ResourceID=resource.ID,
-                                    _ItemTotal = budgetcost,
                                     _ItemQuantity = quantity,
                                     ParentID=parentcode,
                                     OrderCost=ordercost,
