@@ -64,10 +64,10 @@
 </div>
 
 <div id="deleteConfirmation" class="modal" tabindex='-1'>
-    <div class="modal-dialog modal-sm">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-body">
-                <h4>Delete {{currentNode.NodeType}}: {{currentNode.Name}}</h4>
+                <h4>Are you sure you want to delete {{currentNode.Name}}?</h4>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary delete-node" data-dismiss="modal" data-ng-click="deleteThisNode(currentNode.ID)">Delete</button>
