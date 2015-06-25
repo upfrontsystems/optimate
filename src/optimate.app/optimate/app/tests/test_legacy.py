@@ -586,6 +586,8 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
 
     def _callFUT(self, request):
         from optimate.app.views import node_update_value
+        if not 'json_body' in request.__dict__:
+            request.json_body = {}
         return node_update_value(request)
 
     def test_update_resource_rate(self):
@@ -627,15 +629,23 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
 
     def test_update_component_quantity(self):
         _registerRoutes(self.config)
+        from optimate.app.views import node_cost
+
+        # Get original cost
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 1}
+        response = node_cost(request)
+        self.assertEqual(response['Cost'], '481.25')
+
+        # Update the quantity
         request = testing.DummyRequest()
         request.matchdict = {'id': 7}
-        request.params = {'quantity': 10}
+        request.json_body = {'quantity': 10}
         response = self._callFUT(request)
 
         # now the project cost should have changed
         request = testing.DummyRequest()
         request.matchdict = {'id': 1}
-        from optimate.app.views import node_cost
         response = node_cost(request)
         self.assertEqual(response['Cost'], '612.50')
 
@@ -643,7 +653,7 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.matchdict = {'id': 3}
-        request.params = {'quantity': 50}
+        request.json_body = {'quantity': 50}
         response = self._callFUT(request)
 
         # now the project cost should have changed
@@ -668,6 +678,9 @@ class TestAddItemSuccessCondition(unittest.TestCase):
 
     def _callFUT(self, request):
         from optimate.app.views import additemview
+        # Ensure request has a json_body, as it will in production
+        if not 'json_body' in request.__dict__:
+            request.json_body = {}
         return additemview(request)
 
     def test_add_budgetgroup(self):
