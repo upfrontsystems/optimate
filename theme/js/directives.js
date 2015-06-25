@@ -55,6 +55,10 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                      width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                     {id: "unit", name: "Unit", field: "unit",
                      width: cell_medium, cssClass: "cell  non-editable-column"},
+                    {id: "ordered", name: "Ordered", field: "ordered",
+                     width: cell_medium, cssClass: "cell  non-editable-column", formatter: CurrencyFormatter},
+                    {id: "invoiced", name: "Invoiced", field: "invoiced",
+                     width: cell_medium, cssClass: "cell  non-editable-column", formatter: CurrencyFormatter}
                     // {id: "order_cost", name: "Order Cost", field: "order_cost",
                     //  width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                     // {id: "run_cost", name: "Run Cost", field: "run_cost",
@@ -203,6 +207,10 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                  width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                                 {id: "sub_cost", name: "Subtotal", field: "sub_cost",
                                 width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                                {id: "ordered", name: "Ordered", field: "ordered",
+                                 width: cell_medium, cssClass: "cell  non-editable-column", formatter: CurrencyFormatter},
+                                 {id: "invoiced", name: "Invoiced", field: "invoiced",
+                                 width: cell_medium, cssClass: "cell  non-editable-column", formatter: CurrencyFormatter}
                                 // {id: "order_cost", name: "Order Cost", field: "order_cost",
                                 //  width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                                 // {id: "run_cost", name: "Run Cost", field: "run_cost",
@@ -363,7 +371,11 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     {id: "rate", name: "Rate", field: "Rate", cssClass: "cell editable-column",
                      width: cell_small, formatter: CurrencyFormatter, editor: Slick.Editors.CustomEditor},
                     {id: "total", name: "Total", field: "Total",
-                     width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter}
+                     width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                    {id: "ordered", name: "Ordered", field: "ordered",
+                    width: cell_medium, cssClass: "cell  non-editable-column", formatter: CurrencyFormatter},
+                    {id: "invoiced", name: "Invoiced", field: "invoiced",
+                    width: cell_medium, cssClass: "cell  non-editable-column", formatter: CurrencyFormatter}
                     ];
 
             var options = {

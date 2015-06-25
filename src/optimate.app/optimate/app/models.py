@@ -257,7 +257,9 @@ class Project(Node):
             'income_rec': str(self.IncomeReceived.quantize(Decimal('.01'))),
             'client_cost': str(self.ClientCost.quantize(Decimal('.01'))),
             'proj_profit': str(self.ProjectedProfit.quantize(Decimal('.01'))),
-            'act_profit': str(self.ActualProfit.quantize(Decimal('.01')))}
+            'act_profit': str(self.ActualProfit.quantize(Decimal('.01'))),
+            'ordered': str(self.Ordered),
+            'invoiced': str(self.Invoiced)}
 
     def __repr__(self):
         """ Return a representation of this project
@@ -463,7 +465,9 @@ class BudgetGroup(Node):
             'income_rec': str(self.IncomeReceived.quantize(Decimal('.01'))),
             'client_cost': str(self.ClientCost.quantize(Decimal('.01'))),
             'proj_profit': str(self.ProjectedProfit.quantize(Decimal('.01'))),
-            'act_profit': str(self.ActualProfit.quantize(Decimal('.01')))}
+            'act_profit': str(self.ActualProfit.quantize(Decimal('.01'))),
+            'ordered': str(self.Ordered),
+            'invoiced': str(self.Invoiced)}
 
     def updateOrdered(self, ordered):
         """ Updates the Ordered amount for all the children of this node
@@ -741,7 +745,9 @@ class BudgetItem(Node):
             'income_rec': str(self.IncomeReceived.quantize(Decimal('.01'))),
             'client_cost': str(self.ClientCost.quantize(Decimal('.01'))),
             'proj_profit': str(self.ProjectedProfit.quantize(Decimal('.01'))),
-            'act_profit': str(self.ActualProfit.quantize(Decimal('.01')))}
+            'act_profit': str(self.ActualProfit.quantize(Decimal('.01'))),
+            'ordered': str(self.Ordered),
+            'invoiced': str(self.Invoiced)}
 
     def updateOrdered(self, ordered):
         """ Updates the Ordered amount for all the children of this node
@@ -966,7 +972,9 @@ class ComponentMixin(object):
                 'Total': str(total),
                 'NodeType': self.type,
                 'node_type': self.type,
-                'NodeTypeAbbr' : 'C'}
+                'NodeTypeAbbr' : 'C',
+                'ordered': str(self.Ordered),
+                'invoiced': str(self.Invoiced)}
 
     def toDict(self):
         """ Return a dictionary of all the attributes of this Component. This
@@ -1007,7 +1015,9 @@ class ComponentMixin(object):
             'income_rec': str(self.IncomeReceived.quantize(Decimal('.01'))),
             'client_cost': str(self.ClientCost.quantize(Decimal('.01'))),
             'proj_profit': str(self.ProjectedProfit.quantize(Decimal('.01'))),
-            'act_profit': str(self.ActualProfit.quantize(Decimal('.01')))}
+            'act_profit': str(self.ActualProfit.quantize(Decimal('.01'))),
+            'ordered': str(self.Ordered),
+            'invoiced': str(self.Invoiced)}
 
     def updateOrdered(self, ordered):
         """ Updates the Ordered amount for this node
@@ -1137,7 +1147,9 @@ class Component(Node, ComponentMixin):
         di = super(Component, self).getGridData()
         di.update({
             'overheads': self.overheadsList(),
-            'unit': self.Unit
+            'unit': self.Unit,
+            'ordered': str(self.Ordered),
+            'invoiced': str(self.Invoiced)
         })
         return di
 
@@ -1198,7 +1210,9 @@ class SimpleComponent(Base, ComponentMixin):
         """
         di = super(Component, self).getGridData()
         di.update({
-            'unit': self.Unit.Name
+            'unit': self.Unit.Name,
+            'ordered': str(self.Ordered),
+            'invoiced': str(self.Invoiced)
         })
         return di
 
@@ -1721,7 +1735,9 @@ class OrderItem(Base):
                 'name': self.Component.Name,
                 'quantity': self.Quantity,
                 'rate': str(self.Rate),
-                'total': str(self.Total)}
+                'total': str(self.Total),
+                'ordered': str(self.Component.Ordered),
+                'invoiced': str(self.Component.Invoiced)}
 
     def __repr__(self):
         """Return a representation of this order item
