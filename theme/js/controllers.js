@@ -1884,6 +1884,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $http.get(globalServerURL + 'node/' + id + '/')
             .success(function(data) {
                 $scope.openProjectsList = [data];
+                $scope.selectNodeHead(data);
             });
         };
 
