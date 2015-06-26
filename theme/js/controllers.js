@@ -913,6 +913,17 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
         // Load a list of the fields used in adding a resource
         $scope.loadResourceRelatedList = function(){
+            // load the unit list
+            $scope.unitList = [{"Name": "Loading..."}];
+            var req = {
+                method: 'GET',
+                url: globalServerURL + 'units'
+            }
+            $http(req).success(function(data) {
+                $scope.unitList = data;
+                console.log("Unit list loaded");
+            });
+
             // load the resource types
             $scope.restypeList = [{"Name": "Loading..."}];
             var req = {
@@ -924,15 +935,15 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 console.log("Resource Type list loaded");
             });
 
-            // load the unit list
-            $scope.unitList = [{"Name": "Loading..."}];
+            // load the suppliers list
+            $scope.supplierList = [{"Name": "Loading..."}];
             var req = {
                 method: 'GET',
-                url: globalServerURL + 'units'
+                url: globalServerURL + 'suppliers'
             }
             $http(req).success(function(data) {
-                $scope.unitList = data;
-                console.log("Unit list loaded");
+                $scope.supplierList = data;
+                console.log("Resource Supplier list loaded");
             });
         }
 
@@ -1177,6 +1188,20 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             console.log("Component Type list loaded");
         };
 
+        $scope.loadSuppliers = function() {
+            // load the suppliers list
+            $scope.suppliersList = [{"Name": "Loading..."}];
+            var req = {
+                method: 'GET',
+                url: globalServerURL + 'suppliers'
+            }
+            $http(req).success(function(data) {
+                $scope.suppliersList = data;
+            });
+            console.log("Suppliers list loaded");
+            $scope.filterBySupplier = false;
+        };
+
         $scope.openNodeList = [];
         // load the node that has been selected into the tree for pdf printing
         $scope.loadNodeForPrinting = function (id) {
@@ -1188,7 +1213,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
         $scope.getReport = function (report, nodeid) {
             if ( report == 'projectbudget' ) {
-                var target = document.getElementsByClassName('pdf_download');
+                var target = document.getElementsByClassName('pdf_download');   
                 var spinner = new Spinner().spin(target[0]);
                 $scope.formData['ComponentTypeList'] = $scope.componentTypeList || [];
                 $scope.formData['PrintSelectedBudgerGroups'] = $scope.printSelectedBudgetGroups;
@@ -1225,13 +1250,17 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             else if ( report == 'resourcelist' ) {
                 var target = document.getElementsByClassName('pdf_download');
                 var spinner = new Spinner().spin(target[0]);
-                $http({method: 'GET', url:globalServerURL + 'resource_list_report/' + nodeid + '/'},
-                      {responseType:'arraybuffer'
+                $scope.formData['FilterBySupplier'] = $scope.filterBySupplier;
+                $http({
+                    method: 'POST',
+                    url: globalServerURL + 'resource_list_report/' + nodeid + '/',
+                    data: $scope.formData},
+                    {responseType: 'arraybuffer'
                 }).success(function (response, status, headers, config) {
                     spinner.stop(); // stop the spinner - ajax call complete
                     var file = new Blob([response], {type: 'application/pdf'});
                     var fileURL = URL.createObjectURL(file);
-                    var result = document.getElementsByClassName("pdf_download");
+                    var result = document.getElementsByClassName("pdf_hidden_download");
                     var anchor = angular.element(result);
                     var filename_header = headers('Content-Disposition');
                     var filename = filename_header.split('filename=')[1];
@@ -1680,7 +1709,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         // When the Add button is pressed change the state and form data
         $scope.addingState = function (){
             $scope.formData = {'NodeType': 'order',
-                                'TaxRate': false};
+                                'TaxRate': true};
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
             $scope.modalState = "Add";
@@ -1855,6 +1884,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $http.get(globalServerURL + 'node/' + id + '/')
             .success(function(data) {
                 $scope.openProjectsList = [data];
+                $scope.selectNodeHead(data);
             });
         };
 
@@ -1897,9 +1927,44 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 selectedNode.collapsed = false;
             }
         };
+
+        $scope.getReport = function (report) {
+            if ( report == 'order' ) {
+                var target = document.getElementsByClassName('pdf_download');
+                var spinner = new Spinner().spin(target[0]);
+                $http({
+                    method: 'POST',
+                    url: globalServerURL + 'order_report/' + $scope.selectedOrder.ID + '/'},
+                    {responseType: 'arraybuffer'
+                }).success(function (response, status, headers, config) {
+                    spinner.stop(); // stop the spinner - ajax call complete
+                    var file = new Blob([response], {type: 'application/pdf'});
+                    var fileURL = URL.createObjectURL(file);
+                    var result = document.getElementsByClassName("pdf_download");
+                    var anchor = angular.element(result);
+                    var filename_header = headers('Content-Disposition');
+                    var filename = filename_header.split('filename=')[1];
+                    anchor.attr({
+                        href: fileURL,
+                        target: '_blank',
+                        download: filename
+                    })[0].click();
+                    // clear the anchor so that everytime a new report is linked
+                    anchor.attr({
+                        href: '',
+                        target: '',
+                        download: ''
+                    });
+                }).error(function(data, status, headers, config) {
+                    console.log("Order pdf download error")
+                });
+            }
+        };
+
     }
 ]);
 
+/* directive for validating float types */
 allControllers.directive('smartFloat', function ($filter) {
     var FLOAT_REGEXP_1 = /^\$?\d+.(\d{3})*(\,\d*)$/; //Numbers like: 1.123,56
     var FLOAT_REGEXP_2 = /^\$?\d+,(\d{3})*(\.\d*)$/; //Numbers like: 1,123.56

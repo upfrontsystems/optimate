@@ -18,6 +18,9 @@
             <td style="width: 70px; text-align:right" tal:content="node[0].Rate|nothing" ></td>
             <td style="width: 70px; text-align:right" tal:content="node[3]|nothing" ></td>
         </tr>
+        <tr tal:condition="nodes == []">
+            <td>No matching resource data found.</td>
+        </tr>
     </table>
 
 </body>

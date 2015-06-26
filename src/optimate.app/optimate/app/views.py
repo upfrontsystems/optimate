@@ -212,6 +212,7 @@ def additemview(request):
     client = request.json_body.get('Client', '')
     siteaddress = request.json_body.get('SiteAddress', '')
     filenumber = request.json_body.get('FileNumber', '')
+    supplier = request.json_body.get('Supplier', '')
     newid = 0
     newnode = None
 
@@ -223,6 +224,7 @@ def additemview(request):
                             Code=code,
                             UnitID=unit,
                             Type=resourcetype,
+                            SupplierID=supplier,
                             _Rate= rate,
                             ParentID=parentid)
         # check if the resource is not in the resource category
@@ -424,6 +426,9 @@ def edititemview(request):
     elif objecttype == 'Resource':
         rate = request.json_body.get('Rate', 0)
         rate = Decimal(rate).quantize(Decimal('.01'))
+        unit = request.json_body.get('Unit', '')
+        resourcetype = request.json_body.get('ResourceType', '')
+        supplier = request.json_body.get('Supplier', '')
         resource = DBSession.query(Resource).filter_by(ID=nodeid).first()
         resource.Name=name
         resource.Description=desc
@@ -431,6 +436,9 @@ def edititemview(request):
         resource._Rate=rate
         resource.UnitID=request.json_body.get('Unit', '')
         resource.Type=request.json_body.get('ResourceType', '')
+        resource.UnitID=unit
+        resource.Type=resourcetype
+        resource.SupplierID=supplier
 
     else:
         return HTTPInternalServerError()

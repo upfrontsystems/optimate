@@ -7,6 +7,7 @@ from zope.sqlalchemy import ZopeTransactionExtension
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
 from decimal import *
+from datetime import datetime
 import sqlalchemy.types as types
 
 from sqlalchemy import (
@@ -1454,6 +1455,10 @@ class Resource(Node):
     UnitID = Column(Integer, ForeignKey('Unit.ID'))
     Type = Column(Text(50), ForeignKey('ResourceType.Name'))
     _Rate = Column('Rate', Numeric, default=Decimal(0.00))
+    SupplierID = Column(Integer, ForeignKey('Supplier.ID'))
+
+    Suppliers = relationship('Supplier',
+                              backref=backref('Resource'))
 
     __mapper_args__ = {
             'polymorphic_identity': 'Resource',
@@ -1516,7 +1521,8 @@ class Resource(Node):
                 'Code': self.Code,
                 'Rate': str(self._Rate),
                 'ResourceType': self.Type,
-                'Unit': self.UnitID}
+                'Unit': self.UnitID,
+                'Supplier': self.SupplierID}
 
     def getGridData(self):
         return {'name': self.Name,
@@ -1715,6 +1721,7 @@ class Order(Base):
             total = '{:20,.2f}'.format(0).strip()
 
         return {'ID': self.ID,
+                'Date': self.Date.strftime("%d %B %Y"),
                 'Project': projectname,
                 'Supplier': suppname,
                 'Client': clientname,
