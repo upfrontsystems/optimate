@@ -217,3 +217,7 @@ li.filters-flexbox {
 .LSHighlight {
     background-color: #2764d7;
 }
+
+.chosen-container{
+  width: 59% !important;
+}
