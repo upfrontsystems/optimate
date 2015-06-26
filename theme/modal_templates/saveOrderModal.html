@@ -6,7 +6,7 @@
                 <h3 class="modal-title">{{modalState}} an {{formData.NodeType}}</h3>
             </div>
             <div class="modal-body">
-                <div collapse="!isCollapsed">
+                <div data-ng-show="isCollapsed">
                     <form class="form-horizontal"  name="saveOrderModalForm" novalidate>
                         <div class="form-group" data-ng-show="modalState == 'Edit'">
                             <label for="orderNumber" class="col-sm-2 control-label">Order Number:</label>
@@ -97,9 +97,10 @@
                         </div>
                     </form>
                 </div>
-                <div collapse="isCollapsed">
+                <div data-ng-show="!isCollapsed">
                     <div data-ng-include="'partials/orderTreeview.html'">
                     </div>
+                    <div>&nbsp;</div>
                 </div>
                 <button class="btn btn-default"
                         data-ng-click="toggleComponentsGrid()"
