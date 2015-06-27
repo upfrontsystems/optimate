@@ -6,7 +6,8 @@ var myApp = angular.module('myApp', [
                     'ui.tree',
                     'services',
                     'ui.bootstrap.datetimepicker',
-                    'angularMoment']);
+                    'angularMoment',
+                    'localytics.directives']);
 
 myApp.config(['$routeProvider', '$httpProvider',
   function($routeProvider, $httpProvider) {
@@ -56,11 +57,7 @@ myApp.config(['$routeProvider', '$httpProvider',
       when('/orders', {
         templateUrl: 'partials/orders.html',
         controller: 'ordersController'
-      })
-      .when('/basic-example', {
-          controller: 'BasicExampleCtrl',
-          templateUrl: 'basic-example.html'
-        });
+      });
     $httpProvider.interceptors.push(function($window){
         return {
             request: function (config) {

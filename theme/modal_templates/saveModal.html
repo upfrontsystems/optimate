@@ -31,7 +31,8 @@
                     <div class="form-group"
                         ng-class="{'has-error': saveModalForm.inputCity.$invalid}">
                         <label for="inputCity" class="col-sm-2 control-label">City:</label>
-                        <select class="col-sm-7"
+                        <select chosen
+                                class="col-sm-7"
                                 id="inputCity"
                                 name="inputCity"
                                 data-ng-model="formData['City']"

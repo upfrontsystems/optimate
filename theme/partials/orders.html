@@ -49,11 +49,11 @@
                        data-ng-model="filters.OrderNumber"
                        data-ng-model-options="{ debounce: 500 }"
                        data-ng-change="loadOrderSection(); filterBy('ordernumber')">
-                <select class="order-filters"
+               <select class="order-filters"
                         id="projectFilter"
                         data-ng-model="filters.Project"
                         data-ng-options="project.ID as project.Name for project in projectsList"
-                        data-ng-change="loadOrderSection(); filterBy('project')">
+                        data-ng-change="loadOrderSection(); filterBy('project')">>
                     <option value="">Project</option>
                 </select>
                 <select class="order-filters"
