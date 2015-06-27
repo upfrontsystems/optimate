@@ -19,27 +19,51 @@
     <h1>Project Budget for ${project_name}</h1>
 
     <table>
-        <tr>
-            <th style="text-align:left">Description</th>
-            <th style="text-align:right">Unit</th> 
-            <th style="text-align:right">Quantity</th>
-            <th style="text-align:right">Rate</th>
-            <th style="text-align:right">Total</th>
+        <tr style="border-top: 1px solid #000;">
+            <td></td>
         </tr>
-        <tr></tr>
-        <tr tal:repeat="node nodes">
+        <tr style="padding-bottom: 3px;">
+            <th class="project-heading-font" style="text-align:left">Description</th>
+            <th class="project-heading-font" style="text-align:right">Unit</th> 
+            <th class="project-heading-font" style="text-align:right">Quantity</th>
+            <th class="project-heading-font" style="text-align:right">Rate</th>
+            <th class="project-heading-font" style="text-align:right">Total</th>
+        </tr>
+        <tal:repeat tal:repeat="node nodes">
             <tal:entry tal:condition="node">
-                <td class="${node[1]} ${node[2]}" style="width: 450px" tal:content="node[0].Name|nothing">
-                </td>
+                <tal:bg tal:condition="node[0].type == 'BudgetGroup'">
+                <tr style="border-top: 1px solid #000;">
+                    <td></td>
+                </tr>
+                <tr style="border-bottom: 1px solid #000; padding-bottom: 3px;">
+                    <td class="${node[1]} ${node[2]}" style="width: 450px" tal:content="node[0].Name|nothing">
+                    </td>
+                    <td class="${node[2]}" style="width: 70px; text-align:right" tal:content="node[0].Unit|nothing"></td>
+                    <td class="${node[2]}" style="width: 70px; text-align:right" tal:content="node[0].Quantity|nothing"></td>
+                    <td class="${node[2]}" style="width: 70px; text-align:right" tal:content="node[0].Rate|nothing"></td>
+                    <td class="${node[2]}" style="width: 70px; text-align:right" tal:content="node[0].Total|nothing"></td>
+                </tr>
+                </tal:bg>
+                <tal:bg tal:condition="node[0].type != 'BudgetGroup'">
+                    <tr>
+                        <tal:entry tal:condition="node">
+                            <td class="${node[1]} ${node[2]}" style="width: 450px" tal:content="node[0].Name|nothing">
+                            </td>
+                        </tal:entry>
+                        <tal:seperator tal:condition="node == None">
+                            <td>&nbsp;</td>
+                        </tal:seperator>
+                        <td class="${node[2]}" style="width: 70px; text-align:right" tal:content="node[0].Unit|nothing"></td>
+                        <td class="${node[2]}" style="width: 70px; text-align:right" tal:content="node[0].Quantity|nothing"></td>
+                        <td class="${node[2]}" style="width: 70px; text-align:right" tal:content="node[0].Rate|nothing"></td>
+                        <td class="${node[2]}" style="width: 70px; text-align:right" tal:content="node[0].Total|nothing"></td>
+                    </tr>
+                </tal:bg>
             </tal:entry>
             <tal:seperator tal:condition="node == None">
                 <td>&nbsp;</td>
             </tal:seperator>
-            <td style="width: 70px; text-align:right" tal:content="node[0].Unit|nothing" ></td>
-            <td style="width: 70px; text-align:right" tal:content="node[0].Quantity|nothing" ></td>
-            <td style="width: 70px; text-align:right" tal:content="node[0].Rate|nothing" ></td>
-            <td style="width: 70px; text-align:right" tal:content="node[0].Total|nothing" ></td>            
-        </tr>
+        </tal:repeat>
     </table>
 
     <div id="pageNumber">

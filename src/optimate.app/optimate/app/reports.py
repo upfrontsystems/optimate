@@ -102,6 +102,19 @@ def projectbudget(request):
     else:
         nodes = all_nodes(project, [], 0, level_limit, component_filter)
 
+    # this needs explaining. The 1st component or budgetitem of a budget group 
+    # needs a a special class so that extra spacing can be added above it for 
+    # report readability & clarity
+    count = 0
+    for node in nodes:
+        if node != None:
+            if node[0].type == 'Component' and count != 0:
+                if nodes[count-1][0].type != 'Component':
+                    nodes[count] = (node[0], node[1], 'normal-space')
+            elif node[0].type == 'BudgetItem' and count != 0:
+                if nodes[count-1][0].type != 'BudgetItem':
+                    nodes[count] = (node[0], node[1], 'normal-space')
+        count+= 1
 
     # render template
     template_data = render('templates/projectbudgetreport.pt',

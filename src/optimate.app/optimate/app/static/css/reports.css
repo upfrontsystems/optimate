@@ -5,6 +5,11 @@
     font-weight: normal;
 }
 
+.normal-space {
+    font-weight: normal;
+    padding-top: 4px;
+}
+
 td.level2 {
     padding-left: 8px;
 }
@@ -33,4 +38,8 @@ div#pageNumber {
 
 .order-font {
     font-size: 14px;
+}
+
+.project-heading-font {
+    font-size: 13px;
 }
