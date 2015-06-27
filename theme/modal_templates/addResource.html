@@ -79,7 +79,8 @@
                     <div class="form-group"
                         ng-class="{'has-error': addResourceForm.inputSupplier.$invalid}">                    
                         <label for="inputSupplier" class="col-sm-2 control-label">Supplier:</label>
-                        <select class="col-sm-7"
+                        <select chosen
+                                class="col-sm-7"
                                 id="inputSupplier"
                                 name="inputSupplier"
                                 data-ng-model="formData['Supplier']"
