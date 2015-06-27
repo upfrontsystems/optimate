@@ -1208,6 +1208,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             $http.get(globalServerURL + 'node/' + id + '/')
             .success(function(data) {
                 $scope.openNodeList = [data];
+                $scope.selectReportNodeHead(data);
             });
         };
 
