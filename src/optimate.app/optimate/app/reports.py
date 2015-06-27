@@ -117,9 +117,11 @@ def projectbudget(request):
         count+= 1
 
     # render template
+    now = datetime.datetime.now()
     template_data = render('templates/projectbudgetreport.pt',
                            {'nodes': nodes,
-                            'project_name': project.Name},
+                            'project_name': project.Name,
+                            'print_date' : now.strftime("%d %B %Y - %k:%M")},
                            request=request)
     html = StringIO(template_data.encode('utf-8'))
     print "template rendered"
@@ -134,7 +136,6 @@ def projectbudget(request):
 
     print "pdf rendered"
     filename = "project_budget_report"
-    now = datetime.datetime.now()
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
     last_modified = formatdate(time.mktime(now.timetuple()))
 
@@ -196,9 +197,11 @@ def resourcelist(request):
 
     # render template
     # XXX add a filtered by to title.. if exists
+    now = datetime.datetime.now()
     template_data = render('templates/resourcelistreport.pt',
                            {'nodes': nodes,
-                            'project_name': project.Name},
+                            'project_name': project.Name,
+                            'print_date' : now.strftime("%d %B %Y - %k:%M")},
                            request=request)
     html = StringIO(template_data.encode('utf-8'))
 
@@ -211,7 +214,6 @@ def resourcelist(request):
     pdf.close()
 
     filename = "resource_list_report"
-    now = datetime.datetime.now()
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
     last_modified = formatdate(time.mktime(now.timetuple()))
     response = Response(content_type='application/pdf',

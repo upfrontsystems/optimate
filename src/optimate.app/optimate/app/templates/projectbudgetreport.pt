@@ -6,6 +6,14 @@
         @page {
             @frame {
                 margin: 2cm;
+                top :2.5cm;
+            }
+            @frame header {
+                -pdf-frame-content: headerContent;
+                top :2cm;
+                margin-left: 2cm;
+                margin-right: 2cm; 
+                height: 2.5cm;
             }
             @frame footer {
                 -pdf-frame-content: pageNumber;
@@ -16,26 +24,29 @@
     <span tal:replace='structure string:</style>'/>
 
 <body>
-    <h1>Project Budget for ${project_name}</h1>
-
+    <div id="headerContent">
+        <table>
+            <tr>
+                <td style="text-align:left; width: 600px;"><h1>Project Budget for ${project_name}</h1></td>
+                <td style="text-align:right;"><h1>${print_date}</h1></td>
+            </tr>
+        </table>
+        <table>
+            <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding-top: 6px; padding-bottom: 3px;">
+                <td class="project-heading-font" style="width: 450px; text-align:left">Description</td>
+                <td class="project-heading-font" style="width: 70px; text-align:right">Unit</td>
+                <td class="project-heading-font" style="width: 70px; text-align:right">Quantity</td>
+                <td class="project-heading-font" style="width: 70px; text-align:right">Rate</td>
+                <td class="project-heading-font" style="width: 70px; text-align:right">Total</td>
+            </tr>
+        </table>
+    </div>
+    
     <table>
-        <tr style="border-top: 1px solid #000;">
-            <td></td>
-        </tr>
-        <tr style="padding-bottom: 3px;">
-            <th class="project-heading-font" style="text-align:left">Description</th>
-            <th class="project-heading-font" style="text-align:right">Unit</th> 
-            <th class="project-heading-font" style="text-align:right">Quantity</th>
-            <th class="project-heading-font" style="text-align:right">Rate</th>
-            <th class="project-heading-font" style="text-align:right">Total</th>
-        </tr>
         <tal:repeat tal:repeat="node nodes">
             <tal:entry tal:condition="node">
                 <tal:bg tal:condition="node[0].type == 'BudgetGroup'">
-                <tr style="border-top: 1px solid #000;">
-                    <td></td>
-                </tr>
-                <tr style="border-bottom: 1px solid #000; padding-bottom: 3px;">
+                <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding-top: 6px; padding-bottom: 3px;">
                     <td class="${node[1]} ${node[2]}" style="width: 450px" tal:content="node[0].Name|nothing">
                     </td>
                     <td class="${node[2]}" style="width: 70px; text-align:right" tal:content="node[0].Unit|nothing"></td>

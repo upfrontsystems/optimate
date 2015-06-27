@@ -43,3 +43,9 @@ div#pageNumber {
 .project-heading-font {
     font-size: 13px;
 }
+
+.resourcelist-heading-font {
+    font-size: 12px;
+    font-weight: bold;
+}
+

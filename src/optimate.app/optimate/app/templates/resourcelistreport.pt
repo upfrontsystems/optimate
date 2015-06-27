@@ -6,6 +6,14 @@
         @page {
             @frame {
                 margin: 2cm;
+                top :2cm;
+            }
+            @frame header {
+                -pdf-frame-content: headerContent;
+                top :2cm;
+                margin-left: 2cm;
+                margin-right: 2cm; 
+                height: 2cm;
             }
             @frame footer {
                 -pdf-frame-content: pageNumber;
@@ -16,18 +24,22 @@
     <span tal:replace='structure string:</style>'/>
 
 <body>
-    <h1>Resource List for ${project_name}</h1>
-
+    <div id="headerContent">
+        <table>
+            <tr>
+                <td style="text-align:left;  width: 600px;"><h1>Resource List for ${project_name}</h1></td>
+                <td style="text-align:right;"><h1>${print_date}</h1></td>
+            </tr>
+        </table>
+        <table>
+            <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding-top: 6px; padding-bottom: 3px;">
+                <td class="resourcelist-heading-font" style="width: 600px; text-align:left">Description</td>
+                <td class="resourcelist-heading-font" style="width: 70px; text-align:right">Rate</td>
+                <td class="resourcelist-heading-font" style="width: 70px; text-align:right">Quantity</td>
+            </tr>
+        </table>
+    </div>
     <table>
-        <tr style="border-top: 1px solid #000;">
-            <td></td>
-        </tr>
-        <tr style="border-bottom: 1px solid #000; padding-bottom: 3px;">
-            <th style="text-align:left">Description</th>
-            <th style="text-align:right">Rate</th>
-            <th style="text-align:right">Quantity</th>
-        </tr>
-        <tr></tr>
         <tr tal:repeat="node nodes">
             <td class="${node[1]} ${node[2]}" style="width: 600px">${node[0].Name}
             </td>
