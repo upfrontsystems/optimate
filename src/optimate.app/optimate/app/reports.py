@@ -219,35 +219,21 @@ def order(request):
     print "Generating Order Report"
     orderid = request.matchdict['id']
     order = DBSession.query(Order).filter_by(ID=orderid).first()
-
-    # inject order data into template   
     components = []
+    for orderitem in order.OrderItems:
+        cid = orderitem.ComponentID
+        component = DBSession.query(Node).filter_by(ID=cid).first()
+        components.append(component)       
+    sorted_components = sorted(components, key=lambda k: k.Name.upper())
+
+    # inject order data into template
     template_data = render('templates/orderreport.pt',
                            {'order': order,
-                            'components': components},
+                            'components': sorted_components,
+                            'order_date' : order.Date.strftime("%d %B %Y")},
                            request=request)
     # render template
     html = StringIO(template_data.encode('utf-8'))
-
-#    ID = Column(Integer, primary_key=True, index=True)
-#    UserCode = Column(Text(50))
-#    Authorisation = Column(Text(50))
-#    ProjectID = Column(Integer, ForeignKey('Project.ID'))
-#    SupplierID = Column(Integer, ForeignKey('Supplier.ID'))
-#    ClientID = Column(Integer, ForeignKey('Client.ID'))
-#    Total = Column(Numeric)
-#    TaxRate = Column(Float)
-#    DeliveryAddress = Column(Text(100))
-#    Date = Column(DateTime)
-#    Status = Column(Text(10))
-#
-#    Project = relationship('Project',
-#                              backref=backref('Order'))
-#    Supplier = relationship('Supplier',
-#                              backref=backref('Order'))
-#    Client = relationship('Client',
-#                              backref=backref('Order'))
-
 
     # Generate the pdf
     pdf = StringIO()
