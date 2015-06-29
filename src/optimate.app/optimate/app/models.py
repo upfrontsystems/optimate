@@ -1004,8 +1004,8 @@ class ComponentMixin(object):
                 'NodeType': self.type,
                 'node_type': self.type,
                 'NodeTypeAbbr' : 'C',
-                'ordered': str(self.Ordered),
-                'invoiced': str(self.Invoiced)}
+                'Ordered': str(self.Ordered),
+                'Invoiced': str(self.Invoiced)}
 
     def toDict(self):
         """ Return a dictionary of all the attributes of this Component. This
