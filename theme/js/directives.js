@@ -271,6 +271,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
 
                             grid.setColumns(newcolumns);
                             dataView.beginUpdate();
+                            grid.invalidateAllRows();
                             dataView.setItems(data);
                             dataView.endUpdate();
 
