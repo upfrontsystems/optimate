@@ -219,5 +219,11 @@ li.filters-flexbox {
 }
 
 .chosen-container{
-  width: 59% !important;
+    width: 59% !important;
 }
+
+.chosen.width100 {
+    width: 100% !important;
+}
+
+
