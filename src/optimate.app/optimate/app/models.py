@@ -243,6 +243,7 @@ class Project(Node):
         return {'Name': self.Name,
                 'Description': self.Description,
                 'ID': self.ID,
+                'ParentID': self.ParentID,
                 'Subitem': subitem,
                 'NodeType': self.type,
                 'NodeTypeAbbr' : 'P'}
@@ -435,6 +436,7 @@ class BudgetGroup(Node):
         return {'Name': self.Name,
                 'Description': self.Description,
                 'ID': self.ID,
+                'ParentID': self.ParentID,
                 'Subitem': subitem,
                 'NodeType': self.type,
                 'NodeTypeAbbr' : 'G'}
@@ -708,6 +710,7 @@ class BudgetItem(Node):
         return {'Name': self.Name,
                 'Description': self.Description,
                 'ID': self.ID,
+                'ParentID': self.ParentID,
                 'Subitem': subitem,
                 'NodeType': self.type,
                 'NodeTypeAbbr' : 'I'}
@@ -951,6 +954,7 @@ class ComponentMixin(object):
         return {'Name': self.Name,
                 'Description': self.Description,
                 'ID': self.ID,
+                'ParentID': self.ParentID,
                 'Subitem': [],
                 'NodeType': self.type,
                 'NodeTypeAbbr' : 'C'}
@@ -967,6 +971,7 @@ class ComponentMixin(object):
         total = Decimal(quantity*float(self.Rate)).quantize(Decimal('.01'))
         return {'Name': self.Name,
                 'ID': self.ID,
+                'ParentID': self.ParentID,
                 'id': self.ID,
                 'Quantity': quantity,
                 'Rate': str(self.Rate),
@@ -1386,6 +1391,7 @@ class ResourceCategory(Node):
         return {'Name': self.Name,
                 'Description': self.Description,
                 'ID': self.ID,
+                'ParentID': self.ParentID,
                 'Subitem': subitem,
                 'NodeType': self.type,
                 'NodeTypeAbbr' : 'C'}
@@ -1494,13 +1500,25 @@ class Resource(Node):
                          Code = self.Code,
                          UnitID = self.UnitID,
                          ParentID=parentid,
-                         _Rate = self.Rate)
+                         _Rate = self.Rate,
+                         SupplierID = self.SupplierID)
         return copied
 
     def paste(self, source, sourcechildren):
         """ Do nothing. Cant paste into a resource
         """
         pass
+
+    def overwrite(self, otherresource):
+        """ Overwrite this resource with the attributes of another resource
+        """
+        self.Name = other.Name
+        self.Description= other.Description
+        self.Type = other.Type
+        self.Code = other.Code
+        self.UnitID = other.UnitID
+        self.Rate = other.Rate
+        self.SupplierID = other.SupplierID
 
     def toChildDict(self):
         """ Returns a dictionary of this node used in the childview
@@ -1509,6 +1527,7 @@ class Resource(Node):
         return {'Name': self.Name,
                 'Description': self.Description,
                 'ID': self.ID,
+                'ParentID': self.ParentID,
                 'Subitem': subitem,
                 'NodeType': self.type,
                 'NodeTypeAbbr' : 'R'}
@@ -1533,12 +1552,12 @@ class Resource(Node):
                 'type': self.Type}
 
     def __eq__(self, other):
-        """Test for equality, for now testing based on the name
+        """ Test for equality on the Resource product Code
         """
         if other == None:
             return False
         else:
-            return self.Name == other.Name
+            return self.Code == other.Code
 
     def __getitem__(self, index):
         return self.Name[index].lower()

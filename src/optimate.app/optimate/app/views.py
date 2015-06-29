@@ -219,14 +219,6 @@ def additemview(request):
     # Determine the type of object to be added and build it
     if objecttype == 'Resource':
         code = request.json_body['Code']
-        newnode = Resource(Name=name,
-                            Description = desc,
-                            Code=code,
-                            UnitID=unit,
-                            Type=resourcetype,
-                            SupplierID=supplier,
-                            _Rate= rate,
-                            ParentID=parentid)
         # check if the resource is not in the resource category
         resourcecategory = DBSession.query(
                 ResourceCategory).filter_by(ID=parentid).first()
@@ -235,6 +227,15 @@ def additemview(request):
                 return HTTPInternalServerError()
         else:
             return HTTPInternalServerError()
+
+        newnode = Resource(Name=name,
+                            Description = desc,
+                            Code=code,
+                            UnitID=unit,
+                            Type=resourcetype,
+                            SupplierID=supplier,
+                            _Rate= rate,
+                            ParentID=parentid)
 
         DBSession.add(newnode)
         DBSession.flush()
@@ -369,7 +370,7 @@ def edititemview(request):
         uid = request.json_body['uid']
         component = DBSession.query(Component).filter_by(ID=nodeid).first()
 
-        # if the name is different from current name, get the new resource
+        # if a different resource is used, get the new resource
         if component.Resource.ID != uid:
             # A different resource was linked to this component
             rootparentid = component.getProjectID()
@@ -511,7 +512,7 @@ def search_resources(top, search):
 @view_config(route_name="project_resources", renderer='json')
 @view_config(route_name="resources", renderer='json')
 def project_resources(request):
-    """ Returns a list of all the resources in the
+    """ Returns a list of all the resources and resource categories in the
         node's project's resourcecategory in a format
         that the related items widget can read
     """
@@ -572,6 +573,31 @@ def project_resources(request):
             "uid": uid } for uid, title, url in pathlist(resourcecategory)],
         "items": items
     }
+
+@view_config(route_name="resourcecategory_resources", renderer='json')
+def resourcecategory_resources(request):
+    """ Returns a list of only the resources in a ResourceCategory
+        project_resources returns a mix of resources and categories
+    """
+    nodeid = request.matchdict['id']
+    resourcecategory = DBSession.query(
+        ResourceCategory).filter_by(ID=nodeid).first()
+
+    # if it doesnt exist return the empty list
+    if not resourcecategory:
+        return []
+
+    resourcelist = []
+    uniqueresources = []
+    resources = resourcecategory.getResources()
+    # only add unique resources
+    for resource in resources:
+        if resource not in uniqueresources:
+            uniqueresources.append(resource)
+    for resource in uniqueresources:
+        resourcelist.append(resource.toDict())
+
+    return resourcelist
 
 
 @view_config(route_name="resourcetypes", renderer='json')
@@ -759,8 +785,44 @@ def node_paste(request):
     sourceparent = source.ParentID
     # check the node isnt being pasted into it's parent
     if parentid != sourceparent:
+        # if we're dealing with resource categories
+        if source.type == 'ResourceCategory' and dest.type == 'ResourceCategory':
+            duplicates = request.json_body.get('duplicates', {})
+            resourcecodes = duplicates.keys()
+            sourceresources = source.getResources()
+            destresources = dest.getResources()
+
+            # add the source resource category to the destination category
+            newcategory = source.copy(parentid)
+            DBSession.add(newcategory)
+            DBSession.flush()
+            newid = newcategory.ID
+            # loop through all the source resources
+            # if they are duplicated, check what the action should be
+            for resource in sourceresources:
+                if resource.Code in resourcecodes:
+                    overwrite = duplicates[resource.Code]
+                    if overwrite:
+                        for destresource in destresources:
+                            if destresource.Code == resource.Code:
+                                destresource.overwrite(resource)
+                # otherwise paste the resource into the new category
+                else:
+                    newcategory.paste(resource.copy(newid), [])
+
+            # if the source is cut, delete it
+            if request.json_body["cut"]:
+                deleteid = sourceid
+                # Deleting it from the node table deleted the object
+                deletethis = DBSession.query(
+                                ResourceCategory).filter_by(ID=deleteid).first()
+                qry = DBSession.delete(deletethis)
+
+                if qry == 0:
+                    return HTTPNotFound()
+            transaction.commit()
         # if the source is to be cut and pasted into the destination
-        if request.json_body["cut"]:
+        elif request.json_body["cut"]:
             # check if the node was pasted into a different project
             # Get the ID of the projects
             destprojectid = dest.getProjectID()

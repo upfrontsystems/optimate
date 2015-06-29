@@ -33,18 +33,18 @@
                     </a>
                 </li>
                 <li>
-                    <a role="button" data-ng-click="copyThisNode(currentNode.ID, currentNode.NodeType)"
+                    <a role="button" data-ng-click="copyThisNode(currentNode)"
                        title="Copy Project">
                         <i class="fa fa-files-o"></i>
                     </a>
                 </li>
                 <li>
-                    <a role="button" data-ng-click="cutThisNode(currentNode.ID, currentNode.NodeType)"
+                    <a role="button" data-ng-click="cutThisNode(currentNode)"
                        title="Cut Project">
                         <i class="fa fa-cut"></i>
                     </a>
                 </li>
-                <li data-ng-show="copiedNode" data-ng-switch="copiedNode.type">
+                <li data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
                     <a data-ng-switch-when="BudgetGroup"
                         role="button"
                         data-ng-click="pasteThisNode(currentNode.ID)"
@@ -130,18 +130,18 @@
                     </a>
                 </li>
                 <li>
-                    <a role="button" data-ng-click="copyThisNode(currentNode.ID, currentNode.NodeType)"
+                    <a role="button" data-ng-click="copyThisNode(currentNode)"
                        title="Copy Budget Group">
                         <i class="fa fa-files-o"></i>
                     </a>
                 </li>
                 <li>
-                    <a role="button" data-ng-click="cutThisNode(currentNode.ID, currentNode.NodeType)"
+                    <a role="button" data-ng-click="cutThisNode(currentNode)"
                        title="Cut Budget Group">
                         <i class="fa fa-cut"></i>
                     </a>
                 </li>
-                <li data-ng-show="copiedNode" data-ng-switch="copiedNode.type">
+                <li data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
                     <a data-ng-switch-when="BudgetGroup"
                         role="button"
                         data-ng-click="pasteThisNode(currentNode.ID)"
@@ -210,18 +210,18 @@
                     </a>
                 </li>
                 <li>
-                    <a role="button" data-ng-click="copyThisNode(currentNode.ID, currentNode.NodeType)"
+                    <a role="button" data-ng-click="copyThisNode(currentNode)"
                        title="Copy Budget Item">
                         <i class="fa fa-files-o"></i>
                     </a>
                 </li>
                 <li>
-                    <a role="button" data-ng-click="cutThisNode(currentNode.ID, currentNode.NodeType)"
+                    <a role="button" data-ng-click="cutThisNode(currentNode)"
                        title="Cut Budget Item">
                         <i class="fa fa-cut"></i>
                     </a>
                 </li>
-                <li data-ng-show="copiedNode" data-ng-switch="copiedNode.type">
+                <li data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
                     <a data-ng-switch-when="BudgetItem"
                         role="button"
                         data-ng-click="pasteThisNode(currentNode.ID)"
@@ -285,18 +285,18 @@
                     </a>
                 </li>
                 <li>
-                    <a role="button" data-ng-click="copyThisNode(currentNode.ID, currentNode.NodeType)"
+                    <a role="button" data-ng-click="copyThisNode(currentNode)"
                        title="Copy Resource Category">
                         <i class="fa fa-files-o"></i>
                     </a>
                 </li>
                 <li>
-                    <a role="button" data-ng-click="cutThisNode(currentNode.ID, currentNode.NodeType)"
+                    <a role="button" data-ng-click="cutThisNode(currentNode)"
                        title="Cut Resource Category">
                         <i class="fa fa-cut"></i>
                     </a>
                 </li>
-                <li data-ng-show="copiedNode" data-ng-switch="copiedNode.type">
+                <li data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
                     <a data-ng-switch-when="ResourceCategory"
                         role="button"
                         data-ng-click="pasteThisNode(currentNode.ID)"
@@ -348,13 +348,13 @@
                     </a>
                 </li>
                 <li>
-                    <a role="button" data-ng-click="copyThisNode(currentNode.ID, currentNode.NodeType)"
+                    <a role="button" data-ng-click="copyThisNode(currentNode)"
                        title="Copy Component">
                         <i class="fa fa-files-o"></i>
                     </a>
                 </li>
                 <li>
-                    <a role="button" data-ng-click="cutThisNode(currentNode.ID, currentNode.NodeType)"
+                    <a role="button" data-ng-click="cutThisNode(currentNode)"
                        title="Cut Component">
                         <i class="fa fa-cut"></i>
                     </a>
@@ -386,13 +386,13 @@
                     </a>
                 </li>
                 <li>
-                    <a role="button" data-ng-click="copyThisNode(currentNode.ID, currentNode.NodeType)"
+                    <a role="button" data-ng-click="copyThisNode(currentNode)"
                        title="Copy Resource">
                         <i class="fa fa-files-o"></i>
                     </a>
                 </li>
                 <li>
-                    <a role="button" data-ng-click="cutThisNode(currentNode.ID, currentNode.NodeType)"
+                    <a role="button" data-ng-click="cutThisNode(currentNode)"
                        title="Cut Resource">
                         <i class="fa fa-cut"></i>
                     </a>

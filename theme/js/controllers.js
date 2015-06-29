@@ -439,9 +439,26 @@ allControllers.controller('unitsController', ['$scope', '$http', '$modal', '$log
     }
 ]);
 
+var duplicateModalController = function ($scope, $modalInstance, selections) {
+
+    $scope.selections = selections;
+
+    $scope.skip = function () {
+        $scope.selections.overwrite = false;
+        $modalInstance.close($scope.selections);
+    };
+
+    $scope.overwrite = function () {
+        $scope.selections.overwrite = true;
+        $modalInstance.close($scope.selections);
+    };
+};
+
+angular.module('allControllers').controller('duplicateModalController', duplicateModalController);
+
 // Controller for the projects and treeview
-allControllers.controller('projectsController',['$scope', '$http', '$cacheFactory', 'globalServerURL', '$rootScope', 'sharedService', '$timeout',
-    function($scope, $http, $cacheFactory, globalServerURL, $rootScope, sharedService, $timeout) {
+allControllers.controller('projectsController',['$scope', '$http', '$cacheFactory', 'globalServerURL', '$rootScope', 'sharedService', '$timeout', '$modal',
+    function($scope, $http, $cacheFactory, globalServerURL, $rootScope, sharedService, $timeout, $modal) {
 
         toggleMenu('projects');
         // variable for disabling submit button after user clicked it
@@ -682,12 +699,12 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     // if it's in the same project, cut
                     if (destprojectid == srcprojectid){
                         $scope.currentNodeScope = event.source.nodeScope;
-                        $scope.cutThisNode(src.ID, src.NodeType);
+                        $scope.cutThisNode(src);
                         $scope.pasteThisNode(dest.ID);
                     }
                     // otherwise paste
                     else{
-                        $scope.copyThisNode(src.ID, src.NodeType);
+                        $scope.copyThisNode(src);
                         $scope.pasteThisNode(dest.ID);
                         // set the flag to indicate the source needs to be added
                         // back to the parent when the node drops
@@ -1114,17 +1131,17 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         };
 
         // Function to copy a node
-        $scope.copyThisNode = function(copiedid, nodetype) {
-            $scope.copiedNode = {'id': copiedid, 'type': nodetype};
+        $scope.copyThisNode = function(node) {
+            $scope.copiedNode = node;
             $scope.cut = false;
-            console.log("Node id copied: " + copiedid);
+            console.log("Node id copied: " + node.ID);
         }
 
         // Function to cut a node
         // the node is removed from the tree (but not deleted)
-        $scope.cutThisNode = function(cutid, nodetype) {
-            $scope.copiedNode = {'id': cutid, 'type': nodetype};
-            console.log("Node id cut: " + cutid);
+        $scope.cutThisNode = function(node) {
+            $scope.copiedNode = node;
+            console.log("Node id cut: " + node.ID);
             $scope.cut = true;
             $scope.nodeDeleted();
         }
@@ -1134,28 +1151,113 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         // the user can't paste into the same node
         $scope.pasteThisNode = function(nodeid) {
             var cnode = $scope.copiedNode;
+            var doAll = undefined;
+            var duplicatelist = undefined;
+            var flag = false;
             if (cnode){
-                if (cnode['id'] == nodeid){
-                    console.log("You can't paste a node into itself");
+                flag = true;
+            }
+            if (flag && (cnode.ID == nodeid)){
+                flag = false;
+                console.log("You can't paste a node into itself");
+            }
+            if (flag && ((cnode.NodeType == 'ResourceCategory') && ($scope.currentNode.NodeType == 'ResourceCategory'))){
+                if (cnode.ParentID == nodeid){
+                    flag = false;
+                    console.log("You can't paste a Resource Category into the same list");
                 }
                 else {
-                    $http({
-                        method: 'POST',
-                        url: globalServerURL + 'node/' + nodeid + '/paste/',
-                        data:{'ID': cnode['id'],
-                                'cut': $scope.cut}
-                    }).success(function () {
-                        console.log('Success: Node pasted');
-                        sharedService.reloadSlickgrid(nodeid);
-                        $scope.loadNodeChildren(nodeid);
-                        // expand the node if this is its first child
-                        if ($scope.currentNode.Subitem.length == 0){
-                            $scope.currentNode.collapsed = true;
-                        }
-                    }).error(function(){
-                        console.log("Server error");
+                    // get the resources in the copied category
+                    $http.get(globalServerURL + 'resourcecategory/' + cnode.ID + '/resources/')
+                    .success(function (response) {
+                        var copiedresources = response;
+                        // get the resources in the destination category
+                        $http.get(globalServerURL + 'resourcecategory/' + nodeid + '/resources/')
+                        .success(function (response) {
+                            duplicatelist = {};
+                            var destinationresources = response;
+                            // loop through each duplicate
+                            for (var d in destinationresources){
+                                var overwrite = false;
+                                var keys = Object.keys(copiedresources);
+                                var openModal = function() {
+                                    var modalInstance = $modal.open({
+                                        templateUrl: 'duplicateConfirmationModal.html',
+                                        controller: duplicateModalController,
+                                        resolve: {
+                                            selections: function () {
+                                                return $scope.selections;
+                                            }
+                                        }
+                                    });
+
+                                    return modalInstance.result.then(function (selections) {
+                                        overwrite = selections.overwrite;
+                                        if (selections.doAll){
+                                            doAll = selections.doAll;
+                                            console.log(doAll);
+                                        }
+                                    });
+                                };
+
+                                (function checkItems() {
+                                    // get the first key and remove it from array
+                                    var key = keys.shift();
+                                    if (copiedresources[key].Code == destinationresources[d].Code){
+                                        var duplicateResource = copiedresources[key];
+                                        // ask user if they want this resource overwritten or not
+                                        console.log(doAll)
+                                        if (doAll == undefined){
+                                            console.log(doAll);
+                                            // open the modal
+                                            $scope.selections = {'overwrite': overwrite,
+                                                                'doAll': doAll,
+                                                                'resourceName': duplicateResource.Name};
+                                            // open the modal
+                                            openModal().finally(function() {
+                                                duplicatelist[duplicateResource.Code] = overwrite;
+                                                if (keys.length) {
+                                                    checkItems();
+                                                }
+                                            });
+                                        }
+                                        else{
+                                            // skip has been selected
+                                            // set the overwrite to the skip value
+                                            duplicatelist[duplicateResource.Code] = doAll;
+                                        }
+                                    }
+                                    else{
+                                        if (keys.length) {
+                                            checkItems();
+                                        }
+                                    }
+
+                                })();
+                            }
+                            console.log(duplicatelist);
+                        });
                     });
                 }
+            }
+            if (flag){
+                $http({
+                    method: 'POST',
+                    url: globalServerURL + 'node/' + nodeid + '/paste/',
+                    data:{'ID': cnode.ID,
+                            'cut': $scope.cut,
+                            'duplicates': duplicatelist}
+                }).success(function () {
+                    console.log('Success: Node pasted');
+                    sharedService.reloadSlickgrid(nodeid);
+                    $scope.loadNodeChildren(nodeid);
+                    // expand the node if this is its first child
+                    if ($scope.currentNode.Subitem.length == 0){
+                        $scope.currentNode.collapsed = true;
+                    }
+                }).error(function(){
+                    console.log("Server error");
+                });
             }
         }
 
@@ -1213,7 +1315,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
         $scope.getReport = function (report, nodeid) {
             if ( report == 'projectbudget' ) {
-                var target = document.getElementsByClassName('pdf_download');   
+                var target = document.getElementsByClassName('pdf_download');
                 var spinner = new Spinner().spin(target[0]);
                 $scope.formData['ComponentTypeList'] = $scope.componentTypeList || [];
                 $scope.formData['PrintSelectedBudgerGroups'] = $scope.printSelectedBudgetGroups;
