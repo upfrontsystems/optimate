@@ -574,6 +574,7 @@ def project_resources(request):
         "items": items
     }
 
+@view_config(route_name="resourcecategory_allresources", renderer='json')
 @view_config(route_name="resourcecategory_resources", renderer='json')
 def resourcecategory_resources(request):
     """ Returns a list of only the resources in a ResourceCategory
@@ -586,6 +587,12 @@ def resourcecategory_resources(request):
     # if it doesnt exist return the empty list
     if not resourcecategory:
         return []
+
+    # get the entire resource list if requested
+    if request.matched_route.name == 'resourcecategory_allresources':
+        projectid = resourcecategory.getProjectID()
+        resourcecategory = DBSession.query(
+                ResourceCategory).filter_by(ParentID=projectid).first()
 
     resourcelist = []
     uniqueresources = []
@@ -829,10 +836,13 @@ def node_paste(request):
         if len(duplicates)> 0:
             resourcecodes = duplicates.keys()
             sourceresources = source.getResources()
-            destresources = dest.getResources()
+            projectid = dest.getProjectID()
+            resourcecategory = DBSession.query(
+                    ResourceCategory).filter_by(ParentID=projectid).first()
+            destresources = resourcecategory.getResources()
             newcategory = None
             # loop through all the source resources
-            # if they are duplicated, check what the action should be
+            # if they are duplicated, check what the action should be taken
             for resource in sourceresources:
                 if resource.Code in resourcecodes:
                     overwrite = duplicates[resource.Code]
@@ -870,8 +880,22 @@ def node_paste(request):
         transaction.commit()
     # check the node isnt being pasted into it's parent
     elif parentid != sourceparent:
+        if source.type == 'Resource':
+            # check the resource is not being duplicated
+            projectid = dest.getProjectID()
+            resourcecategory = DBSession.query(
+                        ResourceCategory).filter_by(ParentID=projectid).first()
+            destresources = resourcecategory.getResources()
+            if source not in destresources:
+                if request.json_body["cut"]:
+                    source.ParentID = destinationid
+                else:
+                    # Paste the source into the destination
+                    dest.paste(source.copy(dest.ID), source.Children)
+            else:
+                return HTTPConflict()
         # if the source is to be cut and pasted into the destination
-        if request.json_body["cut"]:
+        elif request.json_body["cut"]:
             # check if the node was pasted into a different project
             # Get the ID of the projects
             destprojectid = dest.getProjectID()
@@ -927,63 +951,59 @@ def node_paste(request):
             source.ParentID = destinationid
             transaction.commit()
         else:
-            if (source.type == 'ResourceCategory' or source.type == 'Resource'):
-                # Paste the source into the destination
-                dest.paste(source.copy(dest.ID), source.Children)
-            else:
-                # Paste the source into the destination
-                dest.paste(source.copy(dest.ID), source.Children)
-                DBSession.flush()
-                # check if the node was pasted into a different project
-                # Get the ID of the projects
-                destprojectid = dest.getProjectID()
-                sourceprojectid = source.getProjectID()
+            # Paste the source into the destination
+            dest.paste(source.copy(dest.ID), source.Children)
+            DBSession.flush()
+            # check if the node was pasted into a different project
+            # Get the ID of the projects
+            destprojectid = dest.getProjectID()
+            sourceprojectid = source.getProjectID()
 
-                if destprojectid != sourceprojectid:
-                    projectid = destprojectid
-                    # get the resource category the project uses
-                    resourcecategory = DBSession.query(
-                                    ResourceCategory).filter_by(
-                                    ParentID=projectid).first()
-                    rescatid = resourcecategory.ID
+            if destprojectid != sourceprojectid:
+                projectid = destprojectid
+                # get the resource category the project uses
+                resourcecategory = DBSession.query(
+                                ResourceCategory).filter_by(
+                                ParentID=projectid).first()
+                rescatid = resourcecategory.ID
 
-                    # Get the components that were copied
-                    if source.type == 'Component':
-                        sourcecomponents = [source]
-                    else:
-                        sourcecomponents = source.getComponents()
-                    # copy each unique resource into the new resource category
-                    copiedresourceIds = {}
-                    for component in sourcecomponents:
-                        if component.ResourceID not in copiedresourceIds:
-                            copiedresource = component.Resource.copy(rescatid)
-                            resourcecategory.Children.append(copiedresource)
-                            DBSession.flush()
-                            copiedresourceIds[
-                                    component.Resource.ID] = copiedresource.ID
+                # Get the components that were copied
+                if source.type == 'Component':
+                    sourcecomponents = [source]
+                else:
+                    sourcecomponents = source.getComponents()
+                # copy each unique resource into the new resource category
+                copiedresourceIds = {}
+                for component in sourcecomponents:
+                    if component.ResourceID not in copiedresourceIds:
+                        copiedresource = component.Resource.copy(rescatid)
+                        resourcecategory.Children.append(copiedresource)
+                        DBSession.flush()
+                        copiedresourceIds[
+                                component.Resource.ID] = copiedresource.ID
 
-                    # get the components that were pasted
-                    destcomponents = dest.getComponents()
-                    # change the resource ids of components who were copied
-                    for component in destcomponents:
-                        if component.ResourceID in copiedresourceIds:
-                            component.ResourceID = copiedresourceIds[
-                                                        component.ResourceID]
+                # get the components that were pasted
+                destcomponents = dest.getComponents()
+                # change the resource ids of components who were copied
+                for component in destcomponents:
+                    if component.ResourceID in copiedresourceIds:
+                        component.ResourceID = copiedresourceIds[
+                                                    component.ResourceID]
 
-                    # # copy the overheads the components use into the project
-                    # overheadids = {}
-                    # for component in sourcecomponents:
-                    #     for overhead in component.Overheads:
-                    #         if overhead.ID not in overheadids.keys():
-                    #             newoverhead = overhead.copy(destprojectid)
-                    #             DBSession.add(newoverhead)
-                    #             DBSession.flush()
-                    #             overheadids[overhead.ID] = newoverhead
+                # # copy the overheads the components use into the project
+                # overheadids = {}
+                # for component in sourcecomponents:
+                #     for overhead in component.Overheads:
+                #         if overhead.ID not in overheadids.keys():
+                #             newoverhead = overhead.copy(destprojectid)
+                #             DBSession.add(newoverhead)
+                #             DBSession.flush()
+                #             overheadids[overhead.ID] = newoverhead
 
-                    # for component in destcomponents:
-                    #     for overhead in component.Overheads:
-                    #         if overhead.ID in overheadids.keys():
-                    #             # replace the overhead with the copied one
+                # for component in destcomponents:
+                #     for overhead in component.Overheads:
+                #         if overhead.ID in overheadids.keys():
+                #             # replace the overhead with the copied one
     # when a node is pasted in the same level
     else:
         # can't do this for resources or resource categories

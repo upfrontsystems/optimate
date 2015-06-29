@@ -1175,7 +1175,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     .success(function (response) {
                         var copiedresources = response;
                         // get the resources in the destination category
-                        $http.get(globalServerURL + 'resourcecategory/' + nodeid + '/resources/')
+                        $http.get(globalServerURL + 'resourcecategory/' + nodeid + '/allresources/')
                         .success(function (response) {
                             duplicatelist = [];
                             selectionlist = {};
