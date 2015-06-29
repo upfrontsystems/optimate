@@ -148,12 +148,6 @@ var ContentFinder = function(id, search_callback, select_callback, multiselect) 
         self.listdir($(this).parent().data('uid'));
     });
 
-    self.container.on('mouseenter', 'a.open-folder .arrow', function(e){
-        $(this).attr('class', 'arrow right-arrow-active');
-    }).on('mouseleave', 'a.open-folder .arrow', function(e){
-        $(this).attr('class', 'arrow right-arrow');
-    });
-
     self.container.on('click', '.internalpath a', function(e){
         e.preventDefault();
         self.listdir($(this).attr('data-uid'));
@@ -205,12 +199,9 @@ ContentFinder.prototype._listdir = function(data) {
         selected = $.inArray(item.uid, self.selected_uids()) !== -1;
         var selected_class = selected ? ' selected ' : '';
         if (item.folderish) {
-            var $item = $('<div>').addClass('arrow right-arrow') // nested div
-                .appendTo('<a>').parent() // up to containing anchor
-                .addClass('open-folder')
-                .add('<span>').last() // span sibling
+            var $item = $('<span>')
                 .addClass('contenttype-' + item.normalized_type)
-                .text(item.title).end() // back to anchor
+                .text(item.title)
                 .appendTo('<li>').parent() // up to li container
                 .addClass('active-result folderish')
                 .data('uid', item.uid)
