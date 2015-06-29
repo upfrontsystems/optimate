@@ -91,8 +91,33 @@ class Node(Base):
         while ptr.Parent and ptr.Parent.ID != 0:
             ptr = ptr.Parent
 
-        assert ptr.Parent, "Tree is broken"
+        if not ptr.Parent:
+            return 0
         return ptr.ID
+
+    def copy(self, parentid):
+        """ copy returns an exact duplicate of this object,
+            but with the ParentID specified.
+        """
+        copied = Node(OrderCost=self.OrderCost,
+                    ClaimedCost=self.ClaimedCost,
+                    RunningCost=self.RunningCost,
+                    IncomeReceived=self.IncomeReceived,
+                    ClientCost=self.ClientCost,
+                    ProjectedProfit=self.ProjectedProfit,
+                    ActualProfit=self.ActualProfit)
+        return copied
+
+    def paste(self, source, sourcechildren):
+        """paste appends a source object to the children of this node,
+           and then recursively does the same
+           with each child of the source object.
+        """
+        self.Children.append(source)
+        for child in sourcechildren:
+            # The resource category is not pasted
+            if child.type != 'ResourceCategory':
+                source.paste(child.copy(source.ID), child.Children)
 
     def __repr__(self):
         return '<Node(ID="%s", ParentID="%s")>' % (self.ID, self.ParentID)
@@ -183,8 +208,8 @@ class Project(Node):
                         ClientCost=self.ClientCost,
                         ProjectedProfit=self.ProjectedProfit,
                         ActualProfit=self.ActualProfit,
-                        _Ordered=self.Ordered,
-                        _Invoiced=self.Invoiced)
+                        Ordered=self.Ordered,
+                        Invoiced=self.Invoiced)
         return copied
 
     def paste(self, source, sourcechildren):

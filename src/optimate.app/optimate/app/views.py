@@ -778,13 +778,52 @@ def node_paste(request):
     sourceid = request.json_body["ID"]
     # Find the object to be copied to from the path
     destinationid = request.matchdict['id']
-
+    projectid = None
     source = DBSession.query(Node).filter_by(ID=sourceid).first()
     dest = DBSession.query(Node).filter_by(ID=destinationid).first()
     parentid = dest.ID
     sourceparent = source.ParentID
+    # if a project is being pasted into the root
+    if parentid == 0:
+        if request.json_body["cut"]:
+            projectid = sourceid
+        else:
+            # Paste the source into the destination
+            projectcopy = source.copy(dest.ID)
+            DBSession.add(projectcopy)
+            DBSession.flush()
+            projectid = projectcopy.ID
+            dest.paste(projectcopy, source.Children)
+            DBSession.flush()
+            # add a Resource Category to the new Project
+            resourcecategory = ResourceCategory(Name='Resource List',
+                                            Description='List of Resources',
+                                            ParentID=projectid)
+            DBSession.add(resourcecategory)
+            DBSession.flush()
+            rescatid = resourcecategory.ID
+
+            # Get the components that were copied
+            sourcecomponents = source.getComponents()
+            # copy each unique resource into the new resource category
+            copiedresourceIds = {}
+            for component in sourcecomponents:
+                if component.ResourceID not in copiedresourceIds:
+                    copiedresource = component.Resource.copy(rescatid)
+                    resourcecategory.Children.append(copiedresource)
+                    DBSession.flush()
+                    copiedresourceIds[
+                            component.Resource.ID] = copiedresource.ID
+
+            # get the components that were pasted
+            destcomponents = projectcopy.getComponents()
+            # change the resource ids of components who were copied
+            for component in destcomponents:
+                if component.ResourceID in copiedresourceIds:
+                    component.ResourceID = copiedresourceIds[
+                                                component.ResourceID]
     # check the node isnt being pasted into it's parent
-    if parentid != sourceparent:
+    elif parentid != sourceparent:
         # if we're dealing with resource categories
         if source.type == 'ResourceCategory' and dest.type == 'ResourceCategory':
             duplicates = request.json_body.get('duplicates', {})
@@ -894,11 +933,11 @@ def node_paste(request):
                 # Paste the source into the destination
                 dest.paste(source.copy(dest.ID), source.Children)
                 DBSession.flush()
-
                 # check if the node was pasted into a different project
                 # Get the ID of the projects
                 destprojectid = dest.getProjectID()
                 sourceprojectid = source.getProjectID()
+
                 if destprojectid != sourceprojectid:
                     projectid = destprojectid
                     # get the resource category the project uses
@@ -951,7 +990,8 @@ def node_paste(request):
             reset.resetTotal()
 
         transaction.commit()
-    return HTTPOk()
+    # if a project was pasted its new id is returned
+    return{'newId': projectid}
 
 
 @view_config(route_name="node_cost", renderer='json')

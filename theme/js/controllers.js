@@ -473,41 +473,44 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
         // When a new project is added to the tree
         $scope.projectAdded = function(newproject){
-            // add the new project to the projects and role list and sort
-            $scope.projectsList.push(newproject);
-            $scope.projectsList.sort(function(a, b) {
-                var textA = a.Name.toUpperCase();
-                var textB = b.Name.toUpperCase();
-                return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
-            });
+            if (!(containsObject(newproject, $scope.projectsRoot.Subitem))) {
+                // add the new project to the projects and role list and sort
+                $scope.projectsList.push(newproject);
+                $scope.projectsList.sort(function(a, b) {
+                    var textA = a.Name.toUpperCase();
+                    var textB = b.Name.toUpperCase();
+                    return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+                });
 
-            $scope.projectsRoot.Subitem.push(newproject);
-            $scope.projectsRoot.Subitem.sort(function(a, b) {
-                var textA = a.Name.toUpperCase();
-                var textB = b.Name.toUpperCase();
-                return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
-            });
-            if (hasStorage) {
-                // add id of project to local storage
-                var open_projects;
-                try {
-                    // attempt to add an id to open_projects storage
-                    open_projects = JSON.parse(localStorage["open_projects"])
-                    open_projects.push(newproject.ID);
-                    localStorage["open_projects"] = JSON.stringify(open_projects);
+                $scope.projectsRoot.Subitem.push(newproject);
+                $scope.projectsRoot.Subitem.sort(function(a, b) {
+                    var textA = a.Name.toUpperCase();
+                    var textB = b.Name.toUpperCase();
+                    return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+                });
+                console.log($scope.projectsRoot.Subitem);
+                if (hasStorage) {
+                    // add id of project to local storage
+                    var open_projects;
+                    try {
+                        // attempt to add an id to open_projects storage
+                        open_projects = JSON.parse(localStorage["open_projects"])
+                        open_projects.push(newproject.ID);
+                        localStorage["open_projects"] = JSON.stringify(open_projects);
+                    }
+                    catch (exception) {
+                        // create a new open_projects storage as one doesnt exist
+                        localStorage.setItem("open_projects", []);
+                        open_projects = []
+                        open_projects.push(newproject.ID);
+                        localStorage["open_projects"] = JSON.stringify(open_projects);
+                    }
                 }
-                catch (exception) {
-                    // create a new open_projects storage as one doesnt exist
-                    localStorage.setItem("open_projects", []);
-                    open_projects = []
-                    open_projects.push(newproject.ID);
-                    localStorage["open_projects"] = JSON.stringify(open_projects);
+                else {
+                    console.log("LOCAL STORAGE NOT SUPPORTED!")
                 }
+                console.log("Project added");
             }
-            else {
-                console.log("LOCAL STORAGE NOT SUPPORTED!")
-            }
-            console.log("Project added");
         };
 
         // aux function - checks if object is already in list based on ID
@@ -1254,10 +1257,24 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     url: globalServerURL + 'node/' + nodeid + '/paste/',
                     data:{'ID': cnode.ID,
                             'cut': $scope.cut}
-                }).success(function () {
+                }).success(function (response) {
                     console.log('Success: Node pasted');
-                    sharedService.reloadSlickgrid(nodeid);
-                    $scope.loadNodeChildren(nodeid);
+                    // if a project was pasted into the root
+                    if (nodeid == 0){
+                        var newprojectid = response.newId;
+                        console.log(newprojectid);
+                        // get the new project
+                        $http.get(globalServerURL + 'node/' + newprojectid + '/')
+                        .success(function(data) {
+                            console.log(data);
+                            // and add it to the open projects
+                            $scope.projectAdded(data);
+                        });
+                    }
+                    else{
+                        sharedService.reloadSlickgrid(nodeid);
+                        $scope.loadNodeChildren(nodeid);
+                    }
                     // expand the node if this is its first child
                     if ($scope.currentNode.Subitem.length == 0){
                         $scope.currentNode.collapsed = true;
@@ -1297,7 +1314,11 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
         // Load the children and add to the tree
         $scope.loadNodeChildren = function(parentid){
-            if ($scope.currentNode){
+            // if the parent id is 0 reload the projectslist
+            if (parentid == 0){
+
+            }
+            else if ($scope.currentNode){
                 $http.get(globalServerURL + 'node/' + parentid + '/children/').success(function(data) {
                     $scope.currentNode.Subitem = data;
                     console.log("Children loaded");

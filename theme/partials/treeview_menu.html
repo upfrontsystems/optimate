@@ -45,6 +45,12 @@
                     </a>
                 </li>
                 <li data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
+                    <a data-ng-switch-when="Project"
+                        role="button"
+                        data-ng-click="pasteThisNode(0)"
+                        title="Paste Project">
+                        <i class="fa fa-clipboard"></i>
+                    </a>
                     <a data-ng-switch-when="BudgetGroup"
                         role="button"
                         data-ng-click="pasteThisNode(currentNode.ID)"
@@ -142,6 +148,12 @@
                     </a>
                 </li>
                 <li data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
+                    <a data-ng-switch-when="Project"
+                        role="button"
+                        data-ng-click="pasteThisNode(0)"
+                        title="Paste Project">
+                        <i class="fa fa-clipboard"></i>
+                    </a>
                     <a data-ng-switch-when="BudgetGroup"
                         role="button"
                         data-ng-click="pasteThisNode(currentNode.ID)"
@@ -222,6 +234,12 @@
                     </a>
                 </li>
                 <li data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
+                    <a data-ng-switch-when="Project"
+                        role="button"
+                        data-ng-click="pasteThisNode(0)"
+                        title="Paste Project">
+                        <i class="fa fa-clipboard"></i>
+                    </a>
                     <a data-ng-switch-when="BudgetItem"
                         role="button"
                         data-ng-click="pasteThisNode(currentNode.ID)"
@@ -297,6 +315,12 @@
                     </a>
                 </li>
                 <li data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
+                    <a data-ng-switch-when="Project"
+                        role="button"
+                        data-ng-click="pasteThisNode(0)"
+                        title="Paste Project">
+                        <i class="fa fa-clipboard"></i>
+                    </a>
                     <a data-ng-switch-when="ResourceCategory"
                         role="button"
                         data-ng-click="pasteThisNode(currentNode.ID)"
@@ -397,7 +421,13 @@
                         <i class="fa fa-cut"></i>
                     </a>
                 </li>
-                <li data-ng-show="copiedNode">
+                <li data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
+                    <a data-ng-switch-when="Project"
+                        role="button"
+                        data-ng-click="pasteThisNode(0)"
+                        title="Paste Project">
+                        <i class="fa fa-clipboard"></i>
+                    </a>
                     <a data-ng-switch-default
                         role="button" style="color: gray;">
                         <i class="fa fa-clipboard"></i>
