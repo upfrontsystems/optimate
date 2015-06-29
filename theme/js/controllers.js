@@ -997,11 +997,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     url: globalServerURL + 'node/' + currentid + '/',
                     data: $scope.formData
                 }).success(function () {
-                    // check if the current node is edited
-                    if ($scope.formData['ID'] == currentid){
-                        // update the node with the name in the form
-                        $scope.currentNode.Name = $scope.formData['Name'];
-                    }
                     $scope.formData = {'NodeType':$scope.formData['NodeType']};
                     sharedService.reloadSlickgrid(currentid);
                     $scope.loadNodeChildren(currentid);
@@ -1111,9 +1106,17 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }
             $http(req).success(function(response) {
                 console.log($scope.formData['NodeType'] + " edited")
-                // XXX here refresh project list in case the name of node has been updated
                 // set the current node name to the name in the modal form
-                $scope.currentNode.Name = $scope.formData['Name'];
+                if ($scope.currentNode.Name != $scope.formData.Name){
+                    $scope.currentNode.Name = $scope.formData.Name;
+                    // sort the sibling items in scope
+                    $scope.currentNodeScope.$parentNodesScope.$modelValue.sort(function(a, b) {
+                        var textA = a.Name.toUpperCase();
+                        var textB = b.Name.toUpperCase();
+                        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+                    });
+                }
+                $scope.currentNode.Description = $scope.formData.Description
                 sharedService.reloadSlickgrid($scope.formData['ID']);
             });
         }

@@ -408,7 +408,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
 
             var grid;
             var data = [];
-            var column_width= {'Name': 300,
+            var column_width= {'Name': 150,
                                 'Quantity': 75,
                                 'Rate': 50,
                                 'Total': 75,
