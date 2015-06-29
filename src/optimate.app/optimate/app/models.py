@@ -1509,7 +1509,7 @@ class Resource(Node):
         """
         pass
 
-    def overwrite(self, otherresource):
+    def overwrite(self, other):
         """ Overwrite this resource with the attributes of another resource
         """
         self.Name = other.Name

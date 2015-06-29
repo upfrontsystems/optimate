@@ -1162,8 +1162,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 console.log("You can't paste a node into itself");
             }
             if (flag && ((cnode.NodeType == 'ResourceCategory') && ($scope.currentNode.NodeType == 'ResourceCategory'))){
+                flag = false;
                 if (cnode.ParentID == nodeid){
-                    flag = false;
                     console.log("You can't paste a Resource Category into the same list");
                 }
                 else {
@@ -1174,12 +1174,20 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         // get the resources in the destination category
                         $http.get(globalServerURL + 'resourcecategory/' + nodeid + '/resources/')
                         .success(function (response) {
-                            duplicatelist = {};
+                            duplicatelist = [];
+                            selectionlist = {};
                             var destinationresources = response;
-                            // loop through each duplicate
+                            // get a list of the duplicate resources
                             for (var d in destinationresources){
+                                for (var c in copiedresources) {
+                                    if (copiedresources[c].Code == destinationresources[d].Code)
+                                        duplicatelist.push(copiedresources[c]);
+                                }
+                            }
+                            if (duplicatelist.length > 0){
                                 var overwrite = false;
-                                var keys = Object.keys(copiedresources);
+                                var keys = Object.keys(duplicatelist);
+
                                 var openModal = function() {
                                     var modalInstance = $modal.open({
                                         templateUrl: 'duplicateConfirmationModal.html',
@@ -1195,7 +1203,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                                         overwrite = selections.overwrite;
                                         if (selections.doAll){
                                             doAll = selections.doAll;
-                                            console.log(doAll);
                                         }
                                     });
                                 };
@@ -1203,39 +1210,40 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                                 (function checkItems() {
                                     // get the first key and remove it from array
                                     var key = keys.shift();
-                                    if (copiedresources[key].Code == destinationresources[d].Code){
-                                        var duplicateResource = copiedresources[key];
-                                        // ask user if they want this resource overwritten or not
-                                        console.log(doAll)
-                                        if (doAll == undefined){
-                                            console.log(doAll);
-                                            // open the modal
-                                            $scope.selections = {'overwrite': overwrite,
-                                                                'doAll': doAll,
-                                                                'resourceName': duplicateResource.Name};
-                                            // open the modal
-                                            openModal().finally(function() {
-                                                duplicatelist[duplicateResource.Code] = overwrite;
-                                                if (keys.length) {
-                                                    checkItems();
-                                                }
-                                            });
-                                        }
-                                        else{
-                                            // skip has been selected
-                                            // set the overwrite to the skip value
-                                            duplicatelist[duplicateResource.Code] = doAll;
-                                        }
+                                    var duplicateResource = duplicatelist[key];
+                                    if (doAll == undefined){
+                                        // open the modal
+                                        $scope.selections = {'overwrite': overwrite,
+                                                            'doAll': doAll,
+                                                            'resourceName': duplicateResource.Name};
+                                        // continue when response from modal is returned
+                                        openModal().finally(function() {
+                                            selectionlist[duplicateResource.Code] = overwrite;
+                                            if (keys.length) {
+                                                checkItems();
+                                            }
+                                            else{
+                                                pasteResourceCategory(selectionlist);
+                                            }
+                                        });
                                     }
                                     else{
+                                        // skip has been selected
+                                        // set the overwrite to the skip value
+                                        selectionlist[duplicateResource.Code] = doAll;
                                         if (keys.length) {
                                             checkItems();
                                         }
-                                    }
+                                        else{
+                                            pasteResourceCategory(selectionlist);
+                                        }
 
+                                    }
                                 })();
                             }
-                            console.log(duplicatelist);
+                            else{
+                                pasteResourceCategory({});
+                            }
                         });
                     });
                 }
@@ -1245,8 +1253,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     method: 'POST',
                     url: globalServerURL + 'node/' + nodeid + '/paste/',
                     data:{'ID': cnode.ID,
-                            'cut': $scope.cut,
-                            'duplicates': duplicatelist}
+                            'cut': $scope.cut}
                 }).success(function () {
                     console.log('Success: Node pasted');
                     sharedService.reloadSlickgrid(nodeid);
@@ -1259,6 +1266,26 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     console.log("Server error");
                 });
             }
+
+            var pasteResourceCategory = function(selectionlist){
+                $http({
+                    method: 'POST',
+                    url: globalServerURL + 'node/' + nodeid + '/paste/',
+                    data:{'ID': cnode.ID,
+                            'cut': $scope.cut,
+                            'duplicates': selectionlist}
+                }).success(function () {
+                    console.log('Success: Resource Category pasted');
+                    sharedService.reloadSlickgrid(nodeid);
+                    $scope.loadNodeChildren(nodeid);
+                    // expand the node if this is its first child
+                    if ($scope.currentNode.Subitem.length == 0){
+                        $scope.currentNode.collapsed = true;
+                    }
+                }).error(function(){
+                    console.log("Server error");
+                });
+            };
         }
 
         // when a node is deleted clear the slickgrid and remove it from the tree

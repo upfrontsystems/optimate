@@ -788,38 +788,47 @@ def node_paste(request):
         # if we're dealing with resource categories
         if source.type == 'ResourceCategory' and dest.type == 'ResourceCategory':
             duplicates = request.json_body.get('duplicates', {})
-            resourcecodes = duplicates.keys()
-            sourceresources = source.getResources()
-            destresources = dest.getResources()
+            if len(duplicates)> 0:
+                resourcecodes = duplicates.keys()
+                sourceresources = source.getResources()
+                destresources = dest.getResources()
+                newcategory = None
+                # loop through all the source resources
+                # if they are duplicated, check what the action should be
+                for resource in sourceresources:
+                    if resource.Code in resourcecodes:
+                        overwrite = duplicates[resource.Code]
+                        if overwrite:
+                            for destresource in destresources:
+                                if destresource.Code == resource.Code:
+                                    destresource.overwrite(resource)
+                    # otherwise paste the resource into the new category
+                    else:
+                        if not newcategory:
+                            # add the source resource category to the destination category
+                            newcategory = source.copy(parentid)
+                            DBSession.add(newcategory)
+                            DBSession.flush()
+                        newcategory.paste(resource.copy(newcategory.ID), [])
 
-            # add the source resource category to the destination category
-            newcategory = source.copy(parentid)
-            DBSession.add(newcategory)
-            DBSession.flush()
-            newid = newcategory.ID
-            # loop through all the source resources
-            # if they are duplicated, check what the action should be
-            for resource in sourceresources:
-                if resource.Code in resourcecodes:
-                    overwrite = duplicates[resource.Code]
-                    if overwrite:
-                        for destresource in destresources:
-                            if destresource.Code == resource.Code:
-                                destresource.overwrite(resource)
-                # otherwise paste the resource into the new category
+                # if the source is cut, delete it
+                if request.json_body["cut"]:
+                    deleteid = sourceid
+                    # Deleting it from the node table deleted the object
+                    deletethis = DBSession.query(
+                                    ResourceCategory).filter_by(ID=deleteid).first()
+                    qry = DBSession.delete(deletethis)
+
+                    if qry == 0:
+                        return HTTPNotFound()
+            # if there are no duplicates
+            else:
+                if request.json_body["cut"]:
+                    # set the source parent to the destination parent
+                    source.ParentID = destinationid
                 else:
-                    newcategory.paste(resource.copy(newid), [])
-
-            # if the source is cut, delete it
-            if request.json_body["cut"]:
-                deleteid = sourceid
-                # Deleting it from the node table deleted the object
-                deletethis = DBSession.query(
-                                ResourceCategory).filter_by(ID=deleteid).first()
-                qry = DBSession.delete(deletethis)
-
-                if qry == 0:
-                    return HTTPNotFound()
+                    # Paste the source into the destination
+                    dest.paste(source.copy(dest.ID), source.Children)
             transaction.commit()
         # if the source is to be cut and pasted into the destination
         elif request.json_body["cut"]:
