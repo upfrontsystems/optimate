@@ -24,12 +24,16 @@
                 <h3 class="modal-title">Open Project</h3>
             </div>
             <div class="modal-body">
-                <span> Select project: </span>
-                <span>
-                    <select id="project-select">
-                        <option ng-repeat="obj in projectsList" value="{{obj.ID}}">{{obj.Name}}</option>
-                    </select>
-                </span>
+                <label class="col-sm-2 control-label"
+                       for="project-select">Project:</label>
+                <select chosen
+                        class="col-sm-7"
+                        id="project-select"
+                        name="project-select"
+                        data-ng-model="selectedProject"
+                        ng-options="project.ID as project.Name for project in projectsList">
+                    <option value="">Select a project</option>
+                </select>
             </div>
             <div class="modal-footer">
                 <button type="select" class="btn btn-primary" data-ng-click="loadProject()" data-dismiss="modal">Open</button>
