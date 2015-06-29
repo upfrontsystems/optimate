@@ -266,7 +266,6 @@ def additemview(request):
         DBSession.add(newresourcecat)
         DBSession.flush()
     elif objecttype == 'Component':
-        import pdb; pdb.set_trace()
         # Components need to reference a Resource. If they don't, we create
         # a SimpleComponent instead.
         uid = request.json_body.get('uid', None)
