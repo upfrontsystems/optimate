@@ -5,12 +5,12 @@ allControllers.directive('customModals', function ($http, $compile, globalServer
         restrict: 'A',
         require: '?ngModel',
         transclude: true,
-        link: function(scope, el, attrs, transcludeFn){
+        link: function(scope, el, attrs, transcludeFn) {
             scope.formData = {'NodeType': attrs.modalType};
 
             // observe the modal type for changes and set the formdata
             // this is used for adding nodes in the treeview by their type
-            attrs.$observe('modalType', function(addingtype){
+            attrs.$observe('modalType', function(addingtype) {
                 if (addingtype){
                     scope.formData = {'NodeType': attrs.modalType};
                 }
@@ -19,7 +19,7 @@ allControllers.directive('customModals', function ($http, $compile, globalServer
             // get the modal template
             $http.get(attrs.modalSrc).
             success(function (response) {
-                $compile(response)(scope, function(compliledElement, scope){
+                $compile(response)(scope, function(compliledElement, scope) {
                     el.append(compliledElement);
                 });
             });
@@ -118,7 +118,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             });
 
             // when a column is resized change the default size of that column
-            grid.onColumnsResized.subscribe(function(e,args){
+            grid.onColumnsResized.subscribe(function(e,args) {
                 var gridcolumns = args.grid.getColumns();
                 for (var i in gridcolumns) {
                     if (gridcolumns[i].previousWidth != gridcolumns[i].width)
@@ -158,22 +158,23 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 grid.render();
             });
 
-            function loadSlickgrid(response){
+            function loadSlickgrid(response) {
                 var newcolumns = [];
                 var data = response['list'];
                 // Get the value that indicated
                 // whether there are empty columns
                 var emptycolumns = response['emptycolumns'];
-                if (data.length > 0){
+                var no_subtotal_column = response['no_sub_cost'];
+                if (data.length > 0) {
                     // If the grid is only showing resources or resourcecategories
                     var secondtype = data[0]['node_type']
-                    if ((secondtype == 'Resource') || (secondtype == 'ResourceCategory')){
-                        if (data.length>1){
+                    if ((secondtype == 'Resource') || (secondtype == 'ResourceCategory')) {
+                        if (data.length>1) {
                             secondtype = data[1]['node_type']
                         }
                     }
-                    if ((secondtype == 'Resource') || (secondtype == 'ResourceCategory')){
-                        if (secondtype == 'Resource'){
+                    if ((secondtype == 'Resource') || (secondtype == 'ResourceCategory')) {
+                        if (secondtype == 'Resource') {
                             newcolumns = [
                                 {id: "name", name: "Name", field: "name",
                                  width: column_width.name, cssClass: "cell-title non-editable-column"},
@@ -185,7 +186,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                 width: column_width.type, cssClass: "cell non-editable-column"},
                             ];
                         }
-                        else if (secondtype == 'ResourceCategory'){
+                        else if (secondtype == 'ResourceCategory') {
                             newcolumns = [
                                 {id: "name", name: "Name", field: "name",
                                  width: column_width.name, cssClass: "cell-title non-editable-column"},
@@ -199,7 +200,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
 
                         // Grey out ResourceCategory rate columns
                         for (var i=0; i < data.length; i++){
-                            if (data[i]['node_type'] == 'ResourceCategory'){
+                            if (data[i]['node_type'] == 'ResourceCategory') {
                                 grid.setCellCssStyles("non-editable-cell", {
                                    i: {
                                         "rate": "cell non-editable-column",
@@ -215,18 +216,22 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     }
                     else {
                         // if there will be empty columns remove them
-                        if (emptycolumns){
+                        if (emptycolumns) {
                             newcolumns = [
                                 {id: "name", name: "Name", field: "name",
                                  width: column_width.name, cssClass: "cell-title non-editable-column"},
                                 {id: "budg_cost", name: "Total", field: "budg_cost",
-                                 width: column_width.budg_cost, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                                 width: column_width.budg_cost, cssClass: "cell non-editable-column",
+                                 formatter: CurrencyFormatter},
                                 {id: "sub_cost", name: "Subtotal", field: "sub_cost",
-                                 width: column_width.sub_cost, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                                 width: column_width.sub_cost, cssClass: "cell non-editable-column",
+                                 formatter: CurrencyFormatter},
                                 {id: "ordered", name: "Ordered", field: "ordered",
-                                 width: column_width.ordered, cssClass: "cell  non-editable-column", formatter: CurrencyFormatter},
+                                 width: column_width.ordered, cssClass: "cell  non-editable-column",
+                                 formatter: CurrencyFormatter},
                                 {id: "invoiced", name: "Invoiced", field: "invoiced",
-                                 width: column_width.invoiced, cssClass: "cell  non-editable-column", formatter: CurrencyFormatter}
+                                 width: column_width.invoiced, cssClass: "cell  non-editable-column", 
+                                formatter: CurrencyFormatter}
                                 // {id: "order_cost", name: "Order Cost", field: "order_cost",
                                 //  width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                                 // {id: "run_cost", name: "Run Cost", field: "run_cost",
@@ -242,6 +247,14 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                 // {id: "act_profit", name: "Act. Profit", field: "act_profit",
                                 //  width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                             ];
+                            if (no_subtotal_column) {
+                                // remove subtotal column
+                                var index = newcolumns.map(function(e)
+                                    { return e.id; }).indexOf("sub_cost");
+                                if (index > -1) {
+                                    newcolumns.splice(index, 1);
+                                }
+                            }
                             grid.setColumns(newcolumns);
                             dataView.beginUpdate();
                             dataView.setItems(data);
@@ -258,29 +271,42 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                             {id: "quantity", name: "Quantity", field: "quantity", cssClass: "cell editable-column",
                              width: column_width.quantity, editor: Slick.Editors.CustomEditor},
                             {id: "rate", name: "Rate", field: "rate",
-                             width: column_width.rate, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                             width: column_width.rate, cssClass: "cell non-editable-column", 
+                            formatter: CurrencyFormatter},
                             {id: "budg_cost", name: "Total", field: "budg_cost",
-                             width: column_width.budg_cost, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                             width: column_width.budg_cost, cssClass: "cell non-editable-column", 
+                            formatter: CurrencyFormatter},
                             {id: "sub_cost", name: "Subtotal", field: "sub_cost",
-                             width: column_width.sub_cost, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                             width: column_width.sub_cost, cssClass: "cell non-editable-column", 
+                            formatter: CurrencyFormatter},
                             {id: "unit", name: "Unit", field: "unit",
                              width: column_width.unit, cssClass: "cell  non-editable-column"},
                             {id: "ordered", name: "Ordered", field: "ordered",
-                             width: column_width.ordered, cssClass: "cell  non-editable-column", formatter: CurrencyFormatter},
+                             width: column_width.ordered, cssClass: "cell  non-editable-column", 
+                            formatter: CurrencyFormatter},
                             {id: "invoiced", name: "Invoiced", field: "invoiced",
-                             width: column_width.invoiced, cssClass: "cell  non-editable-column", formatter: CurrencyFormatter}];
+                             width: column_width.invoiced, cssClass: "cell  non-editable-column", 
+                            formatter: CurrencyFormatter}];
+                            if (no_subtotal_column) {
+                                // remove subtotal column
+                                var index = emptycolumns.map(function(e)
+                                    { return e.id; }).indexOf("sub_cost");
+                                if (index > -1) {
+                                    emptycolumns.splice(index, 1);
+                                }
+                            }
                             var overheadnames = [];
                             // Add columns for the overheads in the components
-                            for (var i=0; i < data.length; i++){
-                                if (data[i]['node_type'] == 'Component'){
+                            for (var i=0; i < data.length; i++) {
+                                if (data[i]['node_type'] == 'Component') {
                                     // get the list of overheads in the component
                                     var overheadslist = data[i]['overheads'];
                                         // get the name of the overhead
                                         // check if it has not been used yet
                                         // and add it to the columns list
-                                        for (var v=0; v < overheadslist.length; v++){
+                                        for (var v=0; v < overheadslist.length; v++) {
                                             var overheadname = overheadslist[v].overhead_name;
-                                            if (overheadnames.indexOf(overheadname) < 0){
+                                            if (overheadnames.indexOf(overheadname) < 0) {
                                                 overheadnames.push(overheadname);
                                             }
                                             // create new entry in the component
@@ -290,7 +316,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                             }
                             // build the overhead columns
                             var overheadcolumns = [];
-                            for (var i = 0; i<overheadnames.length; i++){
+                            for (var i = 0; i<overheadnames.length; i++) {
                                 column_width[overheadnames[i]] = 75;
                                 overheadcolumns.push({id: overheadnames[i],
                                                     name: overheadnames[i],
@@ -307,8 +333,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                             dataView.setItems(data);
                             dataView.endUpdate();
 
-                            for (var i=0; i < data.length; i++){
-                                if (data[i]['node_type'] == 'BudgetGroup'){
+                            for (var i=0; i < data.length; i++) {
+                                if (data[i]['node_type'] == 'BudgetGroup') {
                                     grid.setCellCssStyles("non-editable-cell", {
                                        i: {
                                             quantity: 'cell non-editable-column',
@@ -354,7 +380,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             }
 
             // listening for the handle to reload the slickgrid
-            $scope.$on('handleReloadSlickgrid', function(){
+            $scope.$on('handleReloadSlickgrid', function() {
                 var nodeid = sharedService.reloadId;
                 var url = globalServerURL +'node/' + nodeid + '/grid/'
                 var target = document.getElementsByClassName('slick-viewport');
@@ -367,7 +393,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             });
 
             // Listen for the call to clear the slickgrid
-            $scope.$on('handleClearSlickgrid', function(){
+            $scope.$on('handleClearSlickgrid', function() {
                 dataView.beginUpdate();
                 dataView.setItems([]);
                 dataView.endUpdate();
@@ -446,12 +472,12 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             grid = new Slick.Grid("#component-data-grid", dataView, columns, options);
             grid.setSelectionModel(new Slick.CellSelectionModel());
             // resize the slickgrid when modal is shown
-            $('#saveOrderModal').on('shown.bs.modal', function(){
+            $('#saveOrderModal').on('shown.bs.modal', function() {
                  grid.init();
             });
 
             // when a column is resized change the default size of that column
-            grid.onColumnsResized.subscribe(function(e,args){
+            grid.onColumnsResized.subscribe(function(e,args) {
                 var gridcolumns = args.grid.getColumns();
                 for (var i in gridcolumns) {
                     if (gridcolumns[i].previousWidth != gridcolumns[i].width)
@@ -475,7 +501,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
 
             // Formatter for displaying currencies
             function CurrencyFormatter(row, cell, value, columnDef, dataContext) {
-                if (value != undefined){
+                if (value != undefined) {
                     var parts = value.toString().split(".");
                     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                     return parts.join(".");
@@ -497,7 +523,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
 
             // observe the component list for changes and update the slickgrid
             // calculate and update the order total as well
-            $scope.$watch(attrs.components, function(componentlist){
+            $scope.$watch(attrs.components, function(componentlist) {
                 columns = [
                     {id: "name", name: "Component", field: "Name",
                      width: column_width.Name, cssClass: "cell-title non-editable-column"},
@@ -512,7 +538,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     {id: "invoiced", name: "Invoiced", field: "Invoiced",
                     width: column_width.Invoiced, cssClass: "cell  non-editable-column", formatter: CurrencyFormatter}
                     ];
-                if (componentlist.length > 0){
+                if (componentlist.length > 0) {
                     grid.setColumns(columns);
                     dataView.beginUpdate();
                     dataView.setItems(componentlist);
@@ -521,7 +547,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     grid.setSelectedRows([]);
                     grid.render();
                     var total =0.0;
-                    for (var i=0;i<componentlist.length; i++){
+                    for (var i=0;i<componentlist.length; i++) {
                         total += parseFloat(componentlist[i]['Total']);
                     }
                     var parts = total.toString().split(".");
@@ -554,7 +580,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
 
             // listening for the handle to reload the order slickgrid
             // timeout to wait until the modal has finished rendering
-            $scope.$on('handleReloadOrderSlickgrid', function(){
+            $scope.$on('handleReloadOrderSlickgrid', function() {
                 $timeout(function(){
                     grid.resizeCanvas();
                 });

@@ -266,6 +266,7 @@ def additemview(request):
         DBSession.add(newresourcecat)
         DBSession.flush()
     elif objecttype == 'Component':
+        import pdb; pdb.set_trace()
         # Components need to reference a Resource. If they don't, we create
         # a SimpleComponent instead.
         uid = request.json_body.get('uid', None)
@@ -727,7 +728,17 @@ def node_grid(request):
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['name'].upper())
     sorted_rescatlist = sorted(rescatlist, key=lambda k: k['name'].upper())
     sorted_childrenlist = sorted_rescatlist+sorted_childrenlist
-    return {'list':sorted_childrenlist, 'emptycolumns': emptycolumns}
+
+    # if children contain no subtotal data - notify the grid
+    for child in sorted_childrenlist:
+        if child.has_key('sub_cost'):
+            if child['sub_cost'] != None:
+                return {'list': sorted_childrenlist,
+                        'emptycolumns': emptycolumns,
+                        'no_sub_cost' : False}
+    return {'list': sorted_childrenlist,
+            'emptycolumns': emptycolumns,
+            'no_sub_cost' : True}
 
 
 @view_config(route_name="node_update_value", renderer='json')
