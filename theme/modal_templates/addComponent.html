@@ -87,15 +87,20 @@
                                    ng-model="formData['ItemQuantity']">
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group"
+                         ng-class="{'has-error': addComponentForm.rate.$invalid}">
                         <label class="col-sm-2 control-label"
                                for="rate">Rate:</label>
                         <input class="col-sm-7" id="rate"
+                               type="number"
                                name="rate"
                                ng-model="formData['Rate']"
-                               ng-disabled="addComponentForm.has_selection"/>
+                               ng-disabled="addComponentForm.has_selection"
+                               required />
                     </div>
-                    <div class="form-group">
+                    <div class="form-group"
+                         ng-class="{'has-error': addComponentForm.resourcetype.$invalid}"
+                    >
                         <label class="col-sm-2 control-label"
                                for="resourcetype">Type:</label>
                         <select chosen
@@ -104,7 +109,8 @@
                                 name="resourcetype"
                                 ng-disabled="addComponentForm.has_selection"
                                 ng-model="formData['ResourceType']"
-                                ng-options="type.Name as type.Name for type in restypeList">
+                                ng-options="type.Name as type.Name for type in restypeList"
+                                required>
                             <option value="">Select a type</option>
                         </select>
                     </div>

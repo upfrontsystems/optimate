@@ -1269,7 +1269,7 @@ class SimpleComponent(Node, ComponentMixin):
         """
         di = super(SimpleComponent, self).getGridData()
         di.update({
-            'unit': self.Unit.Name,
+            'unit': self.Unit,
             'ordered': str(self.Ordered),
             'invoiced': str(self.Invoiced)
         })
