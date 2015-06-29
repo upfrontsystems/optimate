@@ -5,6 +5,11 @@
     font-weight: normal;
 }
 
+.normal-space {
+    font-weight: normal;
+    padding-top: 4px;
+}
+
 td.level2 {
     padding-left: 8px;
 }
@@ -30,3 +35,17 @@ td.level8 {
 div#pageNumber {
     text-align: center;
 }
+
+.order-font {
+    font-size: 14px;
+}
+
+.project-heading-font {
+    font-size: 13px;
+}
+
+.resourcelist-heading-font {
+    font-size: 12px;
+    font-weight: bold;
+}
+

@@ -102,11 +102,26 @@ def projectbudget(request):
     else:
         nodes = all_nodes(project, [], 0, level_limit, component_filter)
 
+    # this needs explaining. The 1st component or budgetitem of a budget group 
+    # needs a a special class so that extra spacing can be added above it for 
+    # report readability & clarity
+    count = 0
+    for node in nodes:
+        if node != None:
+            if node[0].type == 'Component' and count != 0:
+                if nodes[count-1][0].type != 'Component':
+                    nodes[count] = (node[0], node[1], 'normal-space')
+            elif node[0].type == 'BudgetItem' and count != 0:
+                if nodes[count-1][0].type != 'BudgetItem':
+                    nodes[count] = (node[0], node[1], 'normal-space')
+        count+= 1
 
     # render template
+    now = datetime.datetime.now()
     template_data = render('templates/projectbudgetreport.pt',
                            {'nodes': nodes,
-                            'project_name': project.Name},
+                            'project_name': project.Name,
+                            'print_date' : now.strftime("%d %B %Y - %k:%M")},
                            request=request)
     html = StringIO(template_data.encode('utf-8'))
     print "template rendered"
@@ -121,7 +136,6 @@ def projectbudget(request):
 
     print "pdf rendered"
     filename = "project_budget_report"
-    now = datetime.datetime.now()
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
     last_modified = formatdate(time.mktime(now.timetuple()))
 
@@ -183,9 +197,11 @@ def resourcelist(request):
 
     # render template
     # XXX add a filtered by to title.. if exists
+    now = datetime.datetime.now()
     template_data = render('templates/resourcelistreport.pt',
                            {'nodes': nodes,
-                            'project_name': project.Name},
+                            'project_name': project.Name,
+                            'print_date' : now.strftime("%d %B %Y - %k:%M")},
                            request=request)
     html = StringIO(template_data.encode('utf-8'))
 
@@ -198,7 +214,6 @@ def resourcelist(request):
     pdf.close()
 
     filename = "resource_list_report"
-    now = datetime.datetime.now()
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
     last_modified = formatdate(time.mktime(now.timetuple()))
     response = Response(content_type='application/pdf',
@@ -219,35 +234,21 @@ def order(request):
     print "Generating Order Report"
     orderid = request.matchdict['id']
     order = DBSession.query(Order).filter_by(ID=orderid).first()
-
-    # inject order data into template   
     components = []
+    for orderitem in order.OrderItems:
+        cid = orderitem.ComponentID
+        component = DBSession.query(Node).filter_by(ID=cid).first()
+        components.append(component)       
+    sorted_components = sorted(components, key=lambda k: k.Name.upper())
+
+    # inject order data into template
     template_data = render('templates/orderreport.pt',
                            {'order': order,
-                            'components': components},
+                            'components': sorted_components,
+                            'order_date' : order.Date.strftime("%d %B %Y")},
                            request=request)
     # render template
     html = StringIO(template_data.encode('utf-8'))
-
-#    ID = Column(Integer, primary_key=True, index=True)
-#    UserCode = Column(Text(50))
-#    Authorisation = Column(Text(50))
-#    ProjectID = Column(Integer, ForeignKey('Project.ID'))
-#    SupplierID = Column(Integer, ForeignKey('Supplier.ID'))
-#    ClientID = Column(Integer, ForeignKey('Client.ID'))
-#    Total = Column(Numeric)
-#    TaxRate = Column(Float)
-#    DeliveryAddress = Column(Text(100))
-#    Date = Column(DateTime)
-#    Status = Column(Text(10))
-#
-#    Project = relationship('Project',
-#                              backref=backref('Order'))
-#    Supplier = relationship('Supplier',
-#                              backref=backref('Order'))
-#    Client = relationship('Client',
-#                              backref=backref('Order'))
-
 
     # Generate the pdf
     pdf = StringIO()

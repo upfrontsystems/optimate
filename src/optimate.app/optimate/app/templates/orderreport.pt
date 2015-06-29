@@ -3,36 +3,72 @@
     <link rel="stylesheet" tal:attributes="href string:${request.application_url}/static/css/reports.css">
 
 <body>
-    <table>
+    <table class="order-font">
+        <tr></tr>
         <tr>
-            <td style="width: 100px; text-align:left"><h1>Order: ${order.ID}</h1>
-            </td>
-            <td style="width: 700px; text-align:right"><h1>${order.Date}</h1>
-            </td>
+            <td style="width: 150px">To Messers.</td>
+            <td class="bold" style="width: 200px; text-align:left" tal:content="order.Client.Name|nothing"></td>
+            <td class="bold" style="width: 100px; text-align:left">Order ${order.ID}</td>
+            <td class="bold" style="width: 200px; text-align:right">${order_date}</td>
+        </tr>
+        <tr>
+            <td style="width: 150px">Supplier FaxNo</td>
+            <td class="bold" style="width: 200px; text-align:left">${order.Supplier.Fax}</td>
+            <td style="width: 100px; text-align:left">Created By</td>
+            <td class="bold" style="width: 200px; text-align:right"></td>
+        </tr>
+        <tr>
+            <td style="width: 150px">On behalf of</td>
+            <td class="bold" style="width: 200px; text-align:left"></td>
+            <td class="bold" style="width: 400px; text-align:left">${order.Project.Name}</td>
         </tr>
     </table>
     <div>&nbsp;</div>
-    <table>
-        <tr>
-            <td style="width: 100px; text-align:left"><h3>Project:</h3>
-            </td>
-            <td>${order.Project.Name}
-            </td>
+    <table class="order-font">
+        <tr style="border-top: 1px solid #000;">
+            <td></td>
+        </tr>
+        <tr style="border-bottom: 1px solid #000;">
+            <th class="bold" style="text-align:left">Description</th>
+            <th class="bold" style="text-align:right">Unit</th> 
+            <th class="bold" style="text-align:right">Quantity</th>
+            <th class="bold" style="text-align:right">Rate</th>
+            <th class="bold" style="text-align:right">Total</th>
         </tr>
         <tr>
-            <td style="width: 100px; text-align:left"><h3>Supplier:</h3>
-            </td>
-            <td>${order.Supplier.Name}
-            </td>
+            <td></td>
+        </tr>
+        <tr tal:repeat="component components">
+            <td style="width: 450px" tal:content="component.Name|nothing"></td>
+            <td style="width: 70px; text-align:right" tal:content="component.Unit|nothing" ></td>
+            <td style="width: 70px; text-align:right" tal:content="component.Quantity|nothing" ></td>
+            <td style="width: 70px; text-align:right" tal:content="component.Rate|nothing" ></td>
+            <td style="width: 70px; text-align:right" tal:content="component.Total|nothing" ></td>            
+        </tr>
+        <tr style="border-bottom: 1px solid #000;">
+            <td></td>
         </tr>
     </table>
-  <!--  <table>
-        <tr tal:repeat="component components">
-            <td tal:content="component.Name|nothing">
-            </td>
-        </tr>
+    <table class="order-font">
         <tr></tr>
-    </table> -->
-
+        <tr>
+            <td style="width: 200px">Authorisation</td>
+            <td style="width: 400px; text-align:left">Signature: __________________________</td>
+            <td style="width: 100px; text-align:left">Subtotal</td>
+            <td style="width: 100px; text-align:left"></td>
+        </tr>
+        <tr>
+            <td style="width: 200px"></td>
+            <td style="width: 400px; text-align:left"></td>
+            <td style="width: 100px; text-align:left">Vat</td>
+            <td style="width: 100px; text-align:left"></td>
+        </tr>
+        <tr>
+            <td style="width: 200px"></td>
+            <td style="width: 400px; text-align:left"></td>
+            <td style="width: 100px; text-align:left">Total Cost</td>
+            <td class="bold" style="width: 100px; text-align:left"></td>
+        </tr>
+    </table>
 </body>
 </html>

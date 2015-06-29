@@ -1070,7 +1070,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 if (nodetype == 'Component') {
                     // populate the finder with current choice
                     $scope.finder.selecteditems = [{
-                        uid: response.ID,
+                        uid: response.ResourceID,
                         title: response.Name,
                         type: response.ResourceType,
                         description: response.Description,
@@ -1098,7 +1098,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         }
 
         // save changes made to the node's properties
-        $scope.saveNodeEdits = function(){
+        $scope.saveNodeEdits = function() {
             var req = {
                 method: 'PUT',
                 url: globalServerURL + 'node/' + $scope.formData['ID'] + '/',
@@ -1337,6 +1337,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             $http.get(globalServerURL + 'node/' + id + '/')
             .success(function(data) {
                 $scope.openNodeList = [data];
+                $scope.selectReportNodeHead(data);
             });
         };
 
