@@ -44,3 +44,6 @@ pip-log.txt
 
 # Vim swap files
 .*.sw?
+
+# nosetest puts in a man directory
+man

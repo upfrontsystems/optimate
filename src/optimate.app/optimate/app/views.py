@@ -276,7 +276,7 @@ def additemview(request):
             newcomp = SimpleComponent(
                 ParentID=parentid,
                 Name=request.json_body['Name'],
-                Description=request.json_body['Description'],
+                Description=request.json_body.get('Description', None),
                 _Quantity=quantity,
                 _Rate=rate,
                 Type=request.json_body['ResourceType'])
