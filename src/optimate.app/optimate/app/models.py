@@ -1000,7 +1000,9 @@ class ComponentMixin(object):
                 'id': self.ID,
                 'Quantity': quantity,
                 'Rate': str(self.Rate),
-                'Total': str(total),
+                'total': str(total),
+                'subtotal': str(total),
+                'vat': '0.0',
                 'NodeType': self.type,
                 'node_type': self.type,
                 'NodeTypeAbbr' : 'C',
@@ -1723,7 +1725,7 @@ class Order(Base):
     SupplierID = Column(Integer, ForeignKey('Supplier.ID'))
     ClientID = Column(Integer, ForeignKey('Client.ID'))
     Total = Column(Numeric)
-    TaxRate = Column(Float)
+    TaxRate = Column(Float, default=0.0)
     DeliveryAddress = Column(Text(100))
     Date = Column(DateTime)
     Status = Column(Text(10))
@@ -1804,6 +1806,17 @@ class OrderItem(Base):
                 self.Quantity)*self.Rate).quantize(Decimal('.01'))
         return self._Total
 
+    @property
+    def Subtotal(self):
+        """ Return the subtotal, which is this OrderItem's Order's VAT
+            deducted from it's total
+        """
+        if not self._Total:
+            self._Total = (Decimal(
+                self.Quantity)*self.Rate).quantize(Decimal('.01'))
+        return Decimal(float(self._Total)/(1.0+self.Order.TaxRate)).quantize(
+                        Decimal('.01'))
+
     def toDict(self):
         """ Returns a dictionary of this OrderItem
         """
@@ -1820,10 +1833,13 @@ class OrderItem(Base):
     def getGridData(self):
         """ Returns a dictionary of this OrderItem for the slickgrid
         """
+        vat = self.Order.TaxRate
         return {'id': self.Component.ID,
                 'name': self.Component.Name,
                 'quantity': self.Quantity,
                 'rate': str(self.Rate),
+                'vat': str(vat),
+                'subtotal': str(self.Subtotal),
                 'total': str(self.Total),
                 'ordered': str(self.Component.Ordered),
                 'invoiced': str(self.Component.Invoiced)}

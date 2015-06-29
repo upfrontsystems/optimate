@@ -230,7 +230,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                  width: column_width.ordered, cssClass: "cell  non-editable-column",
                                  formatter: CurrencyFormatter},
                                 {id: "invoiced", name: "Invoiced", field: "invoiced",
-                                 width: column_width.invoiced, cssClass: "cell  non-editable-column", 
+                                 width: column_width.invoiced, cssClass: "cell  non-editable-column",
                                 formatter: CurrencyFormatter}
                                 // {id: "order_cost", name: "Order Cost", field: "order_cost",
                                 //  width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
@@ -271,21 +271,21 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                             {id: "quantity", name: "Quantity", field: "quantity", cssClass: "cell editable-column",
                              width: column_width.quantity, editor: Slick.Editors.CustomEditor},
                             {id: "rate", name: "Rate", field: "rate",
-                             width: column_width.rate, cssClass: "cell non-editable-column", 
+                             width: column_width.rate, cssClass: "cell non-editable-column",
                             formatter: CurrencyFormatter},
                             {id: "budg_cost", name: "Total", field: "budg_cost",
-                             width: column_width.budg_cost, cssClass: "cell non-editable-column", 
+                             width: column_width.budg_cost, cssClass: "cell non-editable-column",
                             formatter: CurrencyFormatter},
                             {id: "sub_cost", name: "Subtotal", field: "sub_cost",
-                             width: column_width.sub_cost, cssClass: "cell non-editable-column", 
+                             width: column_width.sub_cost, cssClass: "cell non-editable-column",
                             formatter: CurrencyFormatter},
                             {id: "unit", name: "Unit", field: "unit",
                              width: column_width.unit, cssClass: "cell  non-editable-column"},
                             {id: "ordered", name: "Ordered", field: "ordered",
-                             width: column_width.ordered, cssClass: "cell  non-editable-column", 
+                             width: column_width.ordered, cssClass: "cell  non-editable-column",
                             formatter: CurrencyFormatter},
                             {id: "invoiced", name: "Invoiced", field: "invoiced",
-                             width: column_width.invoiced, cssClass: "cell  non-editable-column", 
+                             width: column_width.invoiced, cssClass: "cell  non-editable-column",
                             formatter: CurrencyFormatter}];
                             if (no_subtotal_column) {
                                 // remove subtotal column
@@ -437,23 +437,23 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             var column_width= {'Name': 150,
                                 'Quantity': 75,
                                 'Rate': 50,
-                                'Total': 75,
+                                'Amount': 75,
                                 'Ordered': 75,
                                 'Invoiced': 75,
                                 'Type': 75};
             var columns = [
-                    {id: "name", name: "Component", field: "Name",
-                     width: column_width.Name, cssClass: "cell-title non-editable-column"},
+                    {id: "name", name: "Component", field: "Name", cssClass: "cell-title non-editable-column",
+                     width: column_width.Name, formatter: NameColumnFormatter},
                     {id: "Quantity", name: "Quantity", field: "Quantity", cssClass: "cell editable-column",
                      width: column_width.Quantity, editor: Slick.Editors.CustomEditor},
                     {id: "rate", name: "Rate", field: "Rate", cssClass: "cell editable-column",
                      width: column_width.Rate, formatter: CurrencyFormatter, editor: Slick.Editors.CustomEditor},
-                    {id: "total", name: "Total", field: "Total",
-                     width: column_width.Total, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                     {id: "ordered", name: "Ordered", field: "Ordered",
                     width: column_width.Ordered, cssClass: "cell  non-editable-column", formatter: CurrencyFormatter},
                     {id: "invoiced", name: "Invoiced", field: "Invoiced",
-                    width: column_width.Invoiced, cssClass: "cell  non-editable-column", formatter: CurrencyFormatter}
+                    width: column_width.Invoiced, cssClass: "cell  non-editable-column", formatter: CurrencyFormatter},
+                    {id: "amount", name: "Amount", field: "Amount",
+                     width: column_width.Amount, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                     ];
 
             var options = {
@@ -511,6 +511,15 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                 }
               }
 
+            // Formatter for displaying currencies
+            function NameColumnFormatter(row, cell, value, columnDef, dataContext) {
+                console.log(cell);
+                console.log(columnDef.cssClass);
+                columnDef.cssClass = "cell  non-editable-column";
+                console.log(dataContext);
+                return columnDef;
+              }
+
             grid.onAddNewRow.subscribe(function (e, args) {
                 var item = args.item;
                 grid.invalidateRow(data.length);
@@ -527,29 +536,45 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                 columns = [
                     {id: "name", name: "Component", field: "Name",
                      width: column_width.Name, cssClass: "cell-title non-editable-column"},
-                    {id: "Quantity", name: "Quantity", field: "Quantity", cssClass: "cell editable-column",
+                    {id: "quantity", name: "Quantity", field: "Quantity", cssClass: "cell editable-column",
                      width: column_width.Quantity, editor: Slick.Editors.CustomEditor},
                     {id: "rate", name: "Rate", field: "Rate", cssClass: "cell editable-column",
                      width: column_width.Rate, formatter: CurrencyFormatter, editor: Slick.Editors.CustomEditor},
-                    {id: "total", name: "Total", field: "Total",
-                     width: column_width.Total, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                     {id: "ordered", name: "Ordered", field: "Ordered",
                     width: column_width.Ordered, cssClass: "cell  non-editable-column", formatter: CurrencyFormatter},
                     {id: "invoiced", name: "Invoiced", field: "Invoiced",
-                    width: column_width.Invoiced, cssClass: "cell  non-editable-column", formatter: CurrencyFormatter}
+                    width: column_width.Invoiced, cssClass: "cell  non-editable-column", formatter: CurrencyFormatter},
+                    {id: "amount", name: "Amount", field: "Amount",
+                     width: column_width.Amount, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                     ];
                 if (componentlist.length > 0) {
+                    var total =0.0;
+                    var gridlist = [];
+                    for (var i=0;i<componentlist.length; i++) {
+                        total += parseFloat(componentlist[i]['Total']);
+                        gridlist.push(componentlist[i])
+                        var subtotal = {'id': 'S' + componentlist[i].id,
+                                        'Name': 'Subtotal',
+                                        'Amount': componentlist[i].subtotal};
+                        gridlist.push(subtotal);
+                        var vat = {'id': 'V' + componentlist[i].id,
+                                    'Name': 'VAT',
+                                    'Amount': componentlist[i].vat};
+                        gridlist.push(vat);
+                        var total = {'id': 'T' + componentlist[i].id,
+                                    'Name': 'Total',
+                                    'Amount': componentlist[i].total};
+                        gridlist.push(total);
+                    }
                     grid.setColumns(columns);
                     dataView.beginUpdate();
-                    dataView.setItems(componentlist);
+                    dataView.setItems(gridlist);
                     dataView.endUpdate();
                     grid.resetActiveCell();
                     grid.setSelectedRows([]);
                     grid.render();
-                    var total =0.0;
-                    for (var i=0;i<componentlist.length; i++) {
-                        total += parseFloat(componentlist[i]['Total']);
-                    }
+
+
                     var parts = total.toString().split(".");
                     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                     $scope.updateOrderTotal(parts.join("."));
