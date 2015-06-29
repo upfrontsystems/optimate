@@ -321,7 +321,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                 overheadcolumns.push({id: overheadnames[i],
                                                     name: overheadnames[i],
                                                     field: overheadnames[i],
-                                                    width: column_width.overheadnames[i],
+                                                    width: column_width[overheadnames[i]],
                                                     formatter: MarkupFormatter,
                                                     cssClass: "cell non-editable-column"})
                             }
