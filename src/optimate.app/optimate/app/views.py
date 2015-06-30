@@ -576,6 +576,7 @@ def project_resources(request):
         "items": items
     }
 
+
 @view_config(route_name="resourcecategory_allresources", renderer='json')
 @view_config(route_name="resourcecategory_resources", renderer='json')
 def resourcecategory_resources(request):
@@ -786,6 +787,7 @@ def node_update_value(request):
         newtotal = str(result.Total)
         newsubtotal = str(result.Subtotal)
         return {'total': newtotal, 'subtotal': newsubtotal}
+
 
 @view_config(route_name="node_paste", renderer='json')
 def node_paste(request):
@@ -1707,6 +1709,7 @@ def userview(request):
         'roles': user.roles and json.loads(user.roles) or []
     }
 
+
 @view_config(route_name='invoicesview', renderer='json')
 def invoicesview(request):
     """ The invoicesview returns a list in json format of all the invoices
@@ -1716,6 +1719,7 @@ def invoicesview(request):
     for invoice in qry:
         invoicelist.append(invoice.toDict())
     return invoicelist
+
 
 @view_config(route_name='invoiceview', renderer='json')
 def invoiceview(request):
