@@ -487,15 +487,11 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
 
             dataView.onRowCountChanged.subscribe(function (e, args) {
               grid.updateRowCount();
-              grid.resetActiveCell();
-              grid.setSelectedRows([]);
               grid.render();
             });
 
             dataView.onRowsChanged.subscribe(function (e, args) {
               grid.invalidateRows(args.rows);
-              grid.resetActiveCell();
-              grid.setSelectedRows([]);
               grid.render();
             });
 
@@ -532,8 +528,6 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                 grid.invalidateRow(data.length);
                 data.push(item);
                 grid.updateRowCount();
-                grid.resetActiveCell();
-                grid.setSelectedRows([]);
                 grid.render();
             });
 
@@ -577,8 +571,6 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     dataView.beginUpdate();
                     dataView.setItems(gridlist);
                     dataView.endUpdate();
-                    grid.resetActiveCell();
-                    grid.setSelectedRows([]);
                     grid.render();
                     // change css to right align subtotal, vat, and total rows
                     for ( var i=0; i< gridlist.length; i++ )
@@ -605,8 +597,6 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     dataView.beginUpdate();
                     dataView.setItems([]);
                     dataView.endUpdate();
-                    grid.resetActiveCell();
-                    grid.setSelectedRows([]);
                     grid.render();
                 }
             }, true);
