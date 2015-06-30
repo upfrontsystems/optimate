@@ -905,7 +905,16 @@ def node_paste(request):
                     # Paste the source into the destination
                     dest.paste(source.copy(dest.ID), source.Children)
             else:
-                return HTTPConflict()
+                if request.json_body["cut"]:
+                    destprojectid = dest.getProjectID()
+                    sourceprojectid = source.getProjectID()
+                    # if we cut and paste in the same resource category its fine
+                    if destprojectid == sourceprojectid:
+                        source.ParentID = destinationid
+                    else:
+                        return HTTPConflict()
+                else:
+                    return HTTPConflict()
         # if the source is to be cut and pasted into the destination
         elif request.json_body["cut"]:
             # check if the node was pasted into a different project
@@ -1455,9 +1464,9 @@ def orders_filter(request):
     for project in projects:
         if project.Project:
             projectlist.append({'Name': project.Project.Name, 'ID': project.ProjectID})
-    return {'projects': projectlist,
-            'clients': clientlist,
-            'suppliers': supplierlist}
+    return {'projects': sorted(projectlist, key=lambda k: k['Name'].upper()),
+            'clients': sorted(clientlist, key=lambda k: k['Name'].upper()),
+            'suppliers': sorted(supplierlist, key=lambda k: k['Name'].upper())}
 
 
 @view_config(route_name='orders_length', renderer='json')

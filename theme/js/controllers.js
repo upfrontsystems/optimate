@@ -644,19 +644,51 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         $scope.allowed['ResourceCategory'] = ['ResourceCategory', 'Resource'];
         $scope.allowed['Resource'] = [];
         $scope.allowed['Root'] = ['Project'];
-
+        $scope.dragOverNode = [];
+        // drag over function for when a node is dragged over another
+        $scope.dragOver = function(node){
+            // check for the previous dragged over node
+            // reset the previous nodes values
+            // console.log(node);
+            // console.log($scope.dragOverNode);
+            if ($scope.dragOverNode.length != 0){
+                // console.log("resetting originial");
+                $scope.dragOverNode.copy.selected = undefined;
+                $scope.dragOverNode.copy = $scope.dragOverNode.original;
+            }
+            $scope.dragOverNode.original = node;
+            node.selected = 'selected';
+            // if the current node has no children add a dummy child
+            if (node.Subitem.length == 0){
+                // console.log("no children");
+                node.Subitem.push({'Name': '', 'Subitem': []});
+                node.collapsed = true;
+            }
+            else if (!node.collapsed){
+                // console.log("collapsed");
+                node.Subitem[0].Name = '';
+                node.collapsed = true;
+            }
+            // if the node is collapsed clear the children names and expand it
+            $scope.dragOverNode.copy = node;
+        }
         // define the tree options for the ui-tree
         $scope.treeOptions = {
             // check if the dropped node can be accepted in the tree
            accept: function(sourceNodeScope, destNodesScope, destIndex) {
                 var srctype = sourceNodeScope.$element.attr('data-type');
                 var dsttype = destNodesScope.$element.attr('data-type');
-
                 // check the allowed array for the types
-                if($scope.allowed[dsttype].indexOf(srctype) > -1){
-                    var dstparent = destNodesScope.$nodeScope.$modelValue.Name || undefined;
-                    return true;
-                }else{
+                if ($scope.allowed[dsttype]){
+                    if($scope.allowed[dsttype].indexOf(srctype) > -1){
+                        // call the drag over function
+                        $scope.dragOver(destNodesScope.$nodeScope.$modelValue);
+                        return true;
+                    }else{
+                        return false;
+                    }
+                }
+                else{
                     return false;
                 }
             },
@@ -702,6 +734,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     if (destprojectid == srcprojectid){
                         $scope.currentNodeScope = event.source.nodeScope;
                         $scope.cutThisNode(src);
+                        $scope.currentNode = dest;
                         $scope.pasteThisNode(dest.ID);
                     }
                     // otherwise paste
@@ -1688,12 +1721,12 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
 
             $http.get(globalServerURL + 'suppliers')
             .success(function(data){
-                $scope.supplierList = data;
+                $scope.suppliersList = data;
             });
 
             $http.get(globalServerURL + 'clients')
             .success(function(data){
-                $scope.clientList = data;
+                $scope.clientsList = data;
             });
 
             // get the length of the list of all the orders
@@ -1702,8 +1735,8 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             });
         }
         $scope.projectsList = [];
-        $scope.supplierList = [];
-        $scope.clientList = [];
+        $scope.suppliersList = [];
+        $scope.clientsList = [];
         $scope.clearFilters();
 
         $scope.loadOrderSection = function(){
@@ -1739,21 +1772,31 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             };
             $http(req).success(function(response){
                 if (selection == 'project'){
-                    $scope.clientList = response['clients'];
-                    $scope.supplierList = response['suppliers'];
+                    if ($scope.filters.Project == null){
+                        $scope.projectsList = response['projects'];
+                    }
+                    $scope.clientsList = response['clients'];
+                    $scope.suppliersList = response['suppliers'];
                 }
                 else if (selection == 'client'){
+                    if ($scope.filters.Client == null){
+                        $scope.clientsList = response['clients'];
+                    }
                     $scope.projectsList = response['projects'];
-                    $scope.supplierList = response['suppliers'];
+                    $scope.suppliersList = response['suppliers'];
                 }
                 else if (selection == 'supplier'){
-                    $scope.clientList = response['clients'];
+                    if ($scope.filters.Supplier == null){
+                        console.log(response['suppliers']);
+                        $scope.suppliersList = response['suppliers'];
+                    }
+                    $scope.clientsList = response['clients'];
                     $scope.projectsList = response['projects'];
                 }
                 else{
                     $scope.projectsList = response['projects'];
-                    $scope.clientList = response['clients'];
-                    $scope.supplierList = response['suppliers'];
+                    $scope.clientsList = response['clients'];
+                    $scope.suppliersList = response['suppliers'];
                 }
             })
         };
@@ -1839,6 +1882,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             var i = $scope.jsonorders.indexOf(result[0]);
             if (i>-1){
                 $scope.jsonorders[i] = editedorder;
+                console.log(editedorder);
             }
             console.log ("Order edited");
         };

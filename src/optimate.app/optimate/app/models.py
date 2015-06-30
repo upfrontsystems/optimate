@@ -368,6 +368,11 @@ class BudgetGroup(Node):
         for child in self.Children:
             child.clearCosts()
 
+    @property
+    def Quantity(self):
+        """ A BudgetGroup returns a Quantity of one
+        """
+        return 1.0
 
     @property
     def Total(self):
@@ -642,10 +647,7 @@ class BudgetItem(Node):
         """ Get the Quantity. If it is None recalculate it
         """
         if self._Quantity is None:
-            if self.Parent.type == 'BudgetGroup':
-                self._Quantity = self.ItemQuantity
-            else:
-                self._Quantity = self.Parent.Quantity * self.ItemQuantity
+            self._Quantity = self.Parent.Quantity * self.ItemQuantity
         return self._Quantity
 
     @Quantity.setter
@@ -889,6 +891,7 @@ class ComponentMixin(object):
         return Decimal(self.ItemQuantity * float(self.Rate)
                 ).quantize(Decimal('.01'))
 
+    @property
     def Subtotal(self):
         """ Subtotal returns the total of the Component with the Overhead
             costs removed
@@ -900,10 +903,7 @@ class ComponentMixin(object):
         """ Get the Quantity. If it is None recalculate it
         """
         if self._Quantity is None:
-            if self.Parent.type == 'BudgetGroup':
-                self._Quantity = self.ItemQuantity
-            else:
-                self._Quantity = self.Parent.Quantity * self.ItemQuantity
+            self._Quantity = self.Parent.Quantity * self.ItemQuantity
         return self._Quantity
 
     @Quantity.setter
@@ -1034,16 +1034,16 @@ class ComponentMixin(object):
                 'ID': self.ID,
                 'ParentID': self.ParentID,
                 'id': self.ID,
-                'Quantity': quantity,
-                'Rate': str(self.Rate),
+                'quantity': quantity,
+                'rate': str(self.Rate),
                 'total': str(total),
                 'subtotal': str(total),
                 'vat': '0.0',
                 'NodeType': self.type,
                 'node_type': self.type,
                 'NodeTypeAbbr' : 'C',
-                'Ordered': str(self.Ordered),
-                'Invoiced': str(self.Invoiced)}
+                'ordered': str(self.Ordered),
+                'invoiced': str(self.Invoiced)}
 
     def toDict(self):
         """ Return a dictionary of all the attributes of this Component. This
@@ -1076,10 +1076,10 @@ class ComponentMixin(object):
             'name': self.Name,
             'id': self.ID,
             'node_type': self.type,
-            'quantity': self.Quantity,
+            'itemquantity': self.ItemQuantity,
             'rate': str(self.Rate),
             'budg_cost': str(self.Total),
-            'sub_cost':str(self.Subtotal()),
+            'sub_cost':str(self.Subtotal),
             'order_cost': str(self.OrderCost.quantize(Decimal('.01'))),
             'run_cost': str(self.RunningCost.quantize(Decimal('.01'))),
             'claim_cost': str(self.ClaimedCost.quantize(Decimal('.01'))),
@@ -1869,12 +1869,11 @@ class OrderItem(Base):
     def getGridData(self):
         """ Returns a dictionary of this OrderItem for the slickgrid
         """
-        vat = self.Order.TaxRate
         return {'id': self.Component.ID,
-                'name': self.Component.Name,
+                'Name': self.Component.Name,
                 'quantity': self.Quantity,
                 'rate': str(self.Rate),
-                'vat': str(vat),
+                'vat': str(self.Order.TaxRate),
                 'subtotal': str(self.Subtotal),
                 'total': str(self.Total),
                 'ordered': str(self.Component.Ordered),

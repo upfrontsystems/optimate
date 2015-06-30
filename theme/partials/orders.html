@@ -59,14 +59,14 @@
                 <select class="order-filters"
                         id="clientFilter"
                         data-ng-model="filters.Client"
-                        data-ng-options="client.ID as client.Name for client in clientList"
+                        data-ng-options="client.ID as client.Name for client in clientsList"
                         data-ng-change="loadOrderSection(); filterBy('client')">
                     <option value="">Client</option>
                 </select>
                 <select class="order-filters"
                         id="supplierFilter"
                         data-ng-model="filters.Supplier"
-                        data-ng-options="supplier.ID as supplier.Name for supplier in supplierList"
+                        data-ng-options="supplier.ID as supplier.Name for supplier in suppliersList"
                         data-ng-change="loadOrderSection(); filterBy('supplier')">
                     <option value="">Supplier</option>
                 </select>

@@ -187,13 +187,14 @@ if __name__ == '__main__':
         codeindex = 0
         nameindex = 1
         descriptionindex = 2
+        clientidindex = 4
         cityindex = 9
         budgetcostindex = 12
         ordercostindex = 13
         claimedcostindex = 15
         runningindex = 14
         incomeindex = 16
-        clientindex = 17
+        clientcostindex = 17
         projprofitindex = 18
         actprofitindex = 19
 
@@ -225,6 +226,11 @@ if __name__ == '__main__':
                 city = unicodedata.normalize('NFKD',
                                     name).encode('ascii', 'ignore')
 
+            try:
+                clientid = int(sheet.cell(x, clientidindex).value)
+            except ValueError:
+                clientid = None
+
             # convert the costs to Decimal and if there are issues set it to 0
             try:
                 budgetcost = Decimal(sheet.cell(x,
@@ -252,10 +258,10 @@ if __name__ == '__main__':
             except InvalidOperation, e:
                 income = Decimal(0.00)
             try:
-                client = Decimal(sheet.cell(x,
-                    clientindex).value).quantize(Decimal('.01'))
+                clientcost = Decimal(sheet.cell(x,
+                    clientcostindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
-                client = Decimal(0.00)
+                clientcost = Decimal(0.00)
             try:
                 projprofit = Decimal(sheet.cell(x,
                     projprofitindex).value).quantize(Decimal('.01'))
@@ -275,13 +281,14 @@ if __name__ == '__main__':
             project = Project(ID=code, Name=name,
                               Description=description,
                               ParentID=0,
+                              ClientID=clientid,
                               CityID=cityid,
                               _Total = budgetcost,
                               OrderCost=ordercost,
                               RunningCost=running,
                               ClaimedCost=claimedcost,
                               IncomeReceived=income,
-                              ClientCost=client,
+                              ClientCost=clientcost,
                               ProjectedProfit=projprofit,
                               ActualProfit=actprofit)
             DBSession.add(project)
