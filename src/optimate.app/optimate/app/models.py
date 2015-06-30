@@ -1235,6 +1235,7 @@ class Component(Node, ComponentMixin):
         return '<Co(Name="%s", Quantity="%d", ID="%s", ParentID="%s")>' % (
             self.Name, self.Quantity, self.ID, self.ParentID)
 
+
 class SimpleComponent(Node, ComponentMixin):
     """ Similar to Component, but does not reference a resource. For adding
         simple cost components in ad hoc fashion. """
