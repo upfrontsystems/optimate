@@ -488,7 +488,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     var textB = b.Name.toUpperCase();
                     return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
                 });
-                console.log($scope.projectsRoot.Subitem);
                 if (hasStorage) {
                     // add id of project to local storage
                     var open_projects;
@@ -1267,11 +1266,9 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     // if a project was pasted into the root
                     if (nodeid == 0){
                         var newprojectid = response.newId;
-                        console.log(newprojectid);
                         // get the new project
                         $http.get(globalServerURL + 'node/' + newprojectid + '/')
                         .success(function(data) {
-                            console.log(data);
                             // and add it to the open projects
                             $scope.projectAdded(data);
                         });
