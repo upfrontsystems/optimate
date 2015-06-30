@@ -42,6 +42,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             // set the default column sizes
             var column_width= {'name': 300,
                                 'quantity': 75,
+                                'item_quantity': 75,
                                 'rate': 50,
                                 'budg_cost': 75,
                                 'sub_cost': 75,
@@ -161,10 +162,10 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             function loadSlickgrid(response) {
                 var newcolumns = [];
                 var data = response['list'];
-                // Get the value that indicated
-                // whether there are empty columns
+                // Get the value that indicated whether there are empty columns
                 var emptycolumns = response['emptycolumns'];
                 var no_subtotal_column = response['no_sub_cost'];
+                var type = response['type'];
                 if (data.length > 0) {
                     // If the grid is only showing resources or resourcecategories
                     var secondtype = data[0]['node_type']
@@ -270,6 +271,9 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                  width: column_width.name, cssClass: "cell-title non-editable-column"},
                                 {id: "quantity", name: "Quantity", field: "quantity", cssClass: "cell editable-column",
                                  width: column_width.quantity, editor: Slick.Editors.CustomEditor},
+                                {id: "item_quantity", name: "Item Quantity", field: "item_quantity", 
+                                 cssClass: "cell editable-column",
+                                 width: column_width.item_quantity, editor: Slick.Editors.CustomEditor},
                                 {id: "rate", name: "Rate", field: "rate",
                                  width: column_width.rate, cssClass: "cell non-editable-column",
                                 formatter: CurrencyFormatter},
@@ -291,6 +295,16 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                 // remove subtotal column
                                 var index = emptycolumns.map(function(e)
                                     { return e.id; }).indexOf("sub_cost");
+                                if (index > -1) {
+                                    emptycolumns.splice(index, 1);
+                                }
+                            }
+                            itemquantity_types = ['Component', 'BudgetItem', 'BudgetGroup'];
+                            var itemquantity_type_found = $.inArray(type, itemquantity_types) > -1;
+                            if (!itemquantity_type_found) {
+                                // remove item_quantity column
+                                var index = emptycolumns.map(function(e)
+                                    { return e.id; }).indexOf("item_quantity");
                                 if (index > -1) {
                                     emptycolumns.splice(index, 1);
                                 }
@@ -339,6 +353,14 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                        i: {
                                             quantity: 'cell non-editable-column',
                                             markup: 'cell non-editable-column'
+                                           },
+                                    });
+                                }
+                                console.log(data[i]['node_type'])
+                                if (data[i]['node_type'] == 'BudgetItem') {
+                                    grid.setCellCssStyles("non-editable-cell", {
+                                       i: {
+                                            item_quantity: 'cell non-editable-column'
                                            },
                                     });
                                 }

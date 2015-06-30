@@ -347,7 +347,7 @@ def additemview(request):
             newnode = BudgetItem(Name=name,
                             Description=desc,
                             _Quantity = quantity,
-                            _ItemQuantity = itemquantity,
+                            _ItemQuantity = 10, # XXX Setting default until we know how to update this properly
                             ParentID=parentid)
         elif objecttype == 'ResourceCategory':
             newnode = ResourceCategory(Name=name,
@@ -762,6 +762,7 @@ def node_grid(request):
     childrenlist = []
     # Execute the sql query on the Node table to find the parent
     qry = DBSession.query(Node).filter_by(ParentID=parentid).all()
+    node_type = DBSession.query(Node).filter_by(ID=parentid).first().type
     if qry == []:
         # if the node doesnt have any children, query for the node's data instead
         qry = DBSession.query(Node).filter_by(ID=parentid).all()
@@ -796,10 +797,13 @@ def node_grid(request):
             if child['sub_cost'] != None:
                 return {'list': sorted_childrenlist,
                         'emptycolumns': emptycolumns,
-                        'no_sub_cost' : False}
+                        'no_sub_cost' : False,
+                        'type': node_type}
+
     return {'list': sorted_childrenlist,
             'emptycolumns': emptycolumns,
-            'no_sub_cost' : True}
+            'no_sub_cost' : True,
+            'type': node_type}
 
 
 @view_config(route_name="node_update_value", renderer='json')
