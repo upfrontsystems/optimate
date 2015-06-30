@@ -286,7 +286,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                 {id: "unit", name: "Unit", field: "unit",
                                  width: column_width.unit, cssClass: "cell  non-editable-column"},
                                 {id: "ordered", name: "Ordered", field: "ordered",
-                                 width: column_width.ordered, cssClass: "cell  non-editable-column",
+                                 width: column_width.ordered, cssClass: "cell non-editable-column",
                                 formatter: CurrencyFormatter},
                                 {id: "invoiced", name: "Invoiced", field: "invoiced",
                                  width: column_width.invoiced, cssClass: "cell  non-editable-column",
@@ -299,14 +299,25 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                     emptycolumns.splice(index, 1);
                                 }
                             }
-                            itemquantity_types = ['Component', 'BudgetItem', 'BudgetGroup'];
-                            var itemquantity_type_found = $.inArray(type, itemquantity_types) > -1;
-                            if (!itemquantity_type_found) {
+                            iq_types = ['Component', 'BudgetItem', 'BudgetGroup'];
+                            var iq_type_found = $.inArray(type, iq_types) > -1;
+                            if (!iq_type_found) {
                                 // remove item_quantity column
                                 var index = emptycolumns.map(function(e)
                                     { return e.id; }).indexOf("item_quantity");
                                 if (index > -1) {
+                                    // remove the column
                                     emptycolumns.splice(index, 1);
+                                }
+                            }
+                            // make item quantity column hidden for certain node types
+                            hidden_iq_types = ['BudgetItem'];   
+                            var itemquantity_type_found = $.inArray(type, hidden_iq_types) > -1;
+                            if (!itemquantity_type_found) {
+                                var index = emptycolumns.map(function(e)
+                                    { return e.id; }).indexOf("item_quantity");
+                                if (index > -1) {
+                                    emptycolumns[index].cssClass = "cell non-editable-column";
                                 }
                             }
                             var overheadnames = [];
@@ -360,7 +371,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                 if (data[i]['node_type'] == 'BudgetItem') {
                                     grid.setCellCssStyles("non-editable-cell", {
                                        i: {
-                                            item_quantity: 'cell non-editable-column'
+                                            item_quantity: 'cell non-editable-column',
+                                            markup: 'cell non-editable-column'
                                            },
                                     });
                                 }
