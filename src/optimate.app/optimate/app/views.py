@@ -278,6 +278,7 @@ def additemview(request):
                 Name=request.json_body['Name'],
                 Description=request.json_body.get('Description', None),
                 _Quantity=quantity,
+                _ItemQuantity=itemquantity,
                 _Rate=rate,
                 Type=request.json_body['ResourceType'])
             DBSession.add(newcomp)
@@ -294,6 +295,7 @@ def additemview(request):
             # get the resource used by the component
             resource = new_list[0]
             newcomp = Component(ResourceID=resource.ID,
+                            _Quantity=quantity,
                             _ItemQuantity=itemquantity,
                             ParentID=parentid)
 
