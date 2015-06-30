@@ -174,6 +174,15 @@ class Project(Node):
             total += child.Total
         self.Total = total
 
+    def clearCosts(self):
+        """ Set the Total and Quantity costs to zero and do the same for all
+            children
+        """
+        self._Total = Decimal(0)
+        for child in self.Children:
+            if child.type != 'ResourceCategory':
+                child.clearCosts()
+
     @property
     def Total(self):
         """Get property total. If the Total has not been set yet, it is set to
@@ -350,6 +359,15 @@ class BudgetGroup(Node):
         for child in self.Children:
             total += child.Total
         self.Total = total
+
+    def clearCosts(self):
+        """ Set the Total and Quantity costs to zero and do the same for all
+            children
+        """
+        self._Total = Decimal(0)
+        for child in self.Children:
+            child.clearCosts()
+
 
     @property
     def Total(self):
@@ -561,6 +579,17 @@ class BudgetItem(Node):
             rate += child.ItemTotal
         self._Rate = rate
         self.Total = self.Quantity * float(self._Rate)
+
+    def clearCosts(self):
+        """ Set the Total and Quantity costs to zero and do the same for all
+            children
+        """
+        self._Total = Decimal(0)
+        self._Quantity = 0.0
+        self._ItemQuantity = 1.0
+        self._Rate = Decimal(0)
+        for child in self.Children:
+            child.clearCosts()
 
     @property
     def Total(self):
@@ -820,6 +849,13 @@ class ComponentMixin(object):
             rate = self.Rate
         # After the total is set the total property is updated
         self.Total = (1.0+self.Markup) * self.Quantity * float(self.Rate)
+
+    def clearCosts(self):
+        """ Set the Total and Quantity costs to zero
+        """
+        self._Total = Decimal(0)
+        self._Quantity = 0.0
+        self._ItemQuantity = 0.0
 
     @property
     def Total(self):

@@ -443,7 +443,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                                 'Type': 75};
             var columns = [
                     {id: "name", name: "Component", field: "Name", cssClass: "cell-title non-editable-column",
-                     width: column_width.Name, formatter: NameColumnFormatter},
+                     width: column_width.Name},
                     {id: "Quantity", name: "Quantity", field: "Quantity", cssClass: "cell editable-column",
                      width: column_width.Quantity, editor: Slick.Editors.CustomEditor},
                     {id: "rate", name: "Rate", field: "Rate", cssClass: "cell editable-column",
@@ -513,12 +513,19 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
 
             // Formatter for displaying currencies
             function NameColumnFormatter(row, cell, value, columnDef, dataContext) {
-                console.log(cell);
-                console.log(columnDef.cssClass);
-                columnDef.cssClass = "cell  non-editable-column";
-                console.log(dataContext);
-                return columnDef;
+                if (value == 'Subtotal' || value == 'VAT' || value == 'Total'){
+                    grid.setCellCssStyles("right_align_name", {
+                           row: {
+                                Name: "cell non-editable-column"
+                               }
+                        });
+                }
+                return value;
               }
+
+              var styleCustCell = function(cellNode, row, rowData, columnsObject) {
+                    $(cellNode).addClass("cell non-editable-column");
+                };
 
             grid.onAddNewRow.subscribe(function (e, args) {
                 var item = args.item;
@@ -548,10 +555,10 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                      width: column_width.Amount, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                     ];
                 if (componentlist.length > 0) {
-                    var total =0.0;
+                    var ordertotal =0.0;
                     var gridlist = [];
                     for (var i=0;i<componentlist.length; i++) {
-                        total += parseFloat(componentlist[i]['Total']);
+                        ordertotal += parseFloat(componentlist[i].total);
                         gridlist.push(componentlist[i])
                         var subtotal = {'id': 'S' + componentlist[i].id,
                                         'Name': 'Subtotal',
@@ -573,9 +580,23 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     grid.resetActiveCell();
                     grid.setSelectedRows([]);
                     grid.render();
+                    // change css to right align subtotal, vat, and total rows
+                    for ( var i=0; i< gridlist.length; i++ )
+                    {
+                        i+=1;
+                        var objs={};
+                        objs[i]={'name': "cell non-editable-column"};
+                        i+=1;
+                        var objv={};
+                        objv[i]={'name': "cell non-editable-column"};
+                        i+=1;
+                        var objt={};
+                        objt[i]={'name': "cell non-editable-column"};
+                        grid.setCellCssStyles("right_align_name",objs, objv, objt);
+                        grid.render();
+                    }
 
-
-                    var parts = total.toString().split(".");
+                    var parts = ordertotal.toString().split(".");
                     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                     $scope.updateOrderTotal(parts.join("."));
                 }
@@ -593,11 +614,11 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             // on cell change update the totals
             grid.onCellChange.subscribe(function (e, ctx) {
                 var item = ctx.item
-                var oldtotal = item.Total;
-                item.Total = item.Quantity*item.Rate;
+                var oldtotal = item.total;
+                item.total = item.Quantity*item.Rate;
                 dataView.updateItem(item.id, item);
                 var ordertotal = parseFloat($scope.modalForm.Total.replace(/[^0-9-.]/g, ''));
-                var newtotal = ordertotal + (item.Total - oldtotal);
+                var newtotal = ordertotal + (item.total - oldtotal);
                 var parts = newtotal.toString().split(".");
                 parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                 $scope.updateOrderTotal(parts.join("."));
