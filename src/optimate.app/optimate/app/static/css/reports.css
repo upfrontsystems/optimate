@@ -49,3 +49,10 @@ div#pageNumber {
     font-weight: bold;
 }
 
+.red {
+    color: #f00;
+}
+
+.black {
+    color: #000;
+}

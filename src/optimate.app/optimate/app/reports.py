@@ -201,10 +201,22 @@ def costcomparison(request):
     else:
         nodes = costcomparison_nodes(project, [], 0, level_limit)
 
+    # apply colour distinction based on budgetgroup totals
+    nodes_colour = []
+    for node in nodes:
+        tc = 'black';
+        oc = 'black';
+        ic = 'black';
+        if node[0].Ordered > node[0].Total: 
+            oc = 'red';
+        if node[0].Invoiced > node[0].Total: 
+            ic = 'red';
+        nodes_colour.append((node[0], node[1], node[2], tc, oc, ic))
+
     # render template
     now = datetime.datetime.now()
     template_data = render('templates/costcomparisonreport.pt',
-                           {'nodes': nodes,
+                           {'nodes': nodes_colour,
                             'project_name': project.Name,
                             'print_date' : now.strftime("%d %B %Y - %k:%M")},
                            request=request)

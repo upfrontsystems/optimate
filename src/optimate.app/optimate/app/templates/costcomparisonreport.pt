@@ -45,9 +45,12 @@
                 <tr style="padding-top: 2px; padding-bottom: 1px;">
                     <td class="${node[1]} ${node[2]}" style="width: 450px" tal:content="node[0].Name|nothing">
                     </td>
-                    <td class="${node[2]}" style="width: 100px; text-align:right" tal:content="node[0].Total|nothing"></td>
-                    <td class="${node[2]}" style="width: 100px; text-align:right" tal:content="node[0].Ordered|nothing"></td>
-                    <td class="${node[2]}" style="width: 100px; text-align:right" tal:content="node[0].Invoiced|nothing"></td>
+                    <td class="${node[2]} ${node[3]}" style="width: 100px; text-align:right" 
+                        tal:content="node[0].Total|nothing"></td>
+                    <td class="${node[2]} ${node[4]}" style="width: 100px; text-align:right" 
+                        tal:content="node[0].Ordered|nothing"></td>
+                    <td class="${node[2]} ${node[5]}" style="width: 100px; text-align:right" 
+                        tal:content="node[0].Invoiced|nothing"></td>
                 </tr>
             </tal:entry>
             <tal:seperator tal:condition="node == None">
