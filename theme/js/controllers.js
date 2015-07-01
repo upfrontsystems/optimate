@@ -3,25 +3,25 @@ var allControllers = angular.module('allControllers', ['config']);
 
 // A factory that builds a shared service for the controllers for passing info
 allControllers.factory('sharedService', ['$rootScope',
-    function($rootScope){
+    function($rootScope) {
         var shared = {};
 
         // when a node is added to the projects treeview
         // the slickgrid should be reloaded
-        shared.nodeAdded = function(currentid){
+        shared.nodeAdded = function(currentid) {
             this.reloadSlickgrid(currentid);
         }
 
-        shared.clearSlickgrid = function(){
+        shared.clearSlickgrid = function() {
             $rootScope.$broadcast('handleClearSlickgrid');
         }
 
-        shared.reloadSlickgrid = function(nodeid){
+        shared.reloadSlickgrid = function(nodeid) {
             this.reloadId = nodeid;
             $rootScope.$broadcast('handleReloadSlickgrid');
         }
 
-        shared.reloadOrderSlickgrid = function(){
+        shared.reloadOrderSlickgrid = function() {
             $rootScope.$broadcast('handleReloadOrderSlickgrid');
         }
         return shared;
@@ -38,22 +38,22 @@ allControllers.controller('companyinformationController', ['$scope', '$http', '$
 
         toggleMenu('setup');
 
-        $http.get(globalServerURL + 'company_information').success(function(data){
+        $http.get(globalServerURL + 'company_information').success(function(data) {
             $scope.company_information = data;
         });
 
         // When the edit button is pressed change the state and set the data
-        $scope.editingState = function (){
+        $scope.editingState = function () {
             $http({
                 method: 'GET',
                 url: globalServerURL + 'company_information'
-            }).success(function(response){
+            }).success(function(response) {
                 $scope.formData = response;
             })
         }
 
         // editing company information data
-        $scope.save = function(){
+        $scope.save = function() {
             $http({
                 method: 'PUT',
                 url: globalServerURL + 'company_information',
@@ -73,7 +73,7 @@ allControllers.controller('clientsController', ['$scope', '$http', 'globalServer
         toggleMenu('setup');
         $scope.isDisabled = false;
 
-        $http.get(globalServerURL + 'clients').success(function(data){
+        $http.get(globalServerURL + 'clients').success(function(data) {
             $scope.jsonclients = data;
         });
 
@@ -88,11 +88,11 @@ allControllers.controller('clientsController', ['$scope', '$http', 'globalServer
         });
 
         // Adding or editing a client
-        $scope.save = function(){
+        $scope.save = function() {
             // check if saving is disabled, if not disable it and save
-            if (!$scope.isDisabled){
+            if (!$scope.isDisabled) {
                 $scope.isDisabled = true;
-                if ($scope.modalState == 'Edit'){
+                if ($scope.modalState == 'Edit') {
                     $http({
                         method: 'PUT',
                         url: globalServerURL + 'client/' + $scope.formData['ID'] + '/',
@@ -118,7 +118,7 @@ allControllers.controller('clientsController', ['$scope', '$http', 'globalServer
         };
 
         // add a new client to the list and sort
-        $scope.handleNew = function(newclient){
+        $scope.handleNew = function(newclient) {
             // the new client is added to the list
             $scope.jsonclients.push(newclient);
             // sort alphabetically by client name
@@ -131,7 +131,7 @@ allControllers.controller('clientsController', ['$scope', '$http', 'globalServer
         }
 
         // listening for the handle edit client broadcast
-        $scope.handleEdited = function(editedclient){
+        $scope.handleEdited = function(editedclient) {
             // search for the client and edit in the list
             var result = $.grep($scope.jsonclients, function(e) {
                 return e.ID == editedclient.ID;
@@ -153,22 +153,22 @@ allControllers.controller('clientsController', ['$scope', '$http', 'globalServer
         };
 
         // When the Add button is pressed change the state and form data
-        $scope.addingState = function (){
+        $scope.addingState = function () {
             $scope.isDisabled = false;
             $scope.modalState = "Add";
             $scope.formData = {'NodeType': 'client'};
-            if ($scope.selectedClient){
+            if ($scope.selectedClient) {
                 $('#client-'+$scope.selectedClient.ID).removeClass('active');
                 $scope.selectedClient = undefined;
             }
         }
 
         // When the edit button is pressed change the state and set the data
-        $scope.editingState = function (){
+        $scope.editingState = function () {
             $scope.isDisabled = false;
             $scope.modalState = "Edit";
             $http.get(globalServerURL + 'client/' + $scope.selectedClient.ID + '/')
-            .success(function(response){
+            .success(function(response) {
                 $scope.formData = response;
                 $scope.formData['NodeType'] = 'client';
             })
@@ -200,7 +200,7 @@ allControllers.controller('suppliersController', ['$scope', '$http', 'globalServ
         toggleMenu('setup');
         $scope.isDisabled = false;
 
-        $http.get(globalServerURL + 'suppliers').success(function(data){
+        $http.get(globalServerURL + 'suppliers').success(function(data) {
             $scope.jsonsuppliers = data;
         });
 
@@ -215,11 +215,11 @@ allControllers.controller('suppliersController', ['$scope', '$http', 'globalServ
         });
 
         // Adding or editing a supplier
-        $scope.save = function(){
+        $scope.save = function() {
             // check if saving is disabled, if not disable it and save
-            if (!$scope.isDisabled){
+            if (!$scope.isDisabled) {
                 $scope.isDisabled = true;
-                if ($scope.modalState == 'Edit'){
+                if ($scope.modalState == 'Edit') {
                     $http({
                         method: 'PUT',
                         url: globalServerURL + 'supplier/' + $scope.formData['ID'] + '/',
@@ -245,7 +245,7 @@ allControllers.controller('suppliersController', ['$scope', '$http', 'globalServ
         };
 
         // add a new supplier to the list and sort
-        $scope.handleNew = function(newsupplier){
+        $scope.handleNew = function(newsupplier) {
             // the new supplier is added to the list
             $scope.jsonsuppliers.push(newsupplier);
             // sort alphabetically by supplier name
@@ -258,7 +258,7 @@ allControllers.controller('suppliersController', ['$scope', '$http', 'globalServ
         }
 
         // edit a supplier in the list
-        $scope.handleEdited = function(editedsupplier){
+        $scope.handleEdited = function(editedsupplier) {
             // search for the supplier and edit in the list
             var result = $.grep($scope.jsonsuppliers, function(e) {
                 return e.ID == editedsupplier.ID;
@@ -280,24 +280,24 @@ allControllers.controller('suppliersController', ['$scope', '$http', 'globalServ
         };
 
         // When the Add button is pressed change the state and form data
-        $scope.addingState = function (){
+        $scope.addingState = function () {
             $scope.isDisabled = false;
             $scope.modalState = "Add";
             $scope.formData = {'NodeType': 'supplier'};
-            if ($scope.selectedSupplier){
+            if ($scope.selectedSupplier) {
                 $('#supplier-'+$scope.selectedSupplier.ID).removeClass('active');
                 $scope.selectedSupplier = undefined;
             }
         }
 
         // When the edit button is pressed change the state and set the data
-        $scope.editingState = function (){
+        $scope.editingState = function () {
             $scope.isDisabled = false;
             $scope.modalState = "Edit";
             $http({
                 method: 'GET',
                 url: globalServerURL + 'supplier/' + $scope.selectedSupplier.ID + '/'
-            }).success(function(response){
+            }).success(function(response) {
                 $scope.formData = response;
                 $scope.formData['NodeType'] = 'supplier';
             })
@@ -327,17 +327,17 @@ allControllers.controller('citiesController', ['$scope', '$http', '$modal', '$lo
 
         toggleMenu('setup');
         $scope.newCity = [];
-        $http.get(globalServerURL + 'cities').success(function(data){
+        $http.get(globalServerURL + 'cities').success(function(data) {
             $scope.cityList = data;
         });
 
         // clear the city input fields
-        $scope.clearInput = function(){
+        $scope.clearInput = function() {
             $scope.newCity = [];
         }
 
         $scope.cityList = [];
-        $scope.loadCities = function(){
+        $scope.loadCities = function() {
             $http.get(globalServerURL + 'cities')
             .success(function(data) {
                 $scope.cityList = data;
@@ -346,7 +346,7 @@ allControllers.controller('citiesController', ['$scope', '$http', '$modal', '$lo
         };
 
         // delete a city by id
-        $scope.deleteCity = function(cityid, index){
+        $scope.deleteCity = function(cityid, index) {
             var req = {
                 method: 'DELETE',
                 url: globalServerURL + 'city/' + cityid + '/',
@@ -360,8 +360,8 @@ allControllers.controller('citiesController', ['$scope', '$http', '$modal', '$lo
         }
 
         // add a city
-        $scope.addCity = function(){
-            if ($scope.newCity){
+        $scope.addCity = function() {
+            if ($scope.newCity) {
                 var req = {
                     method: 'POST',
                     url: globalServerURL + 'city/0/',
@@ -390,12 +390,12 @@ allControllers.controller('unitsController', ['$scope', '$http', '$modal', '$log
         });
 
         // clear the unit input fields
-        $scope.clearInput = function(){
+        $scope.clearInput = function() {
             $scope.newUnit = undefined;
         }
 
         $scope.unitList = [];
-        $scope.loadUnits = function(){
+        $scope.loadUnits = function() {
             var req = {
                 method: 'GET',
                 url: globalServerURL + 'units'
@@ -407,7 +407,7 @@ allControllers.controller('unitsController', ['$scope', '$http', '$modal', '$log
         };
 
         // delete a unit by id
-        $scope.deleteUnit = function(unitid, index){
+        $scope.deleteUnit = function(unitid, index) {
             var req = {
                 method: 'DELETE',
                 url: globalServerURL + 'unit/' + unitid + '/',
@@ -421,8 +421,8 @@ allControllers.controller('unitsController', ['$scope', '$http', '$modal', '$log
         }
 
         // add a unit
-        $scope.addUnit = function(){
-            if ($scope.newUnit){
+        $scope.addUnit = function() {
+            if ($scope.newUnit) {
                 var req = {
                     method: 'POST',
                     url: globalServerURL + 'unit/0/',
@@ -472,7 +472,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         });
 
         // When a new project is added to the tree
-        $scope.projectAdded = function(newproject){
+        $scope.projectAdded = function(newproject) {
             if (!(containsObject(newproject, $scope.projectsRoot.Subitem))) {
                 // add the new project to the projects and role list and sort
                 $scope.projectsList.push(newproject);
@@ -646,12 +646,12 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         $scope.allowed['Root'] = ['Project'];
         $scope.dragOverNode = [];
         // drag over function for when a node is dragged over another
-        $scope.dragOver = function(node){
+        $scope.dragOver = function(node) {
             // check for the previous dragged over node
             // reset the previous nodes values
             // console.log(node);
             // console.log($scope.dragOverNode);
-            if ($scope.dragOverNode.length != 0){
+            if ($scope.dragOverNode.length != 0) {
                 // console.log("resetting originial");
                 $scope.dragOverNode.copy.selected = undefined;
                 $scope.dragOverNode.copy = $scope.dragOverNode.original;
@@ -659,12 +659,12 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             $scope.dragOverNode.original = node;
             node.selected = 'selected';
             // if the current node has no children add a dummy child
-            if (node.Subitem.length == 0){
+            if (node.Subitem.length == 0) {
                 // console.log("no children");
                 node.Subitem.push({'Name': '', 'Subitem': []});
                 node.collapsed = true;
             }
-            else if (!node.collapsed){
+            else if (!node.collapsed) {
                 // console.log("collapsed");
                 node.Subitem[0].Name = '';
                 node.collapsed = true;
@@ -679,8 +679,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 var srctype = sourceNodeScope.$element.attr('data-type');
                 var dsttype = destNodesScope.$element.attr('data-type');
                 // check the allowed array for the types
-                if ($scope.allowed[dsttype]){
-                    if($scope.allowed[dsttype].indexOf(srctype) > -1){
+                if ($scope.allowed[dsttype]) {
+                    if($scope.allowed[dsttype].indexOf(srctype) > -1) {
                         // call the drag over function
                         $scope.dragOver(destNodesScope.$nodeScope.$modelValue);
                         return true;
@@ -694,9 +694,9 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             },
 
             // when a node is dropped get the id's and paste in the server
-            dropped: function(event){
+            dropped: function(event) {
                 // get the node ids from the model value
-                if (event.dest.nodesScope.$nodeScope){
+                if (event.dest.nodesScope.$nodeScope) {
                     var dest = event.dest.nodesScope.$nodeScope.$modelValue;
                 }
                 else{
@@ -708,12 +708,12 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     var srcparent = 0;
                 }
                 // only paste if it is not the same parent
-                if (dest.ID != srcparent){
+                if (dest.ID != srcparent) {
                     var parent = event.dest.nodesScope.$nodeScope || null;
                     var destprojectid = undefined;
                     // find the project the destination node is in
-                    while (parent != null){
-                        if (parent.$parentNodeScope == null){
+                    while (parent != null) {
+                        if (parent.$parentNodeScope == null) {
                             destprojectid = parent.$modelValue.ID;
                         }
                         parent = parent.$parentNodeScope;
@@ -721,8 +721,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     // find the project the source node is in
                     var parent = event.source.nodesScope.$nodeScope || null;
                     var srcprojectid = undefined;
-                    while (parent != null){
-                        if (parent.$parentNodeScope == null){
+                    while (parent != null) {
+                        if (parent.$parentNodeScope == null) {
                             srcprojectid = parent.$modelValue.ID;
                         }
                         parent = parent.$parentNodeScope;
@@ -731,7 +731,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     $scope.currentNode = dest;
                     var src = event.source.nodeScope.$modelValue;
                     // if it's in the same project, cut
-                    if (destprojectid == srcprojectid){
+                    if (destprojectid == srcprojectid) {
                         $scope.currentNodeScope = event.source.nodeScope;
                         $scope.cutThisNode(src);
                         $scope.currentNode = dest;
@@ -748,8 +748,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 }
             },
 
-            dragStop: function(event){
-                if($scope.addNodeBack){
+            dragStop: function(event) {
+                if($scope.addNodeBack) {
                     var sourceobject = event.source.nodeScope.$modelValue;
                     var parent = event.source.nodeScope.$parentNodeScope.$modelValue;
                     parent.Subitem.push(sourceobject);
@@ -757,20 +757,20 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 }
             },
 
-            // beforeDrop: function(event){
+            // beforeDrop: function(event) {
             //     console.log("before drop");
             // },
 
-            // beforeDrag: function(sourceNodeScope){
+            // beforeDrag: function(sourceNodeScope) {
             //     console.log("before drag");
             //     return true;
             // },
 
-            // dragStart: function(event){
+            // dragStart: function(event) {
             //     console.log("drag start");
             // },
 
-            // dragMove: function(event){
+            // dragMove: function(event) {
             //     console.log("drag move");
             // }
         };
@@ -779,7 +779,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         // and collapse or expand the node
         $scope.selectNodeHead = function(selectedNode) {
             // if the node is collapsed, get the data and expand the node
-            if (!selectedNode.collapsed){
+            if (!selectedNode.collapsed) {
                 selectedNode.collapsed = true;
                 var parentid = selectedNode.ID;
                 $http.get(globalServerURL + 'node/' + parentid + '/children/').success(function(data) {
@@ -808,7 +808,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             $scope.currentNode.selected = 'selected';
         };
 
-        $scope.loadOverheads = function(projectid){
+        $scope.loadOverheads = function(projectid) {
             $http.get(globalServerURL + 'project/' + projectid + '/overheads/')
             .success(function(data) {
                 $scope.overheadList = data;
@@ -817,7 +817,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         };
 
         // load the overheads a component can use
-        $scope.loadComponentOverheads = function(nodeid){
+        $scope.loadComponentOverheads = function(nodeid) {
             var req = {
                 method: 'GET',
                 url: globalServerURL + 'component/' + nodeid + '/overheads/'
@@ -829,7 +829,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         }
 
         // delete an overhead by id
-        $scope.deleteOverhead = function(overheadid, index){
+        $scope.deleteOverhead = function(overheadid, index) {
             var req = {
                 method: 'DELETE',
                 url: globalServerURL + 'overhead/' + overheadid + '/'
@@ -841,8 +841,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         }
 
         // add an overhead with the project id
-        $scope.addOverhead = function(projectid){
-            if ($scope.newOverhead){
+        $scope.addOverhead = function(projectid) {
+            if ($scope.newOverhead) {
                 var req = {
                     method: 'POST',
                     url: globalServerURL + 'project/' + projectid + '/overheads/',
@@ -859,8 +859,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
         // add an overhead if it has been input
         // and clear the overhead modal input fields
-        $scope.clearInput = function(){
-            if ($scope.newOverhead){
+        $scope.clearInput = function() {
+            if ($scope.newOverhead) {
                 $scope.addOverhead($scope.currentNode.ID);
             }
             $scope.newOverhead = undefined;
@@ -868,12 +868,12 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
         // Load the resources the user can select from the resource list
         $scope.searching = false;
-        $scope.loadResourceList = function(state){
+        $scope.loadResourceList = function(state) {
             var finder = $('.finder').get(0);
-            $scope.finder = $scope.finder || new ContentFinder(finder, function(id, search){
+            $scope.finder = $scope.finder || new ContentFinder(finder, function(id, search) {
                 var url,
                     params = {};
-                if (id === undefined || id === null || search){
+                if (id === undefined || id === null || search) {
                     url = globalServerURL + 'project/' + $scope.currentNode.ID + '/resources/';
                 } else {
                     url = globalServerURL + 'resource/' + id + '/';
@@ -890,7 +890,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     params: params,
                     url: url
                 })
-            }, function(item){
+            }, function(item) {
                 // Designed three-way. If item is a string, then the user
                 // wants to define his own component. If it is an object
                 // then he selected something. If it is null, he deselected
@@ -898,14 +898,14 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 var $addComponent = $('#addComponent'),
                     $description = $addComponent.find('#description');
 
-                if (item && item.indexOf){
+                if (item && item.indexOf) {
                     // String value
                     $scope.addComponentForm.has_selection = false;
                     $scope.formData.Description = '';
                     $scope.formData.Rate = '';
                     $scope.formData.ResourceType = '';
                     $description.focus();
-                } else if(item){
+                } else if(item) {
                     // object
                     $scope.addComponentForm.has_selection = true;
                     $scope.formData.Description = item.description;
@@ -921,25 +921,25 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     $addComponent.find('#inputResources').focus();
                 }
             });
-            if (state == 'add'){ $scope.finder.clear_selection(); }
+            if (state == 'add') { $scope.finder.clear_selection(); }
             $scope.finder.listdir();
         };
 
-        $scope.refreshResourceList = function(){
+        $scope.refreshResourceList = function() {
             $cacheFactory.get('optimate.resources').removeAll();
             $scope.finder.listdir();
         };
 
         // Not the most angular approach, but it does help it go away
         // when you click outside the dropdown.
-        $scope.closeDropdown = function(e){
-            if (!e.isDefaultPrevented()){
+        $scope.closeDropdown = function(e) {
+            if (!e.isDefaultPrevented()) {
                 $scope.finder && $scope.finder.opened && $scope.finder.close_dropdown();
             }
         };
 
         // Load a list of the fields used in adding a project
-        $scope.loadProjectRelatedList = function(){
+        $scope.loadProjectRelatedList = function() {
             // load the city list
             $scope.cityList = [{"Name": "Loading..."}];
             var req = {
@@ -964,7 +964,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         }
 
         // Load a list of the fields used in adding a resource
-        $scope.loadResourceRelatedList = function(){
+        $scope.loadResourceRelatedList = function() {
             // load the unit list
             $scope.unitList = [{"Name": "Loading..."}];
             var req = {
@@ -1003,9 +1003,9 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         // nothing selected, add the text as name so a simple component can be
         // created. Ideally we want to get this data from formData rather than
         // using jquery here. TODO some day.
-        $scope.selectedResource = function(){
+        $scope.selectedResource = function() {
             var selected = $('#related_items_finder .finder-choices .search-choice .selected-resource');
-            if (selected.length){
+            if (selected.length) {
                 $scope.formData['Name'] = selected.text();
                 $scope.formData['uid'] = selected.parent().data('uid');
             } else {
@@ -1017,7 +1017,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         // is added to the database
         $scope.addNode = function () {
             // check if adding is disabled, if not disable it and add the node
-            if (!$scope.isDisabled){
+            if (!$scope.isDisabled) {
                 $scope.isDisabled = true;
                 var currentid = $scope.currentNode.ID;
                 $scope.formData['OverheadList'] = $scope.componentOverheadList || [];
@@ -1031,7 +1031,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     sharedService.reloadSlickgrid(currentid);
                     $scope.loadNodeChildren(currentid);
                     // expand the node if this is its first child
-                    if ($scope.currentNode.Subitem.length == 0){
+                    if ($scope.currentNode.Subitem.length == 0) {
                         $scope.currentNode.collapsed = true;
                     }
                     console.log("Node added");
@@ -1040,10 +1040,10 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         };
 
         // Add a project to the tree and reload the projectlist
-        $scope.addProject = function(){
+        $scope.addProject = function() {
             $scope.modalState = "Add"
             // check if adding is disabled, if not disable it and add the node
-            if (!$scope.isDisabled){
+            if (!$scope.isDisabled) {
                 $scope.isDisabled = true;
                 $http({
                     method: 'POST',
@@ -1064,10 +1064,10 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         // $timeout is used so that the scope is refreshed and the directive
         // reloaded even if the node type is the same
         // reset the formdata to the type
-        $scope.changeAddingType = function(nodetype){
-            if ($scope.addingNodeType == nodetype){
+        $scope.changeAddingType = function(nodetype) {
+            if ($scope.addingNodeType == nodetype) {
                 $scope.addingNodeType = '';
-                $timeout(function(){
+                $timeout(function() {
                     $scope.changeAddingType(nodetype);
                 });
             }
@@ -1081,7 +1081,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
         // fetch the properties of the node being edited
         // to populate the respective edit form
-        $scope.editNode = function(nodeid, nodetype){
+        $scope.editNode = function(nodeid, nodetype) {
             $scope.modalState = "Edit"
             $scope.isDisabled = false;
             var req = {
@@ -1117,7 +1117,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         var overheadlist = response['OverheadList'];
                         var arrayLength = $scope.componentOverheadList.length;
                         for (var i = 0; i < arrayLength; i++) {
-                            if (overheadlist.indexOf($scope.componentOverheadList[i].ID) != -1){
+                            if (overheadlist.indexOf($scope.componentOverheadList[i].ID) != -1) {
                                 $scope.componentOverheadList[i].selected = true;
                             }
                         }
@@ -1137,7 +1137,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             $http(req).success(function(response) {
                 console.log($scope.formData['NodeType'] + " edited")
                 // set the current node name to the name in the modal form
-                if ($scope.currentNode.Name != $scope.formData.Name){
+                if ($scope.currentNode.Name != $scope.formData.Name) {
                     $scope.currentNode.Name = $scope.formData.Name;
                     // sort the sibling items in scope
                     $scope.currentNodeScope.$parentNodesScope.$modelValue.sort(function(a, b) {
@@ -1159,7 +1159,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 method: 'DELETE',
                 url:globalServerURL + 'node/' + nodeid + '/'
             }).success(function (response) {
-                if (response['parentid'] == 0){
+                if (response['parentid'] == 0) {
                     $scope.closeProject(nodeid);
                 }
                 else{
@@ -1192,16 +1192,16 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             var doAll = undefined;
             var duplicatelist = undefined;
             var flag = false;
-            if (cnode){
+            if (cnode) {
                 flag = true;
             }
-            if (flag && (cnode.ID == nodeid)){
+            if (flag && (cnode.ID == nodeid)) {
                 flag = false;
                 console.log("You can't paste a node into itself");
             }
-            if (flag && ((cnode.NodeType == 'ResourceCategory') && ($scope.currentNode.NodeType == 'ResourceCategory'))){
+            if (flag && ((cnode.NodeType == 'ResourceCategory') && ($scope.currentNode.NodeType == 'ResourceCategory'))) {
                 flag = false;
-                if (cnode.ParentID == nodeid){
+                if (cnode.ParentID == nodeid) {
                     console.log("You can't paste a Resource Category into the same list");
                 }
                 else {
@@ -1216,13 +1216,13 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                             selectionlist = {};
                             var destinationresources = response;
                             // get a list of the duplicate resources
-                            for (var d in destinationresources){
+                            for (var d in destinationresources) {
                                 for (var c in copiedresources) {
                                     if (copiedresources[c].Code == destinationresources[d].Code)
                                         duplicatelist.push(copiedresources[c]);
                                 }
                             }
-                            if (duplicatelist.length > 0){
+                            if (duplicatelist.length > 0) {
                                 var overwrite = false;
                                 var keys = Object.keys(duplicatelist);
 
@@ -1239,7 +1239,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
                                     return modalInstance.result.then(function (selections) {
                                         overwrite = selections.overwrite;
-                                        if (selections.doAll){
+                                        if (selections.doAll) {
                                             doAll = selections.doAll;
                                         }
                                     });
@@ -1249,7 +1249,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                                     // get the first key and remove it from array
                                     var key = keys.shift();
                                     var duplicateResource = duplicatelist[key];
-                                    if (doAll == undefined){
+                                    if (doAll == undefined) {
                                         // open the modal
                                         $scope.selections = {'overwrite': overwrite,
                                                             'doAll': doAll,
@@ -1286,7 +1286,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     });
                 }
             }
-            if (flag){
+            if (flag) {
                 $http({
                     method: 'POST',
                     url: globalServerURL + 'node/' + nodeid + '/paste/',
@@ -1295,7 +1295,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 }).success(function (response) {
                     console.log('Success: Node pasted');
                     // if a project was pasted into the root
-                    if (nodeid == 0){
+                    if (nodeid == 0) {
                         var newprojectid = response.newId;
                         // get the new project
                         $http.get(globalServerURL + 'node/' + newprojectid + '/')
@@ -1309,15 +1309,15 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         $scope.loadNodeChildren(nodeid);
                     }
                     // expand the node if this is its first child
-                    if ($scope.currentNode.Subitem.length == 0){
+                    if ($scope.currentNode.Subitem.length == 0) {
                         $scope.currentNode.collapsed = true;
                     }
-                }).error(function(){
+                }).error(function() {
                     console.log("Server error");
                 });
             }
 
-            var pasteResourceCategory = function(selectionlist){
+            var pasteResourceCategory = function(selectionlist) {
                 $http({
                     method: 'POST',
                     url: globalServerURL + 'node/' + nodeid + '/paste/',
@@ -1329,29 +1329,29 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     sharedService.reloadSlickgrid(nodeid);
                     $scope.loadNodeChildren(nodeid);
                     // expand the node if this is its first child
-                    if ($scope.currentNode.Subitem.length == 0){
+                    if ($scope.currentNode.Subitem.length == 0) {
                         $scope.currentNode.collapsed = true;
                     }
-                }).error(function(){
+                }).error(function() {
                     console.log("Server error");
                 });
             };
         }
 
         // when a node is deleted clear the slickgrid and remove it from the tree
-        $scope.nodeDeleted = function(){
+        $scope.nodeDeleted = function() {
             $scope.currentNode = undefined;
             $scope.currentNodeScope.remove();
             sharedService.clearSlickgrid();
         }
 
         // Load the children and add to the tree
-        $scope.loadNodeChildren = function(parentid){
+        $scope.loadNodeChildren = function(parentid) {
             // if the parent id is 0 reload the projectslist
-            if (parentid == 0){
+            if (parentid == 0) {
 
             }
-            else if ($scope.currentNode){
+            else if ($scope.currentNode) {
                 $http.get(globalServerURL + 'node/' + parentid + '/children/').success(function(data) {
                     $scope.currentNode.Subitem = data;
                     console.log("Children loaded");
@@ -1474,13 +1474,13 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 { return e.id; }).indexOf(bgroup.ID);
             // if the budgetgroup is already in the list
             // and the node is deselected
-            if ((i>-1) &(!flag)){
+            if ((i>-1) &(!flag)) {
                 // remove it
                 $scope.budgetgroupList.splice(i, 1);
             }
             // if the budget group is not in the list
             // and the node is being selected
-            else if ((i==-1) & flag){
+            else if ((i==-1) & flag) {
                 // add the budgetgroup
                 $scope.budgetgroupList.push(bgroup);
             }
@@ -1490,7 +1490,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         // and collapse or expand the node
         $scope.selectReportNodeHead = function(selectedNode) {
             // if the node is collapsed, get the data and expand the node
-            if (!selectedNode.collapsed){
+            if (!selectedNode.collapsed) {
                 selectedNode.collapsed = true;
                 var parentid = selectedNode.ID;
                 $http.get(globalServerURL + "reports/tree/" + parentid + '/').success(function(data) {
@@ -1512,15 +1512,15 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
         $scope.users = [];
 
         // populate user list
-        ($scope.repopulate = function(){
+        ($scope.repopulate = function() {
             $http({
                 method: 'GET',
                 url: globalServerURL + 'users',
             }).then(
-                function(response){
+                function(response) {
                     $scope.users = response.data;
                 },
-                function(){
+                function() {
                     alert('Error while fetching user list');
                 }
             );
@@ -1529,7 +1529,7 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
         $scope.selectedUser = null;
         $scope.showActionsFor = function(obj) {
             $scope.selectedUser = obj;
-            for (var i in $scope.users){
+            for (var i in $scope.users) {
                 $scope.users[i].selected = false;
             }
             obj.selected = true;
@@ -1543,13 +1543,13 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
             ]
         }
         var modalInstance = null;
-        $scope.addingState = function (){
+        $scope.addingState = function () {
             $scope.modalState = "Add";
             $scope.newuser.password = '';
-            $scope.newuser.roles.forEach(function(v){
+            $scope.newuser.roles.forEach(function(v) {
                 v.selected = false;
             });
-            if ($scope.selectedUser){
+            if ($scope.selectedUser) {
                 $scope.selectedUser.selected = false;
                 $scope.selectedUser = null;
             }
@@ -1559,17 +1559,17 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
             });
         };
 
-        $scope.editingState = function (){
+        $scope.editingState = function () {
             $scope.modalState = "Edit";
             $scope.newuser.password = '';
             $http({
                 method: 'GET',
                 url: globalServerURL + 'users/' + $scope.selectedUser.username
             }).then(
-                function(response){
+                function(response) {
                     var i;
                     $scope.data = response.data;
-                    for (var i in $scope.newuser.roles){
+                    for (var i in $scope.newuser.roles) {
                         var role = $scope.newuser.roles[i];
                         role.selected = (response.data.roles.indexOf(role.title) > -1);
                     }
@@ -1578,23 +1578,23 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
                         scope: $scope
                     });
                 },
-                function(){
+                function() {
                     alert('Error while fetching user information');
                 }
             );
         };
 
-        $scope.saveUser = function(){
-            var newroles = $scope.newuser.roles.map(function(v){
-                if (v.selected){
+        $scope.saveUser = function() {
+            var newroles = $scope.newuser.roles.map(function(v) {
+                if (v.selected) {
                     return v.title;
                 } else {
                     return null;
                 }
-            }).filter(function(v){
+            }).filter(function(v) {
                 return v != null;
             });
-            if ($scope.selectedUser){
+            if ($scope.selectedUser) {
                 // Update the password (and later also the roles)
                 $http({
                     method: "POST",
@@ -1604,12 +1604,12 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
                         roles: newroles
                     }
                 }).then(
-                    function(response){
+                    function(response) {
                         $scope.selectedUser.roles = response.data.roles;
                         modalInstance && modalInstance.dismiss('ok');
                         modalInstance = null;
                     },
-                    function(){
+                    function() {
                         alert('Error while saving user details');
                     }
                 );
@@ -1623,28 +1623,28 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
                         roles: newroles
                     }
                 }).then(
-                    function(){
+                    function() {
                         modalInstance && modalInstance.dismiss('ok');
                         modalInstance = null;
                         $scope.repopulate();
                     },
-                    function(){
+                    function() {
                         alert('Error while saving user details');
                     }
                 );
             }
         };
 
-        $scope.deleteUser = function(user){
-            if (confirm('Are you sure you want to delete ' + user.username + '?')){
+        $scope.deleteUser = function(user) {
+            if (confirm('Are you sure you want to delete ' + user.username + '?')) {
                 $http({
                     method: "DELETE",
                     url: globalServerURL + 'users/' + user.username
                 }).then(
-                    function(){
+                    function() {
                         $scope.repopulate();
                     },
-                    function(){
+                    function() {
                         alert('Error deleting user');
                     }
                 );
@@ -1654,36 +1654,36 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
 }]);
 
 allControllers.controller('loginController', ['$scope', '$location', 'SessionService',
-    function($scope, $location, SessionService){
+    function($scope, $location, SessionService) {
         $scope.credentials = {
             username: '',
             password: ''
         }
 
-        $scope.login = function(e){
+        $scope.login = function(e) {
             e.preventDefault();
             SessionService.login($scope.credentials.username, $scope.credentials.password).then(
-                function(){
+                function() {
                     $location.path('/projects');
                 },
-                function(){
+                function() {
                     alert('Login failed');
                 });
         }
 }]);
 
 allControllers.controller('logoutController', ['$location', 'SessionService',
-    function($location, SessionService){
+    function($location, SessionService) {
         SessionService.logout();
         $location.path('/login');
 }]);
 
 allControllers.controller('navController', ['$scope', 'SessionService',
-    function($scope, SessionService){
+    function($scope, SessionService) {
         // Hide and show the toolbar depending on whether you're logged in.
         $scope.logged_in = SessionService.authenticated();
         $scope.username = SessionService.username();
-        $scope.$on('session:changed', function(evt, username){
+        $scope.$on('session:changed', function(evt, username) {
             $scope.logged_in = SessionService.authenticated();
             $scope.username = SessionService.username();
         });
@@ -1710,7 +1710,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         $scope.orderListLength = $scope.maxPageSize + 1;
 
         // loading the project, client and supplier list
-        $scope.clearFilters = function(){
+        $scope.clearFilters = function() {
             $scope.filters = [];
             $http.get(globalServerURL + 'projects/')
             .success(function(data) {
@@ -1718,17 +1718,17 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             });
 
             $http.get(globalServerURL + 'suppliers')
-            .success(function(data){
+            .success(function(data) {
                 $scope.suppliersList = data;
             });
 
             $http.get(globalServerURL + 'clients')
-            .success(function(data){
+            .success(function(data) {
                 $scope.clientsList = data;
             });
 
             // get the length of the list of all the orders
-            $http.get(globalServerURL + 'orders/length').success(function(data){
+            $http.get(globalServerURL + 'orders/length').success(function(data) {
                 $scope.orderListLength = data['length'];
             });
         }
@@ -1737,7 +1737,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         $scope.clientsList = [];
         $scope.clearFilters();
 
-        $scope.loadOrderSection = function(){
+        $scope.loadOrderSection = function() {
             var start = ($scope.currentPage-1)*$scope.pageSize;
             var end = start + $scope.pageSize;
             var req = {
@@ -1753,7 +1753,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $http(req).success(function(response) {
                 var length = response.pop();
                 $scope.jsonorders = response;
-                if (length){
+                if (length) {
                     $scope.orderListLength = length;
                 }
                 console.log("Orders loaded");
@@ -1762,36 +1762,35 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         $scope.loadOrderSection();
 
         // filter the other filter options by project
-        $scope.filterBy = function(selection){
+        $scope.filterBy = function(selection) {
             var req = {
                 method: 'GET',
                 url: globalServerURL + 'orders/filter',
                 params: $scope.filters
             };
-            $http(req).success(function(response){
-                if (selection == 'project'){
-                    if ($scope.filters.Project == null){
+            $http(req).success(function(response) {
+                if (selection == 'project') {
+                    if ($scope.filters.Project == null) {
                         $scope.projectsList = response['projects'];
                     }
                     $scope.clientsList = response['clients'];
                     $scope.suppliersList = response['suppliers'];
                 }
-                else if (selection == 'client'){
-                    if ($scope.filters.Client == null){
+                else if (selection == 'client') {
+                    if ($scope.filters.Client == null) {
                         $scope.clientsList = response['clients'];
                     }
                     $scope.projectsList = response['projects'];
                     $scope.suppliersList = response['suppliers'];
                 }
-                else if (selection == 'supplier'){
-                    if ($scope.filters.Supplier == null){
-                        console.log(response['suppliers']);
+                else if (selection == 'supplier') {
+                    if ($scope.filters.Supplier == null) {
                         $scope.suppliersList = response['suppliers'];
                     }
                     $scope.clientsList = response['clients'];
                     $scope.projectsList = response['projects'];
                 }
-                else{
+                else {
                     $scope.projectsList = response['projects'];
                     $scope.clientsList = response['clients'];
                     $scope.suppliersList = response['suppliers'];
@@ -1800,9 +1799,9 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         };
 
         // Adding or editing an order
-        $scope.save = function(){
+        $scope.save = function() {
             // check if saving is disabled, if not disable it and save
-            if (!$scope.isDisabled){
+            if (!$scope.isDisabled) {
                 $scope.isDisabled = true;
                 // set the list of checked components
                 $scope.formData['ComponentsList'] = $scope.componentsList;
@@ -1810,7 +1809,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 $scope.formData['Date'] = $scope.date.toJSON();
                 // convert the total to a number
                 $scope.formData['Total'] = parseFloat($scope.modalForm.Total.replace(/[^0-9-.]/g, ''));;
-                if ($scope.modalState == 'Edit'){
+                if ($scope.modalState == 'Edit') {
                     $http({
                         method: 'PUT',
                         url: globalServerURL + $scope.formData['NodeType'] + '/' + $scope.formData['ID'] + '/',
@@ -1836,8 +1835,8 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         };
 
         // adding an invoice
-        $scope.saveInvoice = function(){
-            if (!$scope.isDisabled){
+        $scope.saveInvoice = function() {
+            if (!$scope.isDisabled) {
                 $scope.isDisabled = true;
                 // convert the date to json format
                 $scope.invoiceFormData['Date'] = $scope.date.toJSON();
@@ -1852,12 +1851,12 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         }
 
         // add a new order to the list and sort
-        $scope.handleNew = function(neworder){
+        $scope.handleNew = function(neworder) {
             // the new order is added to the list
             var high = $scope.jsonorders[0].ID + 2;
             var low = $scope.jsonorders[$scope.jsonorders.length - 1].ID + 2;
             // only need to add it if it's id falls in the current section
-            if (neworder.ID > low && neworder.ID < high){
+            if (neworder.ID > low && neworder.ID < high) {
                 $scope.jsonorders.push(neworder);
                 // sort by order id
                 $scope.jsonorders.sort(function(a, b) {
@@ -1870,13 +1869,13 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         }
 
         // handle editing an order
-        $scope.handleEdited = function(editedorder){
+        $scope.handleEdited = function(editedorder) {
             // search for the order and edit in the list
             var result = $.grep($scope.jsonorders, function(e) {
                 return e.ID == editedorder.ID;
             });
             var i = $scope.jsonorders.indexOf(result[0]);
-            if (i>-1){
+            if (i>-1) {
                 $scope.jsonorders[i] = editedorder;
             }
             console.log ("Order edited");
@@ -1888,7 +1887,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $('#order-'+obj.ID).addClass('active').siblings().removeClass('active');
         };
 
-        $scope.addingInvoice = function(){
+        $scope.addingInvoice = function() {
             $scope.isDisabled = false;
             $scope.modalState = "Add";
             $scope.dateTimeNow();
@@ -1899,7 +1898,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         }
 
         // When the Add button is pressed change the state and form data
-        $scope.addingState = function (){
+        $scope.addingState = function () {
             $scope.formData.TaxRate = undefined;
             $scope.formData = {'NodeType': 'order',
                                 'TaxRate': true};
@@ -1910,14 +1909,14 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $scope.formData['Date'] = $scope.date;
             $scope.modalForm.Total = '0.00';
             $scope.componentsList = [];
-            if ($scope.selectedOrder){
+            if ($scope.selectedOrder) {
                 $('#order-'+$scope.selectedOrder.ID).removeClass('active');
                 $scope.selectedOrder = undefined;
             }
         }
 
         // When the edit button is pressed change the state and set the data
-        $scope.editingState = function (){
+        $scope.editingState = function () {
             $scope.formData.TaxRate = undefined;
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
@@ -1925,7 +1924,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $http({
                 method: 'GET',
                 url: globalServerURL + 'order/' + $scope.selectedOrder.ID + '/'
-            }).success(function(response){
+            }).success(function(response) {
                 $scope.formData = response;
                 $scope.loadProject()
                 $scope.componentsList = $scope.formData['ComponentsList'];
@@ -1946,14 +1945,14 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                     return e.ID == deleteid;
                 });
                 var i = $scope.jsonorders.indexOf(result[0]);
-                if (i>-1){
+                if (i>-1) {
                     $scope.jsonorders.splice(i, 1);
                     console.log("Deleted order");
                 }
             });
         };
 
-        $scope.toggleComponents = function(comp){
+        $scope.toggleComponents = function(comp) {
             // set the component selected or unselected
             var flag = (comp.selected === true) ? undefined : true;
             comp.selected = flag;
@@ -1962,32 +1961,32 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 { return e.id; }).indexOf(comp.ID);
             // if the component is already in the list
             // and the node is deselected
-            if ((i>-1) &(!flag)){
+            if ((i>-1) &(!flag)) {
                 // remove it
                 $scope.componentsList.splice(i, 1);
             }
             // if the component is not in the list
             // and the node is being selected
-            else if ((i==-1) & flag){
+            else if ((i==-1) & flag) {
                 // add the component
                 $scope.componentsList.push(comp);
             }
         }
 
         // remove a component from the component list
-        $scope.removeComponent = function(node){
+        $scope.removeComponent = function(node) {
             var deleteid = node.ID;
             var result = $.grep($scope.componentsList, function(e) {
                     return e.id == deleteid;
             });
             var i = $scope.componentsList.indexOf(result[0]);
-            if (i>-1){
+            if (i>-1) {
                 $scope.componentsList.splice(i, 1);
                 // loop through all the open nodes and if the checked component
                 // is in it uncheck the component
-                for (var i = 0; i<$scope.openProjectsList.length; i++){
+                for (var i = 0; i<$scope.openProjectsList.length; i++) {
                     var subitem = $scope.openProjectsList[i].Subitem || [];
-                    if (subitem.length > 0){
+                    if (subitem.length > 0) {
                         $scope.uncheckComponent(deleteid, subitem);
                     }
                 }
@@ -1995,22 +1994,22 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             }
         };
 
-        $scope.uncheckComponent = function(componentId, subitem){
-            for (var i = 0; i<subitem.length; i++){
-                if (subitem[i].ID == componentId){
+        $scope.uncheckComponent = function(componentId, subitem) {
+            for (var i = 0; i<subitem.length; i++) {
+                if (subitem[i].ID == componentId) {
                     subitem[i].selected = false;
                     break;
                 }
                 else{
                     var subsubitem = subitem[i].Subitem || [];
-                    if (subsubitem.length > 0){
+                    if (subsubitem.length > 0) {
                         $scope.uncheckComponent(componentId, subsubitem);
                     }
                 }
             }
         }
 
-        $scope.toggleNode = function(node){
+        $scope.toggleNode = function(node) {
             // when a node that is not a component is selected
             // flag the node, set the selection on all its children
             // load the components in the node and toggle them in the
@@ -2020,30 +2019,30 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             var nodeid = node.ID;
             var subitems = node['Subitem'];
             // select the subitems
-            for (var i = 0; i<subitems.length; i++){
+            for (var i = 0; i<subitems.length; i++) {
                 subitems[i].selected = flag;
                 var subsubitem = subitems[i]['Subitem'] || [];
-                if (subsubitem.length > 0){
+                if (subsubitem.length > 0) {
                     $scope.toggleSubitems(subsubitem, flag);
                 }
             }
             // add the components to the list
             $http.get(globalServerURL + 'node/' + nodeid + '/components/')
-            .success(function(response){
-                for (var v = 0; v<response.length; v++){
+            .success(function(response) {
+                for (var v = 0; v<response.length; v++) {
                     var comp = response[v];
                     // find the component in the component list
                     var i = $scope.componentsList.map(function(e)
                         { return e.id; }).indexOf(comp.ID);
                     // if the component is already in the list
                     // and the node is deselected
-                    if ((i>-1) &(!flag)){
+                    if ((i>-1) &(!flag)) {
                         // remove it
                         $scope.componentsList.splice(i, 1);
                     }
                     // if the component is not in the list
                     // and the node is being selected
-                    else if ((i==-1) & flag){
+                    else if ((i==-1) & flag) {
                         // add the component
                         $scope.componentsList.push(comp);
                     }
@@ -2051,20 +2050,20 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             });
         };
 
-        $scope.toggleSubitems = function(subitem, selected){
+        $scope.toggleSubitems = function(subitem, selected) {
             // recursively select/unselect all the children of a node
-            for (var i = 0; i<subitem.length; i++){
+            for (var i = 0; i<subitem.length; i++) {
                 subitem[i].selected = selected;
                 var subsubitem = subitem[i]['Subitem'] || [];
-                if (subsubitem.length > 0){
+                if (subsubitem.length > 0) {
                     $scope.toggleSubitems(subsubitem, selected);
                 }
             }
         };
 
-        $scope.toggleComponentsGrid = function(){
+        $scope.toggleComponentsGrid = function() {
             $scope.isCollapsed = !$scope.isCollapsed;
-            if ($scope.isCollapsed){
+            if ($scope.isCollapsed) {
                 sharedService.reloadOrderSlickgrid();
             }
         };
@@ -2082,8 +2081,8 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
 
         // update the order total
         // inside an apply function to ensure it updates the model
-        $scope.updateOrderTotal = function(total){
-            $timeout(function(){
+        $scope.updateOrderTotal = function(total) {
+            $timeout(function() {
                 $scope.modalForm.Total = total;
             });
         };
@@ -2092,17 +2091,17 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         // and collapse or expand the node
         $scope.selectNodeHead = function(selectedNode) {
             // if the node is collapsed, get the data and expand the node
-            if (!selectedNode.collapsed){
+            if (!selectedNode.collapsed) {
                 selectedNode.collapsed = true;
                 var parentid = selectedNode.ID;
                 $http.get(globalServerURL + "orders/tree/" + parentid + '/').success(function(data) {
                     selectedNode.Subitem = data;
                     // check if any of the components are in the components list
                     // and select then
-                    for (var i = 0; i<selectedNode.Subitem.length; i++){
-                        if (selectedNode.Subitem[i].NodeType == 'Component'){
-                            for (var b = 0; b<$scope.componentsList.length; b++){
-                                if ($scope.componentsList[b].ID == selectedNode.Subitem[i].ID){
+                    for (var i = 0; i<selectedNode.Subitem.length; i++) {
+                        if (selectedNode.Subitem[i].NodeType == 'Component') {
+                            for (var b = 0; b<$scope.componentsList.length; b++) {
+                                if ($scope.componentsList[b].ID == selectedNode.Subitem[i].ID) {
                                     selectedNode.Subitem[i].selected = true;
                                 }
                             }
@@ -2194,6 +2193,6 @@ allControllers.directive('smartFloat', function ($filter) {
     };
 });
 
-allControllers.run(['$cacheFactory', function($cacheFactory){
+allControllers.run(['$cacheFactory', function($cacheFactory) {
     $cacheFactory('optimate.resources')
 }]);
