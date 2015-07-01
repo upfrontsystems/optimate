@@ -1119,7 +1119,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
             'Name': 'TestResource',
             'uid': 18,
             'Description': 'Test resource',
-            'ItemQuantity': 4,
+            'Quantity': 4,
             'NodeType': 'Component',
             'OverheadList':[{'Name': 'OverheadB',
                                 'ID':2,
@@ -1130,15 +1130,12 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         request.method = 'POST'
         response = self._callFUT(request)
 
-        # assert if the response from the add view is OK
+        # assert if the response from the add view returns the new id
         self.assertEqual(response.keys(), ['ID'])
 
         newcompiquant= 4
-        newcomprate = resduplicaterate
-        newcompoh = overheadbperc
-        parentbiq = bibq
-        newcompquant = parentbiq * newcompiquant
-        newcomptot = Decimal((1.0 + newcompoh) * float(newcomprate) * \
+        newcompquant = bibq * newcompiquant
+        newcomptot = Decimal((1.0 + overheadbperc) * float(resduplicaterate) * \
                             newcompquant).quantize(Decimal('.01'))
         newprojtot=projbtot + newcomptot
 
@@ -1181,6 +1178,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
             'Unit': 5,
             'Type': 'Labour',
             'Rate': 29,
+            'Code': 'ADD005',
             'NodeType': 'Resource'
         })
         # add it to the resource category
@@ -1213,7 +1211,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
             'Description': 'Adding test item',
             'NodeType': 'BudgetItem',
             'Quantity': 10.0,
-            'ItemQuantity': 10.0,
+            'Quantity': 10.0,
         })
         # add it to the parent
         request.matchdict = {'id': newid}
@@ -1231,7 +1229,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
             'Description': 'Adding test item',
             'NodeType': 'Component',
             'Quantity': 10.0,
-            'ItemQuantity': 10.0,
+            'Quantity': 10.0,
             'OverheadList': []
         })
         # add it to the parent
@@ -1322,8 +1320,8 @@ class TestPasteviewSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 4}
         response = self._callFUT(request)
 
-        # true if the response from paste view is OK
-        self.assertEqual(response.code, 200)
+        # true if the response from paste view returns the new id
+        self.assertEqual(response.keys(), ['newId'])
 
         # do another test to see if the children of the parent is now three
         # (two budgetgroups and the resourcecategory)
@@ -1372,8 +1370,8 @@ class TestCutAndPasteSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 4}
         response = self._callFUT(request)
 
-        # true if the response from paste view is OK
-        self.assertEqual(response.code, 200)
+        # true if the response from paste view returns the new id
+        self.assertEqual(response.keys(), ['newId'])
 
         # do another test to see if the children of the parent is now three
         # (two budgetgroups and the resourcecategory)

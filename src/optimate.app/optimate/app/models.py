@@ -850,7 +850,7 @@ class ComponentMixin(object):
         """
         if rate is None:
             rate = self.Rate
-        # After the total is set the total property is updated
+        # After the rate is set the total property is updated
         self.Total = (1.0+self.Markup) * self.Quantity * float(self.Rate)
 
     def clearCosts(self):
@@ -1795,9 +1795,13 @@ class Order(Base):
             total = '{:20,.2f}'.format(self.Total).strip()
         else:
             total = '{:20,.2f}'.format(0).strip()
+        if self.Date:
+            date = self.Date.strftime("%d %B %Y")
+        else:
+            date = ''
 
         return {'ID': self.ID,
-                'Date': self.Date.strftime("%d %B %Y"),
+                'Date': date,
                 'Project': projectname,
                 'Supplier': suppname,
                 'Client': clientname,
