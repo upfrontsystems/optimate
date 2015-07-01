@@ -1196,11 +1196,17 @@ class Component(Node, ComponentMixin):
             Also returns a list of the Overhead ID's used by this component
         """
         resource = DBSession.query(Resource).filter_by(ID=self.ResourceID).first()
+        # overheadlist is needed client side to compare
+        # the overheads actually used
+        # vs the overheads available to use
+        overheadlist = []
+        for overhead in self.Overheads:
+            overheadlist.append(overhead.ID)
         di = super(Component, self).toDict()
         di.update({
             'ResourceID': self.ResourceID,
             'ResourceName': resource.Name,
-            'OverheadList': self.overheadsList()
+            'OverheadList': overheadlist
         })
         return di
 
