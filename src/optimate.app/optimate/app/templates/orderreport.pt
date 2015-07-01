@@ -65,7 +65,7 @@
         <tr tal:repeat="component components">
             <td style="width: 450px" tal:content="component.Name|nothing"></td>
             <td style="width: 70px; text-align:right" tal:content="component.Unit|nothing" ></td>
-            <td style="width: 70px; text-align:right" tal:content="component.Quantity|nothing" ></td>
+            <td style="width: 70px; text-align:right" tal:content="component.ItemQuantity|nothing" ></td>
             <td style="width: 70px; text-align:right" tal:content="component.Rate|nothing" ></td>
             <td style="width: 70px; text-align:right" tal:content="component.Total|nothing" ></td>            
         </tr>
@@ -79,19 +79,19 @@
             <td style="width: 200px">Authorisation</td>
             <td style="width: 400px; text-align:left">Signature: __________________________</td>
             <td style="width: 100px; text-align:left">Subtotal</td>
-            <td style="width: 100px; text-align:left"></td>
+            <td style="width: 100px; text-align:right">${totals[0]}</td>
         </tr>
         <tr>
             <td style="width: 200px"></td>
             <td style="width: 400px; text-align:left"></td>
             <td style="width: 100px; text-align:left">Vat</td>
-            <td style="width: 100px; text-align:left"></td>
+            <td style="width: 100px; text-align:right">${totals[1]}</td>
         </tr>
         <tr>
             <td style="width: 200px"></td>
             <td style="width: 400px; text-align:left"></td>
             <td style="width: 100px; text-align:left">Total Cost</td>
-            <td class="bold" style="width: 100px; text-align:left"></td>
+            <td class="bold" style="width: 100px; text-align:right">${totals[2]}</td>
         </tr>
     </table>
 

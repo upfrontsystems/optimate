@@ -239,11 +239,16 @@ def order(request):
         components.append(component)       
     sorted_components = sorted(components, key=lambda k: k.Name.upper())
 
+    Vat = 14.0
+    Subtotal = float(order.Total)/(1+ Vat/100)
+    vat_str = str(Vat) + '%'
+    totals = [Subtotal, vat_str, float(order.Total)]
     # inject order data into template
     template_data = render('templates/orderreport.pt',
                            {'order': order,
                             'components': sorted_components,
-                            'order_date' : order.Date.strftime("%d %B %Y")},
+                            'order_date': order.Date.strftime("%d %B %Y"),
+                            'totals': totals},
                            request=request)
     # render template
     html = StringIO(template_data.encode('utf-8'))
