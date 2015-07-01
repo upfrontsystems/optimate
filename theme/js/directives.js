@@ -530,6 +530,9 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                 if (value != undefined) {
                     var parts = value.toString().split(".");
                     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    if (parts.length > 1){
+                        parts[parts.length-1] = parts[parts.length-1].slice(0,2);
+                    }
                     return parts.join(".");
                 }
                 else {
@@ -556,7 +559,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     $scope.vat = vat;
                     var datalength = dataView.getLength();
                     var vatrow = dataView.getItem(datalength-2);
-                    vatrow.total = 14;
+                    vatrow.total = "14 %";
                     dataView.updateItem(vatrow.id, vatrow);
                     var totalrow = dataView.getItem(datalength-1);
                     totalrow.total = totalrow.total *1.14;
@@ -564,13 +567,16 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     // update the modal total
                     var parts = totalrow.total.toString().split(".");
                     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    if (parts.length > 1){
+                        parts[parts.length-1] = parts[parts.length-1].slice(0,2);
+                    }
                     $scope.updateOrderTotal(parts.join("."));
                 }
                 else if (vat == false){
                     $scope.vat = vat;
                     var datalength = dataView.getLength();
                     var vatrow = dataView.getItem(datalength-2);
-                    vatrow.total = 0.0;
+                    vatrow.total = "0 %";
                     dataView.updateItem(vatrow.id, vatrow);
                     var totalrow = dataView.getItem(datalength-1);
                     totalrow.total = totalrow.total / 1.14;
@@ -578,6 +584,9 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     // update the modal total
                     var parts = totalrow.total.toString().split(".");
                     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    if (parts.length > 1){
+                        parts[parts.length-1] = parts[parts.length-1].slice(0,2);
+                    }
                     $scope.updateOrderTotal(parts.join("."));
                 }
                 else {
@@ -612,7 +621,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                                     'total': ordertotal};
                     var vat = {'id': 'V' + componentlist[0].id,
                                     'rate': 'VAT',
-                                    'total': gridvat};
+                                    'total': gridvat + " %"};
                     var total = {'id': 'T' + componentlist[0].id,
                                     'rate': 'Total',
                                     'total': gridtotal};
@@ -628,6 +637,9 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
 
                     var parts = gridtotal.toString().split(".");
                     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    if (parts.length > 1){
+                        parts[parts.length-1] = parts[parts.length-1].slice(0,2);
+                    }
                     $scope.updateOrderTotal(parts.join("."));
                 }
                 else {
@@ -637,7 +649,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                                     'total': '0.00'};
                     var vat = {'id': 'V' + 1,
                                     'rate': 'VAT',
-                                    'total': '14'};
+                                    'total': '14 %'};
                     var total = {'id': 'T' + 1,
                                     'rate': 'Total',
                                     'total': '0.00'};
