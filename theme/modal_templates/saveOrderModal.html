@@ -69,7 +69,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="inputTaxRate" class="col-sm-2 control-label">Calculate Vat:</label>
+                            <label for="inputTaxRate" class="col-sm-2 control-label">Calculate VAT:</label>
                             <button class="custom-checkbox"
                                     id="inputTaxRate"
                                     name="inputTaxRate"
@@ -104,11 +104,17 @@
                     </div>
                     <div>&nbsp;</div>
                 </div>
-                <button class="btn btn-default"
-                        data-ng-click="toggleComponentsGrid()"
-                        data-ng-disabled="saveOrderModalForm.inputProject.$invalid">
-                    Add Components
-                </button>
+                <form class="form-horizontal">
+                    <div class="form-group">
+                        <label for="addComponentsButton" class="col-sm-2 control-label"></label>
+                            <button class="btn btn-default"
+                                    id="addComponentsButton"
+                                    data-ng-click="toggleComponentsGrid()"
+                                    data-ng-disabled="saveOrderModalForm.inputProject.$invalid">
+                                Add Components
+                            </button>
+                        </div>
+                </form>
             </div>
             <div class="modal-footer" data-ng-show="isCollapsed">
                 <button data-ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal"

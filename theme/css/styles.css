@@ -208,7 +208,10 @@ li.filters-flexbox {
 }
 
 #component-data-grid-outer {
-    height: 120px;
+    height: 300px;
+/*    height: -moz-calc(100vh / 2);
+    height: -webkit-calc(100vh / 2);
+    height: calc(100vh / 2);*/
 }
 #component-data-grid {
     width: 60%;

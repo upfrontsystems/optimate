@@ -1013,7 +1013,8 @@ class ComponentMixin(object):
                 'NodeTypeAbbr' : 'C'}
 
     def toOrderDict(self):
-        """ Returns a dictionary of this node used in the order tree view
+        """ Returns a dictionary of this node used both in the order tree view
+            and slickgrid
         """
         # the default quantity is the components quantity minus
         # the quantity of all its orders
@@ -1023,19 +1024,16 @@ class ComponentMixin(object):
         quantity = self.Quantity - orderitemsquantity
         total = Decimal(quantity*float(self.Rate)).quantize(Decimal('.01'))
         return {'Name': self.Name,
+                'name': self.Name,
                 'ID': self.ID,
                 'ParentID': self.ParentID,
                 'id': self.ID,
                 'quantity': quantity,
                 'rate': str(self.Rate),
                 'total': str(total),
-                'subtotal': str(total),
-                'vat': '0.0',
-                'NodeType': self.type,
-                'node_type': self.type,
-                'NodeTypeAbbr' : 'C',
-                'ordered': str(self.Ordered),
-                'invoiced': str(self.Invoiced)}
+                'NodeType': 'Component',
+                'node_type': 'Component',
+                'NodeTypeAbbr' : 'C'}
 
     def toDict(self):
         """ Return a dictionary of all the attributes of this Component. This
@@ -1868,14 +1866,10 @@ class OrderItem(Base):
         """ Returns a dictionary of this OrderItem for the slickgrid
         """
         return {'id': self.Component.ID,
-                'Name': self.Component.Name,
+                'name': self.Component.Name,
                 'quantity': self.Quantity,
                 'rate': str(self.Rate),
-                'vat': str(self.Order.TaxRate),
-                'subtotal': str(self.Subtotal),
-                'total': str(self.Total),
-                'ordered': str(self.Component.Ordered),
-                'invoiced': str(self.Component.Invoiced)}
+                'total': str(self.Total)}
 
     def __repr__(self):
         """Return a representation of this order item
