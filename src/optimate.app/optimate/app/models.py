@@ -969,15 +969,6 @@ class ComponentMixin(object):
         # update the parent with the new total
         self.Parent.Invoiced = self.Parent.Invoiced + difference
 
-    def overheadsList(self):
-        """ Return a list of all the overheads used for this component
-        """
-        overheadlist = []
-        for overhead in self.Overheads:
-            overheadlist.append({'overhead_name': overhead.Name,
-                                'percentage': str(overhead.Percentage*100)})
-        return overheadlist
-
     def copy(self, parentid):
         """ copy returns an exact duplicate of this component,
             but with the ParentID specified and a copied resource
@@ -1057,8 +1048,6 @@ class ComponentMixin(object):
                 'Quantity': self.Quantity,
                 'ResourceType': self.Type,
                 'ItemQuantity': self.ItemQuantity,
-                'ResourceID': self.ResourceID,
-                'OverheadList': self.overheadsList(),
                 'Ordered': str(self.Ordered),
                 'Invoiced': str(self.Invoiced),
                 'order_cost': str(self.OrderCost),
@@ -1175,7 +1164,6 @@ class Component(Node, ComponentMixin):
             composite = composite*(overhead.Percentage+1.0)
         return composite-1
 
-
     def overheadsList(self):
         """ Return a list of all the overheads used for this component
         """
@@ -1200,21 +1188,21 @@ class Component(Node, ComponentMixin):
                             IncomeReceived=self.IncomeReceived,
                             ClientCost=self.ClientCost,
                             ProjectedProfit=self.ProjectedProfit,
-                            ActualProfit=self.ActualProfit)
+                            ActualProfit=self.ActualProfit,
+                            _Ordered=self.Ordered,
+                            _Invoiced=self.Invoiced)
         return copied
 
     def toDict(self):
         """ Return a dictionary of all the attributes of this Component
             Also returns a list of the Overhead ID's used by this component
         """
-        overheadlist = [overhead.ID for overhead in self.Overheads]
         resource = DBSession.query(Resource).filter_by(ID=self.ResourceID).first()
-
         di = super(Component, self).toDict()
         di.update({
             'ResourceID': self.ResourceID,
             'ResourceName': resource.Name,
-            'OverheadList': overheadlist
+            'OverheadList': self.overheadsList()
         })
         return di
 
@@ -1302,7 +1290,10 @@ class SimpleComponent(Node, ComponentMixin):
                 IncomeReceived=self.IncomeReceived,
                 ClientCost=self.ClientCost,
                 ProjectedProfit=self.ProjectedProfit,
-                ActualProfit=self.ActualProfit)
+                ActualProfit=self.ActualProfit,
+                _Ordered=self.Ordered,
+                _Invoiced=self.Invoiced,
+                _ItemQuantity=self._ItemQuantity)
 
     def getGridData(self):
         """ Return a dictionary of all the data needed for the slick grid
