@@ -104,6 +104,7 @@ def main(global_config, **settings):
 
     # Reports
     config.add_route('projectbudget', '/project_budget_report/{id}/')
+    config.add_route('costcomparison', '/cost_comparison_report/{id}/')
     config.add_route('reports_tree_view', '/reports/tree/{id}/')
     config.add_route('resourcelist', '/resource_list_report/{id}/')
     config.add_route('order', '/order_report/{id}/')
