@@ -122,6 +122,12 @@ class TestSimpleComponent(unittest.TestCase):
     def test_total(self):
         project = DBSession().query(Project).get(1)
         sc = DBSession().query(SimpleComponent).get(8)
+
+        # Test extended functionality to pick up mistakes when code that does
+        # not apply to SimpleComponent is incorrectly added to the Mixin.
+        sc.toDict()
+        sc.getGridData()
+
         # budget item 5 times, 1 firepool and 5 pumps, 5 * ((5*5) + 1*1200000)
         self.assertEqual(str(project.Total), str(project_total))
 
