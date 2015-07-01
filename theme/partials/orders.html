@@ -41,7 +41,7 @@
             </li>
             <li class="filters-flexbox">
                 <label class="order-filters">Filter by:</label>
-                <label for="filterOrderNumber" class="order-filters">Order Number:</label>
+                <label class="order-filters">Order Number:</label>
                 <input type="number"
                        class="order-filters"
                        id="filterOrderNumber"
@@ -49,31 +49,34 @@
                        data-ng-model="filters.OrderNumber"
                        data-ng-model-options="{ debounce: 500 }"
                        data-ng-change="loadOrderSection(); filterBy('ordernumber')">
-               <select class="order-filters"
+               <select chosen
+                        class="order-filters"
                         id="projectFilter"
                         data-ng-model="filters.Project"
                         data-ng-options="project.ID as project.Name for project in projectsList"
                         data-ng-change="loadOrderSection(); filterBy('project')">
                     <option value="">Project</option>
                 </select>
-                <select class="order-filters"
+                <select chosen
+                        class="order-filters"
                         id="clientFilter"
                         data-ng-model="filters.Client"
                         data-ng-options="client.ID as client.Name for client in clientsList"
                         data-ng-change="loadOrderSection(); filterBy('client')">
                     <option value="">Client</option>
                 </select>
-                <select class="order-filters"
+                <select chosen
+                        class="order-filters"
                         id="supplierFilter"
                         data-ng-model="filters.Supplier"
                         data-ng-options="supplier.ID as supplier.Name for supplier in suppliersList"
                         data-ng-change="loadOrderSection(); filterBy('supplier')">
                     <option value="">Supplier</option>
                 </select>
-                <button class="order-filters"
+                <a class="order-filters active" href=""
                         data-ng-click="clearFilters(); loadOrderSection()">
                     Clear
-                </button>
+                </a>
             <li>
         </ul>
     </div>

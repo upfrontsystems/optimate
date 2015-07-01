@@ -1836,7 +1836,7 @@ class OrderItem(Base):
     Component = relationship('Component',
                               backref=backref('OrderItems'))
 
-    @property
+    @hybrid_property
     def Total(self):
         """ Return the total. Total is Quantity*Rate
         """

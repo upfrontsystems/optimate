@@ -1653,6 +1653,8 @@ def orderview(request):
                 orderitem.Quantity = float(component['quantity'])
                 rate = component['rate']
                 orderitem.Rate = Decimal(rate).quantize(Decimal('.01'))
+                orderitem._Total = Decimal(orderitem.Quantity * \
+                                float(orderitem.Rate)).quantize(Decimal('.01'))
                 del iddict[component['ID']]
         # delete the leftover id's
         for oldid in iddict.values():
