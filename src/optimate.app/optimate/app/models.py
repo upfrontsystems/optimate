@@ -1009,7 +1009,7 @@ class ComponentMixin(object):
                 'ID': self.ID,
                 'ParentID': self.ParentID,
                 'Subitem': [],
-                'NodeType': self.type,
+                'NodeType': 'Component',
                 'NodeTypeAbbr' : 'C'}
 
     def toOrderDict(self):
