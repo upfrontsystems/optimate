@@ -1863,6 +1863,7 @@ class OrderItem(Base):
                 'ID': self.ComponentID,
                 'id': self.ComponentID,
                 'quantity': self.Quantity,
+                'unit': self.Component.Unit,
                 'rate': str(self.Rate),
                 'total': str(self.Total),
                 'node_type': 'Component'}
