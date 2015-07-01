@@ -39,15 +39,12 @@
                 <i class="fa fa-file-pdf-o"></i></a>
                 <a class="pdf_hidden_download"></a> <!-- hidden anchor for download hook -->
             </li>
-            <li class="filters-flexbox">
-                <label class="order-filters">Filter by:</label>
-                <label class="order-filters">Order Number:</label>
+            <li class="filters-flexbox active">
+                <label class="filters-label">Filter by:</label>
                 <input type="number"
-                       class="order-filters"
-                       id="filterOrderNumber"
-                       name="filterOrderNumber"
                        data-ng-model="filters.OrderNumber"
                        data-ng-model-options="{ debounce: 500 }"
+                       placeholder="Order number"
                        data-ng-change="loadOrderSection(); filterBy('ordernumber')">
                <select chosen
                         class="order-filters"
@@ -73,7 +70,7 @@
                         data-ng-change="loadOrderSection(); filterBy('supplier')">
                     <option value="">Supplier</option>
                 </select>
-                <a class="order-filters active" href=""
+                <a href=""
                         data-ng-click="clearFilters(); loadOrderSection()">
                     Clear
                 </a>

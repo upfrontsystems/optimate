@@ -191,19 +191,15 @@ li.filters-flexbox {
     justify-content: flex-end;
     align-items: center;
     float: right;
-    width: 70vw;
+    width: 55vw;
 }
 
 .order-filters {
     flex: 1;
 }
 
-label.order-filters {
-    width: 50px;
-}
-
-select.order-filters {
-    width: 20px;
+label.filters-label {
+    width: 200px;
 }
 
 /* overwriting bootstrap in order table */
