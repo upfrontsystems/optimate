@@ -7,6 +7,7 @@
             @frame {
                 margin: 2cm;
                 top :2.5cm;
+                bottom: 1cm;
             }
             @frame header {
                 -pdf-frame-content: headerContent;
@@ -17,20 +18,17 @@
             }
             @frame footer {
                 -pdf-frame-content: pageNumber;
-                height: 1cm;
+                height: 1.5cm;
                 bottom: 1cm;
+                margin-left: 2cm;
+                margin-right: 2cm;
             }
         }
     <span tal:replace='structure string:</style>'/>
 
 <body>
     <div id="headerContent">
-        <table>
-            <tr>
-                <td style="text-align:left; width: 600px;"><h1>Project Budget for ${project_name}</h1></td>
-                <td style="text-align:right;"><h1>${print_date}</h1></td>
-            </tr>
-        </table>
+        <h1>Project Budget for ${project_name}</h1>
         <table>
             <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding-top: 6px; padding-bottom: 3px;">
                 <td class="project-heading-font" style="width: 450px; text-align:left">Description</td>
@@ -78,6 +76,12 @@
     </table>
 
     <div id="pageNumber">
+        <table>
+            <tr>
+                <td style="text-align:left; width: 800px;"><h3>Project Budget for ${project_name}</h3></td>
+                <td style="text-align:right;"><h3>${print_date}</h3></td>
+            </tr>
+        </table>
         <pdf:pagenumber>
     </div>
 
