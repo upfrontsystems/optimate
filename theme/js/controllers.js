@@ -898,30 +898,28 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 var $addComponent = $('#addComponent'),
                     $description = $addComponent.find('#description');
 
-                $scope.$apply(function(){
-                    if (item && item.indexOf){
-                        // String value
-                        $scope.addComponentForm.has_selection = false;
-                        $scope.formData.Description = '';
-                        $scope.formData.Rate = '';
-                        $scope.formData.ResourceType = '';
-                        $description.focus();
-                    } else if(item){
-                        // object
-                        $scope.addComponentForm.has_selection = true;
-                        $scope.formData.Description = item.description;
-                        $scope.formData.Rate = +item.rate;
-                        $scope.formData.ResourceType = item.type;
-                        $addComponent.find('#inputQuantity').focus();
-                    } else {
-                        // null
-                        $scope.addComponentForm.has_selection = false;
-                        $scope.formData.Description = '';
-                        $scope.formData.Rate = '';
-                        $scope.formData.ResourceType = '';
-                        $addComponent.find('#inputResources').focus();
-                    }
-                });
+                if (item && item.indexOf){
+                    // String value
+                    $scope.addComponentForm.has_selection = false;
+                    $scope.formData.Description = '';
+                    $scope.formData.Rate = '';
+                    $scope.formData.ResourceType = '';
+                    $description.focus();
+                } else if(item){
+                    // object
+                    $scope.addComponentForm.has_selection = true;
+                    $scope.formData.Description = item.description;
+                    $scope.formData.Rate = +item.rate;
+                    $scope.formData.ResourceType = item.type;
+                    $addComponent.find('#inputQuantity').focus();
+                } else {
+                    // null
+                    $scope.addComponentForm.has_selection = false;
+                    $scope.formData.Description = '';
+                    $scope.formData.Rate = '';
+                    $scope.formData.ResourceType = '';
+                    $addComponent.find('#inputResources').focus();
+                }
             });
             if (state == 'add'){ $scope.finder.clear_selection(); }
             $scope.finder.listdir();
