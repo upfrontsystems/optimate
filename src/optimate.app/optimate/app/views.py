@@ -202,7 +202,6 @@ def additemview(request):
     name = request.json_body['Name']
     desc = request.json_body.get('Description', '')
     quantity = float(request.json_body.get('Quantity', 0))
-    itemquantity = float(request.json_body.get('ItemQuantity', 0))
     rate = request.json_body.get('Rate', 0)
     rate = Decimal(rate).quantize(Decimal('.01'))
     resourcetype = request.json_body.get('ResourceType', '')
@@ -273,11 +272,26 @@ def additemview(request):
             rate = request.json_body.get('Rate', 0)
             rate = Decimal(rate).quantize(Decimal('.01'))
 
+            pt = DBSession.query(Node).filter_by(ID=parentid).first().type
+            if pt == 'BudgetGroup':
+                # In the context of budget group, you enter a Quantity and it is 
+                # persisted as Quantity and ItemQuantity is updated to have the 
+                # same value.
+                itemquantity = quantity
+            elif pt == 'BudgetItem':
+                # quantity is persisted as ItemQuantity. Quantity is calculated by     
+                # the system and only visible in the slickgrid as a readonly value.
+                itemquantity=quantity
+                parent = DBSession.query(Node).filter_by(ID=parentid).first()
+                #quantity is calculated as: itemquantity * parent quantity
+                quantity=itemquantity*parent.Quantity
+
             newcomp = SimpleComponent(
                 ParentID=parentid,
                 Name=request.json_body['Name'],
                 Description=request.json_body.get('Description', None),
                 _Quantity=quantity,
+                _ItemQuantity=itemquantity,
                 _Rate=rate,
                 Type=request.json_body['ResourceType'])
             DBSession.add(newcomp)
@@ -293,7 +307,23 @@ def additemview(request):
             new_list = [x for x in reslist if x.ID == uid]
             # get the resource used by the component
             resource = new_list[0]
+
+            pt = DBSession.query(Node).filter_by(ID=parentid).first().type
+            if pt == 'BudgetGroup':
+                # In the context of budget group, you enter a Quantity and it is 
+                # persisted as Quantity and ItemQuantity is updated to have the 
+                # same value.
+                itemquantity = quantity
+            elif pt == 'BudgetItem':
+                # quantity is persisted as ItemQuantity. Quantity is calculated by     
+                # the system and only visible in the slickgrid as a readonly value.
+                itemquantity=quantity
+                parent = DBSession.query(Node).filter_by(ID=parentid).first()
+                #quantity is calculated as: itemquantity * parent quantity
+                quantity=itemquantity*parent.Quantity
+
             newcomp = Component(ResourceID=resource.ID,
+                            _Quantity=quantity,
                             _ItemQuantity=itemquantity,
                             ParentID=parentid)
 
@@ -317,7 +347,7 @@ def additemview(request):
             newnode = BudgetItem(Name=name,
                             Description=desc,
                             _Quantity = quantity,
-                            _ItemQuantity = itemquantity,
+                            _ItemQuantity = 10, # XXX Setting default until we know how to update this properly
                             ParentID=parentid)
         elif objecttype == 'ResourceCategory':
             newnode = ResourceCategory(Name=name,
@@ -382,7 +412,6 @@ def edititemview(request):
             component.ResourceID = uid
 
         component._Quantity=quantity
-        component._ItemQuantity=request.json_body.get('ItemQuantity', 0.0)
         component.Overheads[:] = []
 
         # get the list of overheads used in the checkboxes
@@ -396,6 +425,22 @@ def edititemview(request):
         component.Overheads = newoverheads
         component.resetTotal()
 
+        pt = DBSession.query(Node).filter_by(ID=component.ParentID).first().type
+        if pt == 'BudgetGroup':
+            # In the context of budget group, you enter a Quantity and it is 
+            # persisted as Quantity and ItemQuantity is updated to have the 
+            # same value.
+            component._ItemQuantity=quantity
+            component._Quantity=quantity
+        elif pt == 'BudgetItem':
+            # quantity is persisted as ItemQuantity. Quantity is calculated by     
+            # the system and only visible in the slickgrid as a readonly value.
+            component._ItemQuantity=quantity
+            parent = DBSession.query(Node).filter_by(ID=component.ParentID).first()
+            #quantity is calculated as: itemquantity * parent quantity
+            quantity=itemquantity*parent.Quantity
+            component._Quantity=component._ItemQuantity*parent.Quantity
+
     elif objecttype == 'SimpleComponent':
         rate = request.json_body.get('Rate', 0)
         rate = Decimal(rate).quantize(Decimal('.01'))
@@ -407,6 +452,22 @@ def edititemview(request):
         component._Rate=rate
         component.Type=request.json_body['ResourceType']
 
+        pt = DBSession.query(Node).filter_by(ID=component.ParentID).first().type
+        if pt == 'BudgetGroup':
+            # In the context of budget group, you enter a Quantity and it is 
+            # persisted as Quantity and ItemQuantity is updated to have the 
+            # same value.
+            component._ItemQuantity=quantity
+            component._Quantity=quantity
+        elif pt == 'BudgetItem':
+            # quantity is persisted as ItemQuantity. Quantity is calculated by     
+            # the system and only visible in the slickgrid as a readonly value.
+            component._ItemQuantity=quantity
+            parent = DBSession.query(Node).filter_by(ID=component.ParentID).first()
+            #quantity is calculated as: itemquantity * parent quantity
+            quantity=itemquantity*parent.Quantity
+            component._Quantity=component._ItemQuantity*parent.Quantity
+
     elif objecttype == 'BudgetGroup':
         budgetgroup = DBSession.query(BudgetGroup).filter_by(ID=nodeid).first()
         budgetgroup.Name=name
@@ -416,8 +477,8 @@ def edititemview(request):
         budgetitem = DBSession.query(BudgetItem).filter_by(ID=nodeid).first()
         budgetitem.Name=name
         budgetitem.Description=desc
-        budgetitem.Quantity=quantity
-        budgetitem.ItemQuantity=request.json_body.get('ItemQuantity', 0.0)
+        budgetitem.Quantity=quantity # XXX is this right?
+#        budgetitem.ItemQuantity=quantity
 
     elif objecttype == 'ResourceCategory':
         resourcecategory = DBSession.query(ResourceCategory).filter_by(ID=nodeid).first()
@@ -574,6 +635,8 @@ def project_resources(request):
         "items": items
     }
 
+
+@view_config(route_name="resourcecategory_allresources", renderer='json')
 @view_config(route_name="resourcecategory_resources", renderer='json')
 def resourcecategory_resources(request):
     """ Returns a list of only the resources in a ResourceCategory
@@ -586,6 +649,12 @@ def resourcecategory_resources(request):
     # if it doesnt exist return the empty list
     if not resourcecategory:
         return []
+
+    # get the entire resource list if requested
+    if request.matched_route.name == 'resourcecategory_allresources':
+        projectid = resourcecategory.getProjectID()
+        resourcecategory = DBSession.query(
+                ResourceCategory).filter_by(ParentID=projectid).first()
 
     resourcelist = []
     uniqueresources = []
@@ -693,6 +762,7 @@ def node_grid(request):
     childrenlist = []
     # Execute the sql query on the Node table to find the parent
     qry = DBSession.query(Node).filter_by(ParentID=parentid).all()
+    node_type = DBSession.query(Node).filter_by(ID=parentid).first().type
     if qry == []:
         # if the node doesnt have any children, query for the node's data instead
         qry = DBSession.query(Node).filter_by(ID=parentid).all()
@@ -720,7 +790,20 @@ def node_grid(request):
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['name'].upper())
     sorted_rescatlist = sorted(rescatlist, key=lambda k: k['name'].upper())
     sorted_childrenlist = sorted_rescatlist+sorted_childrenlist
-    return {'list':sorted_childrenlist, 'emptycolumns': emptycolumns}
+
+    # if children contain no subtotal data - notify the grid
+    for child in sorted_childrenlist:
+        if child.has_key('sub_cost'):
+            if child['sub_cost'] != None:
+                return {'list': sorted_childrenlist,
+                        'emptycolumns': emptycolumns,
+                        'no_sub_cost' : False,
+                        'type': node_type}
+
+    return {'list': sorted_childrenlist,
+            'emptycolumns': emptycolumns,
+            'no_sub_cost' : True,
+            'type': node_type}
 
 
 @view_config(route_name="node_update_value", renderer='json')
@@ -767,6 +850,7 @@ def node_update_value(request):
         newtotal = str(result.Total)
         newsubtotal = str(result.Subtotal)
         return {'total': newtotal, 'subtotal': newsubtotal}
+
 
 @view_config(route_name="node_paste", renderer='json')
 def node_paste(request):
@@ -823,16 +907,21 @@ def node_paste(request):
                 if component.ResourceID in copiedresourceIds:
                     component.ResourceID = copiedresourceIds[
                                                 component.ResourceID]
+            # set the costs to zero
+            projectcopy.clearCosts()
     # if we're dealing with resource categories
     elif source.type == 'ResourceCategory' and dest.type == 'ResourceCategory':
         duplicates = request.json_body.get('duplicates', {})
         if len(duplicates)> 0:
             resourcecodes = duplicates.keys()
             sourceresources = source.getResources()
-            destresources = dest.getResources()
+            projectid = dest.getProjectID()
+            resourcecategory = DBSession.query(
+                    ResourceCategory).filter_by(ParentID=projectid).first()
+            destresources = resourcecategory.getResources()
             newcategory = None
             # loop through all the source resources
-            # if they are duplicated, check what the action should be
+            # if they are duplicated, check what the action should be taken
             for resource in sourceresources:
                 if resource.Code in resourcecodes:
                     overwrite = duplicates[resource.Code]
@@ -870,8 +959,22 @@ def node_paste(request):
         transaction.commit()
     # check the node isnt being pasted into it's parent
     elif parentid != sourceparent:
+        if source.type == 'Resource':
+            # check the resource is not being duplicated
+            projectid = dest.getProjectID()
+            resourcecategory = DBSession.query(
+                        ResourceCategory).filter_by(ParentID=projectid).first()
+            destresources = resourcecategory.getResources()
+            if source not in destresources:
+                if request.json_body["cut"]:
+                    source.ParentID = destinationid
+                else:
+                    # Paste the source into the destination
+                    dest.paste(source.copy(dest.ID), source.Children)
+            else:
+                return HTTPConflict()
         # if the source is to be cut and pasted into the destination
-        if request.json_body["cut"]:
+        elif request.json_body["cut"]:
             # check if the node was pasted into a different project
             # Get the ID of the projects
             destprojectid = dest.getProjectID()
@@ -927,63 +1030,59 @@ def node_paste(request):
             source.ParentID = destinationid
             transaction.commit()
         else:
-            if (source.type == 'ResourceCategory' or source.type == 'Resource'):
-                # Paste the source into the destination
-                dest.paste(source.copy(dest.ID), source.Children)
-            else:
-                # Paste the source into the destination
-                dest.paste(source.copy(dest.ID), source.Children)
-                DBSession.flush()
-                # check if the node was pasted into a different project
-                # Get the ID of the projects
-                destprojectid = dest.getProjectID()
-                sourceprojectid = source.getProjectID()
+            # Paste the source into the destination
+            dest.paste(source.copy(dest.ID), source.Children)
+            DBSession.flush()
+            # check if the node was pasted into a different project
+            # Get the ID of the projects
+            destprojectid = dest.getProjectID()
+            sourceprojectid = source.getProjectID()
 
-                if destprojectid != sourceprojectid:
-                    projectid = destprojectid
-                    # get the resource category the project uses
-                    resourcecategory = DBSession.query(
-                                    ResourceCategory).filter_by(
-                                    ParentID=projectid).first()
-                    rescatid = resourcecategory.ID
+            if destprojectid != sourceprojectid:
+                projectid = destprojectid
+                # get the resource category the project uses
+                resourcecategory = DBSession.query(
+                                ResourceCategory).filter_by(
+                                ParentID=projectid).first()
+                rescatid = resourcecategory.ID
 
-                    # Get the components that were copied
-                    if source.type == 'Component':
-                        sourcecomponents = [source]
-                    else:
-                        sourcecomponents = source.getComponents()
-                    # copy each unique resource into the new resource category
-                    copiedresourceIds = {}
-                    for component in sourcecomponents:
-                        if component.ResourceID not in copiedresourceIds:
-                            copiedresource = component.Resource.copy(rescatid)
-                            resourcecategory.Children.append(copiedresource)
-                            DBSession.flush()
-                            copiedresourceIds[
-                                    component.Resource.ID] = copiedresource.ID
+                # Get the components that were copied
+                if source.type == 'Component':
+                    sourcecomponents = [source]
+                else:
+                    sourcecomponents = source.getComponents()
+                # copy each unique resource into the new resource category
+                copiedresourceIds = {}
+                for component in sourcecomponents:
+                    if component.ResourceID not in copiedresourceIds:
+                        copiedresource = component.Resource.copy(rescatid)
+                        resourcecategory.Children.append(copiedresource)
+                        DBSession.flush()
+                        copiedresourceIds[
+                                component.Resource.ID] = copiedresource.ID
 
-                    # get the components that were pasted
-                    destcomponents = dest.getComponents()
-                    # change the resource ids of components who were copied
-                    for component in destcomponents:
-                        if component.ResourceID in copiedresourceIds:
-                            component.ResourceID = copiedresourceIds[
-                                                        component.ResourceID]
+                # get the components that were pasted
+                destcomponents = dest.getComponents()
+                # change the resource ids of components who were copied
+                for component in destcomponents:
+                    if component.ResourceID in copiedresourceIds:
+                        component.ResourceID = copiedresourceIds[
+                                                    component.ResourceID]
 
-                    # # copy the overheads the components use into the project
-                    # overheadids = {}
-                    # for component in sourcecomponents:
-                    #     for overhead in component.Overheads:
-                    #         if overhead.ID not in overheadids.keys():
-                    #             newoverhead = overhead.copy(destprojectid)
-                    #             DBSession.add(newoverhead)
-                    #             DBSession.flush()
-                    #             overheadids[overhead.ID] = newoverhead
+                # # copy the overheads the components use into the project
+                # overheadids = {}
+                # for component in sourcecomponents:
+                #     for overhead in component.Overheads:
+                #         if overhead.ID not in overheadids.keys():
+                #             newoverhead = overhead.copy(destprojectid)
+                #             DBSession.add(newoverhead)
+                #             DBSession.flush()
+                #             overheadids[overhead.ID] = newoverhead
 
-                    # for component in destcomponents:
-                    #     for overhead in component.Overheads:
-                    #         if overhead.ID in overheadids.keys():
-                    #             # replace the overhead with the copied one
+                # for component in destcomponents:
+                #     for overhead in component.Overheads:
+                #         if overhead.ID in overheadids.keys():
+                #             # replace the overhead with the copied one
     # when a node is pasted in the same level
     else:
         # can't do this for resources or resource categories
@@ -1673,6 +1772,7 @@ def userview(request):
         'roles': user.roles and json.loads(user.roles) or []
     }
 
+
 @view_config(route_name='invoicesview', renderer='json')
 def invoicesview(request):
     """ The invoicesview returns a list in json format of all the invoices
@@ -1682,6 +1782,7 @@ def invoicesview(request):
     for invoice in qry:
         invoicelist.append(invoice.toDict())
     return invoicelist
+
 
 @view_config(route_name='invoiceview', renderer='json')
 def invoiceview(request):

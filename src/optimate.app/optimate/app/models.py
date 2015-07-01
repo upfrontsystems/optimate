@@ -174,6 +174,15 @@ class Project(Node):
             total += child.Total
         self.Total = total
 
+    def clearCosts(self):
+        """ Set the Total and Quantity costs to zero and do the same for all
+            children
+        """
+        self._Total = Decimal(0)
+        for child in self.Children:
+            if child.type != 'ResourceCategory':
+                child.clearCosts()
+
     @property
     def Total(self):
         """Get property total. If the Total has not been set yet, it is set to
@@ -350,6 +359,15 @@ class BudgetGroup(Node):
         for child in self.Children:
             total += child.Total
         self.Total = total
+
+    def clearCosts(self):
+        """ Set the Total and Quantity costs to zero and do the same for all
+            children
+        """
+        self._Total = Decimal(0)
+        for child in self.Children:
+            child.clearCosts()
+
 
     @property
     def Total(self):
@@ -562,6 +580,17 @@ class BudgetItem(Node):
         self._Rate = rate
         self.Total = self.Quantity * float(self._Rate)
 
+    def clearCosts(self):
+        """ Set the Total and Quantity costs to zero and do the same for all
+            children
+        """
+        self._Total = Decimal(0)
+        self._Quantity = 0.0
+        self._ItemQuantity = 1.0
+        self._Rate = Decimal(0)
+        for child in self.Children:
+            child.clearCosts()
+
     @property
     def Total(self):
         """ Get the Total, if the Total is none it is reset
@@ -767,6 +796,7 @@ class BudgetItem(Node):
             'node_type': self.type,
             'rate': str(self.Rate),
             'quantity': self.Quantity,
+            'item_quantity': self.ItemQuantity,
             'budg_cost': str(self.Total),
             'order_cost': str(self.OrderCost.quantize(Decimal('.01'))),
             'run_cost': str(self.RunningCost.quantize(Decimal('.01'))),
@@ -820,6 +850,13 @@ class ComponentMixin(object):
             rate = self.Rate
         # After the total is set the total property is updated
         self.Total = (1.0+self.Markup) * self.Quantity * float(self.Rate)
+
+    def clearCosts(self):
+        """ Set the Total and Quantity costs to zero
+        """
+        self._Total = Decimal(0)
+        self._Quantity = 0.0
+        self._ItemQuantity = 0.0
 
     @property
     def Total(self):
@@ -1000,12 +1037,14 @@ class ComponentMixin(object):
                 'id': self.ID,
                 'Quantity': quantity,
                 'Rate': str(self.Rate),
-                'Total': str(total),
+                'total': str(total),
+                'subtotal': str(total),
+                'vat': '0.0',
                 'NodeType': self.type,
                 'node_type': self.type,
                 'NodeTypeAbbr' : 'C',
-                'ordered': str(self.Ordered),
-                'invoiced': str(self.Invoiced)}
+                'Ordered': str(self.Ordered),
+                'Invoiced': str(self.Invoiced)}
 
     def toDict(self):
         """ Return a dictionary of all the attributes of this Component. This
@@ -1039,6 +1078,7 @@ class ComponentMixin(object):
             'id': self.ID,
             'node_type': self.type,
             'quantity': self.Quantity,
+            'item_quantity': self.ItemQuantity,
             'rate': str(self.Rate),
             'budg_cost': str(self.Total),
             'sub_cost':str(self.Subtotal()),
@@ -1196,6 +1236,7 @@ class Component(Node, ComponentMixin):
         """
         return '<Co(Name="%s", Quantity="%d", ID="%s", ParentID="%s")>' % (
             self.Name, self.Quantity, self.ID, self.ParentID)
+
 
 class SimpleComponent(Node, ComponentMixin):
     """ Similar to Component, but does not reference a resource. For adding
@@ -1723,7 +1764,7 @@ class Order(Base):
     SupplierID = Column(Integer, ForeignKey('Supplier.ID'))
     ClientID = Column(Integer, ForeignKey('Client.ID'))
     Total = Column(Numeric)
-    TaxRate = Column(Float)
+    TaxRate = Column(Float, default=0.0)
     DeliveryAddress = Column(Text(100))
     Date = Column(DateTime)
     Status = Column(Text(10))
@@ -1804,6 +1845,17 @@ class OrderItem(Base):
                 self.Quantity)*self.Rate).quantize(Decimal('.01'))
         return self._Total
 
+    @property
+    def Subtotal(self):
+        """ Return the subtotal, which is this OrderItem's Order's VAT
+            deducted from it's total
+        """
+        if not self._Total:
+            self._Total = (Decimal(
+                self.Quantity)*self.Rate).quantize(Decimal('.01'))
+        return Decimal(float(self._Total)/(1.0+self.Order.TaxRate)).quantize(
+                        Decimal('.01'))
+
     def toDict(self):
         """ Returns a dictionary of this OrderItem
         """
@@ -1820,10 +1872,13 @@ class OrderItem(Base):
     def getGridData(self):
         """ Returns a dictionary of this OrderItem for the slickgrid
         """
+        vat = self.Order.TaxRate
         return {'id': self.Component.ID,
                 'name': self.Component.Name,
                 'quantity': self.Quantity,
                 'rate': str(self.Rate),
+                'vat': str(vat),
+                'subtotal': str(self.Subtotal),
                 'total': str(self.Total),
                 'ordered': str(self.Component.Ordered),
                 'invoiced': str(self.Component.Invoiced)}

@@ -488,7 +488,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     var textB = b.Name.toUpperCase();
                     return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
                 });
-                console.log($scope.projectsRoot.Subitem);
                 if (hasStorage) {
                     // add id of project to local storage
                     var open_projects;
@@ -997,11 +996,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     url: globalServerURL + 'node/' + currentid + '/',
                     data: $scope.formData
                 }).success(function () {
-                    // check if the current node is edited
-                    if ($scope.formData['ID'] == currentid){
-                        // update the node with the name in the form
-                        $scope.currentNode.Name = $scope.formData['Name'];
-                    }
                     $scope.formData = {'NodeType':$scope.formData['NodeType']};
                     sharedService.reloadSlickgrid(currentid);
                     $scope.loadNodeChildren(currentid);
@@ -1111,9 +1105,17 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }
             $http(req).success(function(response) {
                 console.log($scope.formData['NodeType'] + " edited")
-                // XXX here refresh project list in case the name of node has been updated
                 // set the current node name to the name in the modal form
-                $scope.currentNode.Name = $scope.formData['Name'];
+                if ($scope.currentNode.Name != $scope.formData.Name){
+                    $scope.currentNode.Name = $scope.formData.Name;
+                    // sort the sibling items in scope
+                    $scope.currentNodeScope.$parentNodesScope.$modelValue.sort(function(a, b) {
+                        var textA = a.Name.toUpperCase();
+                        var textB = b.Name.toUpperCase();
+                        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+                    });
+                }
+                $scope.currentNode.Description = $scope.formData.Description
                 sharedService.reloadSlickgrid($scope.formData['ID']);
             });
         }
@@ -1177,7 +1179,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     .success(function (response) {
                         var copiedresources = response;
                         // get the resources in the destination category
-                        $http.get(globalServerURL + 'resourcecategory/' + nodeid + '/resources/')
+                        $http.get(globalServerURL + 'resourcecategory/' + nodeid + '/allresources/')
                         .success(function (response) {
                             duplicatelist = [];
                             selectionlist = {};
@@ -1264,11 +1266,9 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     // if a project was pasted into the root
                     if (nodeid == 0){
                         var newprojectid = response.newId;
-                        console.log(newprojectid);
                         // get the new project
                         $http.get(globalServerURL + 'node/' + newprojectid + '/')
                         .success(function(data) {
-                            console.log(data);
                             // and add it to the open projects
                             $scope.projectAdded(data);
                         });
