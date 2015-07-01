@@ -232,12 +232,10 @@ def order(request):
     print "Generating Order Report"
     orderid = request.matchdict['id']
     order = DBSession.query(Order).filter_by(ID=orderid).first()
-    components = []
+    orderitems = []
     for orderitem in order.OrderItems:
-        cid = orderitem.ComponentID
-        component = DBSession.query(Node).filter_by(ID=cid).first()
-        components.append(component)       
-    sorted_components = sorted(components, key=lambda k: k.Name.upper())
+        orderitems.append(orderitem.toDict())
+    sorted_orderitems = sorted(orderitems, key=lambda k: k['name'].upper())
 
     Vat = 14.0
     Subtotal = float(order.Total)/(1+ Vat/100)
@@ -246,10 +244,10 @@ def order(request):
     # inject order data into template
     template_data = render('templates/orderreport.pt',
                            {'order': order,
-                            'components': sorted_components,
+                            'order_items': sorted_orderitems,
                             'order_date': order.Date.strftime("%d %B %Y"),
                             'totals': totals},
-                           request=request)
+                            request=request)
     # render template
     html = StringIO(template_data.encode('utf-8'))
 
