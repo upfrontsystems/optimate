@@ -185,8 +185,6 @@ def resourcelist(request):
     project = DBSession.query(Node).filter_by(ID=nodeid).first()
     filter_by_supplier = request.json_body['FilterBySupplier']
 
-    project = DBSession.query(Node).filter_by(ID=nodeid).first()
-
     # inject node data into template
     nodes = []
     if filter_by_supplier and 'Supplier' in request.json_body:

@@ -1,43 +1,65 @@
 <html>
 
     <link rel="stylesheet" tal:attributes="href string:${request.application_url}/static/css/reports.css">
+    <span tal:replace='structure string:<style>'/>
+        /* The default style */
+        @page {
+            @frame {
+                margin: 2cm;
+                top :3.6cm;
+            }
+            @frame header {
+                -pdf-frame-content: headerContent;
+                top :1cm;
+                margin-left: 2cm;
+                margin-right: 2cm; 
+                height: 4.2cm;
+            }
+            @frame footer {
+                -pdf-frame-content: pageNumber;
+                height: 1cm;
+                bottom: 1cm;
+            }
+        }
+    <span tal:replace='structure string:</style>'/>
 
 <body>
+    <div id="headerContent">
+        <table class="order-font">
+            <tr></tr>
+            <tr>
+                <td style="width: 150px">To Messers.</td>
+                <td class="bold" style="width: 200px; text-align:left" tal:content="order.Client.Name|nothing"></td>
+                <td class="bold" style="width: 100px; text-align:left">Order ${order.ID}</td>
+                <td class="bold" style="width: 200px; text-align:right">${order_date}</td>
+            </tr>
+            <tr>
+                <td style="width: 150px">Supplier FaxNo</td>
+                <td class="bold" style="width: 200px; text-align:left">${order.Supplier.Fax}</td>
+                <td style="width: 100px; text-align:left">Created By</td>
+                <td class="bold" style="width: 200px; text-align:right"></td>
+            </tr>
+            <tr>
+                <td style="width: 150px">On behalf of</td>
+                <td class="bold" style="width: 200px; text-align:left"></td>
+                <td class="bold" style="width: 400px; text-align:left">${order.Project.Name}</td>
+            </tr>
+        </table>
+        <div>&nbsp;</div>
+        <table class="order-font">
+            <tr style="border-top: 1px solid #000;">
+                <td></td>
+            </tr>
+            <tr style="border-bottom: 1px solid #000;">
+                <th class="bold" style="width: 450px; text-align:left">Description</th>
+                <th class="bold" style="width: 70px; text-align:right">Unit</th> 
+                <th class="bold" style="width: 70px; text-align:right">Quantity</th>
+                <th class="bold" style="width: 70px; text-align:right">Rate</th>
+                <th class="bold" style="width: 70px; text-align:right">Total</th>
+            </tr>
+        </table>
+    </div>
     <table class="order-font">
-        <tr></tr>
-        <tr>
-            <td style="width: 150px">To Messers.</td>
-            <td class="bold" style="width: 200px; text-align:left" tal:content="order.Client.Name|nothing"></td>
-            <td class="bold" style="width: 100px; text-align:left">Order ${order.ID}</td>
-            <td class="bold" style="width: 200px; text-align:right">${order_date}</td>
-        </tr>
-        <tr>
-            <td style="width: 150px">Supplier FaxNo</td>
-            <td class="bold" style="width: 200px; text-align:left">${order.Supplier.Fax}</td>
-            <td style="width: 100px; text-align:left">Created By</td>
-            <td class="bold" style="width: 200px; text-align:right"></td>
-        </tr>
-        <tr>
-            <td style="width: 150px">On behalf of</td>
-            <td class="bold" style="width: 200px; text-align:left"></td>
-            <td class="bold" style="width: 400px; text-align:left">${order.Project.Name}</td>
-        </tr>
-    </table>
-    <div>&nbsp;</div>
-    <table class="order-font">
-        <tr style="border-top: 1px solid #000;">
-            <td></td>
-        </tr>
-        <tr style="border-bottom: 1px solid #000;">
-            <th class="bold" style="text-align:left">Description</th>
-            <th class="bold" style="text-align:right">Unit</th> 
-            <th class="bold" style="text-align:right">Quantity</th>
-            <th class="bold" style="text-align:right">Rate</th>
-            <th class="bold" style="text-align:right">Total</th>
-        </tr>
-        <tr>
-            <td></td>
-        </tr>
         <tr tal:repeat="component components">
             <td style="width: 450px" tal:content="component.Name|nothing"></td>
             <td style="width: 70px; text-align:right" tal:content="component.Unit|nothing" ></td>
@@ -70,5 +92,9 @@
             <td class="bold" style="width: 100px; text-align:left"></td>
         </tr>
     </table>
+
+    <div id="pageNumber">
+        <pdf:pagenumber>
+    </div>
 </body>
 </html>
