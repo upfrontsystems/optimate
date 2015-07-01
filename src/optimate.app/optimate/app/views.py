@@ -1543,7 +1543,11 @@ def orderview(request):
         auth = request.json_body.get('Authorisation', '')
         proj = request.json_body.get('ProjectID', None)
         supplier = request.json_body.get('SupplierID', None)
-        tax = request.json_body.get('TaxRate', 0.0)
+        tax = request.json_body.get('TaxRate', False)
+        if tax:
+            tax = 0.14
+        else:
+            tax = 0.0
         address = request.json_body.get('DeliveryAddress', '')
         # the client is derived from the project
         client = DBSession.query(Project).filter_by(ID=proj).first().ClientID
@@ -1597,7 +1601,11 @@ def orderview(request):
         else:
             client = DBSession.query(Project).filter_by(ID=proj).first().ClientID
         supplier = request.json_body.get('SupplierID', None)
-        tax = request.json_body.get('TaxRate', 0.0)
+        tax = request.json_body.get('TaxRate', False)
+        if tax:
+            tax = 0.14
+        else:
+            tax = 0.0
         address = request.json_body.get('DeliveryAddress', '')
         # convert to date from json format
         date = request.json_body.get('Date', None)

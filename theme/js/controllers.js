@@ -1806,8 +1806,6 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 $scope.isDisabled = true;
                 // set the list of checked components
                 $scope.formData['ComponentsList'] = $scope.componentsList;
-                // set the tax rate
-                $scope.formData['TaxRate'] = $scope.formData['TaxRate'] ? 14 : 0;
                 // convert the date to json format
                 $scope.formData['Date'] = $scope.date.toJSON();
                 // convert the total to a number
@@ -1818,7 +1816,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                         url: globalServerURL + $scope.formData['NodeType'] + '/' + $scope.formData['ID'] + '/',
                         data: $scope.formData
                     }).success(function (response) {
-                        response['TaxRate'] = (response['TaxRate'] > 0);
+                        // edit the order in the list
                         $scope.handleEdited(response);
                         $scope.formData = {'NodeType': $scope.formData['NodeType']};
                     });
@@ -1902,6 +1900,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
 
         // When the Add button is pressed change the state and form data
         $scope.addingState = function (){
+            $scope.formData.TaxRate = undefined;
             $scope.formData = {'NodeType': 'order',
                                 'TaxRate': true};
             $scope.isCollapsed = true;
@@ -1919,6 +1918,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
 
         // When the edit button is pressed change the state and set the data
         $scope.editingState = function (){
+            $scope.formData.TaxRate = undefined;
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
             $scope.modalState = "Edit";

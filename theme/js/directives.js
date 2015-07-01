@@ -475,7 +475,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                                 'quantity': 75,
                                 'rate': 75,
                                 'total': 100};
-            $scope.vat = false;
+            $scope.vat = undefined;
             var columns = [
                     {id: "name", name: "Component", field: "name",
                      width: column_width.name, cssClass: "cell-title non-editable-column"},
@@ -537,11 +537,6 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                 }
             }
 
-
-            var styleCustCell = function(cellNode, row, rowData, columnsObject) {
-                $(cellNode).addClass("cell non-editable-column");
-            };
-
             grid.onAddNewRow.subscribe(function (e, args) {
                 var item = args.item;
                 grid.invalidateRow(data.length);
@@ -553,7 +548,11 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             // watch the VAT checkbox and update the total and values in the
             // slickgrid accordingly
             $scope.$watch(attrs.vat, function(vat) {
-                if (vat){
+                if ($scope.vat == undefined){
+                    // if vat used to be undefined only update it
+                    $scope.vat = vat;
+                }
+                else if (vat){
                     $scope.vat = vat;
                     var datalength = dataView.getLength();
                     var vatrow = dataView.getItem(datalength-2);
@@ -576,11 +575,14 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     var totalrow = dataView.getItem(datalength-1);
                     totalrow.total = totalrow.total / 1.14;
                     dataView.updateItem(totalrow.id, totalrow);
-
                     // update the modal total
                     var parts = totalrow.total.toString().split(".");
                     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                     $scope.updateOrderTotal(parts.join("."));
+                }
+                else {
+                    // vat is set to undefined
+                    $scope.vat = vat;
                 }
             }, true);
 

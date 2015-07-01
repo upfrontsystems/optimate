@@ -1774,11 +1774,12 @@ class Order(Base):
     def resetTotal(self):
         """ Recalculate the Order Total from it's OrderItems
         """
-        total = 0
+        total = Decimal(0.00)
         for orderitem in self.OrderItems:
             total += orderitem.Total
 
-        self.Total = Decimal(total).quantize(Decimal('.01'))
+        self.Total = Decimal(float(total) * (1 + self.TaxRate)
+                            ).quantize(Decimal('.01'))
 
     def toDict(self):
         """ Returns a JSON dict of the order
