@@ -9,7 +9,8 @@
             </div>
             <div class="modal-body">
                 <form class="form-horizontal" name="addComponentForm" novalidate>
-                    <div class="form-group">
+                    <div class="form-group"
+                        ng-class="{'has-error': addComponentForm.inputResources.$invalid}">
                         <label for="inputResources"
                                class="col-sm-2 control-label">Resource:
                         </label>
@@ -18,9 +19,12 @@
                                  class="finder icons-on col-sm-7">
                                 <ul class="finder-choices">
                                     <li class="search-field">
-                                        <input type="text" style="width: 172px;" autocomplete="off"
-                                               class="default" id="inputResources"
-                                               data-placeholder="Click to search or browse">
+                                        <input type="text" autocomplete="off"
+                                               size="62"
+                                               class="default" id="inputResources" name="inputResources"
+                                               ng-model="formData['inputResources']"
+                                               placeholder="Click to search or browse or enter the Name of a new component"
+                                               ng-required="!addComponentForm.has_selection">
                                     </li>
                                 </ul>
                                 <div style="left: -9000px; width: 99.9%; top: 29px;" class="finder-dropdown">

@@ -71,6 +71,9 @@
   -moz-box-shadow   : none;
   box-shadow        : none;
 }
+#content .finder .finder-choices .search-field input[placeholder] {
+    text-overflow: ellipsis;
+}
 #content .finder .finder-choices .search-field .default {
   color: #333;
   font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
