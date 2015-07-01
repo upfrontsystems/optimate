@@ -475,6 +475,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                                 'quantity': 75,
                                 'rate': 75,
                                 'total': 100};
+            $scope.vat = false;
             var columns = [
                     {id: "name", name: "Component", field: "name",
                      width: column_width.name, cssClass: "cell-title non-editable-column"},
@@ -549,6 +550,40 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                 grid.render();
             });
 
+            // watch the VAT checkbox and update the total and values in the
+            // slickgrid accordingly
+            $scope.$watch(attrs.vat, function(vat) {
+                if (vat){
+                    $scope.vat = vat;
+                    var datalength = dataView.getLength();
+                    var vatrow = dataView.getItem(datalength-2);
+                    vatrow.total = 14;
+                    dataView.updateItem(vatrow.id, vatrow);
+                    var totalrow = dataView.getItem(datalength-1);
+                    totalrow.total = totalrow.total *1.14;
+                    dataView.updateItem(totalrow.id, totalrow);
+                    // update the modal total
+                    var parts = totalrow.total.toString().split(".");
+                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    $scope.updateOrderTotal(parts.join("."));
+                }
+                else if (vat == false){
+                    $scope.vat = vat;
+                    var datalength = dataView.getLength();
+                    var vatrow = dataView.getItem(datalength-2);
+                    vatrow.total = 0.0;
+                    dataView.updateItem(vatrow.id, vatrow);
+                    var totalrow = dataView.getItem(datalength-1);
+                    totalrow.total = totalrow.total / 1.14;
+                    dataView.updateItem(totalrow.id, totalrow);
+
+                    // update the modal total
+                    var parts = totalrow.total.toString().split(".");
+                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    $scope.updateOrderTotal(parts.join("."));
+                }
+            }, true);
+
             // observe the component list for changes and update the slickgrid
             // calculate and update the order total as well
             $scope.$watch(attrs.components, function(componentlist) {
@@ -562,21 +597,23 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     {id: "total", name: "Total", field: "total", cssClass: "cell non-editable-column",
                      width: column_width.total, formatter: CurrencyFormatter}];
                 if (componentlist.length > 0) {
-                    var ordertotal =0.0;
+                    var ordertotal = 0.0;
                     var gridlist = [];
                     for (var i=0;i<componentlist.length; i++) {
                         ordertotal += parseFloat(componentlist[i].total);
                     }
                     gridlist = componentlist.slice(0);
+                    var gridvat = $scope.vat ? 14 : 0;
+                    var gridtotal = ordertotal * ((gridvat/100) + 1);
                     var subtotal = {'id': 'S' + componentlist[0].id,
                                     'rate': 'Subtotal',
                                     'total': ordertotal};
                     var vat = {'id': 'V' + componentlist[0].id,
                                     'rate': 'VAT',
-                                    'total': 0.0};
+                                    'total': gridvat};
                     var total = {'id': 'T' + componentlist[0].id,
                                     'rate': 'Total',
-                                    'total': ordertotal};
+                                    'total': gridtotal};
 
                     gridlist.push(subtotal);
                     gridlist.push(vat);
@@ -587,7 +624,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     dataView.endUpdate();
                     grid.render();
 
-                    var parts = ordertotal.toString().split(".");
+                    var parts = gridtotal.toString().split(".");
                     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                     $scope.updateOrderTotal(parts.join("."));
                 }
@@ -595,13 +632,13 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     var gridlist = [];
                     var subtotal = {'id': 'S' + 1,
                                     'rate': 'Subtotal',
-                                    'total': '0.0'};
+                                    'total': '0.00'};
                     var vat = {'id': 'V' + 1,
                                     'rate': 'VAT',
-                                    'total': '0.0'};
+                                    'total': '14'};
                     var total = {'id': 'T' + 1,
                                     'rate': 'Total',
-                                    'total': '0.0'};
+                                    'total': '0.00'};
                     gridlist.push(subtotal);
                     gridlist.push(vat);
                     gridlist.push(total);
@@ -619,8 +656,24 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                 var oldtotal = item.total;
                 item.total = item.quantity*item.rate;
                 dataView.updateItem(item.id, item);
-                var ordertotal = parseFloat($scope.modalForm.Total.replace(/[^0-9-.]/g, ''));
-                var newtotal = ordertotal + (item.total - oldtotal);
+                // get the last rows and update their values
+                var datalength = dataView.getLength();
+                var subtotalrow = dataView.getItem(datalength-3);
+                var newtotal = subtotalrow.total + (item.total - oldtotal);
+                subtotalrow.total = newtotal;
+                dataView.updateItem(subtotalrow.id, subtotalrow);
+
+                var totalrow = dataView.getItem(datalength-1);
+                if ($scope.vat){
+                    newtotal = newtotal * 1.14
+                    totalrow.total = newtotal;
+                    dataView.updateItem(totalrow.id, totalrow);
+                }
+                else{
+                    totalrow.total = newtotal;
+                    dataView.updateItem(totalrow.id, totalrow);
+                }
+
                 var parts = newtotal.toString().split(".");
                 parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                 $scope.updateOrderTotal(parts.join("."));

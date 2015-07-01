@@ -1858,15 +1858,13 @@ class OrderItem(Base):
     def toDict(self):
         """ Returns a dictionary of this OrderItem
         """
-        return {'Name': self.Component.Name,
+        return {'name': self.Component.Name,
                 'ID': self.ComponentID,
                 'id': self.ComponentID,
-                'Quantity': self.Quantity,
-                'Rate': str(self.Rate),
-                'Total': str(self.Total),
-                'NodeType': 'Component',
-                'node_type': 'Component',
-                'NodeTypeAbbr' : 'C',}
+                'quantity': self.Quantity,
+                'rate': str(self.Rate),
+                'total': str(self.Total),
+                'node_type': 'Component'}
 
     def getGridData(self):
         """ Returns a dictionary of this OrderItem for the slickgrid

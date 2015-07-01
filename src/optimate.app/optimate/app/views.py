@@ -1568,8 +1568,8 @@ def orderview(request):
         newid = neworder.ID
         componentslist = request.json_body.get('ComponentsList', [])
         for component in componentslist:
-            quantity = float(component.get('Quantity', 0))
-            rate = component.get('Rate', 0)
+            quantity = float(component.get('quantity', 0))
+            rate = component.get('rate', 0)
             rate = Decimal(rate).quantize(Decimal('.01'))
             neworderitem = OrderItem(OrderID=newid,
                                     ComponentID=component['ID'],
@@ -1627,8 +1627,8 @@ def orderview(request):
         for component in componentslist:
             if component['ID'] not in iddict.keys():
                 # add the new order item
-                quantity = float(component.get('Quantity', 0))
-                rate = component.get('Rate', 0)
+                quantity = float(component.get('quantity', 0))
+                rate = component.get('rate', 0)
                 rate = Decimal(rate).quantize(Decimal('.01'))
 
                 neworderitem = OrderItem(OrderID=order.ID,
@@ -1642,8 +1642,8 @@ def orderview(request):
                 orderitemid = iddict[component['ID']]
                 orderitem = DBSession.query(OrderItem).filter_by(
                                     ID=orderitemid).first()
-                orderitem.Quantity = float(component['Quantity'])
-                rate = component['Rate']
+                orderitem.Quantity = float(component['quantity'])
+                rate = component['rate']
                 orderitem.Rate = Decimal(rate).quantize(Decimal('.01'))
                 del iddict[component['ID']]
         # delete the leftover id's
@@ -1670,20 +1670,22 @@ def orderview(request):
         if orderitem.Component:
             componentslist.append(orderitem.toDict())
 
-    componentslist = sorted(componentslist, key=lambda k: k['Name'])
+    componentslist = sorted(componentslist, key=lambda k: k['name'])
     # get the date in json format
     jsondate = None
     if order.Date:
         jsondate = order.Date.isoformat()
-    total = '{:20,.2f}'.format(0).strip()
+    total = ''
     if order.Total:
-        total = '{:20,.2f}'.format(float(order.Total)).strip()
+        total = str(order.Total)
+    taxrate = order.TaxRate > 0
+
     return {'ID': order.ID,
             'ProjectID': order.ProjectID,
             'SupplierID': order.SupplierID,
             'ClientID': order.ClientID,
             'Total': total,
-            'TaxRate': order.TaxRate,
+            'TaxRate': taxrate,
             'ComponentsList': componentslist,
             'Date': jsondate}
 

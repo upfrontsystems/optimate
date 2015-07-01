@@ -1882,7 +1882,6 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             var i = $scope.jsonorders.indexOf(result[0]);
             if (i>-1){
                 $scope.jsonorders[i] = editedorder;
-                console.log(editedorder);
             }
             console.log ("Order edited");
         };
@@ -1934,8 +1933,6 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 $scope.componentsList = $scope.formData['ComponentsList'];
                 $scope.date = new Date($scope.formData['Date']);
                 $scope.formData['NodeType'] = 'order';
-                $scope.formData['TaxRate'] = ($scope.formData['TaxRate'] > 0);
-                $scope.modalForm.Total = response.Total;
             });
         }
 
