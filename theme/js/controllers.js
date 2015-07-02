@@ -1869,22 +1869,6 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             }
         };
 
-        // adding an invoice
-        $scope.saveInvoice = function() {
-            if (!$scope.isDisabled) {
-                $scope.isDisabled = true;
-                // convert the date to json format
-                $scope.invoiceFormData['Date'] = $scope.date.toJSON();
-                $http({
-                        method: 'POST',
-                        url: globalServerURL + 'invoice/0/',
-                        data: $scope.invoiceFormData
-                    }).success(function (response) {
-                        console.log("Invoice added");
-                    });
-                }
-        }
-
         // add a new order to the list and sort
         $scope.handleNew = function(neworder) {
             // the new order is added to the list
@@ -1923,7 +1907,6 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         };
 
         $scope.openInvoices = function() {
-            console.log("opening invoices");
             $scope.isDisabled = false;
             $scope.modalState = "Add";
             $scope.dateTimeNow();
@@ -1934,6 +1917,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             // load any invoices the order has
             $http.get(globalServerURL + 'invoices')
             .success(function(response){
+                console.log("Invoices loaded");
                 console.log(response);
                 $scope.invoiceList = response;
             })

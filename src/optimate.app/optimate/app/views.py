@@ -1797,13 +1797,15 @@ def invoiceview(request):
 
     # if the method is post, add a new invoice
     if request.method == 'POST':
-        orderid = request.json_body['OrderID']
-        invoicenumber = request.json_body['InvoiceNumber']
+        orderid = request.json_body['orderid']
+        invoicenumber = request.json_body['invoicenumber']
         # convert to date from json format
-        date = request.json_body.get('Date', None)
-        if date:
+        date = request.json_body.get('date', None)
+        try:
             date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
-        amount = request.json_body.get('Amount', Decimal(0.00))
+        except:
+            date = None
+        amount = request.json_body.get('amount', Decimal(0.00))
         amount = Decimal(amount).quantize(Decimal('.01'))
 
         newinvoice = Invoice(OrderID=orderid,
@@ -1831,14 +1833,27 @@ def invoiceview(request):
         invoice = DBSession.query(
                     Invoice).filter_by(ID=request.matchdict['id']).first()
 
-        date = request.json_body.get('Date', None)
-        if date:
+        date = request.json_body.get('date', None)
+        try:
             date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
-        amount = request.json_body.get('Amount', Decimal(0.00))
+        except:
+            date = None
+        amount = request.json_body.get('amount', Decimal(0.00))
         amount = Decimal(amount).quantize(Decimal('.01'))
 
         invoice.Date = date
+        oldamount = invoice.Amount
         invoice.Amount = amount
+
+        # if the amounts are different update the invoiced amounts
+        if oldamount != amount:
+            order = DBSession.query(Order).filter_by(ID=invoice.OrderID).first()
+            for orderitem in order.OrderItems:
+                if order.Total > 0:
+                    proportion = orderitem.Total/order.Total
+                    orderitem.Component.Invoiced = amount * proportion
+                else:
+                    orderitem.Component.Invoiced = 0
         transaction.commit()
         # return the edited invoice
         invoice = DBSession.query(

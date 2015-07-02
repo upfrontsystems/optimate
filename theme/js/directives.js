@@ -864,32 +864,37 @@ allControllers.directive('invoiceslickgridjs', ['globalServerURL', 'sharedServic
                         console.log("No columns widths found in storage. Setting to default.");
                         invoices_column_width= {'invoicenumber': 75,
                                     'date': 100,
-                                    'amount': 75};
+                                    'amount': 75,
+                                    'paid': 10};
                         localStorage["invoices_column_width"] = JSON.stringify(invoices_column_width);
                     }
                     if ( invoices_column_width.length == 0 ) {
                         invoices_column_width= {'invoicenumber': 75,
-                                    'date': 100,
-                                    'amount': 75};
+                                                'date': 100,
+                                                'amount': 75,
+                                                'paid': 10};
                         localStorage["invoices_column_width"] = JSON.stringify(invoices_column_width);
                     }
                 }
                 else {
                     console.log("LOCAL STORAGE NOT SUPPORTED")
                     invoices_column_width= {'invoicenumber': 75,
-                                    'date': 100,
-                                    'amount': 75};
+                                            'date': 100,
+                                            'amount': 75,
+                                            'paid': 10};
                 }
             };
             $scope.preloadWidths();
 
             var columns = [
                     {id: "invoicenumber", name: "Invoice Number", field: "invoicenumber",
-                     width: invoices_column_width.invoicenumber, cssClass: "cell-title non-editable-column"},
+                     width: invoices_column_width.invoicenumber, cssClass: "cell-title editable-column"},
                     {id: "date", name: "Date", field: "date", cssClass: "cell editable-column",
                      width: invoices_column_width.date, formatter: DateFormatter, editor: Slick.Editors.Date},
-                    {id: "amount", name: "Amount", field: "amount", cssClass: "cell non-editable-column",
-                     width: invoices_column_width.amount, formatter: CurrencyFormatter}];
+                    {id: "amount", name: "Amount", field: "amount", cssClass: "cell editable-column",
+                     width: invoices_column_width.amount, formatter: CurrencyFormatter},
+                    {id: "paid", name: "Paid", field: "paid", cssClass: "cell editable-column",
+                     width: invoices_column_width.paid, formatter: CheckmarkFormatter, editor: Slick.Editors.Checkbox}];
 
             var options = {
                     editable: true,
@@ -960,23 +965,45 @@ allControllers.directive('invoiceslickgridjs', ['globalServerURL', 'sharedServic
                 }
             }
 
+            // formatter for the paid checkbox
+            function CheckmarkFormatter(row, cell, value, columnDef, dataContext) {
+                return value ? '<i class="fa fa-check-square-o fa-lg"></i>' : '<i class="fa fa-square-o fa-lg"></i>';
+              }
+
+
             grid.onAddNewRow.subscribe(function (e, args) {
                 var item = args.item;
-                grid.invalidateRow(data.length);
-                data.push(item);
-                grid.updateRowCount();
-                grid.render();
+                if (item.invoicenumber){
+                    item.orderid = $scope.selectedOrder.ID;
+                    item.date = new Date();
+                    // add the invoice to the database
+                    var req = {
+                        method: 'POST',
+                        url: globalServerURL + 'invoice/' + item.orderid+ '/',
+                        data: item,
+                    }
+                    $http(req).success(function(response) {
+                        console.log("Invoice added");
+                        item = response;
+                        $scope.invoiceList.push(item);
+                    });
+                }
+                else{
+                    console.log("An invoice number needs to be entered first.");
+                }
             });
 
             // observe the invoice list for changes and update the slickgrid
             $scope.$watch(attrs.invoices, function(invoicelist) {
                 var columns = [
-                    {id: "invoicenumber", name: "Invoice Number", field: "invoicenumber",
-                     width: invoices_column_width.invoicenumber, cssClass: "cell-title non-editable-column"},
+                    {id: "invoicenumber", name: "Invoice Number", field: "invoicenumber", cssClass: "cell-title editable-column",
+                     width: invoices_column_width.invoicenumber, editor: Slick.Editors.Text},
                     {id: "date", name: "Date", field: "date", cssClass: "cell editable-column",
                      width: invoices_column_width.date, formatter: DateFormatter, editor: Slick.Editors.Date},
-                    {id: "amount", name: "Amount", field: "amount", cssClass: "cell non-editable-column",
-                     width: invoices_column_width.amount, formatter: CurrencyFormatter}];
+                    {id: "amount", name: "Amount", field: "amount", cssClass: "cell editable-column",
+                     width: invoices_column_width.amount, formatter: CurrencyFormatter, editor: Slick.Editors.Float},
+                    {id: "paid", name: "Paid", field: "paid", cssClass: "cell editable-column",
+                     width: invoices_column_width.paid, formatter: CheckmarkFormatter, editor: Slick.Editors.Checkbox}];
                 if (invoicelist.length > 0) {
                     grid.setColumns(columns);
                     dataView.beginUpdate();
@@ -993,11 +1020,20 @@ allControllers.directive('invoiceslickgridjs', ['globalServerURL', 'sharedServic
                 }
             }, true);
 
-            // on cell change update the totals
+            // on cell change update the invoice in the database
             grid.onCellChange.subscribe(function (e, ctx) {
                 var item = ctx.item
-                var oldtotal = item.amount;
-                dataView.updateItem(item.id, item);
+                if (item.invoicenumber){
+                    console.log(item);
+                    var req = {
+                        method: 'PUT',
+                        url: globalServerURL + 'invoice/' + item.id + '/',
+                        data: item,
+                    }
+                    $http(req).success(function(response) {
+                        console.log("Invoice edited");
+                    });
+                }
             });
         }
     }
