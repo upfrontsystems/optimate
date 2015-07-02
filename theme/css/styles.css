@@ -211,6 +211,14 @@ label.filters-label {
     cursor: pointer;
 }
 
+#invoice-data-grid-outer {
+    height: 200px;
+}
+#invoice-data-grid {
+    width: 40%;
+    height: 100%;
+}
+
 #component-data-grid-outer {
     height: 300px;
 /*    height: -moz-calc(100vh / 2);

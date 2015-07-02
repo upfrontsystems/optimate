@@ -1736,6 +1736,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         $scope.isCollapsed = true;
         $scope.jsonorders = [];
         $scope.componentsList = [];
+        $scope.invoiceList = [];
         $scope.modalForm = [];
         // Pagination variables and functions
         $scope.pageSize = 100;
@@ -1921,7 +1922,8 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $('#order-'+obj.ID).addClass('active').siblings().removeClass('active');
         };
 
-        $scope.addingInvoice = function() {
+        $scope.openInvoices = function() {
+            console.log("opening invoices");
             $scope.isDisabled = false;
             $scope.modalState = "Add";
             $scope.dateTimeNow();
@@ -1929,6 +1931,12 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $scope.invoiceFormData = {};
             $scope.invoiceFormData['Date'] = $scope.date;
             $scope.invoiceFormData['OrderID'] = $scope.selectedOrder.ID;
+            // load any invoices the order has
+            $http.get(globalServerURL + 'invoices')
+            .success(function(response){
+                console.log(response);
+                $scope.invoiceList = response;
+            })
         }
 
         // When the Add button is pressed change the state and form data

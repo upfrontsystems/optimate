@@ -1,12 +1,15 @@
 <div id="invoiceOrderModal" class="modal fade">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h3 class="modal-title">Add invoice to Order {{selectedOrder.ID}}</h3>
+                <h3 class="modal-title">Order {{selectedOrder.ID}} invoices</h3>
             </div>
             <div class="modal-body">
                 <form class="form-horizontal"  name="invoiceOrderModalForm" novalidate>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">Add Invoice:</label>
+                    </div>
                     <div class="form-group"
                         ng-class="{'has-error': invoiceOrderModalForm.inputInvoiceNumber.$invalid}">
                         <label for="inputInvoiceNumber" class="col-sm-3 control-label">Invoice Number:</label>
@@ -50,6 +53,16 @@
                                 id="inputAmount"
                                 name="inputAmount"
                                 data-ng-model="invoiceFormData.Amount">
+                    </div>
+                    <div class="form-group">
+                        <label for="order_invoices" class="col-sm-3 control-label">Current invoices:</label>
+                        <div id="order_invoices" class="row form-group">
+                            <div id="invoice-data-grid-outer">
+                                <invoiceslickgridjs id="invoice-data-grid"
+                                                    invoices="invoiceList">
+                                </invoiceslickgridjs>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>

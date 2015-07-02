@@ -1771,7 +1771,7 @@ def invoicesview(request):
     """ The invoicesview returns a list in json format of all the invoices
     """
     invoicelist = []
-    qry = DBSession.query(Invoice).all()
+    qry = DBSession.query(Invoice).order_by(Invoice.InvoiceNumber).all()
     for invoice in qry:
         invoicelist.append(invoice.toDict())
     return invoicelist

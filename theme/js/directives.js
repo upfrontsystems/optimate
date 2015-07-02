@@ -827,3 +827,178 @@ function dateParser() {
         }
     }
 }
+
+
+allControllers.directive('invoiceslickgridjs', ['globalServerURL', 'sharedService', '$http', '$timeout',
+    function(globalServerURL, sharedService, $http, $timeout) {
+    return {
+        require: '?ngModel',
+        restrict: 'E',
+        replace: true,
+        template: '<div></div>',
+        link: function($scope, element, attrs) {
+
+            var grid;
+            var data = [];
+            var invoices_column_width= {};
+            // aux function to test if we can support localstorage
+            var hasStorage = (function() {
+                try {
+                    var mod = 'modernizr';
+                    localStorage.setItem(mod, mod);
+                    localStorage.removeItem(mod);
+                    return true;
+                }
+                catch (exception) {
+                    return false;
+                }
+            }());
+
+            // load the columns widths (if any) from local storage
+            $scope.preloadWidths = function () {
+                if (hasStorage) {
+                    try {
+                        invoices_column_width = JSON.parse(localStorage["invoices_column_width"])
+                    }
+                    catch (exception) {
+                        console.log("No columns widths found in storage. Setting to default.");
+                        invoices_column_width= {'invoicenumber': 75,
+                                    'date': 100,
+                                    'amount': 75};
+                        localStorage["invoices_column_width"] = JSON.stringify(invoices_column_width);
+                    }
+                    if ( invoices_column_width.length == 0 ) {
+                        invoices_column_width= {'invoicenumber': 75,
+                                    'date': 100,
+                                    'amount': 75};
+                        localStorage["invoices_column_width"] = JSON.stringify(invoices_column_width);
+                    }
+                }
+                else {
+                    console.log("LOCAL STORAGE NOT SUPPORTED")
+                    invoices_column_width= {'invoicenumber': 75,
+                                    'date': 100,
+                                    'amount': 75};
+                }
+            };
+            $scope.preloadWidths();
+
+            var columns = [
+                    {id: "invoicenumber", name: "Invoice Number", field: "invoicenumber",
+                     width: invoices_column_width.invoicenumber, cssClass: "cell-title non-editable-column"},
+                    {id: "date", name: "Date", field: "date", cssClass: "cell editable-column",
+                     width: invoices_column_width.date, formatter: DateFormatter, editor: Slick.Editors.Date},
+                    {id: "amount", name: "Amount", field: "amount", cssClass: "cell non-editable-column",
+                     width: invoices_column_width.amount, formatter: CurrencyFormatter}];
+
+            var options = {
+                    editable: true,
+                    enableAddRow: true,
+                    enableCellNavigation: true,
+                    asyncEditorLoading: true,
+                    autoEdit: true,
+                    syncColumnCellResize: true,
+                    enableColumnReorder: true,
+                    explicitInitialization: true
+                };
+
+            data = []
+            dataView = new Slick.Data.DataView();
+            grid = new Slick.Grid("#invoice-data-grid", dataView, columns, options);
+            grid.setSelectionModel(new Slick.CellSelectionModel());
+            // resize the slickgrid when modal is shown
+            $('#invoiceOrderModal').on('shown.bs.modal', function() {
+                 grid.init();
+            });
+
+            // when a column is resized change the default size of that column
+            grid.onColumnsResized.subscribe(function(e,args) {
+                var gridcolumns = args.grid.getColumns();
+                for (var i in gridcolumns) {
+                    if (gridcolumns[i].previousWidth != gridcolumns[i].width)
+                        invoices_column_width[gridcolumns[i].field] = gridcolumns[i].width;
+                }
+                if(hasStorage){
+                    localStorage["invoices_column_width"] = JSON.stringify(invoices_column_width);
+                }
+            });
+
+            dataView.onRowCountChanged.subscribe(function (e, args) {
+              grid.updateRowCount();
+              grid.render();
+            });
+
+            dataView.onRowsChanged.subscribe(function (e, args) {
+              grid.invalidateRows(args.rows);
+              grid.render();
+            });
+
+            // Formatter for displaying currencies
+            function CurrencyFormatter(row, cell, value, columnDef, dataContext) {
+                if (value != undefined) {
+                    var parts = value.toString().split(".");
+                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    if (parts.length > 1){
+                        parts[parts.length-1] = parts[parts.length-1].slice(0,2);
+                    }
+                    return parts.join(".");
+                }
+                else {
+                    return "0.00";
+                }
+            }
+
+            // Formatter for displaying dates
+            function DateFormatter(row, cell, value, columnDef, dataContext) {
+                if (value != undefined) {
+                    dateObject = new Date(Date.parse(value));
+                    dateReadable = dateObject.toDateString();
+                    return dateReadable;
+                }
+                else {
+                    return "";
+                }
+            }
+
+            grid.onAddNewRow.subscribe(function (e, args) {
+                var item = args.item;
+                grid.invalidateRow(data.length);
+                data.push(item);
+                grid.updateRowCount();
+                grid.render();
+            });
+
+            // observe the invoice list for changes and update the slickgrid
+            $scope.$watch(attrs.invoices, function(invoicelist) {
+                var columns = [
+                    {id: "invoicenumber", name: "Invoice Number", field: "invoicenumber",
+                     width: invoices_column_width.invoicenumber, cssClass: "cell-title non-editable-column"},
+                    {id: "date", name: "Date", field: "date", cssClass: "cell editable-column",
+                     width: invoices_column_width.date, formatter: DateFormatter, editor: Slick.Editors.Date},
+                    {id: "amount", name: "Amount", field: "amount", cssClass: "cell non-editable-column",
+                     width: invoices_column_width.amount, formatter: CurrencyFormatter}];
+                if (invoicelist.length > 0) {
+                    grid.setColumns(columns);
+                    dataView.beginUpdate();
+                    dataView.setItems(invoicelist);
+                    dataView.endUpdate();
+                    grid.render();
+                }
+                else {
+                    grid.setColumns(columns);
+                    dataView.beginUpdate();
+                    dataView.setItems([]);
+                    dataView.endUpdate();
+                    grid.render();
+                }
+            }, true);
+
+            // on cell change update the totals
+            grid.onCellChange.subscribe(function (e, ctx) {
+                var item = ctx.item
+                var oldtotal = item.amount;
+                dataView.updateItem(item.id, item);
+            });
+        }
+    }
+}]);

@@ -1921,11 +1921,11 @@ class Invoice(Base):
         jsondate = None
         if self.Date:
             jsondate = self.Date.isoformat()
-        return {'ID': self.ID,
-                'OrderID': self.OrderID,
-                'InvoiceNumber': self.InvoiceNumber,
-                'Date': jsondate,
-                'Amount' : str(self.Amount)}
+        return {'id': self.ID,
+                'orderid': self.OrderID,
+                'invoicenumber': self.InvoiceNumber,
+                'date': jsondate,
+                'amount' : str(self.Amount)}
 
     def __repr__(self):
         """Return a representation of this invoice
