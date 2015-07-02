@@ -1432,7 +1432,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 });
             }
             else if ( report == 'costcomparison' ) {
-                var target = document.getElementsByClassName('pdf_download_cc');
+                var target = document.getElementsByClassName('pdf_download');
                 var spinner = new Spinner().spin(target[0]);
                 $scope.formData['PrintSelectedBudgerGroups'] = $scope.printSelectedBudgetGroups;
                 $scope.formData['BudgetGroupList'] = $scope.budgetgroupList || [];
@@ -1446,7 +1446,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     $scope.budgetgroupList = [] // clear selected budget group list
                     var file = new Blob([response], {type: 'application/pdf'});
                     var fileURL = URL.createObjectURL(file);
-                    var result = document.getElementsByClassName("pdf_hidden_download_cc");
+                    var result = document.getElementsByClassName("pdf_hidden_download");
                     var anchor = angular.element(result);
                     var filename_header = headers('Content-Disposition');
                     var filename = filename_header.split('filename=')[1];
