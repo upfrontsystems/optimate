@@ -186,6 +186,18 @@ def nodeview(request):
     nodeid = request.matchdict['id']
     qry = DBSession.query(Node).filter_by(ID=nodeid).first()
     if qry:
+        if qry.type == 'Component' or qry.type == 'SimpleComponent':
+            pt = DBSession.query(Node).filter_by(ID=qry.ParentID).first().type
+            if pt == 'BudgetItem':
+                data = qry.toDict()
+                data['Quantity'] = data['ItemQuantity']
+                return data
+        elif qry.type == 'BudgetItem':
+            pt = DBSession.query(Node).filter_by(ID=qry.ParentID).first().type
+            if pt == 'BudgetItem':
+                data = qry.toDict()
+                data['Quantity'] = data['ItemQuantity']
+                return data
         return qry.toDict()
     else:
         return HTTPNotFound()
@@ -272,15 +284,26 @@ def additemview(request):
             rate = request.json_body.get('Rate', 0)
             rate = Decimal(rate).quantize(Decimal('.01'))
 
-            # quanitity is set automatically when it is detected to be None
-            # no need to explicitly set it
-            itemquantity=quantity
+            pt = DBSession.query(Node).filter_by(ID=parentid).first().type
+            if pt == 'BudgetGroup':
+                # In the context of budget group, you enter a Quantity and it is
+                # persisted as Quantity and ItemQuantity is updated to have the
+                # same value.
+                itemquantity = quantity
+            elif pt == 'BudgetItem':
+                # quantity is persisted as ItemQuantity. Quantity is calculated by
+                # the system and only visible in the slickgrid as a readonly value.
+                itemquantity=quantity
+                parent = DBSession.query(Node).filter_by(ID=parentid).first()
+                #quantity is calculated as: itemquantity * parent quantity
+                quantity=itemquantity*parent.Quantity
 
             newcomp = SimpleComponent(
                 ParentID=parentid,
                 Name=request.json_body['Name'],
                 Description=request.json_body.get('Description', None),
                 _ItemQuantity=itemquantity,
+                _Quantity=quantity,
                 _Rate=rate,
                 Type=request.json_body['ResourceType'])
             DBSession.add(newcomp)
@@ -290,12 +313,24 @@ def additemview(request):
             resource = DBSession.query(Resource).filter_by(ID=uid).first()
             if not resource:
                 return HTTPNotFound()
-            # quanitity is set automatically when it is detected to be None
-            # no need to explicitly set it
-            itemquantity=quantity
+
+            pt = DBSession.query(Node).filter_by(ID=parentid).first().type
+            if pt == 'BudgetGroup':
+                # In the context of budget group, you enter a Quantity and it is
+                # persisted as Quantity and ItemQuantity is updated to have the
+                # same value.
+                itemquantity = quantity
+            elif pt == 'BudgetItem':
+                # quantity is persisted as ItemQuantity. Quantity is calculated by
+                # the system and only visible in the slickgrid as a readonly value.
+                itemquantity=quantity
+                parent = DBSession.query(Node).filter_by(ID=parentid).first()
+                #quantity is calculated as: itemquantity * parent quantity
+                quantity=itemquantity*parent.Quantity
 
             newcomp = Component(ResourceID=resource.ID,
                             _ItemQuantity=itemquantity,
+                            _Quantity=quantity,
                             ParentID=parentid)
 
             DBSession.add(newcomp)
@@ -315,11 +350,21 @@ def additemview(request):
                         Description=desc,
                         ParentID=parentid)
     elif objecttype == 'BudgetItem':
-        # set ItemQuantity to quantity
-        # a BudgetItem's Quantity is calculated automatically
+        pt = DBSession.query(Node).filter_by(ID=parentid).first().type
+        if pt == 'BudgetItem':
+            # quantity is persisted as ItemQuantity. Quantity is calculated by
+            # the system and only visible in the slickgrid as a readonly value.
+            itemquantity=quantity
+            parent = DBSession.query(Node).filter_by(ID=parentid).first()
+            #quantity is calculated as: itemquantity * parent quantity
+            quantity=itemquantity*parent.Quantity
+        else:
+            itemquantity=quantity
+
         newnode = BudgetItem(Name=name,
                         Description=desc,
-                        _ItemQuantity = quantity,
+                        _ItemQuantity = itemquantity,
+                        _Quantity = quantity,
                         ParentID=parentid)
     elif objecttype == 'ResourceCategory':
         newnode = ResourceCategory(Name=name,
