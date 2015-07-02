@@ -1396,107 +1396,51 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         };
 
         $scope.getReport = function (report, nodeid) {
+            var target = document.getElementsByClassName('pdf_download');
+            var spinner = new Spinner().spin(target[0]);
             if ( report == 'projectbudget' ) {
-                var target = document.getElementsByClassName('pdf_download');
-                var spinner = new Spinner().spin(target[0]);
                 $scope.formData['ComponentTypeList'] = $scope.componentTypeList || [];
                 $scope.formData['PrintSelectedBudgerGroups'] = $scope.printSelectedBudgetGroups;
                 $scope.formData['BudgetGroupList'] = $scope.budgetgroupList || [];
-                $http({
-                    method: 'POST',
-                    url: globalServerURL + 'project_budget_report/' + nodeid + '/',
-                    data: $scope.formData},
-                    {responseType: 'arraybuffer'
-                }).success(function (response, status, headers, config) {
-                    spinner.stop(); // stop the spinner - ajax call complete
-                    $scope.budgetgroupList = [] // clear selected budget group list
-                    var file = new Blob([response], {type: 'application/pdf'});
-                    var fileURL = URL.createObjectURL(file);
-                    var result = document.getElementsByClassName("pdf_hidden_download");
-                    var anchor = angular.element(result);
-                    var filename_header = headers('Content-Disposition');
-                    var filename = filename_header.split('filename=')[1];
-                    anchor.attr({
-                        href: fileURL,
-                        target: '_blank',
-                        download: filename
-                    })[0].click();
-                    // clear the hidden anchor so that everytime a new report is linked
-                    anchor.attr({
-                        href: '',
-                        target: '',
-                        download: ''
-                    });
-                }).error(function(data, status, headers, config) {
-                    console.log("Project budget pdf download error")
-                });
+                var url = globalServerURL + 'project_budget_report/' + nodeid + '/'
             }
             else if ( report == 'costcomparison' ) {
-                var target = document.getElementsByClassName('pdf_download_cc');
-                var spinner = new Spinner().spin(target[0]);
                 $scope.formData['PrintSelectedBudgerGroups'] = $scope.printSelectedBudgetGroups;
                 $scope.formData['BudgetGroupList'] = $scope.budgetgroupList || [];
-                $http({
-                    method: 'POST',
-                    url: globalServerURL + 'cost_comparison_report/' + nodeid + '/',
-                    data: $scope.formData},
-                    {responseType: 'arraybuffer'
-                }).success(function (response, status, headers, config) {
-                    spinner.stop(); // stop the spinner - ajax call complete
-                    $scope.budgetgroupList = [] // clear selected budget group list
-                    var file = new Blob([response], {type: 'application/pdf'});
-                    var fileURL = URL.createObjectURL(file);
-                    var result = document.getElementsByClassName("pdf_hidden_download_cc");
-                    var anchor = angular.element(result);
-                    var filename_header = headers('Content-Disposition');
-                    var filename = filename_header.split('filename=')[1];
-                    anchor.attr({
-                        href: fileURL,
-                        target: '_blank',
-                        download: filename
-                    })[0].click();
-                    // clear the hidden anchor so that everytime a new report is linked
-                    anchor.attr({
-                        href: '',
-                        target: '',
-                        download: ''
-                    });
-                }).error(function(data, status, headers, config) {
-                    console.log("Cost comparison pdf download error")
-                });
+                var url = globalServerURL + 'cost_comparison_report/' + nodeid + '/'
             }
             else if ( report == 'resourcelist' ) {
-                var target = document.getElementsByClassName('pdf_download');
-                var spinner = new Spinner().spin(target[0]);
                 $scope.formData['FilterBySupplier'] = $scope.filterBySupplier;
-                $http({
-                    method: 'POST',
-                    url: globalServerURL + 'resource_list_report/' + nodeid + '/',
-                    data: $scope.formData},
-                    {responseType: 'arraybuffer'
-                }).success(function (response, status, headers, config) {
-                    spinner.stop(); // stop the spinner - ajax call complete
-                    var file = new Blob([response], {type: 'application/pdf'});
-                    var fileURL = URL.createObjectURL(file);
-                    var result = document.getElementsByClassName("pdf_hidden_download");
-                    var anchor = angular.element(result);
-                    var filename_header = headers('Content-Disposition');
-                    var filename = filename_header.split('filename=')[1];
-                    anchor.attr({
-                        href: fileURL,
-                        target: '_blank',
-                        download: filename
-                    })[0].click();
-                    // clear the anchor so that everytime a new report is linked
-                    anchor.attr({
-                        href: '',
-                        target: '',
-                        download: ''
-                    });
-                }).error(function(data, status, headers, config) {
-                    console.log("Resource list pdf download error")
-                });
+                var url = globalServerURL + 'resource_list_report/' + nodeid + '/'
             }
+            $http({
+                method: 'POST',
+                url: url,
+                data: $scope.formData},
+                {responseType: 'arraybuffer'
+            }).success(function (response, status, headers, config) {
+                spinner.stop(); // stop the spinner - ajax call complete
+                $scope.budgetgroupList = [] // clear selected budget group list
+                var file = new Blob([response], {type: 'application/pdf'});
+                var fileURL = URL.createObjectURL(file);
+                var result = document.getElementsByClassName("pdf_hidden_download");
+                var anchor = angular.element(result);
+                var filename_header = headers('Content-Disposition');
+                var filename = filename_header.split('filename=')[1];
+                anchor.attr({
+                    href: fileURL,
+                    target: '_blank',
+                    download: filename
+                })[0].click();
+                // clear the hidden anchor so that everytime a new report is linked
+                anchor.attr({
+                    href: '',
+                    target: '',
+                    download: ''
+                });
+            }).error(function(data, status, headers, config) {
+                console.log("Report pdf download error")
+            });
         };
 
         $scope.toggleBudgetgroup = function(bgroup) {

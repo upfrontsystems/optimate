@@ -6,4 +6,7 @@ $(document).on('shown.bs.modal', function(){
      if ( $('#projectBudgetReport.in').length != 0 ) {
          $('input#inputLevelLimit').focus();
      }
+     if ( $('#costComparisonReport.in').length != 0 ) {
+         $('input#inputLevelLimit').focus();
+     }
 });
