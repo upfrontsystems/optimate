@@ -17,6 +17,7 @@ from sqlalchemy import (
     Integer,
     Float,
     Text,
+    Boolean,
     Unicode,
     DateTime,
     ForeignKey,
@@ -1827,8 +1828,8 @@ class OrderItem(Base):
     ID = Column(Integer, primary_key=True, index=True)
     OrderID = Column(Integer, ForeignKey('Order.ID'))
     ComponentID = Column(Integer, ForeignKey('Component.ID'))
-    Quantity = Column(Float, default=0.0)
-    Rate = Column(Numeric(12, 2), default=Decimal(0.00))
+    _Quantity = Column(Float, default=0.0)
+    _Rate = Column(Numeric(12, 2), default=Decimal(0.00))
     _Total = Column('Total', Numeric(12, 2))
 
     Order = relationship('Order',
@@ -1845,6 +1846,12 @@ class OrderItem(Base):
                 self.Quantity)*self.Rate).quantize(Decimal('.01'))
         return self._Total
 
+    @Total.setter
+    def Total(self, total):
+        """ Set the total
+        """
+        self._Total = Decimal(total).quantize(Decimal('.01'))
+
     @property
     def Subtotal(self):
         """ Return the subtotal, which is this OrderItem's Order's VAT
@@ -1855,6 +1862,33 @@ class OrderItem(Base):
                 self.Quantity)*self.Rate).quantize(Decimal('.01'))
         return Decimal(float(self._Total)/(1.0+self.Order.TaxRate)).quantize(
                         Decimal('.01'))
+
+    @hybrid_property
+    def Rate(self):
+        """ Get the Rate
+        """
+        return self._Rate.quantize(Decimal('.01'))
+
+    @Rate.setter
+    def Rate(self, rate):
+        """ Set the Rate and recalculate the total
+        """
+        self._Rate = Decimal(rate).quantize(Decimal('.01'))
+        # when the rate changes recalculate the total
+        self.Total = self.Quantity * float(self._Rate)
+
+    @hybrid_property
+    def Quantity(self):
+        """ Get the Quantity
+        """
+        return self._Quantity
+
+    @Quantity.setter
+    def Quantity(self, quantity):
+        """ Set the Quantity and recalculate the Total
+        """
+        self._Quantity = quantity
+        self.Total = quantity * float(self._Rate)
 
     def toDict(self):
         """ Returns a dictionary of this OrderItem
@@ -1907,9 +1941,10 @@ class Invoice(Base):
     __tablename__ = 'Invoice'
     ID = Column(Integer, primary_key=True)
     OrderID = Column(Integer, ForeignKey('Order.ID'))
-    InvoiceNumber = Column(Text(50))
+    InvoiceNumber = Column(Text(50), unique=True)
     Date = Column(DateTime)
     Amount = Column(Numeric)
+    Paid = Column(Boolean, default=False)
 
     Order = relationship('Order',
                               backref=backref('Invoices'))
@@ -1925,7 +1960,8 @@ class Invoice(Base):
                 'orderid': self.OrderID,
                 'invoicenumber': self.InvoiceNumber,
                 'date': jsondate,
-                'amount' : str(self.Amount)}
+                'amount' : str(self.Amount),
+                'paid': self.Paid}
 
     def __repr__(self):
         """Return a representation of this invoice

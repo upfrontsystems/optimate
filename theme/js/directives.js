@@ -1004,6 +1004,7 @@ allControllers.directive('invoiceslickgridjs', ['globalServerURL', 'sharedServic
                      width: invoices_column_width.amount, formatter: CurrencyFormatter, editor: Slick.Editors.Float},
                     {id: "paid", name: "Paid", field: "paid", cssClass: "cell editable-column",
                      width: invoices_column_width.paid, formatter: CheckmarkFormatter, editor: Slick.Editors.Checkbox}];
+                console.log(invoicelist);
                 if (invoicelist.length > 0) {
                     grid.setColumns(columns);
                     dataView.beginUpdate();
@@ -1020,11 +1021,39 @@ allControllers.directive('invoiceslickgridjs', ['globalServerURL', 'sharedServic
                 }
             }, true);
 
+            $scope.deleteSelectedRow = function(){
+                var selectedrows = grid.getSelectedRows();
+                var len = selectedrows.length;
+                if (len > 0){
+                    for(var i=0;i<len;i++){
+                        var data = grid.getData().getItem(selectedrows[i]);
+                        var sure= confirm("Delete invoice " + data.invoicenumber + "?");
+                        if (!data.paid){
+                            if(sure){
+                                dataView.deleteItem(data.id)
+                                var req = {
+                                    method: 'DELETE',
+                                    url: globalServerURL + 'invoice/' + data.id + '/'
+                                }
+                                $http(req).success(function() {
+                                    console.log("Invoice deleted");
+                                });
+                            }
+                        }
+                        else{
+                            console.log("Can't delete paid invoice.");
+                        }
+                    }
+                }
+                else{
+                    console.log("No invoice selected");
+                }
+            }
+
             // on cell change update the invoice in the database
             grid.onCellChange.subscribe(function (e, ctx) {
                 var item = ctx.item
                 if (item.invoicenumber){
-                    console.log(item);
                     var req = {
                         method: 'PUT',
                         url: globalServerURL + 'invoice/' + item.id + '/',

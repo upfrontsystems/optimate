@@ -1577,8 +1577,8 @@ def orderview(request):
             rate = Decimal(rate).quantize(Decimal('.01'))
             neworderitem = OrderItem(OrderID=newid,
                                     ComponentID=component['ID'],
-                                    Quantity=quantity,
-                                    Rate = rate)
+                                    _Quantity=quantity,
+                                    _Rate = rate)
             DBSession.add(neworderitem)
         transaction.commit()
         # return the new order
@@ -1641,8 +1641,8 @@ def orderview(request):
 
                 neworderitem = OrderItem(OrderID=order.ID,
                                         ComponentID=component['ID'],
-                                        Quantity=quantity,
-                                        Rate = rate)
+                                        _Quantity=quantity,
+                                        _Rate = rate)
                 DBSession.add(neworderitem)
             else:
                 # otherwise remove the id from the list and update the
@@ -1653,8 +1653,6 @@ def orderview(request):
                 orderitem.Quantity = float(component['quantity'])
                 rate = component['rate']
                 orderitem.Rate = Decimal(rate).quantize(Decimal('.01'))
-                orderitem._Total = Decimal(orderitem.Quantity * \
-                                float(orderitem.Rate)).quantize(Decimal('.01'))
                 del iddict[component['ID']]
         # delete the leftover id's
         for oldid in iddict.values():
@@ -1788,6 +1786,11 @@ def invoiceview(request):
         # Deleting it from the table deletes the object
         deletethis = DBSession.query(Invoice).filter_by(ID=deleteid).first()
 
+        # update the component invoiced amounts
+        order = DBSession.query(Order).filter_by(ID=deletethis.OrderID).first()
+        for orderitem in order.OrderItems:
+            orderitem.Component.Invoiced = 0
+
         qry = DBSession.delete(deletethis)
         if qry == 0:
             return HTTPNotFound()
@@ -1807,11 +1810,14 @@ def invoiceview(request):
             date = None
         amount = request.json_body.get('amount', Decimal(0.00))
         amount = Decimal(amount).quantize(Decimal('.01'))
+        paid = request.json_body.get('paid', False)
+        print paid
 
         newinvoice = Invoice(OrderID=orderid,
                             InvoiceNumber=invoicenumber,
                             Date=date,
-                            Amount=amount)
+                            Amount=amount,
+                            Paid=paid)
         DBSession.add(newinvoice)
         DBSession.flush()
         newid = newinvoice.ID
@@ -1840,10 +1846,12 @@ def invoiceview(request):
             date = None
         amount = request.json_body.get('amount', Decimal(0.00))
         amount = Decimal(amount).quantize(Decimal('.01'))
+        paid = request.json_body.get('paid', False)
 
         invoice.Date = date
         oldamount = invoice.Amount
         invoice.Amount = amount
+        invoice.Paid = paid
 
         # if the amounts are different update the invoiced amounts
         if oldamount != amount:

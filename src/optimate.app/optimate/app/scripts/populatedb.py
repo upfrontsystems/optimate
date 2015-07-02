@@ -1189,8 +1189,8 @@ if __name__ == '__main__':
                     orderitem = OrderItem(ID=code,
                                     OrderID=orderid,
                                     ComponentID=compid,
-                                    Quantity=quantity,
-                                    Rate=rate)
+                                    _Quantity=quantity,
+                                    _Rate=rate)
                     DBSession.add(orderitem)
 
         transaction.commit()
