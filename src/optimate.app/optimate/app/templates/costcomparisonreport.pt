@@ -1,0 +1,73 @@
+<html>
+
+    <link rel="stylesheet" tal:attributes="href string:${request.application_url}/static/css/reports.css">
+    <span tal:replace='structure string:<style>'/>
+        /* The default style */
+        @page {
+            @frame {
+                margin: 2cm;
+                top :2.5cm;
+                bottom: 1cm;
+            }
+            @frame header {
+                -pdf-frame-content: headerContent;
+                top :2cm;
+                margin-left: 2cm;
+                margin-right: 2cm; 
+                height: 2.5cm;
+            }
+            @frame footer {
+                -pdf-frame-content: pageNumber;
+                height: 1.5cm;
+                bottom: 1cm;
+                margin-left: 2cm;
+                margin-right: 2cm;
+            }
+        }
+    <span tal:replace='structure string:</style>'/>
+
+<body>
+    <div id="headerContent">
+        <h1>Cost Comparison for ${project_name}</h1>
+        <table>
+            <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding-top:6px; padding-bottom: 3px;">
+                <td class="project-heading-font" style="width: 450px; text-align:left">Description</td>
+                <td class="project-heading-font" style="width: 100px; text-align:right">Total</td>
+                <td class="project-heading-font" style="width: 100px; text-align:right">Ordered</td>
+                <td class="project-heading-font" style="width: 100px; text-align:right">Invoiced</td>
+            </tr>
+        </table>
+    </div>
+    
+    <table>
+        <tal:repeat tal:repeat="node nodes">
+            <tal:entry tal:condition="node">
+                <tr style="padding-top: 2px; padding-bottom: 1px;">
+                    <td class="${node[1]} ${node[2]}" style="width: 450px" tal:content="node[0].Name|nothing">
+                    </td>
+                    <td class="${node[2]} ${node[3]}" style="width: 100px; text-align:right" 
+                        tal:content="node[0].Total|nothing"></td>
+                    <td class="${node[2]} ${node[4]}" style="width: 100px; text-align:right" 
+                        tal:content="node[0].Ordered|nothing"></td>
+                    <td class="${node[2]} ${node[5]}" style="width: 100px; text-align:right" 
+                        tal:content="node[0].Invoiced|nothing"></td>
+                </tr>
+            </tal:entry>
+            <tal:seperator tal:condition="node == None">
+                <td>&nbsp;</td>
+            </tal:seperator>
+        </tal:repeat>
+    </table>
+
+    <div id="pageNumber">
+        <table>
+            <tr>
+                <td style="text-align:left; width: 800px;"><h3>Cost Comparison for ${project_name}</h3></td>
+                <td style="text-align:right;"><h3>${print_date}</h3></td>
+            </tr>
+        </table>
+        <pdf:pagenumber>
+    </div>
+
+</body>
+</html>

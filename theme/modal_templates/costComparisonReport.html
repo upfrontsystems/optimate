@@ -1,0 +1,91 @@
+<script type="text/ng-template" id="angularCostComparisonTree.html">
+  <div ui-tree-handle class="tree-node order-tree-node-content">
+      <input type="button"
+          class="collapsed"
+          data-ng-show="node.Subitem.length && node.collapsed"
+          data-ng-click="selectReportNodeHead(node)">
+      </input>
+      <input type="button"
+          class="expanded"
+          data-ng-show="node.Subitem.length && !node.collapsed"
+          data-ng-click="selectReportNodeHead(node)">
+      </button>
+      <input type="button"
+        class="normal"
+        data-ng-hide="node.Subitem.length">
+      </input>
+      <span class="circle {{node.NodeType}}">&nbsp;{{node.NodeTypeAbbr}}&nbsp;</span>
+      <span class="order-tree-node"
+          id="{{node.ID}}">
+          {{node.Name}}
+      </span>
+      <button class="custom-checkbox align-right"
+              data-ng-show="{{node.NodeType == 'BudgetGroup'}}"
+              data-ng-click="toggleBudgetgroup(node)">
+          <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o'}[node.selected]"
+              class="checkbox-icon">
+          </i>
+      </button>
+  </div>
+  <ol ui-tree-nodes ng-model="node.Subitem" data-ng-hide="!node.collapsed" data-type="{{node.NodeType}}">
+      <li ng-repeat="node in node.Subitem"
+          data-type="{{node.NodeType}}"
+          ui-tree-node
+          ng-include="'angularCostComparisonTree.html'">
+      </li>
+  </ol>
+</script>
+
+<div id="costComparisonReport" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close"
+                        data-dismiss="modal" aria-hidden="true">&times;
+                </button>
+                <h3 class="modal-title">Cost Comparison Report</h3>                
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" name="costComparisonReportForm" novalidate>
+                    <div class="form-group"
+                        ng-class="{'has-error': costComparisonReportForm.inputLevelLimit.$invalid}">
+                        <label for="inputLevelLimit" class="col-sm-5">Specify Level Limit:</label>
+                        <input type="number"
+                               min="1"
+                               default=3
+                               class="col-sm-1"
+                               id="inputLevelLimit"
+                               name="inputLevelLimit"
+                               ng-model="formData['LevelLimit']"
+                               required>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-5">Print only selected budget groups:
+                        </label>
+                        <button class="custom-checkbox" ng-model="printSelectedBudgetGroups"
+                              data-ng-click="printSelectedBudgetGroups = !printSelectedBudgetGroups">
+                            <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[printSelectedBudgetGroups]">
+                            </i>
+                        </button>
+                    </div>
+                    <div ui-tree="treeOptions" data-ng-show="printSelectedBudgetGroups"
+                        data-max-depth="0"
+                        data-drag-enabled="false"
+                        id="tree-root">
+                        <ol ui-tree-nodes ng-model="openNodeList">
+                            <li ng-repeat="node in openNodeList"
+                                ui-tree-node
+                                data-ng-include="'angularCostComparisonTree.html'"></li>
+                        </ol>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-dismiss="modal"
+                 ng-disabled="!costComparisonReportForm.$valid" 
+                 ng-click="getReport('costcomparison', currentNode.ID)">Print</button>
+                <button class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
