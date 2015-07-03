@@ -1,5 +1,8 @@
 $(document).on('shown.bs.modal', function(){
      $('input#inputName').focus();
+     if ( $('#addComponent.in').length != 0 ) {
+         $('input#inputQuantity').focus();
+     }
      if ( $('#resourceListReport.in').length != 0 ) {
          $('.custom-checkbox').focus();
      }
