@@ -1849,7 +1849,6 @@ def invoiceview(request):
         amount = request.json_body.get('amount', Decimal(0.00))
         amount = Decimal(amount).quantize(Decimal('.01'))
         paid = request.json_body.get('paid', False)
-        print paid
 
         newinvoice = Invoice(OrderID=orderid,
                             InvoiceNumber=invoicenumber,

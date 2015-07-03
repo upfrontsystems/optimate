@@ -316,7 +316,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                         else {
                             emptycolumns = [{id: "name", name: "Name", field: "name",
                                  width: projects_column_width.name, cssClass: "cell-title non-editable-column"},
-                                {id: "quantity", name: "Quantity", field: "quantity", 
+                                {id: "quantity", name: "Quantity", field: "quantity",
                                  cssClass: "cell editable-column",
                                  width: projects_column_width.quantity, editor: Slick.Editors.CustomEditor},
                                 {id: "item_quantity", name: "Item Quantity", field: "item_quantity",
@@ -341,7 +341,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                 formatter: CurrencyFormatter}];
 
                             if (no_subtotal_column) {
-                                // remove subtotal column - determined by backend, depending 
+                                // remove subtotal column - determined by backend, depending
                                 // if subtotal data exists for a node or not
                                 var index = emptycolumns.map(function(e)
                                     { return e.id; }).indexOf("sub_cost");
@@ -370,7 +370,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                     emptycolumns[index].cssClass = "cell non-editable-column";
                                     delete emptycolumns[index].editor;
                                 }
-                            } 
+                            }
                             // make quantity column non-editable for certain node types
                             hidden_q_types = ['BudgetGroup'];
                             var quantity_type_found = $.inArray(type, hidden_q_types) > -1;
@@ -453,10 +453,10 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                         {id: "quantity", name: "Quantity", field: "quantity", cssClass: "cell editable-column",
                          width: projects_column_width.quantity, editor: Slick.Editors.CustomEditor},
                         {id: "rate", name: "Rate", field: "rate",
-                         width: projects_column_width.rate, cssClass: "cell non-editable-column", 
+                         width: projects_column_width.rate, cssClass: "cell non-editable-column",
                          formatter: CurrencyFormatter},
                         {id: "budg_cost", name: "Total", field: "budg_cost",
-                         width: projects_column_width.budg_cost, cssClass: "cell non-editable-column", 
+                         width: projects_column_width.budg_cost, cssClass: "cell non-editable-column",
                          formatter: CurrencyFormatter},
                         {id: "sub_cost", name: "Subtotal", field: "sub_cost",
                          width: projects_column_width.sub_cost, cssClass: "cell non-editable-column",
@@ -464,7 +464,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                         {id: "unit", name: "Unit", field: "unit",
                          width: projects_column_width.unit, cssClass: "cell  non-editable-column"},
                         {id: "ordered", name: "Ordered", field: "ordered",
-                         width: projects_column_width.ordered, cssClass: "cell  non-editable-column", 
+                         width: projects_column_width.ordered, cssClass: "cell  non-editable-column",
                          formatter: CurrencyFormatter},
                         {id: "invoiced", name: "Invoiced", field: "invoiced",
                          width: projects_column_width.invoiced, cssClass: "cell  non-editable-column",
@@ -552,6 +552,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
 
             // load the columns widths (if any) from local storage
             $scope.preloadWidths = function () {
+                // console.log("component preloadWidths");
                 if (hasStorage) {
                     try {
                         orders_column_width = JSON.parse(localStorage["orders_column_width"])
@@ -609,11 +610,13 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             grid.setSelectionModel(new Slick.CellSelectionModel());
             // resize the slickgrid when modal is shown
             $('#saveOrderModal').on('shown.bs.modal', function() {
+                // console.log("order slickgrid shown init ");
                  grid.init();
             });
 
             // when a column is resized change the default size of that column
             grid.onColumnsResized.subscribe(function(e,args) {
+                // console.log("component columns resized");
                 var gridcolumns = args.grid.getColumns();
                 for (var i in gridcolumns) {
                     if (gridcolumns[i].previousWidth != gridcolumns[i].width)
@@ -636,6 +639,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
 
             // Formatter for displaying currencies
             function CurrencyFormatter(row, cell, value, columnDef, dataContext) {
+                // console.log("component curreny formaater");
                 if (value != undefined) {
                     var parts = value.toString().split(".");
                     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -660,6 +664,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             // watch the VAT checkbox and update the total and values in the
             // slickgrid accordingly
             $scope.$watch(attrs.vat, function(vat) {
+                // console.log("component vat changed");
                 if ($scope.vat == undefined){
                     // if vat used to be undefined only update it
                     $scope.vat = vat;
@@ -693,6 +698,8 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             // observe the component list for changes and update the slickgrid
             // calculate and update the order total as well
             $scope.$watch(attrs.components, function(componentlist) {
+                // console.log("component list changed");
+                // console.log(componentlist);
                 columns = [
                     {id: "name", name: "Component", field: "name",
                      width: orders_column_width.name, cssClass: "cell-title non-editable-column"},
@@ -726,7 +733,6 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     gridlist.push(total);
                     grid.setColumns(columns);
                     dataView.beginUpdate();
-                    console.log(gridlist);
                     dataView.setItems(gridlist);
                     dataView.endUpdate();
                     grid.render();
@@ -751,11 +757,11 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     dataView.endUpdate();
                     grid.render();
                 }
-                console.log(dataView.getItems());
             }, true);
 
             // on cell change update the totals
             grid.onCellChange.subscribe(function (e, ctx) {
+                // console.log("component cell changed changed");
                 var item = ctx.item
                 var oldtotal = item.total;
                 item.total = item.quantity*item.rate;
@@ -782,7 +788,9 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             // listening for the handle to reload the order slickgrid
             // timeout to wait until the modal has finished rendering
             $scope.$on('handleReloadOrderSlickgrid', function() {
+                // console.log("component handle reload grid");
                 $timeout(function(){
+                    // console.log(dataView.getItems());
                     grid.resizeCanvas();
                 });
             });
@@ -852,6 +860,7 @@ allControllers.directive('invoiceslickgridjs', ['globalServerURL', 'sharedServic
 
             // load the columns widths (if any) from local storage
             $scope.preloadWidths = function () {
+                // console.log("invoice width load");
                 if (hasStorage) {
                     try {
                         invoices_column_width = JSON.parse(localStorage["invoices_column_width"])
@@ -909,11 +918,13 @@ allControllers.directive('invoiceslickgridjs', ['globalServerURL', 'sharedServic
             grid.setSelectionModel(new Slick.CellSelectionModel());
             // resize the slickgrid when modal is shown
             $('#invoiceOrderModal').on('shown.bs.modal', function() {
+                // console.log("invoice order shown");
                  grid.init();
             });
 
             // when a column is resized change the default size of that column
             grid.onColumnsResized.subscribe(function(e,args) {
+                // console.log("invoice column resized");
                 var gridcolumns = args.grid.getColumns();
                 for (var i in gridcolumns) {
                     if (gridcolumns[i].previousWidth != gridcolumns[i].width)
@@ -936,6 +947,7 @@ allControllers.directive('invoiceslickgridjs', ['globalServerURL', 'sharedServic
 
             // Formatter for displaying currencies
             function CurrencyFormatter(row, cell, value, columnDef, dataContext) {
+                // console.log("invoice currency format");
                 if (value != undefined) {
                     var parts = value.toString().split(".");
                     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -951,6 +963,7 @@ allControllers.directive('invoiceslickgridjs', ['globalServerURL', 'sharedServic
 
             // Formatter for displaying dates
             function DateFormatter(row, cell, value, columnDef, dataContext) {
+                // console.log("invoice date format");
                 if (value != undefined) {
                     dateObject = new Date(Date.parse(value));
                     dateReadable = dateObject.toDateString();
@@ -991,6 +1004,7 @@ allControllers.directive('invoiceslickgridjs', ['globalServerURL', 'sharedServic
 
             // observe the invoice list for changes and update the slickgrid
             $scope.$watch(attrs.invoices, function(invoicelist) {
+                // console.log("invoice list change");
                 var columns = [
                     {id: "invoicenumber", name: "Invoice Number", field: "invoicenumber", cssClass: "cell-title editable-column",
                      width: invoices_column_width.invoicenumber, editor: Slick.Editors.Text},
@@ -1000,7 +1014,6 @@ allControllers.directive('invoiceslickgridjs', ['globalServerURL', 'sharedServic
                      width: invoices_column_width.amount, formatter: CurrencyFormatter, editor: Slick.Editors.Float},
                     {id: "paid", name: "Paid", field: "paid", cssClass: "cell editable-column",
                      width: invoices_column_width.paid, formatter: CheckmarkFormatter, editor: Slick.Editors.Checkbox}];
-                console.log(invoicelist);
                 if (invoicelist.length > 0) {
                     grid.setColumns(columns);
                     dataView.beginUpdate();
@@ -1018,6 +1031,7 @@ allControllers.directive('invoiceslickgridjs', ['globalServerURL', 'sharedServic
             }, true);
 
             $scope.deleteSelectedRow = function(){
+                // console.log("invoice row deleted");
                 var selectedrows = grid.getSelectedRows();
                 var len = selectedrows.length;
                 if (len > 0){
@@ -1048,6 +1062,7 @@ allControllers.directive('invoiceslickgridjs', ['globalServerURL', 'sharedServic
 
             // on cell change update the invoice in the database
             grid.onCellChange.subscribe(function (e, ctx) {
+                // console.log("invoice cell changed");
                 var item = ctx.item
                 if (item.invoicenumber){
                     var req = {

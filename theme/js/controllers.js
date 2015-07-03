@@ -1860,7 +1860,6 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $http.get(globalServerURL + 'invoices')
             .success(function(response){
                 console.log("Invoices loaded");
-                console.log(response);
                 $scope.invoiceList = response;
             })
         }
@@ -1895,7 +1894,6 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 $scope.formData = response;
                 $scope.loadProject()
                 $scope.componentsList = $scope.formData['ComponentsList'];
-                console.log($scope.componentsList);
                 $scope.date = new Date($scope.formData['Date']);
                 $scope.formData['NodeType'] = 'order';
             });

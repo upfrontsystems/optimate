@@ -211,8 +211,8 @@ def _initTestingDB():
         orderitem = OrderItem(ID=1,
                                 OrderID=order.ID,
                                 ComponentID=comp.ID,
-                                Quantity=orderitemq,
-                                Rate=orderitemr)
+                                _Quantity=orderitemq,
+                                _Rate=orderitemr)
 
         invoice = Invoice(ID=1,
                             OrderID=order.ID,
@@ -932,7 +932,7 @@ class TestInvoiceViewSuccessCondition(unittest.TestCase):
         request.matchdict['id'] = 1
         response = self._callFUT(request)
         # the invoice number ofthe invoice '12345'
-        self.assertEqual(response['InvoiceNumber'], '12345')
+        self.assertEqual(response['invoicenumber'], '12345')
 
     def test_delete(self):
         _registerRoutes(self.config)
@@ -947,26 +947,26 @@ class TestInvoiceViewSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.method = 'POST'
         request.matchdict['id'] = 0
-        request.json_body = {'OrderID':1,
-                                'InvoiceNumber': '4567',
-                                'Amount': 124}
+        request.json_body = {'orderid':1,
+                                'invoicenumber': '4567',
+                                'amount': 124}
         response = self._callFUT(request)
         # get the new order id
-        newid = response['ID']
+        newid = response['id']
 
         request = testing.DummyRequest()
         request.method = 'GET'
         request.matchdict['id'] = newid
         response = self._callFUT(request)
         # the new invoice number should be returned
-        self.assertEqual(response['InvoiceNumber'], '4567')
+        self.assertEqual(response['invoicenumber'], '4567')
 
     def test_edit(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.method = 'PUT'
         request.matchdict['id'] = 1
-        request.json_body= {'Amount':20}
+        request.json_body= {'amount':20}
         response = self._callFUT(request)
 
         request = testing.DummyRequest()
@@ -974,4 +974,4 @@ class TestInvoiceViewSuccessCondition(unittest.TestCase):
         request.matchdict['id'] = 1
         response = self._callFUT(request)
         # the edited amount should be returned
-        self.assertEqual(response['Amount'], '20.00')
+        self.assertEqual(response['amount'], '20.00')
