@@ -1023,7 +1023,14 @@ class ComponentMixin(object):
         for orderitem in self.OrderItems:
             orderitemsquantity+=orderitem.Quantity
         quantity = self.Quantity - orderitemsquantity
-        total = Decimal(quantity*float(self.Rate)).quantize(Decimal('.01'))
+        subtotal = Decimal(quantity*float(self.Rate)).quantize(Decimal('.01'))
+        vat = 0.14
+        companyinfo = DBSession.query(CompanyInformation
+                                ).filter_by(ID=0).first()
+        if companyinfo:
+            vat = companyinfo.DefaultTaxrate
+        total = Decimal(float(subtotal)*(1+vat)).quantize(Decimal('.01'))
+        vatcost = Decimal(float(subtotal)*vat).quantize(Decimal('.01'))
         return {'Name': self.Name,
                 'name': self.Name,
                 'ID': self.ID,
@@ -1032,6 +1039,9 @@ class ComponentMixin(object):
                 'quantity': quantity,
                 'rate': str(self.Rate),
                 'total': str(total),
+                'vat': vat,
+                'vatcost': str(vatcost),
+                'subtotal': str(subtotal),
                 'NodeType': 'Component',
                 'node_type': 'Component',
                 'NodeTypeAbbr' : 'C'}
@@ -1760,7 +1770,6 @@ class Order(Base):
     SupplierID = Column(Integer, ForeignKey('Supplier.ID'))
     ClientID = Column(Integer, ForeignKey('Client.ID'))
     Total = Column(Numeric)
-    TaxRate = Column(Float, default=0.0)
     DeliveryAddress = Column(Text(100))
     Date = Column(DateTime)
     Status = Column(Text(10))
@@ -1779,8 +1788,7 @@ class Order(Base):
         for orderitem in self.OrderItems:
             total += orderitem.Total
 
-        self.Total = Decimal(float(total) * (1 + self.TaxRate)
-                            ).quantize(Decimal('.01'))
+        self.Total = Decimal(total).quantize(Decimal('.01'))
 
     def toDict(self):
         """ Returns a JSON dict of the order
@@ -1828,6 +1836,7 @@ class OrderItem(Base):
     ID = Column(Integer, primary_key=True, index=True)
     OrderID = Column(Integer, ForeignKey('Order.ID'))
     ComponentID = Column(Integer, ForeignKey('Component.ID'))
+    VAT = Column(Float)
     _Quantity = Column(Float, default=0.0)
     _Rate = Column(Numeric(12, 2), default=Decimal(0.00))
     _Total = Column('Total', Numeric(12, 2))
@@ -1839,11 +1848,12 @@ class OrderItem(Base):
 
     @hybrid_property
     def Total(self):
-        """ Return the total. Total is Quantity*Rate
+        """ Return the total. Total is Quantity*Rate*VAT
         """
         if not self._Total:
-            self._Total = (Decimal(
-                self.Quantity)*self.Rate).quantize(Decimal('.01'))
+            self._Total = Decimal(
+                self.Quantity*float(self.Rate)*(1 + self.VAT)
+                ).quantize(Decimal('.01'))
         return self._Total
 
     @Total.setter
@@ -1854,13 +1864,10 @@ class OrderItem(Base):
 
     @property
     def Subtotal(self):
-        """ Return the subtotal, which is this OrderItem's Order's VAT
+        """ Return the subtotal, which is VAT deducted from the Total
             deducted from it's total
         """
-        if not self._Total:
-            self._Total = (Decimal(
-                self.Quantity)*self.Rate).quantize(Decimal('.01'))
-        return Decimal(float(self._Total)/(1.0+self.Order.TaxRate)).quantize(
+        return Decimal(float(self.Total)/(1.0+self.VAT)).quantize(
                         Decimal('.01'))
 
     @hybrid_property
@@ -1893,23 +1900,31 @@ class OrderItem(Base):
     def toDict(self):
         """ Returns a dictionary of this OrderItem
         """
+        vatcost = Decimal(float(self.Subtotal)/self.VAT).quantize(Decimal('.01'))
         return {'name': self.Component.Name,
                 'ID': self.ComponentID,
                 'id': self.ComponentID,
                 'quantity': self.Quantity,
                 'unit': self.Component.Unit,
                 'rate': str(self.Rate),
+                'vat': self.VAT,
+                'subtotal': str(self.Subtotal),
                 'total': str(self.Total),
+                'vatcost': str(vatcost),
                 'node_type': 'Component'}
 
     def getGridData(self):
         """ Returns a dictionary of this OrderItem for the slickgrid
         """
+        vatcost = Decimal(float(self.Subtotal)/self.VAT).quantize(Decimal('.01'))
         return {'id': self.Component.ID,
                 'name': self.Component.Name,
                 'quantity': self.Quantity,
                 'rate': str(self.Rate),
-                'total': str(self.Total)}
+                'total': str(self.Total),
+                'subtotal': str(self.Subtotal),
+                'vat': self.VAT,
+                'vatcost': str(vatcost)}
 
     def __repr__(self):
         """Return a representation of this order item

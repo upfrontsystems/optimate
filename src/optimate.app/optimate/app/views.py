@@ -1586,11 +1586,6 @@ def orderview(request):
         auth = request.json_body.get('Authorisation', '')
         proj = request.json_body.get('ProjectID', None)
         supplier = request.json_body.get('SupplierID', None)
-        tax = request.json_body.get('TaxRate', False)
-        if tax:
-            tax = 0.14
-        else:
-            tax = 0.0
         address = request.json_body.get('DeliveryAddress', '')
         # the client is derived from the project
         client = DBSession.query(Project).filter_by(ID=proj).first().ClientID
@@ -1603,7 +1598,6 @@ def orderview(request):
                             ProjectID=proj,
                             SupplierID=supplier,
                             ClientID=client,
-                            TaxRate=tax,
                             DeliveryAddress=address,
                             Date=date)
         DBSession.add(neworder)
@@ -1615,10 +1609,12 @@ def orderview(request):
             quantity = float(component.get('quantity', 0))
             rate = component.get('rate', 0)
             rate = Decimal(rate).quantize(Decimal('.01'))
+            vat = component.get('vat', 0)
             neworderitem = OrderItem(OrderID=newid,
                                     ComponentID=component['ID'],
                                     _Quantity=quantity,
-                                    _Rate = rate)
+                                    _Rate = rate,
+                                    VAT=vat)
             DBSession.add(neworderitem)
         transaction.commit()
         # return the new order
@@ -1642,11 +1638,6 @@ def orderview(request):
         else:
             client = DBSession.query(Project).filter_by(ID=proj).first().ClientID
         supplier = request.json_body.get('SupplierID', None)
-        tax = request.json_body.get('TaxRate', False)
-        if tax:
-            tax = 0.14
-        else:
-            tax = 0.0
         address = request.json_body.get('DeliveryAddress', '')
         # convert to date from json format
         date = request.json_body.get('Date', None)
@@ -1658,7 +1649,6 @@ def orderview(request):
         order.ProjectID=proj
         order.SupplierID=supplier
         order.ClientID=client
-        order.TaxRate=tax
         order.DeliveryAddress=address
         order.Date = date
 
@@ -1676,11 +1666,13 @@ def orderview(request):
                 quantity = float(component.get('quantity', 0))
                 rate = component.get('rate', 0)
                 rate = Decimal(rate).quantize(Decimal('.01'))
+                vat = component.get('vat', 0)
 
                 neworderitem = OrderItem(OrderID=order.ID,
                                         ComponentID=component['ID'],
                                         _Quantity=quantity,
-                                        _Rate = rate)
+                                        _Rate = rate,
+                                        VAT=vat)
                 DBSession.add(neworderitem)
             else:
                 # otherwise remove the id from the list and update the
@@ -1691,6 +1683,8 @@ def orderview(request):
                 orderitem.Quantity = float(component['quantity'])
                 rate = component['rate']
                 orderitem.Rate = Decimal(rate).quantize(Decimal('.01'))
+                vat = component.get('vat', 0)
+                orderitem.VAT = vat
                 del iddict[component['ID']]
         # delete the leftover id's
         for oldid in iddict.values():
@@ -1724,14 +1718,12 @@ def orderview(request):
     total = ''
     if order.Total:
         total = str(order.Total)
-    taxrate = order.TaxRate > 0
 
     return {'ID': order.ID,
             'ProjectID': order.ProjectID,
             'SupplierID': order.SupplierID,
             'ClientID': order.ClientID,
             'Total': total,
-            'TaxRate': taxrate,
             'ComponentsList': componentslist,
             'Date': jsondate}
 

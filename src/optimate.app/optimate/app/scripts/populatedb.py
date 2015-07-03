@@ -1110,6 +1110,7 @@ if __name__ == '__main__':
         totalindex = 9
         taxindex = 10
         deladdindex = 11
+        ordertaxrate = {}
 
 
         print 'Converting Order table'
@@ -1138,6 +1139,8 @@ if __name__ == '__main__':
                 deladd = str(sheet.cell(x, deladdindex).value).encode('ascii')
             except UnicodeEncodeError:
                 deladd = ""
+            # store the order's tax rate in a dict
+            ordertaxrate[str(code)] = tax
 
             order = Order(ID=code,
                             Authorisation=auth,
@@ -1145,7 +1148,6 @@ if __name__ == '__main__':
                             SupplierID=supid,
                             ClientID=clientid,
                             Total=total,
-                            TaxRate=tax,
                             DeliveryAddress=deladd,
                             Date=date)
             DBSession.add(order)
@@ -1163,7 +1165,7 @@ if __name__ == '__main__':
         print 'Converting Order Item table'
         for x in range(1, sheet.nrows):
             code = int(sheet.cell(x, codeindex).value)
-            orderid = sheet.cell(x, orderidindex).value
+            orderid = int(sheet.cell(x, orderidindex).value)
             compid = sheet.cell(x, compidindex).value
             try:
                 quantity = float(sheet.cell(x,
@@ -1186,13 +1188,26 @@ if __name__ == '__main__':
                 if comp:
                     comp.Ordered = Decimal(quantity * float(rate)
                         ).quantize(Decimal('.01'))
+                    # set the order tax rate to the order item tax rate
+                    tax = 0.0
+                    try:
+                        tax = ordertaxrate[str(orderid)]
+                    except:
+                        pass
+                        # print ordertaxrate
                     orderitem = OrderItem(ID=code,
                                     OrderID=orderid,
                                     ComponentID=compid,
                                     _Quantity=quantity,
-                                    _Rate=rate)
+                                    _Rate=rate,
+                                    VAT=tax)
                     DBSession.add(orderitem)
 
+        transaction.commit()
+        print "Recalculating Order totals"
+        orders = DBSession.query(Order).all()
+        for order in orders:
+            order.resetTotal()
         transaction.commit()
 
     print '\ndone'

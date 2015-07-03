@@ -1868,7 +1868,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         $scope.addingState = function () {
             $scope.formData.TaxRate = undefined;
             $scope.formData = {'NodeType': 'order',
-                                'TaxRate': true};
+                                'TaxRate': false};
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
             $scope.modalState = "Add";
@@ -1884,6 +1884,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         // When the edit button is pressed change the state and set the data
         $scope.editingState = function () {
             $scope.formData.TaxRate = undefined;
+            $scope.formData.TaxRate = false;
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
             $scope.modalState = "Edit";

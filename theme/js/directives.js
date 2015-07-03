@@ -562,6 +562,9 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                         orders_column_width= {'name': 150,
                                     'quantity': 75,
                                     'rate': 75,
+                                    'subtotal': 75,
+                                    'vat': 75,
+                                    'vatcost': 75,
                                     'total': 100};
                         localStorage["orders_column_width"] = JSON.stringify(orders_column_width);
                     }
@@ -569,6 +572,9 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                         orders_column_width= {'name': 150,
                                     'quantity': 75,
                                     'rate': 75,
+                                    'subtotal': 75,
+                                    'vat': 75,
+                                    'vatcost': 75,
                                     'total': 100};
                         localStorage["orders_column_width"] = JSON.stringify(orders_column_width);
                     }
@@ -578,6 +584,9 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     orders_column_width= {'name': 150,
                                 'quantity': 75,
                                 'rate': 75,
+                                'subtotal': 75,
+                                'vat': 75,
+                                'vatcost': 75,
                                 'total': 100};
                 }
             };
@@ -590,6 +599,12 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                      width: orders_column_width.quantity, editor: Slick.Editors.CustomEditor},
                     {id: "rate", name: "Rate", field: "rate", cssClass: "cell editable-column",
                      width: orders_column_width.rate, formatter: CurrencyFormatter, editor: Slick.Editors.CustomEditor},
+                    {id: "subtotal", name: "Subtotal", field: "subtotal", cssClass: "cell non-editable-column",
+                     width: orders_column_width.subtotal, formatter: CurrencyFormatter},
+                     {id: "vat", name: "VAT %", field: "vat", cssClass: "cell editable-column",
+                     width: orders_column_width.vat, formatter: VATFormatter, editor: Slick.Editors.CustomEditor},
+                    {id: "vatcost", name: "VAT", field: "vatcost", cssClass: "cell non-editable-column",
+                     width: orders_column_width.vatcost, formatter: CurrencyFormatter},
                     {id: "total", name: "Total", field: "total", cssClass: "cell non-editable-column",
                      width: orders_column_width.total, formatter: CurrencyFormatter}];
 
@@ -653,15 +668,31 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                 }
             }
 
+            // Formatter for displaying the vat percentage
+            function VATFormatter(row, cell, value, columnDef, dataContext) {
+                // console.log("component curreny formaater");
+                if (value != undefined) {
+                    var percentile = parseFloat(value)*100.0;
+                    var parts = percentile.toString().split(".");
+                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    if (parts.length > 1){
+                        parts[parts.length-1] = parts[parts.length-1].slice(0,2);
+                    }
+                    return (parts.join(".") + " %");
+                }
+                else {
+                    return "0.00 %";
+                }
+            }
             grid.onAddNewRow.subscribe(function (e, args) {
                 var item = args.item;
-                grid.invalidateRow(data.length);
-                data.push(item);
+                grid.invalidateRow(dataView.length);
+                dataView.push(item);
                 grid.updateRowCount();
                 grid.render();
             });
 
-            // watch the VAT checkbox and update the total and values in the
+            // watch the VAT checkbox and update all the values in the
             // slickgrid accordingly
             $scope.$watch(attrs.vat, function(vat) {
                 // console.log("component vat changed");
@@ -671,23 +702,58 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                 }
                 else if (vat){
                     $scope.vat = vat;
+
                     var datalength = dataView.getLength();
-                    var vatrow = dataView.getItem(datalength-2);
-                    vatrow.total = "14 %";
-                    dataView.updateItem(vatrow.id, vatrow);
-                    var totalrow = dataView.getItem(datalength-1);
-                    totalrow.total = totalrow.total *1.14;
-                    dataView.updateItem(totalrow.id, totalrow);
+                    var dataitems = dataView.getItems();
+                    var ordertotal = 0.0;
+                    var ordervatcost = 0.0
+                    var gridlist = [];
+                    for (var i=0;i<datalength-1; i++) {
+                        var updaterow = dataitems[i]
+                        var subtotal = parseFloat(updaterow.subtotal);
+                        if (parseFloat(updaterow.vatcost) > 0){
+                            ordervatcost += parseFloat(updaterow.vatcost);
+                            ordertotal += parseFloat(updaterow.total);
+                        }
+                        else{
+                            updaterow.vat = 0.14;
+                            updaterow.vatcost = subtotal * 0.14;
+                            updaterow.total = subtotal * 1.14;
+                            ordervatcost += subtotal * 0.14;
+                            ordertotal += subtotal * 1.14;
+                            dataView.updateItem(updaterow.id, updaterow);
+                        }
+                    }
+                    var lastrow = dataitems[datalength-1];
+                    lastrow.vatcost = ordervatcost;
+                    lastrow.total = ordertotal;
+                    dataView.updateItem(lastrow.id, lastrow);
                 }
                 else if (vat == false){
                     $scope.vat = vat;
+
                     var datalength = dataView.getLength();
-                    var vatrow = dataView.getItem(datalength-2);
-                    vatrow.total = "0 %";
-                    dataView.updateItem(vatrow.id, vatrow);
-                    var totalrow = dataView.getItem(datalength-1);
-                    totalrow.total = totalrow.total / 1.14;
-                    dataView.updateItem(totalrow.id, totalrow);
+                    var dataitems = dataView.getItems();
+                    var ordertotal = 0.0;
+                    var ordervatcost = 0.0
+                    var gridlist = [];
+                    for (var i=0;i<datalength-1; i++) {
+                        var updaterow = dataitems[i]
+                        var subtotal = parseFloat(updaterow.subtotal);
+                        if (parseFloat(updaterow.vatcost) > 0){
+                            updaterow.vat = 0.0;
+                            updaterow.vatcost = "0.00";
+                            updaterow.total = subtotal;
+                            ordervatcost += subtotal * 0.14;
+                            ordertotal += subtotal * 1.14;
+                            dataView.updateItem(updaterow.id, updaterow);
+
+                        }
+                    }
+                    var lastrow = dataitems[datalength-1];
+                    lastrow.vatcost = "0.00";
+                    lastrow.total = lastrow.subtotal;
+                    dataView.updateItem(lastrow.id, lastrow);
                 }
                 else {
                     // vat is set to undefined
@@ -707,30 +773,31 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                      width: orders_column_width.quantity, editor: Slick.Editors.CustomEditor},
                     {id: "rate", name: "Rate", field: "rate", cssClass: "cell editable-column",
                      width: orders_column_width.rate, formatter: CurrencyFormatter, editor: Slick.Editors.CustomEditor},
+                    {id: "subtotal", name: "Subtotal", field: "subtotal", cssClass: "cell non-editable-column",
+                     width: orders_column_width.subtotal, formatter: CurrencyFormatter},
+                     {id: "vat", name: "VAT %", field: "vat", cssClass: "cell editable-column",
+                     width: orders_column_width.vat, formatter: VATFormatter, editor: Slick.Editors.CustomEditor},
+                     {id: "vatcost", name: "VAT", field: "vatcost", cssClass: "cell non-editable-column",
+                     width: orders_column_width.vatcost, formatter: CurrencyFormatter},
                     {id: "total", name: "Total", field: "total", cssClass: "cell non-editable-column",
                      width: orders_column_width.total, formatter: CurrencyFormatter}];
                 if (componentlist.length > 0) {
                     var ordertotal = 0.0;
+                    var ordersubtotal = 0.0
+                    var ordervatcost = 0.0
                     var gridlist = [];
                     for (var i=0;i<componentlist.length; i++) {
                         ordertotal += parseFloat(componentlist[i].total);
+                        ordersubtotal += parseFloat(componentlist[i].subtotal);
+                        ordervatcost += parseFloat(componentlist[i].vatcost);
                     }
                     gridlist = componentlist.slice(0);
-                    var gridvat = $scope.vat ? 14 : 0;
-                    var gridtotal = ordertotal * ((gridvat/100) + 1);
-                    var subtotal = {'id': 'S' + componentlist[0].id,
-                                    'rate': 'Subtotal',
+                    var totals = {'id': 'T' + componentlist[0].id,
+                                    'subtotal': ordersubtotal,
+                                    'vatcost': ordervatcost,
                                     'total': ordertotal};
-                    var vat = {'id': 'V' + componentlist[0].id,
-                                    'rate': 'VAT',
-                                    'total': gridvat + " %"};
-                    var total = {'id': 'T' + componentlist[0].id,
-                                    'rate': 'Total',
-                                    'total': gridtotal};
 
-                    gridlist.push(subtotal);
-                    gridlist.push(vat);
-                    gridlist.push(total);
+                    gridlist.push(totals);
                     grid.setColumns(columns);
                     dataView.beginUpdate();
                     dataView.setItems(gridlist);
@@ -739,18 +806,11 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                 }
                 else {
                     var gridlist = [];
-                    var subtotal = {'id': 'S' + 1,
-                                    'rate': 'Subtotal',
-                                    'total': '0.00'};
-                    var vat = {'id': 'V' + 1,
-                                    'rate': 'VAT',
-                                    'total': '14 %'};
-                    var total = {'id': 'T' + 1,
-                                    'rate': 'Total',
-                                    'total': '0.00'};
-                    gridlist.push(subtotal);
-                    gridlist.push(vat);
-                    gridlist.push(total);
+                    var totals = {'id': 'T1',
+                                'subtotal': "0.00",
+                                'vatcost': "0.00",
+                                'total': "0.00"};
+                    gridlist.push(totals);
                     grid.setColumns(columns);
                     dataView.beginUpdate();
                     dataView.setItems(gridlist);
@@ -764,25 +824,20 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                 // console.log("component cell changed changed");
                 var item = ctx.item
                 var oldtotal = item.total;
-                item.total = item.quantity*item.rate;
-                dataView.updateItem(item.id, item);
-                // get the last rows and update their values
-                var datalength = dataView.getLength();
-                var subtotalrow = dataView.getItem(datalength-3);
-                var newtotal = subtotalrow.total + (item.total - oldtotal);
-                subtotalrow.total = newtotal;
-                dataView.updateItem(subtotalrow.id, subtotalrow);
+                var oldsubtotal = item.subtotal;
+                var oldvatcost = item.vatcost;
 
-                var totalrow = dataView.getItem(datalength-1);
-                if ($scope.vat){
-                    newtotal = newtotal * 1.14
-                    totalrow.total = newtotal;
-                    dataView.updateItem(totalrow.id, totalrow);
-                }
-                else{
-                    totalrow.total = newtotal;
-                    dataView.updateItem(totalrow.id, totalrow);
-                }
+                item.subtotal = item.quantity*item.rate;
+                item.vatcost = item.subtotal * parseFloat(item.vat);
+                item.total = item.subtotal *(1.0 + parseFloat(item.vat));
+                dataView.updateItem(item.id, item);
+                // get the last row and update the values
+                var datalength = dataView.getLength();
+                var lastrow = dataView.getItem(datalength-1);
+                lastrow.total = lastrow.total + (item.total - oldtotal);
+                lastrow.subtotal = lastrow.subtotal + (item.subtotal - oldsubtotal);;
+                lastrow.vatcost = lastrow.vatcost + (item.vatcost - oldvatcost);;
+                dataView.updateItem(lastrow.id, lastrow);
             });
 
             // listening for the handle to reload the order slickgrid
