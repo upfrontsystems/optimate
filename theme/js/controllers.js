@@ -1786,8 +1786,6 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 $scope.formData['ComponentsList'] = $scope.componentsList;
                 // convert the date to json format
                 $scope.formData['Date'] = $scope.date.toJSON();
-                // convert the total to a number
-                $scope.formData['Total'] = parseFloat($scope.modalForm.Total.replace(/[^0-9-.]/g, ''));;
                 if ($scope.modalState == 'Edit') {
                     $http({
                         method: 'PUT',
@@ -1877,7 +1875,6 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $scope.modalState = "Add";
             $scope.dateTimeNow();
             $scope.formData['Date'] = $scope.date;
-            $scope.modalForm.Total = '0.00';
             $scope.componentsList = [];
             if ($scope.selectedOrder) {
                 $('#order-'+$scope.selectedOrder.ID).removeClass('active');
@@ -2047,14 +2044,6 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             .success(function(data) {
                 $scope.openProjectsList = [data];
                 $scope.selectNodeHead(data);
-            });
-        };
-
-        // update the order total
-        // inside an apply function to ensure it updates the model
-        $scope.updateOrderTotal = function(total) {
-            $timeout(function() {
-                $scope.modalForm.Total = total;
             });
         };
 

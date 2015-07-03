@@ -654,13 +654,6 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     var totalrow = dataView.getItem(datalength-1);
                     totalrow.total = totalrow.total *1.14;
                     dataView.updateItem(totalrow.id, totalrow);
-                    // update the modal total
-                    var parts = totalrow.total.toString().split(".");
-                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                    if (parts.length > 1){
-                        parts[parts.length-1] = parts[parts.length-1].slice(0,2);
-                    }
-                    $scope.updateOrderTotal(parts.join("."));
                 }
                 else if (vat == false){
                     $scope.vat = vat;
@@ -671,13 +664,6 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     var totalrow = dataView.getItem(datalength-1);
                     totalrow.total = totalrow.total / 1.14;
                     dataView.updateItem(totalrow.id, totalrow);
-                    // update the modal total
-                    var parts = totalrow.total.toString().split(".");
-                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                    if (parts.length > 1){
-                        parts[parts.length-1] = parts[parts.length-1].slice(0,2);
-                    }
-                    $scope.updateOrderTotal(parts.join("."));
                 }
                 else {
                     // vat is set to undefined
@@ -721,16 +707,10 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     gridlist.push(total);
                     grid.setColumns(columns);
                     dataView.beginUpdate();
+                    console.log(gridlist);
                     dataView.setItems(gridlist);
                     dataView.endUpdate();
                     grid.render();
-
-                    var parts = gridtotal.toString().split(".");
-                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                    if (parts.length > 1){
-                        parts[parts.length-1] = parts[parts.length-1].slice(0,2);
-                    }
-                    $scope.updateOrderTotal(parts.join("."));
                 }
                 else {
                     var gridlist = [];
@@ -752,6 +732,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     dataView.endUpdate();
                     grid.render();
                 }
+                console.log(dataView.getItems());
             }, true);
 
             // on cell change update the totals
@@ -777,10 +758,6 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     totalrow.total = newtotal;
                     dataView.updateItem(totalrow.id, totalrow);
                 }
-
-                var parts = newtotal.toString().split(".");
-                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                $scope.updateOrderTotal(parts.join("."));
             });
 
             // listening for the handle to reload the order slickgrid

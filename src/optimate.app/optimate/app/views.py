@@ -1555,8 +1555,6 @@ def orderview(request):
         date = request.json_body.get('Date', None)
         if date:
             date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
-        total = request.json_body.get('Total', 0)
-        total = Decimal(total).quantize(Decimal('.01'))
         neworder = Order(UserCode=user,
                             Authorisation=auth,
                             ProjectID=proj,
@@ -1564,8 +1562,7 @@ def orderview(request):
                             ClientID=client,
                             TaxRate=tax,
                             DeliveryAddress=address,
-                            Date=date,
-                            Total=total)
+                            Date=date)
         DBSession.add(neworder)
         DBSession.flush()
         # add the order items to the order
@@ -1583,6 +1580,7 @@ def orderview(request):
         transaction.commit()
         # return the new order
         neworder = DBSession.query(Order).filter_by(ID=newid).first()
+        neworder.resetTotal()
         # update the component ordered amounts
         for orderitem in neworder.OrderItems:
             orderitem.Component.Ordered = orderitem.Total
@@ -1611,8 +1609,6 @@ def orderview(request):
         date = request.json_body.get('Date', None)
         if date:
             date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
-        total = request.json_body.get('Total', 0)
-        total = Decimal(total).quantize(Decimal('.01'))
 
         order.UserCode=user
         order.Authorisation=auth
@@ -1622,7 +1618,6 @@ def orderview(request):
         order.TaxRate=tax
         order.DeliveryAddress=address
         order.Date = date
-        order.Total = total
 
         # get a list of id's used in the orderitems
         iddict = {}
