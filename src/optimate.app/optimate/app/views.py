@@ -1715,15 +1715,15 @@ def orderview(request):
     jsondate = None
     if order.Date:
         jsondate = order.Date.isoformat()
-    total = ''
+    total = Decimal(0.00)
     if order.Total:
-        total = str(order.Total)
+        total = order.Total
 
     return {'ID': order.ID,
             'ProjectID': order.ProjectID,
             'SupplierID': order.SupplierID,
             'ClientID': order.ClientID,
-            'Total': total,
+            'Total': str(total),
             'ComponentsList': componentslist,
             'Date': jsondate}
 

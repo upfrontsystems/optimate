@@ -201,6 +201,8 @@ def _initTestingDB():
         orderitemq = 5.6
         global orderitemr
         orderitemr = Decimal(10.00)
+        global orderitemvat
+        orderitemvat= 0.14
         global ordertot
         ordertot = Decimal(orderitemq * float(orderitemr)).quantize(Decimal('.01'))
         order = Order(ID=1,
@@ -212,7 +214,8 @@ def _initTestingDB():
                                 OrderID=order.ID,
                                 ComponentID=comp.ID,
                                 _Quantity=orderitemq,
-                                _Rate=orderitemr)
+                                _Rate=orderitemr,
+                                VAT=orderitemvat)
 
         invoice = Invoice(ID=1,
                             OrderID=order.ID,

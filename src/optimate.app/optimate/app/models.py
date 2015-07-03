@@ -1900,7 +1900,7 @@ class OrderItem(Base):
     def toDict(self):
         """ Returns a dictionary of this OrderItem
         """
-        vatcost = Decimal(float(self.Subtotal)/self.VAT).quantize(Decimal('.01'))
+        vatcost = Decimal(float(self.Subtotal)*self.VAT).quantize(Decimal('.01'))
         return {'name': self.Component.Name,
                 'ID': self.ComponentID,
                 'id': self.ComponentID,
@@ -1916,7 +1916,7 @@ class OrderItem(Base):
     def getGridData(self):
         """ Returns a dictionary of this OrderItem for the slickgrid
         """
-        vatcost = Decimal(float(self.Subtotal)/self.VAT).quantize(Decimal('.01'))
+        vatcost = Decimal(float(self.Subtotal)*self.VAT).quantize(Decimal('.01'))
         return {'id': self.Component.ID,
                 'name': self.Component.Name,
                 'quantity': self.Quantity,
