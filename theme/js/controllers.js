@@ -644,45 +644,54 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         $scope.allowed['ResourceCategory'] = ['ResourceCategory', 'Resource'];
         $scope.allowed['Resource'] = [];
         $scope.allowed['Root'] = ['Project'];
-        $scope.dragOverNode = [];
-        // drag over function for when a node is dragged over another
+        $scope.dragOverNode = {'original': undefined};
         $scope.dragOver = function(node) {
             // check for the previous dragged over node
-            // reset the previous nodes values
-            // console.log(node);
-            // console.log($scope.dragOverNode);
-            if ($scope.dragOverNode.length != 0) {
-                // console.log("resetting originial");
+            if ($scope.dragOverNode.copy != undefined) {
+                // reset previous to default values
                 $scope.dragOverNode.copy.selected = undefined;
-                $scope.dragOverNode.copy = $scope.dragOverNode.original;
+                var original = $scope.dragOverNode.original || {'Subitem': undefined};
+                if (original.Subitem != undefined){
+                    $scope.dragOverNode.copy.Subitem = original.Subitem;
+                    // $scope.dragOverNode.copy.collapsed = $scope.dragOverNode.original.collapsed;
+                }
             }
-            $scope.dragOverNode.original = node;
-            node.selected = 'selected';
-            // if the current node has no children add a dummy child
-            if (node.Subitem.length == 0) {
-                // console.log("no children");
-                node.Subitem.push({'Name': '', 'Subitem': []});
-                node.collapsed = true;
-            }
-            else if (!node.collapsed) {
-                // console.log("collapsed");
-                node.Subitem[0].Name = '';
-                node.collapsed = true;
-            }
-            // if the node is collapsed clear the children names and expand it
+            // reset original node values
+            $scope.dragOverNode.original = {'Subitem': undefined};
             $scope.dragOverNode.copy = node;
+            // highlight the parent destination node
+            $scope.dragOverNode.copy.selected = 'selected';
+            // if the current node has no children add a dummy child
+            if ($scope.dragOverNode.copy.Subitem.length == 0) {
+                $scope.dragOverNode.original.Subitem = [];
+                // $scope.dragOverNode.original.collapsed = false;
+                $scope.dragOverNode.copy.Subitem.push({'Name': '', 'NodeType': 'Default'});
+                // $scope.dragOverNode.copy.collapsed = true;
+            }
+            // if the node is collapsed clear the children name
+            // else if (!$scope.dragOverNode.copy.collapsed) {
+            //     $scope.dragOverNode.original.Subitem = [{'Name': '...', 'NodeType': 'Default'}];
+            //     // $scope.dragOverNode.original.collapsed = false;
+            //     $scope.dragOverNode.copy.Subitem[0].Name = '';
+            //     // $scope.dragOverNode.copy.collapsed = true;
+            // }
         }
+
         // define the tree options for the ui-tree
         $scope.treeOptions = {
             // check if the dropped node can be accepted in the tree
            accept: function(sourceNodeScope, destNodesScope, destIndex) {
                 var srctype = sourceNodeScope.$element.attr('data-type');
-                var dsttype = destNodesScope.$element.attr('data-type');
+                var dsttype = destNodesScope.$element.attr('data-type') || 'Root';
+                // $scope.treeOptions.draggedOver = destNodesScope.$nodeScope.$modelValue;
+
                 // check the allowed array for the types
                 if ($scope.allowed[dsttype]) {
                     if($scope.allowed[dsttype].indexOf(srctype) > -1) {
                         // call the drag over function
-                        $scope.dragOver(destNodesScope.$nodeScope.$modelValue);
+                        if (destNodesScope.$nodeScope){
+                            $scope.dragOver(destNodesScope.$nodeScope.$modelValue);
+                        }
                         return true;
                     }else{
                         return false;
@@ -746,6 +755,13 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         $scope.addNodeBack = true;
                     }
                 }
+                // clear the drag over value
+                if ($scope.dragOverNode != undefined){
+                    if ($scope.dragOverNode.copy != undefined){
+                        $scope.dragOverNode.copy.selected = undefined;
+                    }
+                }
+                $scope.dragOverNode = {'original': undefined};
             },
 
             dragStop: function(event) {
