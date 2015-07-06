@@ -885,249 +885,40 @@ function dateParser() {
     }
 }
 
+/* directive for validating float types */
+allControllers.directive('smartFloat', function ($filter) {
+    var FLOAT_REGEXP_1 = /^\$?\d+.(\d{3})*(\,\d*)$/; //Numbers like: 1.123,56
+    var FLOAT_REGEXP_2 = /^\$?\d+,(\d{3})*(\.\d*)$/; //Numbers like: 1,123.56
+    var FLOAT_REGEXP_3 = /^\$?\d+(\.\d*)?$/; //Numbers like: 1123.56
+    var FLOAT_REGEXP_4 = /^\$?\d+(\,\d*)?$/; //Numbers like: 1123,56
 
-allControllers.directive('invoiceslickgridjs', ['globalServerURL', 'sharedService', '$http', '$timeout',
-    function(globalServerURL, sharedService, $http, $timeout) {
     return {
-        require: '?ngModel',
-        restrict: 'E',
-        replace: true,
-        template: '<div></div>',
-        link: function($scope, element, attrs) {
-
-            var grid;
-            var data = [];
-            var invoices_column_width= {};
-            // aux function to test if we can support localstorage
-            var hasStorage = (function() {
-                try {
-                    var mod = 'modernizr';
-                    localStorage.setItem(mod, mod);
-                    localStorage.removeItem(mod);
-                    return true;
-                }
-                catch (exception) {
-                    return false;
-                }
-            }());
-
-            // load the columns widths (if any) from local storage
-            $scope.preloadWidths = function () {
-                // console.log("invoice width load");
-                if (hasStorage) {
-                    try {
-                        invoices_column_width = JSON.parse(localStorage["invoices_column_width"])
-                    }
-                    catch (exception) {
-                        console.log("No columns widths found in storage. Setting to default.");
-                        invoices_column_width= {'invoicenumber': 75,
-                                    'date': 100,
-                                    'amount': 75,
-                                    'paid': 10};
-                        localStorage["invoices_column_width"] = JSON.stringify(invoices_column_width);
-                    }
-                    if ( invoices_column_width.length == 0 ) {
-                        invoices_column_width= {'invoicenumber': 75,
-                                                'date': 100,
-                                                'amount': 75,
-                                                'paid': 10};
-                        localStorage["invoices_column_width"] = JSON.stringify(invoices_column_width);
-                    }
-                }
-                else {
-                    console.log("LOCAL STORAGE NOT SUPPORTED")
-                    invoices_column_width= {'invoicenumber': 75,
-                                            'date': 100,
-                                            'amount': 75,
-                                            'paid': 10};
-                }
-            };
-            $scope.preloadWidths();
-
-            var columns = [
-                    {id: "invoicenumber", name: "Invoice Number", field: "invoicenumber",
-                     width: invoices_column_width.invoicenumber, cssClass: "cell-title editable-column"},
-                    {id: "date", name: "Date", field: "date", cssClass: "cell editable-column",
-                     width: invoices_column_width.date, formatter: DateFormatter, editor: Slick.Editors.Date},
-                    {id: "amount", name: "Amount", field: "amount", cssClass: "cell editable-column",
-                     width: invoices_column_width.amount, formatter: CurrencyFormatter},
-                    {id: "paid", name: "Paid", field: "paid", cssClass: "cell editable-column",
-                     width: invoices_column_width.paid, formatter: CheckmarkFormatter, editor: Slick.Editors.Checkbox}];
-
-            var options = {
-                    editable: true,
-                    enableAddRow: true,
-                    enableCellNavigation: true,
-                    asyncEditorLoading: true,
-                    autoEdit: true,
-                    syncColumnCellResize: true,
-                    enableColumnReorder: true,
-                    explicitInitialization: true
-                };
-
-            data = []
-            dataView = new Slick.Data.DataView();
-            grid = new Slick.Grid("#invoice-data-grid", dataView, columns, options);
-            grid.setSelectionModel(new Slick.CellSelectionModel());
-            // resize the slickgrid when modal is shown
-            $('#invoiceOrderModal').on('shown.bs.modal', function() {
-                // console.log("invoice order shown");
-                 grid.init();
-            });
-
-            // when a column is resized change the default size of that column
-            grid.onColumnsResized.subscribe(function(e,args) {
-                // console.log("invoice column resized");
-                var gridcolumns = args.grid.getColumns();
-                for (var i in gridcolumns) {
-                    if (gridcolumns[i].previousWidth != gridcolumns[i].width)
-                        invoices_column_width[gridcolumns[i].field] = gridcolumns[i].width;
-                }
-                if(hasStorage){
-                    localStorage["invoices_column_width"] = JSON.stringify(invoices_column_width);
+        require: 'ngModel',
+        link: function (scope, elm, attrs, ctrl) {
+            ctrl.$parsers.unshift(function (viewValue) {
+                if (FLOAT_REGEXP_1.test(viewValue)) {
+                    ctrl.$setValidity('float', true);
+                    return parseFloat(viewValue.replace('.', '').replace(',', '.'));
+                } else if (FLOAT_REGEXP_2.test(viewValue)) {
+                        ctrl.$setValidity('float', true);
+                        return parseFloat(viewValue.replace(',', ''));
+                } else if (FLOAT_REGEXP_3.test(viewValue)) {
+                        ctrl.$setValidity('float', true);
+                        return parseFloat(viewValue);
+                } else if (FLOAT_REGEXP_4.test(viewValue)) {
+                        ctrl.$setValidity('float', true);
+                        return parseFloat(viewValue.replace(',', '.'));
+                }else {
+                    ctrl.$setValidity('float', false);
+                    return undefined;
                 }
             });
 
-            dataView.onRowCountChanged.subscribe(function (e, args) {
-              grid.updateRowCount();
-              grid.render();
-            });
-
-            dataView.onRowsChanged.subscribe(function (e, args) {
-              grid.invalidateRows(args.rows);
-              grid.render();
-            });
-
-            // Formatter for displaying currencies
-            function CurrencyFormatter(row, cell, value, columnDef, dataContext) {
-                // console.log("invoice currency format");
-                if (value != undefined) {
-                    var parts = value.toString().split(".");
-                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                    if (parts.length > 1){
-                        parts[parts.length-1] = parts[parts.length-1].slice(0,2);
-                    }
-                    return parts.join(".");
-                }
-                else {
-                    return "0.00";
-                }
-            }
-
-            // Formatter for displaying dates
-            function DateFormatter(row, cell, value, columnDef, dataContext) {
-                // console.log("invoice date format");
-                if (value != undefined) {
-                    dateObject = new Date(Date.parse(value));
-                    dateReadable = dateObject.toDateString();
-                    return dateReadable;
-                }
-                else {
-                    return "";
-                }
-            }
-
-            // formatter for the paid checkbox
-            function CheckmarkFormatter(row, cell, value, columnDef, dataContext) {
-                return value ? '<i class="fa fa-check-square-o fa-lg"></i>' : '<i class="fa fa-square-o fa-lg"></i>';
-              }
-
-
-            grid.onAddNewRow.subscribe(function (e, args) {
-                var item = args.item;
-                if (item.invoicenumber){
-                    item.orderid = $scope.selectedOrder.ID;
-                    item.date = new Date();
-                    // add the invoice to the database
-                    var req = {
-                        method: 'POST',
-                        url: globalServerURL + 'invoice/' + item.orderid+ '/',
-                        data: item,
-                    }
-                    $http(req).success(function(response) {
-                        console.log("Invoice added");
-                        item = response;
-                        $scope.invoiceList.push(item);
-                    });
-                }
-                else{
-                    console.log("An invoice number needs to be entered first.");
-                }
-            });
-
-            // observe the invoice list for changes and update the slickgrid
-            $scope.$watch(attrs.invoices, function(invoicelist) {
-                // console.log("invoice list change");
-                var columns = [
-                    {id: "invoicenumber", name: "Invoice Number", field: "invoicenumber", cssClass: "cell-title editable-column",
-                     width: invoices_column_width.invoicenumber, editor: Slick.Editors.Text},
-                    {id: "date", name: "Date", field: "date", cssClass: "cell editable-column",
-                     width: invoices_column_width.date, formatter: DateFormatter, editor: Slick.Editors.Date},
-                    {id: "amount", name: "Amount", field: "amount", cssClass: "cell editable-column",
-                     width: invoices_column_width.amount, formatter: CurrencyFormatter, editor: Slick.Editors.Float},
-                    {id: "paid", name: "Paid", field: "paid", cssClass: "cell editable-column",
-                     width: invoices_column_width.paid, formatter: CheckmarkFormatter, editor: Slick.Editors.Checkbox}];
-                if (invoicelist.length > 0) {
-                    grid.setColumns(columns);
-                    dataView.beginUpdate();
-                    dataView.setItems(invoicelist);
-                    dataView.endUpdate();
-                    grid.render();
-                }
-                else {
-                    grid.setColumns(columns);
-                    dataView.beginUpdate();
-                    dataView.setItems([]);
-                    dataView.endUpdate();
-                    grid.render();
-                }
-            }, true);
-
-            $scope.deleteSelectedRow = function(){
-                // console.log("invoice row deleted");
-                var selectedrows = grid.getSelectedRows();
-                var len = selectedrows.length;
-                if (len > 0){
-                    for(var i=0;i<len;i++){
-                        var data = grid.getData().getItem(selectedrows[i]);
-                        var sure= confirm("Delete invoice " + data.invoicenumber + "?");
-                        if (!data.paid){
-                            if(sure){
-                                dataView.deleteItem(data.id)
-                                var req = {
-                                    method: 'DELETE',
-                                    url: globalServerURL + 'invoice/' + data.id + '/'
-                                }
-                                $http(req).success(function() {
-                                    console.log("Invoice deleted");
-                                });
-                            }
-                        }
-                        else{
-                            console.log("Can't delete paid invoice.");
-                        }
-                    }
-                }
-                else{
-                    console.log("No invoice selected");
-                }
-            }
-
-            // on cell change update the invoice in the database
-            grid.onCellChange.subscribe(function (e, ctx) {
-                // console.log("invoice cell changed");
-                var item = ctx.item
-                if (item.invoicenumber){
-                    var req = {
-                        method: 'PUT',
-                        url: globalServerURL + 'invoice/' + item.id + '/',
-                        data: item,
-                    }
-                    $http(req).success(function(response) {
-                        console.log("Invoice edited");
-                    });
-                }
-            });
+            ctrl.$formatters.unshift(
+               function (modelValue) {
+                   return $filter('number')(parseFloat(modelValue) , 2);
+               }
+           );
         }
-    }
-}]);
+    };
+});

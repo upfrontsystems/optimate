@@ -2131,43 +2131,260 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
     }
 ]);
 
-/* directive for validating float types */
-allControllers.directive('smartFloat', function ($filter) {
-    var FLOAT_REGEXP_1 = /^\$?\d+.(\d{3})*(\,\d*)$/; //Numbers like: 1.123,56
-    var FLOAT_REGEXP_2 = /^\$?\d+,(\d{3})*(\.\d*)$/; //Numbers like: 1,123.56
-    var FLOAT_REGEXP_3 = /^\$?\d+(\.\d*)?$/; //Numbers like: 1123.56
-    var FLOAT_REGEXP_4 = /^\$?\d+(\,\d*)?$/; //Numbers like: 1123,56
+// controller for the Invoice data from the server
+allControllers.controller('invoicesController', ['$scope', '$http', 'globalServerURL', 'sharedService', '$timeout',
+    function($scope, $http, globalServerURL, sharedService, $timeout) {
 
-    return {
-        require: 'ngModel',
-        link: function (scope, elm, attrs, ctrl) {
-            ctrl.$parsers.unshift(function (viewValue) {
-                if (FLOAT_REGEXP_1.test(viewValue)) {
-                    ctrl.$setValidity('float', true);
-                    return parseFloat(viewValue.replace('.', '').replace(',', '.'));
-                } else if (FLOAT_REGEXP_2.test(viewValue)) {
-                        ctrl.$setValidity('float', true);
-                        return parseFloat(viewValue.replace(',', ''));
-                } else if (FLOAT_REGEXP_3.test(viewValue)) {
-                        ctrl.$setValidity('float', true);
-                        return parseFloat(viewValue);
-                } else if (FLOAT_REGEXP_4.test(viewValue)) {
-                        ctrl.$setValidity('float', true);
-                        return parseFloat(viewValue.replace(',', '.'));
-                }else {
-                    ctrl.$setValidity('float', false);
-                    return undefined;
-                }
+        toggleMenu('invoices');
+        $scope.dateTimeNow = function() {
+            $scope.date = new Date();
+        };
+        $scope.dateTimeNow();
+        $scope.isDisabled = false;
+        $scope.isCollapsed = true;
+        $scope.jsoninvoices = [];
+        $scope.invoiceList = [];
+        $scope.modalForm = [];
+
+        // loading the project, client and supplier list
+        $scope.clearFilters = function() {
+            $scope.filters = [];
+            $http.get(globalServerURL + 'orders')
+            .success(function(data) {
+                $scope.ordersList = data;
             });
 
-            ctrl.$formatters.unshift(
-               function (modelValue) {
-                   return $filter('number')(parseFloat(modelValue) , 2);
-               }
-           );
+            $http.get(globalServerURL + 'projects/')
+            .success(function(data) {
+                $scope.projectsList = data;
+            });
+
+            $http.get(globalServerURL + 'suppliers')
+            .success(function(data) {
+                $scope.suppliersList = data;
+            });
+
+            $http.get(globalServerURL + 'clients')
+            .success(function(data) {
+                $scope.clientsList = data;
+            });
         }
-    };
-});
+        $scope.ordersList = [];
+        $scope.projectsList = [];
+        $scope.suppliersList = [];
+        $scope.clientsList = [];
+        $scope.clearFilters();
+
+        $scope.loadInvoiceSection = function() {
+            var req = {
+                method: 'GET',
+                url: globalServerURL + 'invoices',
+                params: {'Project': $scope.filters.Project,
+                        'Client': $scope.filters.Client,
+                        'Supplier': $scope.filters.Supplier,
+                        'OrderNumber': $scope.filters.OrderNumber,
+                        'InvoiceNumber': $scope.filters.InvoiceNumber,
+                        'PaymentDate': $scope.filters.PaymentDate,
+                        'Status': $scope.filters.Status}
+            };
+            $http(req).success(function(response) {
+                $scope.jsoninvoices = response;
+                console.log("Invoices loaded");
+            });
+        }
+        $scope.loadInvoiceSection();
+
+        // filter the other filter options by what is selected
+        $scope.filterBy = function(selection) {
+            var req = {
+                method: 'GET',
+                url: globalServerURL + 'invoices/filter',
+                params: $scope.filters
+            };
+            $http(req).success(function(response) {
+                if (selection == 'project') {
+                    if ($scope.filters.Project == null) {
+                        $scope.projectsList = response['projects'];
+                    }
+                    $scope.clientsList = response['clients'];
+                    $scope.suppliersList = response['suppliers'];
+                }
+                else if (selection == 'client') {
+                    if ($scope.filters.Client == null) {
+                        $scope.clientsList = response['clients'];
+                    }
+                    $scope.projectsList = response['projects'];
+                    $scope.suppliersList = response['suppliers'];
+                }
+                else if (selection == 'supplier') {
+                    if ($scope.filters.Supplier == null) {
+                        $scope.suppliersList = response['suppliers'];
+                    }
+                    $scope.clientsList = response['clients'];
+                    $scope.projectsList = response['projects'];
+                }
+                else {
+                    $scope.projectsList = response['projects'];
+                    $scope.clientsList = response['clients'];
+                    $scope.suppliersList = response['suppliers'];
+                }
+            })
+        };
+
+        // Adding or editing an invoice
+        $scope.save = function() {
+            // check if saving is disabled, if not disable it and save
+            if (!$scope.isDisabled) {
+                $scope.isDisabled = true;
+                // convert the date to json format
+                $scope.formData['Date'] = $scope.date.toJSON();
+                if ($scope.modalState == 'Edit') {
+                    $http({
+                        method: 'PUT',
+                        url: globalServerURL + 'invoice' + '/' + $scope.formData['invoicenumber'] + '/',
+                        data: $scope.formData
+                    }).success(function (response) {
+                        // edit the invoice in the list
+                        $scope.handleEdited(response);
+                        $scope.formData = {'NodeType': 'invoice'};
+                    });
+                }
+                else{
+                    $http({
+                        method: 'POST',
+                        url: globalServerURL + 'invoice/0/',
+                        data: $scope.formData
+                    }).success(function (response) {
+                        // add the new invoice to the list
+                        $scope.handleNew(response);
+                        $scope.formData = {'NodeType': 'invoice'};
+                    });
+                }
+            }
+        };
+
+        // add a new invoice to the list and sort
+        $scope.handleNew = function(newinvoice) {
+            console.log(newinvoice)
+            $scope.jsoninvoices.push(newinvoice);
+            // sort by invoice id
+            $scope.jsoninvoices.sort(function(a, b) {
+                var idA = a.invoicenumber;
+                var idB = b.invoicenumber;
+                return (idA > idB) ? -1 : (idA < idB) ? 1 : 0;
+            });
+            console.log ("Invoice added");
+        }
+
+        // handle editing an invoice
+        $scope.handleEdited = function(editedinvoice) {
+            // search for the invoice and edit in the list
+            var result = $.grep($scope.jsoninvoices, function(e) {
+                return e.invoicenumber == editedinvoice.invoicenumber;
+            });
+            var i = $scope.jsoninvoices.indexOf(result[0]);
+            if (i>-1) {
+                $scope.jsoninvoices[i] = editedinvoice;
+            }
+            console.log ("Invoice edited");
+        };
+
+        // Set the selected invoice and change the css
+        $scope.showActionsFor = function(obj) {
+            $scope.selectedInvoice = obj;
+            $('#invoice-'+obj.invoicenumber).addClass('active').siblings().removeClass('active');
+        };
+
+        // When the Add button is pressed change the state and form data
+        $scope.addingState = function () {
+            $scope.formData.TaxRate = undefined;
+            $scope.formData = {'NodeType': 'invoice',
+                                'TaxRate': false};
+            $scope.isCollapsed = true;
+            $scope.isDisabled = false;
+            $scope.modalState = "Add";
+            $scope.dateTimeNow();
+            $scope.formData.invoicedate = $scope.date;
+            $scope.formData.paymentdate = undefined;
+            if ($scope.selectedInvoice) {
+                $('#invoice-'+$scope.selectedInvoice.invoicenumber).removeClass('active');
+                $scope.selectedInvoice = undefined;
+            }
+        }
+
+        // When the edit button is pressed change the state and set the data
+        $scope.editingState = function () {
+            $scope.formData.TaxRate = undefined;
+            $scope.formData.TaxRate = false;
+            $scope.isCollapsed = true;
+            $scope.isDisabled = false;
+            $scope.modalState = "Edit";
+            $http({
+                method: 'GET',
+                url: globalServerURL + 'invoice/' + $scope.selectedInvoice.invoicenumber + '/'
+            }).success(function(response) {
+                $scope.formData = response;
+                $scope.formData.invoicedate = new Date($scope.formData.invoicedate);;
+                $scope.formData.paymentdate = new Date($scope.formData.paymentdate);;
+                $scope.formData['NodeType'] = 'invoice';
+            });
+        }
+
+        // Delete an invoice and remove from the list
+        $scope.deleteInvoice = function() {
+            var deleteid = $scope.selectedInvoice.invoicenumber;
+            $scope.selectedInvoice = undefined;
+            $http({
+                method: 'DELETE',
+                url: globalServerURL + 'invoice' + '/' + deleteid + '/'
+            }).success(function () {
+                var result = $.grep($scope.jsoninvoices, function(e) {
+                    return e.invoicenumber == deleteid;
+                });
+                var i = $scope.jsoninvoices.indexOf(result[0]);
+                if (i>-1) {
+                    $scope.jsoninvoices.splice(i, 1);
+                    console.log("Deleted invoice");
+                }
+            });
+        };
+
+
+        $scope.getReport = function (report) {
+            if ( report == 'invoice' ) {
+                var target = document.getElementsByClassName('pdf_download');
+                var spinner = new Spinner().spin(target[0]);
+                $http({
+                    method: 'POST',
+                    url: globalServerURL + 'invoice_report/' + $scope.selectedInvoice.invoicenumber + '/'},
+                    {responseType: 'arraybuffer'
+                }).success(function (response, status, headers, config) {
+                    spinner.stop(); // stop the spinner - ajax call complete
+                    var file = new Blob([response], {type: 'application/pdf'});
+                    var fileURL = URL.createObjectURL(file);
+                    var result = document.getElementsByClassName("pdf_download");
+                    var anchor = angular.element(result);
+                    var filename_header = headers('Content-Disposition');
+                    var filename = filename_header.split('filename=')[1];
+                    anchor.attr({
+                        href: fileURL,
+                        target: '_blank',
+                        download: filename
+                    })[0].click();
+                    // clear the anchor so that everytime a new report is linked
+                    anchor.attr({
+                        href: '',
+                        target: '',
+                        download: ''
+                    });
+                }).error(function(data, status, headers, config) {
+                    console.log("Invoice pdf download error")
+                });
+            }
+        };
+
+    }
+]);
 
 allControllers.run(['$cacheFactory', function($cacheFactory) {
     $cacheFactory('optimate.resources')

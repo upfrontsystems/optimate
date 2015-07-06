@@ -104,6 +104,58 @@ if __name__ == '__main__':
     Base.metadata.create_all(engine)
 
     with transaction.manager:
+        # add the companyinformation
+        print "Adding Company Information"
+        companybook = xlrd.open_workbook(exceldatapath + 'CompanyProfile.xls')
+        sheet = companybook.sheet_by_index(0)
+        code = sheet.cell(1, 0).value
+        try:
+            name = sheet.cell(1, 1).value
+            name = name.encode('ascii')
+        except UnicodeEncodeError, u:
+            name = unicodedata.normalize('NFKD',
+                                name).encode('ascii', 'ignore')
+        try:
+            address = sheet.cell(1, 2).value
+            address = address.encode('ascii')
+        except UnicodeEncodeError, u:
+            address = unicodedata.normalize('NFKD',
+                                address).encode('ascii', 'ignore')
+        tel = sheet.cell(1, 3).value
+        fax = sheet.cell(1, 4).value
+        cell = sheet.cell(1, 5).value
+        tax = float(sheet.cell(1, 8).value)
+        try:
+            bankname = sheet.cell(1, 2).value
+            bankname = bankname.encode('ascii')
+        except UnicodeEncodeError, u:
+            bankname = unicodedata.normalize('NFKD',
+                                bankname).encode('ascii', 'ignore')
+        bankcode = sheet.cell(1, 10).value
+        accnum = sheet.cell(1, 11).value
+        try:
+            accname = sheet.cell(1, 2).value
+            accname = accname.encode('ascii')
+        except UnicodeEncodeError, u:
+            accname = unicodedata.normalize('NFKD',
+                                accname).encode('ascii', 'ignore')
+
+        companyinfo = CompanyInformation(ID = code,
+                Name = name,
+                Address = address,
+                Tel = tel,
+                Fax = fax,
+                Cell = cell,
+                BankName = bankname,
+                BranchCode = bankcode,
+                AccountNo = accnum,
+                AccountName = accname,
+                DefaultTaxrate = tax)
+
+        DBSession.add(companyinfo)
+        transaction.commit()
+
+
         # add the root node
         root = Node(ID=0)
         DBSession.add(root)
@@ -133,7 +185,7 @@ if __name__ == '__main__':
                 city = city.encode('ascii')
             except UnicodeEncodeError, u:
                 city = unicodedata.normalize('NFKD',
-                                    name).encode('ascii', 'ignore')
+                                    city).encode('ascii', 'ignore')
 
             if len(city) > 0:
                 existingcity = DBSession.query(City).filter_by(Name=city).first()
@@ -152,7 +204,7 @@ if __name__ == '__main__':
                 city = city.encode('ascii')
             except UnicodeEncodeError, u:
                 city = unicodedata.normalize('NFKD',
-                                    name).encode('ascii', 'ignore')
+                                    city).encode('ascii', 'ignore')
 
             if len(city) > 0:
                 existingcity = DBSession.query(City).filter_by(Name=city).first()
@@ -171,7 +223,7 @@ if __name__ == '__main__':
                 city = city.encode('ascii')
             except UnicodeEncodeError, u:
                 city = unicodedata.normalize('NFKD',
-                                    name).encode('ascii', 'ignore')
+                                    city).encode('ascii', 'ignore')
 
             if len(city) > 0:
                 existingcity = DBSession.query(City).filter_by(Name=city).first()
@@ -224,7 +276,7 @@ if __name__ == '__main__':
                 city = city.encode('ascii')
             except UnicodeEncodeError, u:
                 city = unicodedata.normalize('NFKD',
-                                    name).encode('ascii', 'ignore')
+                                    city).encode('ascii', 'ignore')
 
             try:
                 clientid = int(sheet.cell(x, clientidindex).value)
@@ -1003,7 +1055,7 @@ if __name__ == '__main__':
                 city = city.encode('ascii')
             except UnicodeEncodeError, u:
                 city = unicodedata.normalize('NFKD',
-                                    name).encode('ascii', 'ignore')
+                                    city).encode('ascii', 'ignore')
 
 
 

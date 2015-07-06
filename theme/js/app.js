@@ -57,7 +57,11 @@ myApp.config(['$routeProvider', '$httpProvider',
       when('/orders', {
         templateUrl: 'partials/orders.html',
         controller: 'ordersController'
-      });
+      }).
+      when('/invoices', {
+        templateUrl: 'partials/invoices.html',
+        controller: 'invoicesController'
+      });;
     $httpProvider.interceptors.push(function($window){
         return {
             request: function (config) {

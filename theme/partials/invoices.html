@@ -2,47 +2,52 @@
     <div class="container-fluid">
         <ul class="nav nav-pills">
             <li>
-                <a title="Add Order"
+                <a title="Add Invoice"
                     data-ng-click="addingState()"
-                    data-target="#saveOrderModal"
+                    data-target="#saveInvoiceModal"
                     data-toggle="modal">
                         <i class="fa fa-plus-square"></i>
                 </a>
             </li>
-            <li ng-show="selectedOrder">
-                <a title="Edit Order"
+            <li ng-show="selectedInvoice">
+                <a title="Edit Invoice"
                     data-ng-click="editingState()"
-                    data-target="#saveOrderModal"
+                    data-target="#saveInvoiceModal"
                     data-toggle="modal">
                         <i class="fa fa-pencil"></i>
                 </a>
             </li>
-            <li ng-show="selectedOrder">
-                <a title="Delete Order"
-                    data-target="#deleteOrderModal"
+            <li ng-show="selectedInvoice">
+                <a title="Delete Invoice"
+                    data-target="#deleteInvoiceModal"
                     data-toggle="modal">
                         <i class="fa fa-trash"></i>
                 </a>
             </li>
-            <li ng-show="selectedOrder">
-                <a title="Order Report"
-                data-ng-click="getReport('order')"
+            <li ng-show="selectedInvoice">
+                <a title="Invoice Report"
+                data-ng-click="getReport('invoice')"
                 class="pdf_download">
                 <i class="fa fa-file-pdf-o"></i></a>
                 <a class="pdf_hidden_download"></a> <!-- hidden anchor for download hook -->
             </li>
-            <li class="order-filters-flexbox active">
+            <li class="invoice-filters-flexbox active">
                 <input type="number"
                        data-ng-model="filters.OrderNumber"
                        data-ng-model-options="{ debounce: 500 }"
                        placeholder="Order number"
-                       data-ng-change="loadOrderSection(); filterBy('ordernumber')">
+                       data-ng-change="loadInvoiceSection(); filterBy('ordernumber')">
+                <input type="number"
+                       data-ng-model="filters.InvoiceNumber"
+                       data-ng-model-options="{ debounce: 500 }"
+                       placeholder="Invoice number"
+                       data-ng-change="loadInvoiceSection(); filterBy('invoicenumber')">
                <select chosen
                         class="filter-bar"
                         id="projectFilter"
                         data-ng-model="filters.Project"
                         data-ng-options="project.ID as project.Name for project in projectsList"
-                        data-ng-change="loadOrderSection(); filterBy('project')">
+                        data-ng-change="loadInvoiceSection(); filterBy('project')">
                     <option value="">Project</option>
                 </select>
                 <select chosen
@@ -50,7 +55,7 @@
                         id="clientFilter"
                         data-ng-model="filters.Client"
                         data-ng-options="client.ID as client.Name for client in clientsList"
-                        data-ng-change="loadOrderSection(); filterBy('client')">
+                        data-ng-change="loadInvoiceSection(); filterBy('client')">
                     <option value="">Client</option>
                 </select>
                 <select chosen
@@ -58,11 +63,21 @@
                         id="supplierFilter"
                         data-ng-model="filters.Supplier"
                         data-ng-options="supplier.ID as supplier.Name for supplier in suppliersList"
-                        data-ng-change="loadOrderSection(); filterBy('supplier')">
+                        data-ng-change="loadInvoiceSection(); filterBy('supplier')">
                     <option value="">Supplier</option>
                 </select>
+                <input type="number"
+                       data-ng-model="filters.PaymentDate"
+                       data-ng-model-options="{ debounce: 500 }"
+                       placeholder="Payment date"
+                       data-ng-change="loadInvoiceSection(); filterBy('paymentdate')">
+                <input type="text"
+                       data-ng-model="filters.Status"
+                       data-ng-model-options="{ debounce: 500 }"
+                       placeholder="Status"
+                       data-ng-change="loadInvoiceSection(); filterBy('status')">
                 <a href=""
-                        data-ng-click="clearFilters(); loadOrderSection()">
+                        data-ng-click="clearFilters(); loadInvoiceSection()">
                     Clear
                 </a>
             <li>
@@ -71,61 +86,48 @@
     </div>
 </nav>
 
-<pagination boundary-links="true"
-            total-items="orderListLength"
-            items-per-page="pageSize"
-            data-ng-model="currentPage"
-            data-ng-change="loadOrderSection()"
-            max-size="maxPageSize"
-            class="pagination-sm nav-center"
-            previous-text="&lsaquo;"
-            next-text="&rsaquo;"
-            first-text="&laquo;"
-            last-text="&raquo;">
-</pagination>
-
-<div custom-modals modal-id="saveOrderModal"
-    modal-type="order"
-    modal-src="modal_templates/saveOrderModal.html">
+<div custom-modals modal-id="saveInvoiceModal"
+    modal-type="invoice"
+    modal-src="modal_templates/saveInvoiceModal.html">
 </div>
 
-<div id="deleteOrderModal" class="modal" tabindex='-1'>
+<div id="deleteInvoiceModal" class="modal" tabindex='-1'>
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-body">
-                <h4>Delete order {{selectedOrder.ID}}</h4>
+                <h4>Delete invoice {{selectedInvoice.InvoiceNumber}}</h4>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-dismiss="modal" data-ng-click="deleteOrder()">Delete</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" data-ng-click="deleteInvoice()">Delete</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
             </div>
         </div>
     </div>
 </div>
 <div class="container-fluid">
-    <div id="orders" class="row">
+    <div id="invoices" class="row">
         <table class="table">
             <thead>
                 <tr>
+                    <th>Invoice Number</th>
                     <th>Order Number</th>
-                    <th>Order Date</th>
                     <th>Project</th>
                     <th>Supplier</th>
-                    <th>Client</th>
-                    <th class="currency">Total</th>
+                    <th class="currency">Invoice Total</th>
+                    <th>Payment Date</th>
                     <th>Status</th>
                 </tr>
             </thead>
             <tbody>
-                <tr ng-repeat="obj in jsonorders"
-                    ng-click="showActionsFor(obj)" id="order-{{obj.ID}}">
-                    <td>{{obj.ID}}</td>
-                    <td>{{obj.Date}}</td>
-                    <td>{{obj.Project}}</td>
-                    <td>{{obj.Supplier}}</td>
-                    <td>{{obj.Client}}</td>
-                    <td class="currency">{{obj.Total}}</td>
-                    <td>{{obj.Status}}</td>
+                <tr ng-repeat="obj in jsoninvoices"
+                    ng-click="showActionsFor(obj)" id="invoice-{{obj.InvoiceNumber}}">
+                    <td>{{obj.invoicenumber}}</td>
+                    <td>{{obj.orderid}}</td>
+                    <td>{{obj.project}}</td>
+                    <td>{{obj.supplier}}</td>
+                    <td class="currency">{{obj.amount}}</td>
+                    <td>{{obj.paymentdate}}</td>
+                    <td>{{obj.status}}</td>
                 </tr>
             </tbody>
         </table>

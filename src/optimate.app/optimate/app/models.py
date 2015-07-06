@@ -1958,32 +1958,83 @@ class Invoice(Base):
     """ Table for invoices
     """
     __tablename__ = 'Invoice'
-    ID = Column(Integer, primary_key=True)
+    InvoiceNumber = Column(Integer, primary_key=True)
     OrderID = Column(Integer, ForeignKey('Order.ID'))
-    InvoiceNumber = Column(Text(50), unique=True)
-    Date = Column(DateTime)
+    InvoiceDate = Column(DateTime)
+    PaymentDate = Column(DateTime)
     Amount = Column(Numeric)
-    Paid = Column(Boolean, default=False)
 
     Order = relationship('Order',
                               backref=backref('Invoices'))
+
+    @property
+    def ProjectID(self):
+        """ Return the id of the Project this Invoice's Order uses
+        """
+        return self.Order.ProjectID
+
+    @property
+    def ClientID(self):
+        """ Return the id of the Client this Invoice's Order uses
+        """
+        return self.Order.ClientID
+
+    @property
+    def SupplierID(self):
+        """ Return the id of the Supplier this Invoice's Order uses
+        """
+        return self.Order.SupplierID
+
+    @property
+    def Status(self):
+        """ Return paid if the payment date is in the past, otherwise unpaid
+        """
+        if self.PaymentDate:
+            if self.PaymentDate < datetime.now():
+                return 'Paid'
+            else:
+                return 'Unpaid'
+        else:
+            return 'Unpaid'
+
+    def tableData(self):
+        """ Return a dictionary with the values used in displaying the
+            invoice in a table
+        """
+        # get the date in json format
+        jsonindate = None
+        if self.InvoiceDate:
+            jsonindate = self.InvoiceDate.strftime("%d %B %Y")
+        jsonpaydate = None
+        if self.PaymentDate:
+            jsonpaydate = self.PaymentDate.strftime("%d %B %Y")
+        return {'invoicenumber':self.InvoiceNumber,
+                'orderid': self.OrderID,
+                'project': self.Order.Project.Name,
+                'supplier': self.Order.Supplier.Name,
+                'amount': str(self.Amount),
+                'paymentdate': jsonpaydate,
+                'status': self.Status}
 
     def toDict(self):
         """ Returns a dictionary of this Invoice
         """
         # get the date in json format
-        jsondate = None
-        if self.Date:
-            jsondate = self.Date.isoformat()
-        return {'id': self.ID,
+        jsonpaydate = None
+        if self.PaymentDate:
+            jsonpaydate = self.PaymentDate.isoformat()
+        jsonindate = None
+        if self.InvoiceDate:
+            jsonindate = self.InvoiceDate.isoformat()
+        return {'invoicenumber': self.InvoiceNumber,
                 'orderid': self.OrderID,
-                'invoicenumber': self.InvoiceNumber,
-                'date': jsondate,
+                'invoicedate': jsonindate,
+                'paymentdate': jsonpaydate,
                 'amount' : str(self.Amount),
-                'paid': self.Paid}
+                'status': self.Status}
 
     def __repr__(self):
-        """Return a representation of this invoice
+        """ Return a representation of this invoice
         """
-        return '<Invoice(ID="%s", OrderID="%s", InvoiceNumber="%s")>' % (
-            self.ID, self.OrderID, self.InvoiceNumber)
+        return '<Invoice(InvoiceNumber="%s", OrderID="%s")>' % (
+            self.InvoiceNumber, self.OrderID)

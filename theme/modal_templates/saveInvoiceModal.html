@@ -1,0 +1,111 @@
+<div id="saveInvoiceModal" class="modal fade">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h3 class="modal-title">{{modalState}} an {{formData.NodeType}}</h3>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" name="saveInvoiceModalForm" novalidate>
+                    <div class="form-group"
+                        ng-class="{'has-error': saveInvoiceModalForm.inputOrderNumber.$invalid}">
+                        <label for="inputOrderNumber" class="col-sm-2 control-label">Order Number:</label>
+                        <select chosen
+                                class="col-sm-7"
+                                id="inputOrderNumber"
+                                name="inputOrderNumber"
+                                data-ng-model="formData.orderid"
+                                data-ng-options="order.ID as order.ID for order in ordersList"
+                                required>
+                            <option value="">Select an order</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputInvoiceDate" class="col-sm-2 control-label">Invoice Date:</label>
+                        <div id="inputInvoiceDate"
+                            class="dropdown">
+                            <a class="dropdown-toggle"
+                                id="dateInvoiceDropdown"
+                                role="button"
+                                data-toggle="dropdown" href="">
+                                <div class="input-group">
+                                    <input type="text"
+                                            date-parser="DD/MM/YYYY"
+                                            class="col-sm-7 form-control"
+                                            data-ng-model="formData.invoicedate">
+                                    <span class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </span>
+                                </div>
+                            </a>
+                            <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                                <datetimepicker data-ng-model="formData.invoicedate"
+                                    data-datetimepicker-config="{ dropdownSelector: '#dateDropdown' ,
+                                                                    minView:'day'}"/>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputPaymentDate" class="col-sm-2 control-label">Payment Date:</label>
+                        <div id="inputPaymentDate"
+                            class="dropdown">
+                            <a class="dropdown-toggle"
+                                id="datePaymentDropdown"
+                                role="button"
+                                data-toggle="dropdown" href="">
+                                <div class="input-group">
+                                    <input type="text"
+                                            date-parser="DD/MM/YYYY"
+                                            class="col-sm-7 form-control"
+                                            data-ng-model="formData.paymentdate">
+                                    <span class="input-group-addon">
+                                        <i class="fa fa-calendar"></i>
+                                    </span>
+                                </div>
+                            </a>
+                            <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                                <datetimepicker data-ng-model="formData.paymentdate"
+                                    data-datetimepicker-config="{ dropdownSelector: '#dateDropdown' ,
+                                                                    minView:'day'}"/>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="form-group"
+                        ng-class="{'has-error': saveInvoiceModalForm.inputAmount.$invalid}">
+                        <label for="inputAmount" class="col-sm-2 control-label">Amount:</label>
+                        <input type="text"
+                               class="col-sm-7"
+                               id="inputAmount"
+                               name="inputAmount"
+                               ng-model="formData.amount"
+                               smart-float>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputTaxRate" class="col-sm-2 control-label">Calculate VAT:</label>
+                        <button class="custom-checkbox"
+                                id="inputTaxRate"
+                                name="inputTaxRate"
+                                data-ng-click="formData['TaxRate'] = !formData['TaxRate']">
+                              <i data-ng-class="{true:'fa fa-check-square-o',false:'fa fa-square-o'}[formData['TaxRate']]"
+                                  class="checkbox-icon">
+                              </i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button data-ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal"
+                 data-ng-disabled="!saveInvoiceModalForm.$valid" data-ng-click="save()">
+                    Save
+                </button>
+                <button data-ng-show="modalState == 'Edit'" class="btn btn-primary" data-dismiss="modal"
+                 data-ng-disabled="!saveInvoiceModalForm.$valid" data-ng-click="save()">
+                    Update
+                </button>
+                <button class="btn btn-default" data-dismiss="modal">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
