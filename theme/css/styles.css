@@ -241,4 +241,7 @@ label.filters-label {
     width: 100% !important;
 }
 
-
+/* datepicker restrict size */
+.dropdown-toggle .input-group {
+    width: 150px;
+}

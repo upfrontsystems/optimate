@@ -2165,7 +2165,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
             var end = start + $scope.pageSize;
             var req = {
                 method: 'GET',
-                url: globalServerURL + 'orders',
+                url: globalServerURL + 'valuations',
                 params: {'start': start,
                         'end': end}
             };

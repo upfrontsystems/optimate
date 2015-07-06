@@ -989,7 +989,7 @@ allControllers.directive('budgetgrouplickgridjs', ['globalServerURL', 'sharedSer
                     var valuationtotal = 0.0;
                     var gridlist = [];
                     for (var i=0;i<budgetgrouplist.length; i++) {
-                        budgerordertotal += parseFloat(budgetgrouplist[i].total);
+                        budgetgrouptotal += parseFloat(budgetgrouplist[i].total);
                     }
                     gridlist = budgetgrouplist.slice(0);
                     var totals = {'id': 'T' + budgetgrouplist[0].id,

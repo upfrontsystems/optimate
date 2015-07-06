@@ -1775,11 +1775,6 @@ def valuationsview(request):
     valuationlist = []
     for valuation in section:
         valuationlist.append(valuation.toDict())
-    # check if the length needs to change
-    length = None
-    if setLength:
-        length = qry.count()
-    valuationlist.append(length)
     return valuationlist
 
 
