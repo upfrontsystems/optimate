@@ -497,6 +497,7 @@ class BudgetGroup(Node):
                 'Description' : self.Description,
                 'Ordered': str(self.Ordered),
                 'Invoiced': str(self.Invoiced),
+                'NodeType': self.type,
                 'budg_cost': str(self.Total),
                 'order_cost': str(self.OrderCost),
                 'run_cost': str(self.RunningCost),
@@ -781,6 +782,7 @@ class BudgetItem(Node):
                 'ItemQuantity': self.ItemQuantity,
                 'Ordered': str(self.Ordered),
                 'Invoiced': str(self.Invoiced),
+                'NodeType': self.type,
                 'budg_cost': str(self.Total),
                 'order_cost': str(self.OrderCost),
                 'run_cost': str(self.RunningCost),
@@ -1056,6 +1058,7 @@ class ComponentMixin(object):
                 'Rate': str(self.Rate),
                 'Quantity': self.Quantity,
                 'ResourceType': self.Type,
+                'NodeType': self.type,
                 'ItemQuantity': self.ItemQuantity,
                 'Ordered': str(self.Ordered),
                 'Invoiced': str(self.Invoiced),
@@ -1217,7 +1220,8 @@ class Component(Node, ComponentMixin):
         di.update({
             'ResourceID': self.ResourceID,
             'ResourceName': resource.Name,
-            'OverheadList': overheadlist
+            'OverheadList': overheadlist,
+            'NodeType': self.type
         })
         return di
 
@@ -1621,7 +1625,7 @@ class Resource(Node):
                 'unit': self.unitName(),
                 'node_type': self.type,
                 'rate': str(self.Rate),
-                'type': self.Type}
+                'resource_type': self.Type}
 
     def __eq__(self, other):
         """ Test for equality on the Resource product Code

@@ -71,7 +71,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                 'unit': 75,
                                 'ordered': 75,
                                 'invoiced': 75,
-                                'type': 75};
+                                'resource_type': 75};
                         localStorage["projects_column_width"] = JSON.stringify(projects_column_width);
 
                     }
@@ -230,8 +230,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                  width: projects_column_width.rate, formatter: CurrencyFormatter, editor: Slick.Editors.Float},
                                  {id: "unit", name: "Unit", field: "unit",
                                 width: projects_column_width.unit, cssClass: "cell non-editable-column"},
-                                 {id: "type", name: "Type", field: "type",
-                                width: projects_column_width.type, cssClass: "cell non-editable-column"},
+                                 {id: "resource_type", name: "Resource Type", field: "resource_type",
+                                width: projects_column_width.resource_type, cssClass: "cell non-editable-column"},
                             ];
                         }
                         else if (secondtype == 'ResourceCategory') {
@@ -429,7 +429,6 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                            },
                                     });
                                 }
-                                console.log(data[i]['node_type'])
                                 if (data[i]['node_type'] == 'BudgetItem') {
                                     grid.setCellCssStyles("non-editable-cell", {
                                        i: {
@@ -552,7 +551,6 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
 
             // load the columns widths (if any) from local storage
             $scope.preloadWidths = function () {
-                // console.log("component preloadWidths");
                 if (hasStorage) {
                     try {
                         orders_column_width = JSON.parse(localStorage["orders_column_width"])

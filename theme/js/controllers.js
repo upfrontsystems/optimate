@@ -1105,6 +1105,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 url: globalServerURL + 'node/' + nodeid + '/'
             }
             $http(req).success(function(response) {
+                var nodetype = response.NodeType;
                 $scope.formData = response;
                 $scope.formData['NodeType'] = nodetype;
                 $scope.formData['ID'] = nodeid;
@@ -1342,12 +1343,12 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                             'duplicates': selectionlist}
                 }).success(function () {
                     console.log('Success: Resource Category pasted');
-                    sharedService.reloadSlickgrid(nodeid);
-                    $scope.loadNodeChildren(nodeid);
                     // expand the node if this is its first child
                     if ($scope.currentNode.Subitem.length == 0) {
                         $scope.currentNode.collapsed = true;
                     }
+                    sharedService.reloadSlickgrid(nodeid);
+                    $scope.loadNodeChildren(nodeid);
                 }).error(function() {
                     console.log("Server error");
                 });
