@@ -24,6 +24,10 @@ allControllers.factory('sharedService', ['$rootScope',
         shared.reloadOrderSlickgrid = function() {
             $rootScope.$broadcast('handleReloadOrderSlickgrid');
         }
+
+        shared.reloadValuationSlickgrid = function() {
+            $rootScope.$broadcast('handleReloadValuationSlickgrid');
+        }
         return shared;
 }]);
 
@@ -2124,6 +2128,368 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                     });
                 }).error(function(data, status, headers, config) {
                     console.log("Order pdf download error")
+                });
+            }
+        };
+
+    }
+]);
+
+// controller for the Valuation data from the server
+allControllers.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 'sharedService', '$timeout',
+    function($scope, $http, globalServerURL, sharedService, $timeout) {
+
+        toggleMenu('valuations');
+        $scope.dateTimeNow = function() {
+            $scope.date = new Date();
+        };
+        $scope.dateTimeNow();
+        $scope.isDisabled = false;
+        $scope.isCollapsed = true;
+        $scope.jsonvaluations = [];
+        $scope.budgetgroupList = [];
+        $scope.modalForm = [];
+        // Pagination variables and functions
+        $scope.pageSize = 100;
+        $scope.currentPage = 1;
+        $scope.maxPageSize = 20;
+        $scope.valuationListLength = $scope.maxPageSize + 1;
+
+        // get the length of the list of all the orders
+        $http.get(globalServerURL + 'valuations/length').success(function(data) {
+            $scope.valuationListLength = data['length'];
+        });
+
+        $scope.loadValuationSection = function() {
+            var start = ($scope.currentPage-1)*$scope.pageSize;
+            var end = start + $scope.pageSize;
+            var req = {
+                method: 'GET',
+                url: globalServerURL + 'orders',
+                params: {'start': start,
+                        'end': end}
+            };
+            $http(req).success(function(response) {
+                var length = response.pop();
+                $scope.jsonvaluations = response;
+                if (length) {
+                    $scope.valuationListLength = length;
+                }
+                console.log("Valuations loaded");
+            });
+        }
+        $scope.loadValuationSection();
+
+        // Adding or editing a valuation
+        $scope.save = function() {
+            // check if saving is disabled, if not disable it and save
+            if (!$scope.isDisabled) {
+                $scope.isDisabled = true;
+                // set the list of checked budgetgroups
+                $scope.formData['BudgetGroupList'] = $scope.budgetgroupList;
+                // convert the date to json format
+                $scope.formData['Date'] = $scope.date.toJSON();
+                if ($scope.modalState == 'Edit') {
+                    $http({
+                        method: 'PUT',
+                        url: globalServerURL + $scope.formData['NodeType'] + '/' + $scope.formData['ID'] + '/',
+                        data: $scope.formData
+                    }).success(function (response) {
+                        // edit the order in the list
+                        $scope.handleEdited(response);
+                        $scope.formData = {'NodeType': $scope.formData['NodeType']};
+                    });
+                }
+                else{
+                    $http({
+                        method: 'POST',
+                        url: globalServerURL + $scope.formData['NodeType'] + '/0/',
+                        data: $scope.formData
+                    }).success(function (response) {
+                        // add the new order to the list
+                        $scope.handleNew(response);
+                        $scope.formData = {'NodeType': $scope.formData['NodeType']};
+                    });
+                }
+            }
+        };
+
+        // add a new valuation to the list and sort
+        $scope.handleNew = function(newvaluation) {
+            // the new valuation is added to the list
+            var high = $scope.jsonvaluations[0].ID + 2;
+            var low = $scope.jsonvaluations[$scope.jsonvaluations.length - 1].ID + 2;
+            // only need to add it if it's id falls in the current section
+            if (newvaluation.ID > low && newvaluation.ID < high) {
+                $scope.jsonvaluations.push(newvaluation);
+                // sort by order id
+                $scope.jsonvaluations.sort(function(a, b) {
+                    var idA = a.ID;
+                    var idB = b.ID;
+                    return (idA > idB) ? -1 : (idA < idB) ? 1 : 0;
+                });
+            }
+            console.log ("Valuation added");
+        }
+
+        // handle editing a valuation
+        $scope.handleEdited = function(editedvaluation) {
+            // search for the order and edit in the list
+            var result = $.grep($scope.jsonvaluations, function(e) {
+                return e.ID == editedvaluation.ID;
+            });
+            var i = $scope.jsonvaluations.indexOf(result[0]);
+            if (i>-1) {
+                $scope.jsonvaluations[i] = editedvaluation;
+            }
+            console.log ("Valuation edited");
+        };
+
+        // Set the selected order and change the css
+        $scope.showActionsFor = function(obj) {
+            $scope.selectedValuation = obj;
+            $('#valuation-'+obj.ID).addClass('active').siblings().removeClass('active');
+        };
+
+        // When the Add button is pressed change the state and form data
+        $scope.addingState = function () {
+            $scope.formData = {'NodeType': 'valuation'};
+            $scope.isCollapsed = true;
+            $scope.isDisabled = false;
+            $scope.modalState = "Add";
+            $scope.dateTimeNow();
+            $scope.formData['Date'] = $scope.date;
+            $scope.budgetgroupList = [];
+            if ($scope.selectedValuation) {
+                $('#valuation-'+$scope.selectedValuation.ID).removeClass('active');
+                $scope.selectedValuation = undefined;
+            }
+        }
+
+        // When the edit button is pressed change the state and set the data
+        $scope.editingState = function () {
+            $scope.isCollapsed = true;
+            $scope.isDisabled = false;
+            $scope.modalState = "Edit";
+            $http({
+                method: 'GET',
+                url: globalServerURL + 'valuation/' + $scope.selectedValuation.ID + '/'
+            }).success(function(response) {
+                $scope.formData = response;
+                $scope.loadProject()
+                $scope.budgetgroupList = $scope.formData['BudgetGroupList'];
+                $scope.date = new Date($scope.formData['Date']);
+                $scope.formData['NodeType'] = 'order';
+            });
+        }
+
+        // Delete a valuation and remove from the valuations list
+        $scope.deleteValuation = function() {
+            var deleteid = $scope.selectedValuation.ID;
+            $scope.selectedValuation = undefined;
+            $http({
+                method: 'DELETE',
+                url: globalServerURL + $scope.formData['NodeType'] + '/' + deleteid + '/'
+            }).success(function () {
+                var result = $.grep($scope.jsonvaluations, function(e) {
+                    return e.ID == deleteid;
+                });
+                var i = $scope.jsonvaluations.indexOf(result[0]);
+                if (i>-1) {
+                    $scope.jsonvaluations.splice(i, 1);
+                    console.log("Deleted valuation");
+                }
+            });
+        };
+
+        $scope.toggleBudgetgroups = function(bg) {
+            // set the budgetgroup selected or unselected
+            var flag = (bg.selected === true) ? undefined : true;
+            bg.selected = flag;
+            // find the budgetgroup in the budgetgroup list
+            var i = $scope.budgetgroupList.map(function(e)
+                { return e.id; }).indexOf(bg.ID);
+            // if the budgetgroup is already in the list
+            // and the node is deselected
+            if ((i>-1) &(!flag)) {
+                // remove it
+                $scope.budgetgroupList.splice(i, 1);
+            }
+            // if the budgetgroup is not in the list
+            // and the node is being selected
+            else if ((i==-1) & flag) {
+                // add the budgetgroup
+                $scope.budgetgroupList.push(bg);
+            }
+        }
+
+        // remove a budgetgroup from the budgetgroup list
+        $scope.removeBudgetgroup = function(node) {
+            var deleteid = node.ID;
+            var result = $.grep($scope.budgetgroupList, function(e) {
+                    return e.id == deleteid;
+            });
+            var i = $scope.budgetgroupList.indexOf(result[0]);
+            if (i>-1) {
+                $scope.budgetgroupList.splice(i, 1);
+                // loop through all the open nodes and if the checked budgetgroup
+                // is in it uncheck the budgetgroup
+                for (var i = 0; i<$scope.openProjectsList.length; i++) {
+                    var subitem = $scope.openProjectsList[i].Subitem || [];
+                    if (subitem.length > 0) {
+                        $scope.uncheckBudgetgroup(deleteid, subitem);
+                    }
+                }
+
+            }
+        };
+
+        $scope.uncheckBudgetgroup = function(budgetgroupId, subitem) {
+            for (var i = 0; i<subitem.length; i++) {
+                if (subitem[i].ID == budgetgroupId) {
+                    subitem[i].selected = false;
+                    break;
+                }
+                else{
+                    var subsubitem = subitem[i].Subitem || [];
+                    if (subsubitem.length > 0) {
+                        $scope.uncheckBudgetgroup(budgetgroupId, subsubitem);
+                    }
+                }
+            }
+        }
+
+        $scope.toggleNode = function(node) {
+            // when a node that is not a budgetgroup is selected
+            // flag the node, set the selection on all its children
+            // load the budgetgroups in the node and toggle them in the
+            // budgetgroup list
+            var flag = (node.selected === true) ? undefined : true;
+            node.selected = flag;
+            var nodeid = node.ID;
+            var subitems = node['Subitem'];
+            // select the subitems
+            for (var i = 0; i<subitems.length; i++) {
+                subitems[i].selected = flag;
+                var subsubitem = subitems[i]['Subitem'] || [];
+                if (subsubitem.length > 0) {
+                    $scope.toggleSubitems(subsubitem, flag);
+                }
+            }
+            // add the components to the list
+            $http.get(globalServerURL + 'node/' + nodeid + '/budgetgroups/')
+            .success(function(response) {
+                for (var v = 0; v<response.length; v++) {
+                    var bg = response[v];
+                    // find the budgetgroup in the budgetgroup list
+                    var i = $scope.budgetgroupList.map(function(e)
+                        { return e.id; }).indexOf(bg.ID);
+                    // if the budgetgroup is already in the list
+                    // and the node is deselected
+                    if ((i>-1) &(!flag)) {
+                        // remove it
+                        $scope.budgetgroupList.splice(i, 1);
+                    }
+                    // if the budgetgroup is not in the list
+                    // and the node is being selected
+                    else if ((i==-1) & flag) {
+                        // add the budgetgroup
+                        $scope.budgetgroupList.push(bg);
+                    }
+                }
+            });
+        };
+
+        $scope.toggleSubitems = function(subitem, selected) {
+            // recursively select/unselect all the children of a node
+            for (var i = 0; i<subitem.length; i++) {
+                subitem[i].selected = selected;
+                var subsubitem = subitem[i]['Subitem'] || [];
+                if (subsubitem.length > 0) {
+                    $scope.toggleSubitems(subsubitem, selected);
+                }
+            }
+        };
+
+        $scope.toggleBudgetGroupGrid = function() {
+            $scope.isCollapsed = !$scope.isCollapsed;
+            if ($scope.isCollapsed) {
+                sharedService.reloadValuationSlickgrid();
+            }
+        };
+
+        $scope.openProjectsList = [];
+        // load the project that has been selected into the tree
+        $scope.loadProject = function () {
+            var id = $scope.formData['ProjectID']
+            $http.get(globalServerURL + 'node/' + id + '/')
+            .success(function(data) {
+                $scope.openProjectsList = [data];
+                $scope.selectNodeHead(data);
+            });
+        };
+
+        // if node head clicks, get the children of the node
+        // and collapse or expand the node
+        $scope.selectNodeHead = function(selectedNode) {
+            // if the node is collapsed, get the data and expand the node
+            if (!selectedNode.collapsed) {
+                selectedNode.collapsed = true;
+                var parentid = selectedNode.ID;
+                $http.get(globalServerURL + "valuations/tree/" + parentid + '/').success(function(data) {
+                    selectedNode.Subitem = data;
+                    // check if any of the budgetgroup are in the budgetgroup list
+                    // and select then
+                    for (var i = 0; i<selectedNode.Subitem.length; i++) {
+                        if (selectedNode.Subitem[i].NodeType == 'BudgetGroup') {
+                            for (var b = 0; b<$scope.budgetgroupList.length; b++) {
+                                if ($scope.budgetgroupList[b].ID == selectedNode.Subitem[i].ID) {
+                                    selectedNode.Subitem[i].selected = true;
+                                }
+                            }
+                        }
+                        // for all the other node set the same state as the parent
+                        else {
+                            selectedNode.Subitem[i].selected = selectedNode.selected;
+                        }
+                    }
+                    console.log("Children loaded");
+                });
+            }
+            else{
+                selectedNode.collapsed = false;
+            }
+        };
+
+        $scope.getReport = function (report) {
+            if ( report == 'valuation' ) {
+                var target = document.getElementsByClassName('pdf_download');
+                var spinner = new Spinner().spin(target[0]);
+                $http({
+                    method: 'POST',
+                    url: globalServerURL + 'valuation_report/' + $scope.selectedValuation.ID + '/'},
+                    {responseType: 'arraybuffer'
+                }).success(function (response, status, headers, config) {
+                    spinner.stop(); // stop the spinner - ajax call complete
+                    var file = new Blob([response], {type: 'application/pdf'});
+                    var fileURL = URL.createObjectURL(file);
+                    var result = document.getElementsByClassName("pdf_download");
+                    var anchor = angular.element(result);
+                    var filename_header = headers('Content-Disposition');
+                    var filename = filename_header.split('filename=')[1];
+                    anchor.attr({
+                        href: fileURL,
+                        target: '_blank',
+                        download: filename
+                    })[0].click();
+                    // clear the anchor so that everytime a new report is linked
+                    anchor.attr({
+                        href: '',
+                        target: '',
+                        download: ''
+                    });
+                }).error(function(data, status, headers, config) {
+                    console.log("Valuation pdf download error")
                 });
             }
         };

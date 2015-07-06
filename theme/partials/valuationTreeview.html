@@ -1,0 +1,48 @@
+<script type="text/ng-template" id="angularValuationTree.html">
+  <div ui-tree-handle class="tree-node order-tree-node-content">
+      <input type="button"
+          class="collapsed"
+          data-ng-show="node.Subitem.length && node.collapsed"
+          data-ng-click="selectNodeHead(node)">
+      </input>
+      <input type="button"
+          class="expanded"
+          data-ng-show="node.Subitem.length && !node.collapsed"
+          data-ng-click="selectNodeHead(node)">
+      </button>
+      <input type="button"
+        class="normal"
+        data-ng-hide="node.Subitem.length">
+      </input>
+      <span class="circle {{node.NodeType}}">&nbsp;{{node.NodeTypeAbbr}}&nbsp;</span>
+      <span class="order-tree-node"
+          id="{{node.ID}}">
+          {{node.Name}}
+      </span>
+      <button class="custom-checkbox align-right"
+              data-ng-show="{{node.NodeType == 'BudgetGroup'}}"
+              data-ng-click="toggleNode(node)">
+          <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o'}[node.selected]"
+              class="checkbox-icon">
+          </i>
+      </button>
+  </div>
+  <ol ui-tree-nodes ng-model="node.Subitem" data-ng-hide="!node.collapsed" data-type="{{node.NodeType}}">
+      <li ng-repeat="node in node.Subitem"
+          data-type="{{node.NodeType}}"
+          ui-tree-node
+          ng-include="'angularValuationTree.html'">
+      </li>
+  </ol>
+</script>
+
+<div ui-tree="treeOptions"
+    data-max-depth="0"
+    data-drag-enabled="false"
+    id="tree-root">
+    <ol ui-tree-nodes ng-model="openProjectsList">
+        <li ng-repeat="node in openProjectsList"
+            ui-tree-node
+            data-ng-include="'angularValuationTree.html'"></li>
+    </ol>
+</div>
