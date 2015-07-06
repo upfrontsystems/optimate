@@ -90,6 +90,8 @@ def main(global_config, **settings):
     config.add_route('unitview', '/unit/{id}/')
     config.add_route('citiesview', '/cities')
     config.add_route('cityview', '/city/{id}/')
+
+    # orders
     config.add_route('ordersview', '/orders')
     config.add_route('orderview', '/order/{id}/')
     config.add_route('orders_length', '/orders/length')
@@ -97,6 +99,12 @@ def main(global_config, **settings):
     config.add_route('orders_tree_view', '/orders/tree/{id}/')
     config.add_route('invoicesview', '/invoices')
     config.add_route('invoiceview', '/invoice/{id}/')
+
+    # valuations
+    config.add_route('valuationsview', '/valuations')
+    config.add_route('valuationview', '/valuation/{id}/')
+    config.add_route('valuations_length', '/valuations/length')
+    config.add_route('valuations_tree_view', '/valuations/tree/{id}/')
 
     # Editing users
     config.add_route('usersview', '/users', factory=makeProtected(Administrator))

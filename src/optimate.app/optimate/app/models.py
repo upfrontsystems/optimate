@@ -1098,6 +1098,7 @@ class ComponentMixin(object):
         """
         self.Ordered = ordered
 
+
 class Component(Node, ComponentMixin):
     """ A component represents a unique component in the project.
         It can be the child of a budgetitem
@@ -2025,11 +2026,14 @@ class ValuationItem(Base):
     """ A table to hold valuation items. """
     __tablename__ = 'ValuationItem'
     ID = Column(Integer, primary_key=True)
+    ValuationID = Column(Integer, ForeignKey('Valuation.ID'))
     BudgetGroupID = Column(Integer, ForeignKey('BudgetGroup.ID'))
     PercentageComplete = Column(Numeric)
 
     BudgetGroup = relationship('BudgetGroup',
                               backref=backref('BudgetGroups'))
+    Valuation = relationship('Valuation',
+                              backref=backref('ValuationItems'))
 
     def toDict(self):
         """ Returns a dictionary of this ValuationItem

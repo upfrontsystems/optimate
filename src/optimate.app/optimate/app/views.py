@@ -45,7 +45,9 @@ from optimate.app.models import (
     User,
     Order,
     OrderItem,
-    Invoice
+    Invoice,
+    Valuation,
+    ValuationItem
 )
 
 # the categories the resources fall into
@@ -139,30 +141,6 @@ def node_children(request):
     completelist = sorted_categories + sorted_childrenlist
 
     return completelist
-
-
-@view_config(route_name="orders_tree_view", renderer='json')
-def orders_tree_view(request):
-    """ This view is for when the user requests the children of a node
-        in the order tree. The nodes used by the orders use a different format
-        than the projects tree view
-    """
-
-    parentid = request.matchdict['id']
-    childrenlist = []
-
-    qry = DBSession.query(Node).filter_by(ID=parentid).first()
-    # build the list and only get the neccesary values
-    if qry != None:
-        for child in qry.Children:
-            if child.type == 'Component':
-                childrenlist.append(child.toOrderDict())
-            elif child.type != 'ResourceCategory':
-                childrenlist.append(child.toChildDict())
-
-    # sort childrenlist
-    sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'].upper())
-    return sorted_childrenlist
 
 
 @view_config(route_name="nodeview", renderer='json')
@@ -584,6 +562,7 @@ def search_resources(top, search):
     resources = top.getResources()
     search = search.lower()
     return [r for r in resources if search in r.Name.lower()]
+
 
 @view_config(route_name="project_resources", renderer='json')
 @view_config(route_name="resources", renderer='json')
@@ -1471,6 +1450,30 @@ def cityview(request):
     return {'Name': city.Name, 'ID': city.ID}
 
 
+@view_config(route_name="orders_tree_view", renderer='json')
+def orders_tree_view(request):
+    """ This view is for when the user requests the children of a node
+        in the order tree. The nodes used by the orders use a different format
+        than the projects tree view
+    """
+
+    parentid = request.matchdict['id']
+    childrenlist = []
+
+    qry = DBSession.query(Node).filter_by(ID=parentid).first()
+    # build the list and only get the neccesary values
+    if qry != None:
+        for child in qry.Children:
+            if child.type == 'Component':
+                childrenlist.append(child.toOrderDict())
+            elif child.type != 'ResourceCategory':
+                childrenlist.append(child.toChildDict())
+
+    # sort childrenlist
+    sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'].upper())
+    return sorted_childrenlist
+
+
 @view_config(route_name='ordersview', renderer='json')
 def ordersview(request):
     """ The ordersview returns a list in json format of a section of the orders
@@ -1725,6 +1728,196 @@ def orderview(request):
             'ClientID': order.ClientID,
             'Total': str(total),
             'ComponentsList': componentslist,
+            'Date': jsondate}
+
+
+@view_config(route_name="valuations_tree_view", renderer='json')
+def valuations_tree_view(request):
+    """ This view is for when the user requests the children of a node
+        in the valuations tree. The nodes used by the orders use a different 
+        format than the projects tree view
+    """
+
+    parentid = request.matchdict['id']
+    childrenlist = []
+
+    qry = DBSession.query(Node).filter_by(ID=parentid).first()
+    # build the list and only get the neccesary values
+    if qry != None:
+        for child in qry.Children:
+            if child.type == 'Component':
+                childrenlist.append(child.toOrderDict())
+            elif child.type != 'ResourceCategory':
+                childrenlist.append(child.toChildDict())
+
+    # sort childrenlist
+    sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'].upper())
+    return sorted_childrenlist
+
+
+@view_config(route_name='valuationsview', renderer='json')
+def valuationsview(request):
+    """ The valuationsview returns a list in json format of a section of the 
+        valuations in the server database
+    """
+    paramsdict = request.params.dict_of_lists()
+    paramkeys = paramsdict.keys()
+    qry = DBSession.query(Valuation).order_by(Valuation.ID.desc())
+
+    # cut the section
+    if 'start' not in paramkeys:
+        start = 0
+        end = -1
+    else:
+        start = int(paramsdict['start'][0])
+        end = int(paramsdict['end'][0])
+    section = qry.slice(start,end).all()
+    valuationlist = []
+    for valuation in section:
+        valuationlist.append(valuation.toDict())
+    # check if the length needs to change
+    length = None
+    if setLength:
+        length = qry.count()
+    valuationlist.append(length)
+    return valuationlist
+
+
+@view_config(route_name='valuations_length', renderer='json')
+def valuations_length(request):
+    """ Returns the number of valuations in the database
+    """
+    rows = DBSession.query(func.count(Valuation.ID)).scalar()
+    return {'length': rows}
+
+
+@view_config(route_name='valuationview', renderer='json')
+def valuationview(request):
+    """ The valuationview handles different cases for valuations
+        depending on the http method
+    """
+    # if the method is delete, delete the order
+    if request.method == 'DELETE':
+        deleteid = request.matchdict['id']
+        # Deleting it from the table deletes the object
+        deletethis = DBSession.query(Valuation).filter_by(ID=deleteid).first()
+        # update the component ordered amounts
+        for valuationitem in deletethis.ValuationItems:
+            valuationitem.BudgetGroup.Ordered = (valuationitem.BudgetGroup.Ordered -
+                                                valuationitem.Total)
+        qry = DBSession.delete(deletethis)
+        if qry == 0:
+            return HTTPNotFound()
+        transaction.commit()
+
+        return HTTPOk()
+
+    # if the method is post, add a new order
+    if request.method == 'POST':
+        user = request.json_body.get('UserCode', '')
+        auth = request.json_body.get('Authorisation', '')
+        proj = request.json_body.get('ProjectID', None)
+        # XXX
+
+        # convert to date from json format
+        date = request.json_body.get('Date', None)
+        if date:
+            date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
+        newvaluation = Valuation(UserCode=user,
+                                 Authorisation=auth,
+                                 ProjectID=proj,
+                                 DeliveryAddress=address,
+                                 Date=date)
+        DBSession.add(newvaluation)
+        DBSession.flush()
+        # add the valuation items to the valuation
+        newid = newvaluation.ID
+        budgetgrouplist = request.json_body.get('BudgetGroupList', [])
+        for budgetgroup in budgetgrouplist:
+            p_complete = float(budgetgroup.get('percentage_complete', 0))
+            neworderitem = ValuationItem(ValuationID=newid,
+                                         BudgetGroupID=budgetgroup['ID'],
+                                         PercentageComplete=p_complete)
+            DBSession.add(newvaluationitem)
+        transaction.commit()
+        # return the new valuation
+        newvaluation = DBSession.query(Valuation).filter_by(ID=newid).first()
+        return newvaluation.toDict()
+
+    # if the method is put, edit an existing valuation
+    if request.method == 'PUT':
+        valuation = DBSession.query(
+                       Valuation).filter_by(ID=request.matchdict['id']).first()
+
+        user = request.json_body.get('UserCode', '')
+        auth = request.json_body.get('Authorisation', '')
+        proj = request.json_body.get('ProjectID', None)
+        # convert to date from json format
+        date = request.json_body.get('Date', None)
+        if date:
+            date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
+
+        valuation.UserCode=user
+        valuation.Authorisation=auth
+        valuation.ProjectID=proj
+        valuation.Date = date
+
+        # get a list of id's used in the valuationitems
+        iddict = {}
+        for valuationitem in valuation.ValuationItems:
+            iddict[valuationitem.BudgetGroupID] = valuationitem.ID
+        # get the list of budget groups used in the form
+        budgetgrouplist = request.json_body.get('BudgetGroupList', [])
+        # iterate through the new id's and add any new validations
+        # remove the id from the list if it is there already
+        for budgetgroup in budgetgrouplist:
+            if budgetgroup['ID'] not in iddict.keys():
+                # add the new validation item
+                p_complete = float(budgetgroup.get('percentage_complete', 0))
+
+                newvalidationitem = ValidationItem(ValidationID=validation.ID,
+                                               ComponentID=component['ID'],
+                                               PercentageComplete=p_complete)
+                DBSession.add(newvalidationitem)
+            else:
+                # otherwise remove the id from the list and update the
+                # percentage complete
+                validationitemid = iddict[budgetgroup['ID']]
+                validationitem = DBSession.query(ValidationItem).filter_by(
+                                    ID=validationitemid).first()
+                validationitem.PercentageComplete = \
+                    float(budgetgroup['percentage_complete'])
+                del iddict[budgetgroup['ID']]
+        # delete the leftover id's
+        for oldid in iddict.values():
+            deletethis = DBSession.query(
+                            ValidationItem).filter_by(ID=oldid).first()
+            qry = DBSession.delete(deletethis)
+
+        transaction.commit()
+        # return the edited validation
+        validation = DBSession.query(
+                      Validation).filter_by(ID=request.matchdict['id']).first()
+        return validation.toDict()
+
+    # otherwise return the selected validation
+    validationid = request.matchdict['id']
+    validation = DBSession.query(Valuation).filter_by(ID=valuationid).first()
+    # build a list of the valuations used in the order from the valuation items
+    valuationslist = []
+    for valuationitem in valuation.ValuationItems:
+        if valuationitem.BudgetGroup:
+            budgetgrouplist.append(valuationitem.toDict())
+
+    budgetgrouplist = sorted(budgetgrouplist, key=lambda k: k['name'])
+    # get the date in json format
+    jsondate = None
+    if valuation.Date:
+        jsondate = valuation.Date.isoformat()
+
+    return {'ID': valuation.ID,
+            'ProjectID': valuation.ProjectID,
+            'BudgetGroupList': budgetgrouplist,
             'Date': jsondate}
 
 
