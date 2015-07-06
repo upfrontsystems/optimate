@@ -1833,9 +1833,9 @@ def invoice_filter(request):
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
     if 'InvoiceNumber' in paramkeys:
-        qry = qry.filter(InvoiceNumber.like(paramsdict['InvoiceNumber'][0]+'%'))
+        qry = qry.filter(Invoice.InvoiceNumber.like(paramsdict['InvoiceNumber'][0]+'%'))
     if 'OrderNumber' in paramkeys:
-        qry = qry.filter(OrderID.like(paramsdict['OrderNumber'][0]+'%'))
+        qry = qry.filter(Invoice.OrderID.like(paramsdict['OrderNumber'][0]+'%'))
     if 'Project' in paramkeys:
         qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
     if 'Client' in paramkeys:
@@ -1853,18 +1853,18 @@ def invoice_filter(request):
     clients = qry.distinct(Invoice.ClientID).group_by(Invoice.ClientID)
     clientlist = []
     for client in clients:
-        if client.Client:
-            clientlist.append({'Name': client.Client.Name, 'ID': client.ClientID})
+        if client.ClientID:
+            clientlist.append({'Name': client.Order.Client.Name, 'ID': client.ClientID})
     suppliers = qry.distinct(Invoice.SupplierID).group_by(Invoice.SupplierID)
     supplierlist = []
     for supplier in suppliers:
-        if supplier.Supplier:
-            supplierlist.append({'Name': supplier.Supplier.Name, 'ID': supplier.SupplierID})
+        if supplier.SupplierID:
+            supplierlist.append({'Name': supplier.Order.Supplier.Name, 'ID': supplier.SupplierID})
     projects = qry.distinct(Invoice.ProjectID).group_by(Invoice.ProjectID)
     projectlist = []
     for project in projects:
-        if project.Project:
-            projectlist.append({'Name': project.Project.Name, 'ID': project.ProjectID})
+        if project.ProjectID:
+            projectlist.append({'Name': project.Order.Project.Name, 'ID': project.ProjectID})
     return {'projects': sorted(projectlist, key=lambda k: k['Name'].upper()),
             'clients': sorted(clientlist, key=lambda k: k['Name'].upper()),
             'suppliers': sorted(supplierlist, key=lambda k: k['Name'].upper())}

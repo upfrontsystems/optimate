@@ -71,11 +71,14 @@
                        data-ng-model-options="{ debounce: 500 }"
                        placeholder="Payment date"
                        data-ng-change="loadInvoiceSection(); filterBy('paymentdate')">
-                <input type="text"
-                       data-ng-model="filters.Status"
-                       data-ng-model-options="{ debounce: 500 }"
-                       placeholder="Status"
-                       data-ng-change="loadInvoiceSection(); filterBy('status')">
+                <select class="filter-bar"
+                        id="statusFilter"
+                        data-ng-model="filters.Status"
+                        data-ng-change="loadInvoiceSection(); filterBy('status')">
+                    <option value="">Status</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Unpaid">Unpaid</option>
+                </select>
                 <a href=""
                         data-ng-click="clearFilters(); loadInvoiceSection()">
                     Clear
@@ -120,7 +123,7 @@
             </thead>
             <tbody>
                 <tr ng-repeat="obj in jsoninvoices"
-                    ng-click="showActionsFor(obj)" id="invoice-{{obj.InvoiceNumber}}">
+                    ng-click="showActionsFor(obj)" id="invoice-{{obj.invoicenumber}}">
                     <td>{{obj.invoicenumber}}</td>
                     <td>{{obj.orderid}}</td>
                     <td>{{obj.project}}</td>

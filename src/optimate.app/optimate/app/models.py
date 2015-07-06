@@ -22,6 +22,9 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     ForeignKeyConstraint,
+    func,
+    select,
+    case
 )
 
 from sqlalchemy.orm import (
@@ -1967,25 +1970,43 @@ class Invoice(Base):
     Order = relationship('Order',
                               backref=backref('Invoices'))
 
-    @property
+    @hybrid_property
     def ProjectID(self):
         """ Return the id of the Project this Invoice's Order uses
         """
         return self.Order.ProjectID
 
-    @property
+    @ProjectID.expression
+    def ProjectID(cls):
+        """ Expression to filter Invoice by ProjectID
+        """
+        return select([Order.ProjectID]).where(cls.OrderID == Order.ID).as_scalar()
+
+    @hybrid_property
     def ClientID(self):
         """ Return the id of the Client this Invoice's Order uses
         """
         return self.Order.ClientID
 
-    @property
+    @ClientID.expression
+    def ClientID(cls):
+        """ Expression to filter Invoice by ClientID
+        """
+        return select([Order.ClientID]).where(cls.OrderID == Order.ID).as_scalar()
+
+    @hybrid_property
     def SupplierID(self):
-        """ Return the id of the Supplier this Invoice's Order uses
+        """ Return the id   of the Supplier this Invoice's Order uses
         """
         return self.Order.SupplierID
 
-    @property
+    @SupplierID.expression
+    def SupplierID(cls):
+        """ Expression to filter Invoice by SupplierID
+        """
+        return select([Order.SupplierID]).where(cls.OrderID == Order.ID).as_scalar()
+
+    @hybrid_property
     def Status(self):
         """ Return paid if the payment date is in the past, otherwise unpaid
         """
@@ -1996,6 +2017,22 @@ class Invoice(Base):
                 return 'Unpaid'
         else:
             return 'Unpaid'
+
+    @Status.expression
+    def Status(cls):
+        """ Expression to filter Invoice by Status
+        """
+        # if self.PaymentDate:
+        #     if self.PaymentDate < datetime.now():
+        #         return 'Paid'
+        #     else:
+        #         return 'Unpaid'
+        # else:
+        #     return 'Unpaid'
+
+        return case([(cls.PaymentDate == None, "Unpaid")],
+                    [(cls.PaymentDate > DateTime(datetime.now()), "Unpaid")],
+                    else_="Paid")
 
     def tableData(self):
         """ Return a dictionary with the values used in displaying the
