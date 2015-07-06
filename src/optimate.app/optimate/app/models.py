@@ -1936,6 +1936,7 @@ class OrderItem(Base):
         return '<OrderItem(ID="%s", OrderID="%s", ComponentID="%s")>' % (
             self.ID, self.OrderID, self.ComponentID)
 
+
 class User(Base):
     """ A table to hold user and their roles. """
     __tablename__ = 'User'
@@ -1953,6 +1954,7 @@ class User(Base):
         h = hashlib.sha256((salt + password).encode('utf-8')).hexdigest()
         self.salt = unicode(salt)
         self.password = unicode(h)
+
 
 class Invoice(Base):
     """ Table for invoices
@@ -1987,3 +1989,58 @@ class Invoice(Base):
         """
         return '<Invoice(ID="%s", OrderID="%s", InvoiceNumber="%s")>' % (
             self.ID, self.OrderID, self.InvoiceNumber)
+
+
+class Valuation(Base):
+    """ A table to hold valuations. """
+    __tablename__ = 'Valuation'
+    ID = Column(Integer, primary_key=True)
+    ProjectID = Column(Integer, ForeignKey('Project.ID'))
+    Date = Column(DateTime)
+
+    Project = relationship('Project',
+                              backref=backref('Valuations'))
+
+    def toDict(self):
+        """ Returns a dictionary of this Valuation
+        """
+        if self.Date:
+            date = self.Date.strftime("%d %B %Y")
+        else:
+            date = ''
+        return {'ID': self.ID,
+                'Project': self.ProjectID,
+                'Date': date,
+                'PercentageClaimed': 'XX',
+                'AmountClaimed': 'XX'}
+
+    def __repr__(self):
+        """Return a representation of this valuation
+        """
+        return '<Validation(ID="%s", ProjectID="%s", Date="%s")>' % (
+            self.ID, self.ProjectID, self.Date)
+
+
+class ValuationItem(Base):
+    """ A table to hold valuation items. """
+    __tablename__ = 'ValuationItem'
+    ID = Column(Integer, primary_key=True)
+    BudgetGroupID = Column(Integer, ForeignKey('BudgetGroup.ID'))
+    PercentageComplete = Column(Numeric)
+
+    BudgetGroup = relationship('BudgetGroup',
+                              backref=backref('BudgetGroups'))
+
+    def toDict(self):
+        """ Returns a dictionary of this ValuationItem
+        """
+        return {'ID': self.ID,
+                'BudgetGroup': self.BudgetGroupID,
+                'PercentageComplete': self.PercentageComplete}
+
+    def __repr__(self):
+        """Return a representation of this valuation item
+        """
+        return '<ValidationItem(ID="%s", BudgetGroupID="%s")>' % (
+            self.ID, self.BudgetGroupID)
+
