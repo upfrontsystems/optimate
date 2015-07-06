@@ -1,0 +1,94 @@
+<nav class="navbar navbar-default navbar-fixed-top action-bar">
+    <div class="container-fluid">
+        <ul class="nav nav-pills">
+            <li>
+                <a title="Add Valuation"
+                    data-ng-click="addingState()"
+                    data-target="#saveValuationModal"
+                    data-toggle="modal">
+                        <i class="fa fa-plus-square"></i>
+                </a>
+            </li>
+            <li ng-show="selectedValuation">
+                <a title="Edit Valuation"
+                    data-ng-click="editingState()"
+                    data-target="#saveValuationModal"
+                    data-toggle="modal">
+                        <i class="fa fa-pencil"></i>
+                </a>
+            </li>
+            <li ng-show="selectedValuation">
+                <a title="Delete Valuation"
+                    data-target="#deleteValuationModal"
+                    data-toggle="modal">
+                        <i class="fa fa-trash"></i>
+                </a>
+            </li>
+            <li ng-show="selectedValuation">
+                <a title="Valuation Report"
+                data-ng-click="getReport('valuation')"
+                class="pdf_download">
+                <i class="fa fa-file-pdf-o"></i></a>
+                <a class="pdf_hidden_download"></a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<pagination boundary-links="true"
+            total-items="valuationListLength"
+            items-per-page="pageSize"
+            data-ng-model="currentPage"
+            data-ng-change="loadValuationSection()"
+            max-size="maxPageSize"
+            class="pagination-sm nav-center"
+            previous-text="&lsaquo;"
+            next-text="&rsaquo;"
+            first-text="&laquo;"
+            last-text="&raquo;">
+</pagination>
+
+<div custom-modals modal-id="saveValuationModal"
+    modal-type="valuation"
+    modal-src="modal_templates/saveValuationModal.html">
+</div>
+
+<div id="deleteValuationModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h4>Delete valuation {{selectedValuation.ID}}</h4>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal" data-ng-click="deleteValuation()">Delete</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div id="valuations" class="row">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Valuation Number</th>
+                    <th>Project</th>
+                    <th>Valuation Date</th>
+                    <th>% Claimed</th>
+                    <th class="currency">Amount Claimed</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="obj in jsonvaluations"
+                    ng-click="showActionsFor(obj)" id="valuation-{{obj.ID}}">
+                    <td>{{obj.ID}}</td>
+                    <td>{{obj.Project}}</td>
+                    <td>{{obj.Date}}</td>
+                    <td>{{obj.PercentageClaimed}}</td>
+                    <td class="currency">{{obj.AmountClaimed}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
