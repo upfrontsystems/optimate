@@ -3,7 +3,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h3 class="modal-title">{{modalState}} an {{formData.NodeType}}</h3>
+                <h3 class="modal-title">{{modalState}} a {{formData.NodeType}}</h3>
             </div>
             <div class="modal-body">
                 <div data-ng-show="isCollapsed">
@@ -13,7 +13,7 @@
                             <p class="col-sm-7"
                                     id="valuationNumber"
                                     name="valuationNumber">
-                                    {{selectedOrder.ID}}
+                                    {{selectedValuation.ID}}
                             </p>
                         </div>
                         <div class="form-group"
@@ -59,9 +59,9 @@
                             <label for="valuation_budgetgroups" class="col-sm-2 control-label">Budget Groups:</label>
                             <div id="valuation_budgetgroups" class="row form-group">
                                 <div id="budgetgroup-data-grid-outer">
-                                    <budgetgrouplickgridjs id="budgetgroup-data-grid"
-                                                        components="budgetgroupList">
-                                    </budgetgrouplickgridjs>
+                                    <budgetgroupslickgridjs id="budgetgroup-data-grid"
+                                                        budgetgroups="budgetgroupList">
+                                    </budgetgroupslickgridjs>
                                 </div>
                             </div>
                         </div>

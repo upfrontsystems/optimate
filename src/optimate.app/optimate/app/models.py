@@ -244,6 +244,18 @@ class Project(Node):
                 componentslist += child.getComponents()
         return componentslist
 
+    def getBudgetGroups(self):
+        """ Returns a list of all the budgetgroups that contained in this 
+            budgetgroup.
+        """
+        budgetgrouplist = []
+        for child in self.Children:
+            if child.type == 'BudgetGroup':
+                budgetgrouplist.append(child)
+            else:
+                budgetgrouplist += child.getBudgetGroups()
+        return budgetgrouplist
+
     def toDict(self):
         """ Return a dictionary of the attributes of this Project
         """
@@ -474,6 +486,18 @@ class BudgetGroup(Node):
             else:
                 componentlist += child.getComponents()
         return componentlist
+
+    def getBudgetGroups(self):
+        """ Returns a list of all the budgetgroups that contained in this 
+            budgetgroup.
+        """
+        budgetgrouplist = []
+        for child in self.Children:
+            if child.type == 'BudgetGroup':
+                budgetgrouplist.append(child)
+            else:
+                budgetgrouplist += child.getBudgetGroups()
+        return budgetgrouplist
 
     def toChildDict(self):
         """ Returns a dictionary of this node used in the childview

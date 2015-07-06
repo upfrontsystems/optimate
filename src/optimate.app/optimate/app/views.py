@@ -542,6 +542,19 @@ def node_components(request):
     return itemlist
 
 
+@view_config(route_name="node_budgetgroups", renderer='json')
+def node_budgetgroups(request):
+    """ Retrieves and returns all the budgetgroups in a node
+    """
+    nodeid = request.matchdict['id']
+    qry = DBSession.query(Node).filter_by(ID=nodeid).first()
+    budgetgrouplist = qry.getComponents()
+    itemlist = []
+    for bg in budgetgrouplist:
+        itemlist.append(bg.toValuationDict())
+    return itemlist
+
+
 @view_config(route_name="projects", renderer='json')
 def projects(request):
     """ Returns a list of all the Projects in the database

@@ -852,7 +852,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
 }]);
 
 
-allControllers.directive('budgetgrouplickgridjs', ['globalServerURL', 'sharedService', '$http', '$timeout',
+allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedService', '$http', '$timeout',
     function(globalServerURL, sharedService, $http, $timeout) {
     return {
         require: '?ngModel',
@@ -885,20 +885,20 @@ allControllers.directive('budgetgrouplickgridjs', ['globalServerURL', 'sharedSer
                     }
                     catch (exception) {
                         console.log("No columns widths found in storage. Setting to default.");
-                        orders_column_width= {'name': 150,
-                                              'percentage_complete': 75};
+                        orders_column_width= {'name': 250,
+                                              'percentage_complete': 150};
                         localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
                     }
                     if ( valuations_column_width.length == 0 ) {
-                        valuations_column_width= {'name': 150,
-                                                  'percentage_complete': 75};
+                        valuations_column_width= {'name': 250,
+                                                  'percentage_complete': 150};
                         localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
                     }
                 }
                 else {
                     console.log("LOCAL STORAGE NOT SUPPORTED")
-                    valuations_column_width= {'name': 150,
-                                              'percentage_complete': 75};
+                    valuations_column_width= {'name': 250,
+                                              'percentage_complete': 150};
                 }
             };
             $scope.preloadWidths();

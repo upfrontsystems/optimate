@@ -77,6 +77,7 @@ def main(global_config, **settings):
     config.add_route('node_paste', 'node/{id}/paste/')
     config.add_route('node_cost', 'node/{id}/cost/')
     config.add_route('node_components', 'node/{id}/components/')
+    config.add_route('node_budgetgroups', 'node/{id}/budgetgroups/')
     config.add_route('resourcecategory_allresources', 'resourcecategory/{id}/allresources/')
     config.add_route('resourcecategory_resources', 'resourcecategory/{id}/resources/')
 

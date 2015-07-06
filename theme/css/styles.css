@@ -229,6 +229,18 @@ label.filters-label {
     width: 60%;
     height: 100%;
 }
+
+#budgetgroup-data-grid-outer {
+    height: 300px;
+/*    height: -moz-calc(100vh / 2);
+    height: -webkit-calc(100vh / 2);
+    height: calc(100vh / 2);*/
+}
+#budgetgroup-data-grid {
+    width: 60%;
+    height: 100%;
+}
+
 .LSHighlight {
     background-color: #2764d7;
 }

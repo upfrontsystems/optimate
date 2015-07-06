@@ -26,7 +26,7 @@ allControllers.factory('sharedService', ['$rootScope',
         }
 
         shared.reloadValuationSlickgrid = function() {
-            $rootScope.$broadcast('handleReloadValuationSlickgrid');
+            $rootScope.$broadcast('handleReloadValuationOrderSlickgrid');
         }
         return shared;
 }]);
@@ -2160,6 +2160,11 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
             $scope.valuationListLength = data['length'];
         });
 
+        $http.get(globalServerURL + 'projects/')
+        .success(function(data) {
+            $scope.projectsList = data;
+        });
+
         $scope.loadValuationSection = function() {
             var start = ($scope.currentPage-1)*$scope.pageSize;
             var end = start + $scope.pageSize;
@@ -2411,9 +2416,11 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
             }
         };
 
-        $scope.toggleBudgetGroupGrid = function() {
+        $scope.toggleBudgetgroupGrid = function() {
             $scope.isCollapsed = !$scope.isCollapsed;
+            console.log($scope.isCollapsed);
             if ($scope.isCollapsed) {
+                console.log("RELOADING THE GRID");
                 sharedService.reloadValuationSlickgrid();
             }
         };
