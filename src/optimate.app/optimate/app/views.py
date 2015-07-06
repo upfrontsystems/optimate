@@ -1868,41 +1868,41 @@ def valuationview(request):
             iddict[valuationitem.BudgetGroupID] = valuationitem.ID
         # get the list of budget groups used in the form
         budgetgrouplist = request.json_body.get('BudgetGroupList', [])
-        # iterate through the new id's and add any new validations
+        # iterate through the new id's and add any new valuations
         # remove the id from the list if it is there already
         for budgetgroup in budgetgrouplist:
             if budgetgroup['ID'] not in iddict.keys():
-                # add the new validation item
+                # add the new valuation item
                 p_complete = float(budgetgroup.get('percentage_complete', 0))
 
-                newvalidationitem = ValidationItem(ValidationID=validation.ID,
+                newvaluationitem = ValuationItem(ValuationID=valuation.ID,
                                                ComponentID=component['ID'],
                                                PercentageComplete=p_complete)
-                DBSession.add(newvalidationitem)
+                DBSession.add(newvaluationitem)
             else:
                 # otherwise remove the id from the list and update the
                 # percentage complete
-                validationitemid = iddict[budgetgroup['ID']]
-                validationitem = DBSession.query(ValidationItem).filter_by(
-                                    ID=validationitemid).first()
-                validationitem.PercentageComplete = \
+                valuationitemid = iddict[budgetgroup['ID']]
+                valuationitem = DBSession.query(ValuationItem).filter_by(
+                                    ID=valuationitemid).first()
+                valuationitem.PercentageComplete = \
                     float(budgetgroup['percentage_complete'])
                 del iddict[budgetgroup['ID']]
         # delete the leftover id's
         for oldid in iddict.values():
             deletethis = DBSession.query(
-                            ValidationItem).filter_by(ID=oldid).first()
+                            ValuationItem).filter_by(ID=oldid).first()
             qry = DBSession.delete(deletethis)
 
         transaction.commit()
-        # return the edited validation
-        validation = DBSession.query(
-                      Validation).filter_by(ID=request.matchdict['id']).first()
-        return validation.toDict()
+        # return the edited valuation
+        valuation = DBSession.query(
+                      Valuation).filter_by(ID=request.matchdict['id']).first()
+        return valuation.toDict()
 
-    # otherwise return the selected validation
-    validationid = request.matchdict['id']
-    validation = DBSession.query(Valuation).filter_by(ID=valuationid).first()
+    # otherwise return the selected valuation
+    valuationid = request.matchdict['id']
+    valuation = DBSession.query(Valuation).filter_by(ID=valuationid).first()
     # build a list of the valuations used in the order from the valuation items
     valuationslist = []
     for valuationitem in valuation.ValuationItems:
