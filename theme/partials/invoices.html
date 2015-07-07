@@ -42,7 +42,29 @@
                        data-ng-model-options="{ debounce: 500 }"
                        placeholder="Invoice number"
                        data-ng-change="loadInvoiceSection(); filterBy('invoicenumber')">
-               <select chosen
+                <div class="filter-datepicker">
+                    <a class="dropdown-toggle"
+                        id="filterPaymentDropdown"
+                        role="button"
+                        data-toggle="dropdown" href="">
+                        <div class="input-group">
+                            <input type="text"
+                                    date-parser="DD MMMM YYYY"
+                                    class="col-sm-7 form-control custom-datepicker"
+                                    data-ng-model="filters.PaymentDate">
+                            <span class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </span>
+                        </div>
+                    </a>
+                    <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                        <datetimepicker data-ng-model="filters.PaymentDate"
+                            data-on-set-time="loadInvoiceSection(); filterBy('paymentdate')"
+                            data-datetimepicker-config="{ dropdownSelector: '#filterPaymentDropdown' ,
+                                                            minView:'day'}"/>
+                    </ul>
+                </div>
+                <select chosen
                         class="filter-bar"
                         id="projectFilter"
                         data-ng-model="filters.Project"
@@ -66,11 +88,6 @@
                         data-ng-change="loadInvoiceSection(); filterBy('supplier')">
                     <option value="">Supplier</option>
                 </select>
-                <input type="number"
-                       data-ng-model="filters.PaymentDate"
-                       data-ng-model-options="{ debounce: 500 }"
-                       placeholder="Payment date"
-                       data-ng-change="loadInvoiceSection(); filterBy('paymentdate')">
                 <select chosen
                         class="filter-bar"
                         id="statusFilter"
@@ -99,7 +116,7 @@
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-body">
-                <h4>Delete invoice {{selectedInvoice.InvoiceNumber}}</h4>
+                <h4>Delete invoice {{selectedInvoice.ID}}</h4>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" data-dismiss="modal" data-ng-click="deleteInvoice()">Delete</button>
@@ -124,8 +141,8 @@
             </thead>
             <tbody>
                 <tr ng-repeat="obj in jsoninvoices"
-                    ng-click="showActionsFor(obj)" id="invoice-{{obj.invoicenumber}}">
-                    <td>{{obj.invoicenumber}}</td>
+                    ng-click="showActionsFor(obj)" id="invoice-{{obj.id}}">
+                    <td>{{obj.id}}</td>
                     <td>{{obj.orderid}}</td>
                     <td>{{obj.project}}</td>
                     <td>{{obj.supplier}}</td>

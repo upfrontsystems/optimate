@@ -212,6 +212,19 @@ li.filters-label {
     font-weight: lighter;
 }
 
+.filter-datepicker{
+    width: 50%;
+    float: left;
+    position: relative;
+    min-height: 1px;
+    padding-left: 1px;
+    padding-right: 1px;
+}
+
+input.custom-datepicker{
+    height: 14px !important;
+}
+
 /* overwriting bootstrap in order table */
 .currency {
     text-align: right;

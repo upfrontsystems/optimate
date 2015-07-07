@@ -1801,11 +1801,11 @@ def invoicesview(request):
     """ The invoicesview returns a list in json format of all the invoices
     """
     invoicelist = []
-    qry = DBSession.query(Invoice).order_by(Invoice.InvoiceNumber.desc())
+    qry = DBSession.query(Invoice).order_by(Invoice.ID.desc())
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
     if 'InvoiceNumber' in paramkeys:
-        qry = qry.filter(Invoice.InvoiceNumber.like(paramsdict['InvoiceNumber'][0]+'%'))
+        qry = qry.filter(Invoice.ID.like(paramsdict['InvoiceNumber'][0]+'%'))
     if 'OrderNumber' in paramkeys:
         qry = qry.filter(Invoice.OrderID.like(paramsdict['OrderNumber'][0]+'%'))
     if 'Project' in paramkeys:
@@ -1815,7 +1815,7 @@ def invoicesview(request):
     if 'Supplier' in paramkeys:
         qry = qry.filter_by(SupplierID=paramsdict['Supplier'][0])
     if 'PaymentDate' in paramkeys:
-        date = paramsdict['PaymentDate']
+        date = ''.join(paramsdict['PaymentDate'])
         date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
         qry = qry.filter_by(PaymentDate=date)
     if 'Status' in paramkeys:
@@ -1835,7 +1835,7 @@ def invoice_filter(request):
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
     if 'InvoiceNumber' in paramkeys:
-        qry = qry.filter(Invoice.InvoiceNumber.like(paramsdict['InvoiceNumber'][0]+'%'))
+        qry = qry.filter(Invoice.ID.like(paramsdict['InvoiceNumber'][0]+'%'))
     if 'OrderNumber' in paramkeys:
         qry = qry.filter(Invoice.OrderID.like(paramsdict['OrderNumber'][0]+'%'))
     if 'Project' in paramkeys:
@@ -1845,7 +1845,7 @@ def invoice_filter(request):
     if 'Supplier' in paramkeys:
         qry = qry.filter_by(SupplierID=paramsdict['Supplier'][0])
     if 'PaymentDate' in paramkeys:
-        date = paramsdict['PaymentDate']
+        date = ''.join(paramsdict['PaymentDate'])
         date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
         qry = qry.filter_by(PaymentDate=date)
     if 'Status' in paramkeys:
@@ -1881,8 +1881,7 @@ def invoiceview(request):
     if request.method == 'DELETE':
         deleteid = request.matchdict['id']
         # Deleting it from the table deletes the object
-        deletethis = DBSession.query(Invoice).filter_by(
-                                                InvoiceNumber=deleteid).first()
+        deletethis = DBSession.query(Invoice).filter_by(ID=deleteid).first()
 
         # update the component invoiced amounts
         order = DBSession.query(Order).filter_by(ID=deletethis.OrderID).first()
@@ -1908,64 +1907,69 @@ def invoiceview(request):
             paydate = datetime.strptime(paydate, '%Y-%m-%dT%H:%M:%S.%fZ')
         amount = request.json_body.get('amount', 0)
         amount = Decimal(amount).quantize(Decimal('.01'))
+        vat = float(request.json_body.get('vat', 0))
 
         newinvoice = Invoice(OrderID=orderid,
                             InvoiceDate=indate,
                             PaymentDate=paydate,
-                            Amount=amount)
+                            Amount=amount,
+                            VAT=vat)
         DBSession.add(newinvoice)
         DBSession.flush()
-        newid = newinvoice.InvoiceNumber
+        newid = newinvoice.ID
+        invoicetotal = newinvoice.Total
         # update the component invoiced amounts
         order = DBSession.query(Order).filter_by(ID=orderid).first()
         for orderitem in order.OrderItems:
             if order.Total > 0:
                 proportion = orderitem.Total/order.Total
-                orderitem.Component.Invoiced = amount * proportion
+                orderitem.Component.Invoiced = invoicetotal * proportion
             else:
                 orderitem.Component.Invoiced = 0
         transaction.commit()
         # return the new invoice
-        newinvoice = DBSession.query(Invoice).filter_by(
-                                                    InvoiceNumber=newid).first()
+        newinvoice = DBSession.query(Invoice).filter_by(ID=newid).first()
         return newinvoice.tableData()
 
     # if the method is put, edit an existing invoice
     if request.method == 'PUT':
         invoice = DBSession.query(Invoice).filter_by(
-                                InvoiceNumber=request.matchdict['id']).first()
-
+                                            ID=request.matchdict['id']).first()
+        oldtotal = invoice.Total
         indate = request.json_body.get('invoicedate', None)
         if indate:
             indate = datetime.strptime(indate, '%Y-%m-%dT%H:%M:%S.%fZ')
+            invoice.InvoiceDate = indate
         paydate = request.json_body.get('paymentdate', None)
         if paydate:
             paydate = datetime.strptime(paydate, '%Y-%m-%dT%H:%M:%S.%fZ')
-        amount = request.json_body.get('amount', Decimal(0.00))
-        amount = Decimal(amount).quantize(Decimal('.01'))
-
-        invoice.InvoiceDate = indate
-        invoice.PaymentDate = paydate
-        oldamount = invoice.Amount
-        invoice.Amount = amount
-
-        # if the amounts are different update the invoiced amounts
-        if oldamount != amount:
+            invoice.PaymentDate = paydate
+        amount = request.json_body.get('amount', None)
+        if amount:
+            amount = Decimal(amount).quantize(Decimal('.01'))
+            invoice.Amount = amount
+        vat = request.json_body.get('vat', None)
+        if vat:
+            vat = float(amount)
+            invoice.VAT = vat
+        newtotal = invoice.Total
+        # if the totals are different update the invoiced amounts
+        if oldtotal != newtotal:
             order = DBSession.query(Order).filter_by(ID=invoice.OrderID).first()
             for orderitem in order.OrderItems:
                 if order.Total > 0:
                     proportion = orderitem.Total/order.Total
-                    orderitem.Component.Invoiced = amount * proportion
+                    orderitem.Component.Invoiced = newtotal * proportion
                 else:
                     orderitem.Component.Invoiced = 0
         transaction.commit()
         # return the edited invoice
         invoice = DBSession.query(Invoice).filter_by(
-                                InvoiceNumber=request.matchdict['id']).first()
+                                            ID=request.matchdict['id']).first()
         return invoice.tableData()
 
     # otherwise return the selected invoice
     invoiceid = request.matchdict['id']
-    invoice = DBSession.query(Invoice).filter_by(InvoiceNumber=invoiceid).first()
+    invoice = DBSession.query(Invoice).filter_by(ID=invoiceid).first()
 
     return invoice.toDict()

@@ -2176,6 +2176,13 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
         $scope.clearFilters();
 
         $scope.loadInvoiceSection = function() {
+            // if ($scope.filters.PaymentDate != undefined){
+            //     var offset = new Date().getTimezoneOffset()
+            //     //convert the offset to milliseconds, add to targetTime, and make a new Date
+            //     var offsetTime = new Date($scope.filters.PaymentDate.getTime() - offset * 60 * 1000);
+            //     console.log($scope.filters.PaymentDate);
+            //     console.log(new Date(offsetTime));
+            // }
             var req = {
                 method: 'GET',
                 url: globalServerURL + 'invoices',
@@ -2241,7 +2248,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
                 if ($scope.modalState == 'Edit') {
                     $http({
                         method: 'PUT',
-                        url: globalServerURL + 'invoice' + '/' + $scope.formData['invoicenumber'] + '/',
+                        url: globalServerURL + 'invoice' + '/' + $scope.formData.id + '/',
                         data: $scope.formData
                     }).success(function (response) {
                         // edit the invoice in the list
@@ -2269,8 +2276,8 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             $scope.jsoninvoices.push(newinvoice);
             // sort by invoice id
             $scope.jsoninvoices.sort(function(a, b) {
-                var idA = a.invoicenumber;
-                var idB = b.invoicenumber;
+                var idA = a.id;
+                var idB = b.id;
                 return (idA > idB) ? -1 : (idA < idB) ? 1 : 0;
             });
             console.log ("Invoice added");
@@ -2280,7 +2287,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
         $scope.handleEdited = function(editedinvoice) {
             // search for the invoice and edit in the list
             var result = $.grep($scope.jsoninvoices, function(e) {
-                return e.invoicenumber == editedinvoice.invoicenumber;
+                return e.id == editedinvoice.id;
             });
             var i = $scope.jsoninvoices.indexOf(result[0]);
             if (i>-1) {
@@ -2292,55 +2299,60 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
         // Set the selected invoice and change the css
         $scope.showActionsFor = function(obj) {
             $scope.selectedInvoice = obj;
-            $('#invoice-'+obj.invoicenumber).addClass('active').siblings().removeClass('active');
+            $('#invoice-'+obj.id).addClass('active').siblings().removeClass('active');
         };
 
         // When the Add button is pressed change the state and form data
         $scope.addingState = function () {
-            $scope.formData.TaxRate = undefined;
             $scope.formData = {'NodeType': 'invoice',
-                                'TaxRate': false};
+                                'vat': '0.00'};
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
             $scope.modalState = "Add";
             $scope.dateTimeNow();
             $scope.formData.invoicedate = $scope.date;
             $scope.formData.paymentdate = undefined;
+            $scope.calculatedAmounts = [{'name': 'Subtotal', 'amount': ''},
+                                        {'name': 'VAT', 'amount': ''},
+                                        {'name': 'Total', 'amount': ''},
+                                        {'name': 'Order total', 'amount': ''}];
             if ($scope.selectedInvoice) {
-                $('#invoice-'+$scope.selectedInvoice.invoicenumber).removeClass('active');
+                $('#invoice-'+$scope.selectedInvoice.id).removeClass('active');
                 $scope.selectedInvoice = undefined;
             }
         }
 
         // When the edit button is pressed change the state and set the data
         $scope.editingState = function () {
-            $scope.formData.TaxRate = undefined;
-            $scope.formData.TaxRate = false;
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
             $scope.modalState = "Edit";
             $http({
                 method: 'GET',
-                url: globalServerURL + 'invoice/' + $scope.selectedInvoice.invoicenumber + '/'
+                url: globalServerURL + 'invoice/' + $scope.selectedInvoice.id + '/'
             }).success(function(response) {
                 $scope.formData = response;
                 $scope.saveInvoiceModalForm.inputOrderNumber.$setValidity('default1', true);
                 $scope.formData.invoicedate = new Date($scope.formData.invoicedate);
                 $scope.formData.paymentdate = new Date($scope.formData.paymentdate);
                 $scope.formData['NodeType'] = 'invoice';
+                $scope.calculatedAmounts = [{'name': 'Subtotal', 'amount': response.amount},
+                                        {'name': 'VAT', 'amount': response.vatcost},
+                                        {'name': 'Total', 'amount': response.total},
+                                        {'name': 'Order total', 'amount': response.ordertotal}];
             });
         }
 
         // Delete an invoice and remove from the list
         $scope.deleteInvoice = function() {
-            var deleteid = $scope.selectedInvoice.invoicenumber;
+            var deleteid = $scope.selectedInvoice.id;
             $scope.selectedInvoice = undefined;
             $http({
                 method: 'DELETE',
                 url: globalServerURL + 'invoice' + '/' + deleteid + '/'
             }).success(function () {
                 var result = $.grep($scope.jsoninvoices, function(e) {
-                    return e.invoicenumber == deleteid;
+                    return e.id == deleteid;
                 });
                 var i = $scope.jsoninvoices.indexOf(result[0]);
                 if (i>-1) {
@@ -2355,12 +2367,50 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             $http.get(globalServerURL + 'order/' + $scope.formData.orderid + '/')
             .success(function(response){
                 $scope.saveInvoiceModalForm.inputOrderNumber.$setValidity('default1', true);
+                $scope.calculatedAmounts[3].amount = response.Total
             })
             .error(function(response){
                 $scope.saveInvoiceModalForm.inputOrderNumber.$setValidity('default1', false);
             });
         };
 
+        $scope.updateAmounts = function(){
+            var subtotal = parseFloat($scope.formData.amount);
+            var vatperc = parseFloat($scope.formData.vat);
+            var vatcost = subtotal * vatperc;
+            var total = subtotal + vatcost;
+
+            var parts = subtotal.toString().split(".");
+            if (parts.length > 1){
+                parts[1] = parts[1].slice(0,2);
+                subtotal = parts.join('.');
+            }
+            else{
+                subtotal = subtotal.toString() + '.00'
+            }
+
+            parts = vatcost.toString().split(".");
+            if (parts.length > 1){
+                parts[1] = parts[1].slice(0,2);
+                vatcost = parts.join('.');
+            }
+            else{
+                vatcost = vatcost.toString() + '.00'
+            }
+
+            parts = total.toString().split(".");
+            if (parts.length > 1){
+                parts[1] = parts[1].slice(0,2);
+                total = parts.join('.');
+            }
+            else{
+                total = total.toString() + '.00'
+            }
+
+            $scope.calculatedAmounts[0].amount = subtotal;
+            $scope.calculatedAmounts[1].amount = vatcost;
+            $scope.calculatedAmounts[2].amount = total;
+        }
 
         $scope.getReport = function (report) {
             if ( report == 'invoice' ) {
@@ -2368,7 +2418,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
                 var spinner = new Spinner().spin(target[0]);
                 $http({
                     method: 'POST',
-                    url: globalServerURL + 'invoice_report/' + $scope.selectedInvoice.invoicenumber + '/'},
+                    url: globalServerURL + 'invoice_report/' + $scope.selectedInvoice.id + '/'},
                     {responseType: 'arraybuffer'})
                 .success(function (response, status, headers, config) {
                     spinner.stop(); // stop the spinner - ajax call complete

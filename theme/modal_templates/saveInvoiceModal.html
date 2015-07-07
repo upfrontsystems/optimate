@@ -46,7 +46,7 @@
                             </a>
                             <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                                 <datetimepicker data-ng-model="formData.invoicedate"
-                                    data-datetimepicker-config="{ dropdownSelector: '#dateDropdown' ,
+                                    data-datetimepicker-config="{ dropdownSelector: '#dateInvoiceDropdown' ,
                                                                     minView:'day'}"/>
                             </ul>
                         </div>
@@ -71,7 +71,7 @@
                             </a>
                             <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                                 <datetimepicker data-ng-model="formData.paymentdate"
-                                    data-datetimepicker-config="{ dropdownSelector: '#dateDropdown' ,
+                                    data-datetimepicker-config="{ dropdownSelector: '#datePaymentDropdown' ,
                                                                     minView:'day'}"/>
                             </ul>
                         </div>
@@ -83,19 +83,40 @@
                                class="col-sm-7"
                                id="inputAmount"
                                name="inputAmount"
-                               ng-model="formData.amount"
+                               data-ng-model="formData.amount"
+                               data-ng-change="updateAmounts()"
+                               data-ng-model-options="{ debounce: 200 }"
                                smart-float>
                     </div>
                     <div class="form-group">
-                        <label for="inputTaxRate" class="col-sm-2 control-label">Calculate VAT:</label>
-                        <button class="custom-checkbox"
-                                id="inputTaxRate"
-                                name="inputTaxRate"
-                                data-ng-click="formData['TaxRate'] = !formData['TaxRate']">
-                              <i data-ng-class="{true:'fa fa-check-square-o',false:'fa fa-square-o'}[formData['TaxRate']]"
-                                  class="checkbox-icon">
-                              </i>
-                        </button>
+                        <label for="inputVAT" class="col-sm-2 control-label">Calculate VAT:</label>
+                        <input type="text"
+                               class="col-sm-7"
+                               id="inputVAT"
+                               name="inputVAT"
+                               ng-model="formData.vat"
+                               data-ng-change="updateAmounts()"
+                               data-ng-model-options="{ debounce: 200 }"
+                               smart-float>
+                    </div>
+                    <div class="form-group">
+                        <label for="amountsTable" class="col-sm-2 control-label">Amounts:</label>
+                        <div id="amountsTable" class="col-sm-7">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="amount in calculatedAmounts">
+                                        <td>{{amount.name}}</td>
+                                        <td>{{amount.amount}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </form>
             </div>

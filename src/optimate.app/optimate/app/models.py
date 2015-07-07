@@ -1961,10 +1961,11 @@ class Invoice(Base):
     """ Table for invoices
     """
     __tablename__ = 'Invoice'
-    InvoiceNumber = Column(Integer, primary_key=True)
+    ID = Column(Integer, primary_key=True)
     OrderID = Column(Integer, ForeignKey('Order.ID'))
     InvoiceDate = Column(DateTime)
     PaymentDate = Column(DateTime)
+    VAT = Column(Float)
     Amount = Column(Numeric)
 
     Order = relationship('Order',
@@ -2026,6 +2027,16 @@ class Invoice(Base):
                     (cls.PaymentDate > func.now(), "Unpaid")],
                     else_="Paid")
 
+    @property
+    def Subtotal(self):
+        return self.Amount
+
+    @property
+    def Total(self):
+        return Decimal(float(self.Amount) * (1+self.VAT)
+                        ).quantize(Decimal('.01'))
+
+
     def tableData(self):
         """ Return a dictionary with the values used in displaying the
             invoice in a table
@@ -2037,11 +2048,11 @@ class Invoice(Base):
         jsonpaydate = None
         if self.PaymentDate:
             jsonpaydate = self.PaymentDate.strftime("%d %B %Y")
-        return {'invoicenumber':self.InvoiceNumber,
+        return {'id':self.ID,
                 'orderid': self.OrderID,
                 'project': self.Order.Project.Name,
                 'supplier': self.Order.Supplier.Name,
-                'amount': str(self.Amount),
+                'amount': str(self.Total),
                 'paymentdate': jsonpaydate,
                 'status': self.Status}
 
@@ -2055,15 +2066,23 @@ class Invoice(Base):
         jsonindate = None
         if self.InvoiceDate:
             jsonindate = self.InvoiceDate.isoformat()
-        return {'invoicenumber': self.InvoiceNumber,
+        vatcost = Decimal(0.00)
+        if self.VAT:
+            vatcost = Decimal(float(self.Amount) * self.VAT
+                                ).quantize(Decimal('.01'))
+        return {'id': self.ID,
                 'orderid': self.OrderID,
                 'invoicedate': jsonindate,
                 'paymentdate': jsonpaydate,
                 'amount' : str(self.Amount),
+                'vat': self.VAT,
+                'vatcost': str(vatcost),
+                'total': str(self.Total),
+                'ordertotal': str(self.Order.Total),
                 'status': self.Status}
 
     def __repr__(self):
         """ Return a representation of this invoice
         """
-        return '<Invoice(InvoiceNumber="%s", OrderID="%s")>' % (
-            self.InvoiceNumber, self.OrderID)
+        return '<Invoice(ID="%s", OrderID="%s")>' % (
+            self.ID, self.OrderID)
