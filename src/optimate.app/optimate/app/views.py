@@ -1832,7 +1832,7 @@ def valuationview(request):
         budgetgrouplist = request.json_body.get('BudgetGroupList', [])
         for budgetgroup in budgetgrouplist:
             p_complete = float(budgetgroup.get('percentage_complete', 0))
-            neworderitem = ValuationItem(ValuationID=newid,
+            newvaluationitem = ValuationItem(ValuationID=newid,
                                          BudgetGroupID=budgetgroup['ID'],
                                          PercentageComplete=p_complete)
             DBSession.add(newvaluationitem)
