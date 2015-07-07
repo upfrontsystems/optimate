@@ -2022,16 +2022,8 @@ class Invoice(Base):
     def Status(cls):
         """ Expression to filter Invoice by Status
         """
-        # if self.PaymentDate:
-        #     if self.PaymentDate < datetime.now():
-        #         return 'Paid'
-        #     else:
-        #         return 'Unpaid'
-        # else:
-        #     return 'Unpaid'
-
-        return case([(cls.PaymentDate == None, "Unpaid")],
-                    [(cls.PaymentDate > DateTime(datetime.now()), "Unpaid")],
+        return case([(cls.PaymentDate == None, "Unpaid"),
+                    (cls.PaymentDate > func.now(), "Unpaid")],
                     else_="Paid")
 
     def tableData(self):

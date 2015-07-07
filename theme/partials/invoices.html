@@ -71,7 +71,8 @@
                        data-ng-model-options="{ debounce: 500 }"
                        placeholder="Payment date"
                        data-ng-change="loadInvoiceSection(); filterBy('paymentdate')">
-                <select class="filter-bar"
+                <select chosen
+                        class="filter-bar"
                         id="statusFilter"
                         data-ng-model="filters.Status"
                         data-ng-change="loadInvoiceSection(); filterBy('status')">
