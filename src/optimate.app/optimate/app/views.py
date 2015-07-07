@@ -548,7 +548,7 @@ def node_budgetgroups(request):
     """
     nodeid = request.matchdict['id']
     qry = DBSession.query(Node).filter_by(ID=nodeid).first()
-    budgetgrouplist = qry.getComponents()
+    budgetgrouplist = qry.getBudgetGroups()
     itemlist = []
     for bg in budgetgrouplist:
         itemlist.append(bg.toValuationDict())
@@ -1809,10 +1809,6 @@ def valuationview(request):
         deleteid = request.matchdict['id']
         # Deleting it from the table deletes the object
         deletethis = DBSession.query(Valuation).filter_by(ID=deleteid).first()
-        # update the component ordered amounts
-        for valuationitem in deletethis.ValuationItems:
-            valuationitem.BudgetGroup.Ordered = (valuationitem.BudgetGroup.Ordered -
-                                                valuationitem.Total)
         qry = DBSession.delete(deletethis)
         if qry == 0:
             return HTTPNotFound()
@@ -1822,19 +1818,12 @@ def valuationview(request):
 
     # if the method is post, add a new order
     if request.method == 'POST':
-        user = request.json_body.get('UserCode', '')
-        auth = request.json_body.get('Authorisation', '')
         proj = request.json_body.get('ProjectID', None)
-        # XXX
-
         # convert to date from json format
         date = request.json_body.get('Date', None)
         if date:
             date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
-        newvaluation = Valuation(UserCode=user,
-                                 Authorisation=auth,
-                                 ProjectID=proj,
-                                 DeliveryAddress=address,
+        newvaluation = Valuation(ProjectID=proj,
                                  Date=date)
         DBSession.add(newvaluation)
         DBSession.flush()
@@ -1857,16 +1846,12 @@ def valuationview(request):
         valuation = DBSession.query(
                        Valuation).filter_by(ID=request.matchdict['id']).first()
 
-        user = request.json_body.get('UserCode', '')
-        auth = request.json_body.get('Authorisation', '')
         proj = request.json_body.get('ProjectID', None)
         # convert to date from json format
         date = request.json_body.get('Date', None)
         if date:
             date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
 
-        valuation.UserCode=user
-        valuation.Authorisation=auth
         valuation.ProjectID=proj
         valuation.Date = date
 

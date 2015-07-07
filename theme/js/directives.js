@@ -985,34 +985,7 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                     {id: "percentage_complete", name: "Percentage Complete", field: "percentage_complete", 
                      cssClass: "cell editable-column",
                      width: valuations_column_width.percentage_complete, editor: Slick.Editors.CustomEditor}];
-                if (budgetgrouplist.length > 0) {
-                    var valuationtotal = 0.0;
-                    var gridlist = [];
-                    for (var i=0;i<budgetgrouplist.length; i++) {
-                        budgetgrouptotal += parseFloat(budgetgrouplist[i].total);
-                    }
-                    gridlist = budgetgrouplist.slice(0);
-                    var totals = {'id': 'T' + budgetgrouplist[0].id,
-                                    'total': valuationtotal};
-
-                    gridlist.push(totals);
-                    grid.setColumns(columns);
-                    dataView.beginUpdate();
-                    dataView.setItems(gridlist);
-                    dataView.endUpdate();
-                    grid.render();
-                }
-                else {
-                    var gridlist = [];
-                    var totals = {'id': 'T1',
-                                'total': "0.00"};
-                    gridlist.push(totals);
-                    grid.setColumns(columns);
-                    dataView.beginUpdate();
-                    dataView.setItems(gridlist);
-                    dataView.endUpdate();
-                    grid.render();
-                }
+                    // XXX THIS NEEDS ATTENTION - some code possibly missing here
             }, true);
 
             // on cell change update the totals

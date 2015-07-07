@@ -231,7 +231,7 @@ label.filters-label {
 }
 
 #budgetgroup-data-grid-outer {
-    height: 300px;
+    height: 200px;
 /*    height: -moz-calc(100vh / 2);
     height: -webkit-calc(100vh / 2);
     height: calc(100vh / 2);*/

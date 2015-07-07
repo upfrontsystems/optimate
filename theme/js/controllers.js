@@ -2205,7 +2205,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                         $scope.formData = {'NodeType': $scope.formData['NodeType']};
                     });
                 }
-                else{
+                else {
                     $http({
                         method: 'POST',
                         url: globalServerURL + $scope.formData['NodeType'] + '/0/',
@@ -2222,17 +2222,22 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
         // add a new valuation to the list and sort
         $scope.handleNew = function(newvaluation) {
             // the new valuation is added to the list
-            var high = $scope.jsonvaluations[0].ID + 2;
-            var low = $scope.jsonvaluations[$scope.jsonvaluations.length - 1].ID + 2;
-            // only need to add it if it's id falls in the current section
-            if (newvaluation.ID > low && newvaluation.ID < high) {
+            if ($scope.jsonvaluations.length > 1) {
+                var high = $scope.jsonvaluations[0].ID + 2;
+                var low = $scope.jsonvaluations[$scope.jsonvaluations.length - 1].ID + 2;
+                // only need to add it if it's id falls in the current section
+                if (newvaluation.ID > low && newvaluation.ID < high) {
+                    $scope.jsonvaluations.push(newvaluation);
+                    // sort by order id
+                    $scope.jsonvaluations.sort(function(a, b) {
+                        var idA = a.ID;
+                        var idB = b.ID;
+                        return (idA > idB) ? -1 : (idA < idB) ? 1 : 0;
+                    });
+                }
+            }
+            else {
                 $scope.jsonvaluations.push(newvaluation);
-                // sort by order id
-                $scope.jsonvaluations.sort(function(a, b) {
-                    var idA = a.ID;
-                    var idB = b.ID;
-                    return (idA > idB) ? -1 : (idA < idB) ? 1 : 0;
-                });
             }
             console.log ("Valuation added");
         }
@@ -2284,7 +2289,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                 $scope.loadProject()
                 $scope.budgetgroupList = $scope.formData['BudgetGroupList'];
                 $scope.date = new Date($scope.formData['Date']);
-                $scope.formData['NodeType'] = 'order';
+                $scope.formData['NodeType'] = 'valuation';
             });
         }
 
@@ -2325,6 +2330,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
             else if ((i==-1) & flag) {
                 // add the budgetgroup
                 $scope.budgetgroupList.push(bg);
+                console.log(bg);
             }
         }
 
@@ -2381,7 +2387,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                     $scope.toggleSubitems(subsubitem, flag);
                 }
             }
-            // add the components to the list
+            // add the budgetgroups to the list
             $http.get(globalServerURL + 'node/' + nodeid + '/budgetgroups/')
             .success(function(response) {
                 for (var v = 0; v<response.length; v++) {
@@ -2418,9 +2424,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
 
         $scope.toggleBudgetgroupGrid = function() {
             $scope.isCollapsed = !$scope.isCollapsed;
-            console.log($scope.isCollapsed);
             if ($scope.isCollapsed) {
-                console.log("RELOADING THE GRID");
                 sharedService.reloadValuationSlickgrid();
             }
         };

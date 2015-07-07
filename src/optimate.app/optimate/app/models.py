@@ -252,7 +252,7 @@ class Project(Node):
         for child in self.Children:
             if child.type == 'BudgetGroup':
                 budgetgrouplist.append(child)
-            else:
+            elif child.type != 'BudgetItem' and child.type != 'Component':
                 budgetgrouplist += child.getBudgetGroups()
         return budgetgrouplist
 
@@ -498,6 +498,19 @@ class BudgetGroup(Node):
             else:
                 budgetgrouplist += child.getBudgetGroups()
         return budgetgrouplist
+
+    def toValuationDict(self):
+        """ Returns a dictionary of this node used both in the valuation tree 
+            view and slickgrid
+        """
+        return {'Name': self.Name,
+                'name': self.Name,
+                'ID': self.ID,
+                'ParentID': self.ParentID,
+                'id': self.ID,
+                'NodeType': 'BudgetGroup',
+                'node_type': 'BudgetGroup',
+                'NodeTypeAbbr': 'G'}
 
     def toChildDict(self):
         """ Returns a dictionary of this node used in the childview
@@ -2042,7 +2055,7 @@ class Valuation(Base):
     def __repr__(self):
         """Return a representation of this valuation
         """
-        return '<Validation(ID="%s", ProjectID="%s", Date="%s")>' % (
+        return '<Valuation(ID="%s", ProjectID="%s", Date="%s")>' % (
             self.ID, self.ProjectID, self.Date)
 
 
@@ -2069,6 +2082,6 @@ class ValuationItem(Base):
     def __repr__(self):
         """Return a representation of this valuation item
         """
-        return '<ValidationItem(ID="%s", BudgetGroupID="%s")>' % (
+        return '<ValuationItem(ID="%s", BudgetGroupID="%s")>' % (
             self.ID, self.BudgetGroupID)
 
