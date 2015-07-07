@@ -2324,8 +2324,9 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
                 url: globalServerURL + 'invoice/' + $scope.selectedInvoice.invoicenumber + '/'
             }).success(function(response) {
                 $scope.formData = response;
-                $scope.formData.invoicedate = new Date($scope.formData.invoicedate);;
-                $scope.formData.paymentdate = new Date($scope.formData.paymentdate);;
+                $scope.saveInvoiceModalForm.inputOrderNumber.$setValidity('default1', true);
+                $scope.formData.invoicedate = new Date($scope.formData.invoicedate);
+                $scope.formData.paymentdate = new Date($scope.formData.paymentdate);
                 $scope.formData['NodeType'] = 'invoice';
             });
         }
@@ -2349,6 +2350,17 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             });
         };
 
+        $scope.checkOrderNumber = function(){
+            // check if the order exists and set the form valid or invalid
+            $http.get(globalServerURL + 'order/' + $scope.formData.orderid + '/')
+            .success(function(response){
+                $scope.saveInvoiceModalForm.inputOrderNumber.$setValidity('default1', true);
+            })
+            .error(function(response){
+                $scope.saveInvoiceModalForm.inputOrderNumber.$setValidity('default1', false);
+            });
+        };
+
 
         $scope.getReport = function (report) {
             if ( report == 'invoice' ) {
@@ -2357,8 +2369,8 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
                 $http({
                     method: 'POST',
                     url: globalServerURL + 'invoice_report/' + $scope.selectedInvoice.invoicenumber + '/'},
-                    {responseType: 'arraybuffer'
-                }).success(function (response, status, headers, config) {
+                    {responseType: 'arraybuffer'})
+                .success(function (response, status, headers, config) {
                     spinner.stop(); // stop the spinner - ajax call complete
                     var file = new Blob([response], {type: 'application/pdf'});
                     var fileURL = URL.createObjectURL(file);

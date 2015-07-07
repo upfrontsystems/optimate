@@ -1704,6 +1704,8 @@ def orderview(request):
     # otherwise return the selected order
     orderid = request.matchdict['id']
     order = DBSession.query(Order).filter_by(ID=orderid).first()
+    if not order:
+        return HTTPNotFound()
     # build a list of the components used in the order from the order items
     componentslist = []
     for orderitem in order.OrderItems:

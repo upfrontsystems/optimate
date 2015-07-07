@@ -10,15 +10,21 @@
                     <div class="form-group"
                         ng-class="{'has-error': saveInvoiceModalForm.inputOrderNumber.$invalid}">
                         <label for="inputOrderNumber" class="col-sm-2 control-label">Order Number:</label>
-                        <select chosen
+                        <input type="text"
                                 class="col-sm-7"
                                 id="inputOrderNumber"
                                 name="inputOrderNumber"
                                 data-ng-model="formData.orderid"
-                                data-ng-options="order.ID as order.ID for order in ordersList"
+                                data-ng-change="checkOrderNumber()"
+                                data-ng-model-options="{ debounce: 500 }"
                                 required>
-                            <option value="">Select an order</option>
-                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="invalidMessage" class="col-sm-2 control-label"></label>
+                        <p id="invalidMessage" style="color:#A94442;"
+                                ng-show="saveInvoiceModalForm.inputOrderNumber.$invalid">
+                            Please enter an existing order number
+                        </p>
                     </div>
                     <div class="form-group">
                         <label for="inputInvoiceDate" class="col-sm-2 control-label">Invoice Date:</label>
