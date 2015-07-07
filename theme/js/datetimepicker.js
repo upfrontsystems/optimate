@@ -38,12 +38,14 @@
       function DateObject() {
 
         var tempDate = new Date();
-        var localOffset = tempDate.getTimezoneOffset() * 60000;
+        // var localOffset = tempDate.getTimezoneOffset() * 60000;
+        var localOffset = 0;
         this.utcDateValue = tempDate.getTime();
         this.selectable = true;
 
         this.localDateValue = function () {
-          return this.utcDateValue + localOffset;
+          // return this.utcDateValue + localOffset;
+          return this.utcDateValue;
         };
 
         var validProperties = ['utcDateValue', 'localDateValue', 'display', 'active', 'selectable', 'past', 'future'];
@@ -348,7 +350,8 @@
 
             setTime: function setTime(unixDate) {
               var tempDate = new Date(unixDate);
-              var newDate = new Date(tempDate.getTime() + (tempDate.getTimezoneOffset() * 60000));
+              // var newDate = new Date(tempDate.getTime() + (tempDate.getTimezoneOffset() * 60000));
+              var newDate = new Date(tempDate.getTime());
 
               var oldDate = ngModelController.$modelValue;
               ngModelController.$setViewValue(newDate);
@@ -365,7 +368,8 @@
 
           var getUTCTime = function getUTCTime(modelValue) {
             var tempDate = (modelValue ? moment(modelValue).toDate() : new Date());
-            return tempDate.getTime() - (tempDate.getTimezoneOffset() * 60000);
+            // return tempDate.getTime() - (tempDate.getTimezoneOffset() * 60000);
+            return tempDate.getTime();
           };
 
           scope.changeView = function changeView(viewName, dateObject, event) {

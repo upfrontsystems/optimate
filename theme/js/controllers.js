@@ -1689,16 +1689,12 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
     function($scope, $http, globalServerURL, sharedService, $timeout) {
 
         toggleMenu('orders');
-        $scope.dateTimeNow = function() {
-            $scope.date = new Date();
-        };
-        $scope.dateTimeNow();
+
         $scope.isDisabled = false;
         $scope.isCollapsed = true;
         $scope.jsonorders = [];
         $scope.componentsList = [];
         $scope.invoiceList = [];
-        $scope.modalForm = [];
         // Pagination variables and functions
         $scope.pageSize = 100;
         $scope.currentPage = 1;
@@ -1801,8 +1797,6 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 $scope.isDisabled = true;
                 // set the list of checked components
                 $scope.formData['ComponentsList'] = $scope.componentsList;
-                // convert the date to json format
-                $scope.formData['Date'] = $scope.date.toJSON();
                 if ($scope.modalState == 'Edit') {
                     $http({
                         method: 'PUT',
@@ -1865,22 +1859,6 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $('#order-'+obj.ID).addClass('active').siblings().removeClass('active');
         };
 
-        $scope.openInvoices = function() {
-            $scope.isDisabled = false;
-            $scope.modalState = "Add";
-            $scope.dateTimeNow();
-            // reset the invoice form data
-            $scope.invoiceFormData = {};
-            $scope.invoiceFormData['Date'] = $scope.date;
-            $scope.invoiceFormData['OrderID'] = $scope.selectedOrder.ID;
-            // load any invoices the order has
-            $http.get(globalServerURL + 'invoices')
-            .success(function(response){
-                console.log("Invoices loaded");
-                $scope.invoiceList = response;
-            })
-        }
-
         // When the Add button is pressed change the state and form data
         $scope.addingState = function () {
             $scope.formData.TaxRate = undefined;
@@ -1889,8 +1867,6 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
             $scope.modalState = "Add";
-            $scope.dateTimeNow();
-            $scope.formData['Date'] = $scope.date;
             $scope.componentsList = [];
             if ($scope.selectedOrder) {
                 $('#order-'+$scope.selectedOrder.ID).removeClass('active');
@@ -1912,7 +1888,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 $scope.formData = response;
                 $scope.loadProject()
                 $scope.componentsList = $scope.formData['ComponentsList'];
-                $scope.date = new Date($scope.formData['Date']);
+                $scope.formData['Date'] = new Date($scope.formData['Date']);
                 $scope.formData['NodeType'] = 'order';
             });
         }
@@ -2136,24 +2112,14 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
     function($scope, $http, globalServerURL, sharedService, $timeout) {
 
         toggleMenu('invoices');
-        $scope.dateTimeNow = function() {
-            $scope.date = new Date();
-        };
-        $scope.dateTimeNow();
+
         $scope.isDisabled = false;
-        $scope.isCollapsed = true;
         $scope.jsoninvoices = [];
         $scope.invoiceList = [];
-        $scope.modalForm = [];
 
         // loading the project, client and supplier list
         $scope.clearFilters = function() {
             $scope.filters = [];
-            $http.get(globalServerURL + 'orders')
-            .success(function(data) {
-                $scope.ordersList = data;
-            });
-
             $http.get(globalServerURL + 'projects/')
             .success(function(data) {
                 $scope.projectsList = data;
@@ -2169,20 +2135,12 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
                 $scope.clientsList = data;
             });
         }
-        $scope.ordersList = [];
         $scope.projectsList = [];
         $scope.suppliersList = [];
         $scope.clientsList = [];
         $scope.clearFilters();
 
         $scope.loadInvoiceSection = function() {
-            // if ($scope.filters.PaymentDate != undefined){
-            //     var offset = new Date().getTimezoneOffset()
-            //     //convert the offset to milliseconds, add to targetTime, and make a new Date
-            //     var offsetTime = new Date($scope.filters.PaymentDate.getTime() - offset * 60 * 1000);
-            //     console.log($scope.filters.PaymentDate);
-            //     console.log(new Date(offsetTime));
-            // }
             var req = {
                 method: 'GET',
                 url: globalServerURL + 'invoices',
@@ -2243,8 +2201,6 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             // check if saving is disabled, if not disable it and save
             if (!$scope.isDisabled) {
                 $scope.isDisabled = true;
-                // convert the date to json format
-                $scope.formData['Date'] = $scope.date.toJSON();
                 if ($scope.modalState == 'Edit') {
                     $http({
                         method: 'PUT',
@@ -2272,7 +2228,6 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
 
         // add a new invoice to the list and sort
         $scope.handleNew = function(newinvoice) {
-            console.log(newinvoice)
             $scope.jsoninvoices.push(newinvoice);
             // sort by invoice id
             $scope.jsoninvoices.sort(function(a, b) {
@@ -2309,9 +2264,6 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
             $scope.modalState = "Add";
-            $scope.dateTimeNow();
-            $scope.formData.invoicedate = $scope.date;
-            $scope.formData.paymentdate = undefined;
             $scope.calculatedAmounts = [{'name': 'Subtotal', 'amount': ''},
                                         {'name': 'VAT', 'amount': ''},
                                         {'name': 'Total', 'amount': ''},
