@@ -2072,7 +2072,7 @@ class Invoice(Base):
                 'invoicedate': jsonindate,
                 'paymentdate': jsonpaydate,
                 'amount' : str(self.Amount),
-                'vat': self.VAT,
+                'vat': str(self.VAT),
                 'total': str(self.Total),
                 'ordertotal': str(self.Order.Total),
                 'status': self.Status}
