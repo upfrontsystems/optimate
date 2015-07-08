@@ -1571,8 +1571,8 @@ class TestOrderedSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.method = 'POST'
         request.matchdict['id'] = 0
-        componentslist = [{'ID': 7, 'Quantity': 5, 'Rate': 10},
-                            {'ID': 11, 'Quantity': 4, 'Rate': 7}]
+        componentslist = [{'ID': 7, 'id': 7,'quantity': 5, 'rate': 10},
+                            {'ID': 11, 'id': 11,'quantity': 4, 'rate': 7}]
         request.json_body = {'ProjectID': 1,
                             'SupplierID': 2,
                             'Total': 78,
@@ -1617,11 +1617,10 @@ class TestInvoicedAmountViewSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.method = 'POST'
         request.matchdict['id'] = 0
-        componentslist = [{'ID': 7, 'Quantity': 5, 'Rate': 10},
-                            {'ID': 11, 'Quantity': 4, 'Rate': 7}]
+        componentslist = [{'ID': 7, 'id': 7, 'quantity': 5, 'rate': 10},
+                            {'ID': 11, 'id': 11, 'quantity': 4, 'rate': 7}]
         request.json_body = {'ProjectID': 1,
                             'SupplierID': 2,
-                            'Total': 78,
                             'ComponentsList': componentslist}
         from optimate.app.views import orderview
         response = orderview(request)
@@ -1632,10 +1631,8 @@ class TestInvoicedAmountViewSuccessCondition(unittest.TestCase):
         request.method = 'POST'
         request.matchdict['id'] = 0
         request.json_body = {'orderid':newid,
-                                'invoicenumber': '4567',
                                 'amount': 56}
         response = self._callFUT(request)
-
         request = testing.DummyRequest()
         request.method = 'GET'
         request.matchdict['id'] = 1

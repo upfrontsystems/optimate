@@ -58,6 +58,7 @@ import unittest
 import transaction
 from pyramid import testing
 from decimal import Decimal
+from datetime import datetime
 
 def _initTestingDB():
     """ Build a database with default data
@@ -219,7 +220,9 @@ def _initTestingDB():
 
         invoice = Invoice(ID=1,
                             OrderID=order.ID,
-                            InvoiceNumber='12345',
+                            InvoiceDate = datetime.now(),
+                            PaymentDate = datetime.now(),
+                            VAT=0.14,
                             Amount=Decimal(50.00))
 
         DBSession.add(order)
@@ -292,14 +295,16 @@ def _registerRoutes(config):
     config.add_route('project_resources', '/project/{id}/resources/')
     config.add_route('resources', '/resource/{id}/')
     config.add_route('project_overheads', '/project/{id}/overheads/')
-    config.add_route('overheadview', '/overhead/{id}/')
     config.add_route('component_overheads', '/component/{id}/overheads/')
+    config.add_route('overheadview', '/overhead/{id}/')
     config.add_route('resourcetypes', '/resourcetypes')
     config.add_route('node_grid', '/node/{parentid}/grid/')
     config.add_route('node_update_value', '/node/{id}/update_value/')
     config.add_route('node_paste', 'node/{id}/paste/')
     config.add_route('node_cost', 'node/{id}/cost/')
     config.add_route('node_components', 'node/{id}/components/')
+    config.add_route('resourcecategory_allresources', 'resourcecategory/{id}/allresources/')
+    config.add_route('resourcecategory_resources', 'resourcecategory/{id}/resources/')
 
     # the other views
     config.add_route('clientsview', '/clients')
@@ -317,6 +322,7 @@ def _registerRoutes(config):
     config.add_route('orders_filter', '/orders/filter')
     config.add_route('orders_tree_view', '/orders/tree/{id}/')
     config.add_route('invoicesview', '/invoices')
+    config.add_route('invoices_filter', '/invoices/filter')
     config.add_route('invoiceview', '/invoice/{id}/')
 
 class TestClientsviewSuccessCondition(unittest.TestCase):
@@ -889,6 +895,10 @@ class TestOrderViewSuccessCondition(unittest.TestCase):
         # the edited order should be returned
         self.assertEqual(response['SupplierID'], 3)
 
+class DummyInvoice(object):
+    def dict_of_lists(self):
+        return {'Project': [1]}
+
 class TestInvoicesViewSuccessCondition(unittest.TestCase):
     """ Test the invoices view
     """
@@ -908,6 +918,7 @@ class TestInvoicesViewSuccessCondition(unittest.TestCase):
     def test_it(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
+        request.params = DummyInvoice()
         response = self._callFUT(request)
         # the number of invoicesshould be 1
         self.assertEqual(len(response), 1)
@@ -934,8 +945,8 @@ class TestInvoiceViewSuccessCondition(unittest.TestCase):
         request.method = 'GET'
         request.matchdict['id'] = 1
         response = self._callFUT(request)
-        # the invoice number ofthe invoice '12345'
-        self.assertEqual(response['invoicenumber'], '12345')
+        # the invoice id
+        self.assertEqual(response['id'], 1)
 
     def test_delete(self):
         _registerRoutes(self.config)
@@ -951,8 +962,8 @@ class TestInvoiceViewSuccessCondition(unittest.TestCase):
         request.method = 'POST'
         request.matchdict['id'] = 0
         request.json_body = {'orderid':1,
-                                'invoicenumber': '4567',
-                                'amount': 124}
+                                'amount': 124,
+                                'vat': 0}
         response = self._callFUT(request)
         # get the new order id
         newid = response['id']
@@ -961,8 +972,8 @@ class TestInvoiceViewSuccessCondition(unittest.TestCase):
         request.method = 'GET'
         request.matchdict['id'] = newid
         response = self._callFUT(request)
-        # the new invoice number should be returned
-        self.assertEqual(response['invoicenumber'], '4567')
+        # a response should be returned
+        self.assertNotEqual(len(response), 0)
 
     def test_edit(self):
         _registerRoutes(self.config)
