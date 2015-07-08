@@ -216,7 +216,7 @@ def additemview(request):
     quantity = float(request.json_body.get('Quantity', 0))
     rate = request.json_body.get('Rate', 0)
     rate = Decimal(rate).quantize(Decimal('.01'))
-    resourcetype = request.json_body.get('ResourceType', '')
+    resourcetype = request.json_body.get('ResourceType', None)
     unit = request.json_body.get('Unit', '')
     objecttype = request.json_body['NodeType']
     city = request.json_body.get('City', '')
@@ -504,7 +504,6 @@ def edititemview(request):
         rate = request.json_body.get('Rate', 0)
         rate = Decimal(rate).quantize(Decimal('.01'))
         unit = request.json_body.get('Unit', '')
-        resourcetype = request.json_body.get('ResourceType', '')
         supplier = request.json_body.get('Supplier', '')
         resource = DBSession.query(Resource).filter_by(ID=nodeid).first()
         resource.Name=name
@@ -512,9 +511,8 @@ def edititemview(request):
         resource.Code = request.json_body['Code']
         resource._Rate=rate
         resource.UnitID=request.json_body.get('Unit', '')
-        resource.Type=request.json_body.get('ResourceType', '')
+        resource.Type=request.json_body.get('ResourceType', None)
         resource.UnitID=unit
-        resource.Type=resourcetype
         resource.SupplierID=supplier
 
     else:
@@ -693,7 +691,7 @@ def resourcetypes(request):
     qry = DBSession.query(ResourceType).all()
     # return a list of the ResourceType names
     for restype in qry:
-        restypelist.append({'Name': restype.Name})
+        restypelist.append({'ID': restype.ID, 'Name': restype.Name})
     return sorted(restypelist, key=lambda k: k['Name'].upper())
 
 
@@ -883,7 +881,7 @@ def node_paste(request):
     parentid = dest.ID
     sourceparent = source.ParentID
     # if a project is being pasted into the root
-    if parentid == 0:
+    if (parentid == 0) and (source.type == 'Project'):
         if request.json_body["cut"]:
             projectid = sourceid
         else:
@@ -1827,7 +1825,7 @@ def invoicesview(request):
 
 
 @view_config(route_name='invoices_filter', renderer='json')
-def invoice_filter(request):
+def invoices_filter(request):
     """ Returns a list of the available filters used by an invoice
         after all the filters have been applied
     """
@@ -1907,7 +1905,8 @@ def invoiceview(request):
             paydate = datetime.strptime(paydate, '%Y-%m-%dT%H:%M:%S.%fZ')
         amount = request.json_body.get('amount', 0)
         amount = Decimal(amount).quantize(Decimal('.01'))
-        vat = float(request.json_body.get('vat', 0))
+        vat = request.json_body.get('vat', 0)
+        vat = Decimal(vat).quantize(Decimal('.01'))
 
         newinvoice = Invoice(OrderID=orderid,
                             InvoiceDate=indate,
@@ -1950,7 +1949,7 @@ def invoiceview(request):
             invoice.Amount = amount
         vat = request.json_body.get('vat', None)
         if vat:
-            vat = float(amount)
+            vat = Decimal(vat).quantize(Decimal('.01'))
             invoice.VAT = vat
         newtotal = invoice.Total
         # if the totals are different update the invoiced amounts

@@ -516,14 +516,16 @@ def _registerRoutes(config):
     config.add_route('project_resources', '/project/{id}/resources/')
     config.add_route('resources', '/resource/{id}/')
     config.add_route('project_overheads', '/project/{id}/overheads/')
-    config.add_route('overheadview', '/overhead/{id}/')
     config.add_route('component_overheads', '/component/{id}/overheads/')
+    config.add_route('overheadview', '/overhead/{id}/')
     config.add_route('resourcetypes', '/resourcetypes')
     config.add_route('node_grid', '/node/{parentid}/grid/')
     config.add_route('node_update_value', '/node/{id}/update_value/')
     config.add_route('node_paste', 'node/{id}/paste/')
     config.add_route('node_cost', 'node/{id}/cost/')
     config.add_route('node_components', 'node/{id}/components/')
+    config.add_route('resourcecategory_allresources', 'resourcecategory/{id}/allresources/')
+    config.add_route('resourcecategory_resources', 'resourcecategory/{id}/resources/')
 
     # the other views
     config.add_route('clientsview', '/clients')
@@ -541,7 +543,49 @@ def _registerRoutes(config):
     config.add_route('orders_filter', '/orders/filter')
     config.add_route('orders_tree_view', '/orders/tree/{id}/')
     config.add_route('invoicesview', '/invoices')
+    config.add_route('invoices_filter', '/invoices/filter')
     config.add_route('invoiceview', '/invoice/{id}/')
+
+class DummyRouteName(object):
+    def __init__ (self, name):
+        self.name = name
+
+class TestResourceCategoryResourcesViewSuccessCondition(unittest.TestCase):
+    """ Test that the resourcecategory_resources view returns a list of the
+        resources in the category
+    """
+
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from optimate.app.views import resourcecategory_resources
+        return resourcecategory_resources(request)
+
+    def test_resources(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict['id'] = 12
+        request.matched_route = DummyRouteName('resourcecategory_resources')
+        response = self._callFUT(request)
+
+        # should return two resources
+        self.assertEqual(len(response), 2)
+
+    def test_all_resources(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict['id'] = 12
+        request.matched_route = DummyRouteName('resourcecategory_allresources')
+        response = self._callFUT(request)
+
+        # should return two resources
+        self.assertEqual(len(response), 2)
 
 class TestNodeComponentsViewSuccessCondition(unittest.TestCase):
     """ Test that the node_components view returns a list of the components
@@ -602,9 +646,6 @@ class TestResourceTypesViewSuccessCondition(unittest.TestCase):
         # test the name of the resource type
         self.assertEqual(response[0]['Name'], 'Labour')
 
-class DummyProjectRoute(object):
-    name = 'project_resources'
-
 class TestProjectResourcesViewSuccessCondition(unittest.TestCase):
     """ Test that a list of the Resources in a specified project is returned
     """
@@ -624,14 +665,11 @@ class TestProjectResourcesViewSuccessCondition(unittest.TestCase):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.matchdict['id'] = 19
-        request.matched_route = DummyProjectRoute()
+        request.matched_route = DummyRouteName('project_resources')
         response = self._callFUT(request)
 
         # test the correct resource is returned
         self.assertEqual(response['items'][0]['title'], 'TestResourceB')
-
-class DummyResourcesRoute(object):
-    name = 'resources'
 
 class TestResourcesViewSuccessCondition(unittest.TestCase):
     """ Test the resources of project_resources
@@ -653,7 +691,7 @@ class TestResourcesViewSuccessCondition(unittest.TestCase):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.matchdict['id'] = 24
-        request.matched_route = DummyResourcesRoute()
+        request.matched_route = DummyRouteName('resources')
         response = self._callFUT(request)
 
         # test the correct resource is returned
@@ -1290,9 +1328,8 @@ class TestDeleteviewSuccessCondition(unittest.TestCase):
         self.assertEqual(response['Cost'], '0.00')
 
 
-class TestPasteviewSuccessCondition(unittest.TestCase):
-    """ Test that the paste functions correctly with pasting from a
-        default node to another one.
+class TestCopySuccessCondition(unittest.TestCase):
+    """ Test that the copy and pastes correctly from a node to another one.
     """
 
     def setUp(self):
@@ -1307,7 +1344,7 @@ class TestPasteviewSuccessCondition(unittest.TestCase):
         from optimate.app.views import node_paste
         return node_paste(request)
 
-    def test_it(self):
+    def test_budgetgroup_in_project(self):
         _registerRoutes(self.config)
         # set the default node to be copied
         # which is budgetgroup with id 2
@@ -1340,6 +1377,113 @@ class TestPasteviewSuccessCondition(unittest.TestCase):
         from optimate.app.views import node_cost
         response = node_cost(request)
         self.assertEqual(response['Cost'], str(newtotal))
+
+    def test_project_in_root(self):
+        _registerRoutes(self.config)
+        # set the default node to be copied
+        # which is project with id 1
+        request = testing.DummyRequest(json_body={
+            'ID': '1',
+            'cut': False}
+        )
+        # set the node to be pasted into
+        # which is root with id 0
+        request.matchdict = {'id': 0}
+        response = self._callFUT(request)
+
+        # true if the response from paste view returns the new id
+        self.assertEqual(response.keys(), ['newId'])
+        newid = response['newId']
+
+        # do another test to see if the children of the parent is now four
+        request = testing.DummyRequest()
+        request.matchdict = {'parentid': 0}
+        from optimate.app.views import node_children
+        response = node_children(request)
+        self.assertEqual(len(response), 4)
+
+        # do another test to see if the name is 'Copy of'
+        request = testing.DummyRequest()
+        request.matchdict = {'id': newid}
+        from optimate.app.views import nodeview
+        response = nodeview(request)
+        self.assertEqual(response['Name'], 'Copy of TestPName')
+        # test the project costs is 0
+        request = testing.DummyRequest()
+        request.matchdict = {'id': newid}
+        from optimate.app.views import node_cost
+        response = node_cost(request)
+        self.assertEqual(response['Cost'], '0.00')
+
+    def test_resourcecategory_in_resourcecategory(self):
+        _registerRoutes(self.config)
+        # set the node to be copied
+        # which is resource category with id 24
+        request = testing.DummyRequest(json_body={
+            'ID': '24',
+            'cut': False}
+        )
+        # set the node to be pasted into
+        # which is resource category with id
+        request.matchdict = {'id': 9}
+        response = self._callFUT(request)
+
+        # true if the response from paste view returns the new id
+        self.assertEqual(response.keys(), ['newId'])
+        newid = response['newId']
+
+        # do another test to see if the children of the parent is now three
+        request = testing.DummyRequest()
+        request.matchdict = {'parentid': 9}
+        from optimate.app.views import node_children
+        response = node_children(request)
+        self.assertEqual(len(response), 3)
+
+    def test_resourcecategory_in_resourcecategory_duplicates(self):
+        _registerRoutes(self.config)
+        # set the node to be copied
+        request = testing.DummyRequest(json_body={
+            'ID': '12',
+            'cut': False,
+            'duplicates': {'A000': True}}
+        )
+        # set the node to be pasted into
+        request.matchdict = {'id': 9}
+        response = self._callFUT(request)
+
+        # true if the response from paste view returns the new id
+        self.assertEqual(response.keys(), ['newId'])
+        newid = response['newId']
+
+        # do another test to see if the children of the parent is now three
+        request = testing.DummyRequest()
+        request.matchdict = {'parentid': 9}
+        from optimate.app.views import node_children
+        response = node_children(request)
+        self.assertEqual(len(response), 3)
+
+    def test_paste_in_same_level(self):
+        _registerRoutes(self.config)
+        # set the node to be copied
+        request = testing.DummyRequest(json_body={
+            'ID': '2',
+            'cut': False}
+        )
+        # set the node to be pasted into
+        request.matchdict = {'id': 1}
+        response = self._callFUT(request)
+
+        # true if the response from paste view returns the new id
+        self.assertEqual(response.keys(), ['newId'])
+        newid = response['newId']
+
+        # do another test to see if the children of the parent is two
+        request = testing.DummyRequest()
+        request.matchdict = {'parentid': 1}
+        from optimate.app.views import node_children
+        response = node_children(request)
+        self.assertEqual(len(response), 3)
+
 
 class TestCutAndPasteSuccessCondition(unittest.TestCase):
     """ Test that a node is correctly cut and pasted

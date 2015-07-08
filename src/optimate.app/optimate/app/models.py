@@ -1258,7 +1258,7 @@ class SimpleComponent(Node, ComponentMixin):
     Description = Column(Text(100))
     _Quantity = Column('Quantity', Float)
     _Total = Column('Total', Numeric)
-    Type = Column(Unicode(50), ForeignKey('ResourceType.Name'))
+    Type = Column(Unicode(50), ForeignKey('ResourceType.ID'))
     _Rate = Column('Rate', Numeric, default=Decimal(0.00))
     _Ordered = Column('Ordered', Numeric(12, 2), default=Decimal(0.00))
     _Invoiced = Column('Invoiced', Numeric(12, 2), default=Decimal(0.00))
@@ -1511,7 +1511,9 @@ class ResourceType(Base):
         or form path of the project hierarchy
     """
     __tablename__ = 'ResourceType'
-    Name = Column(Text(50), primary_key=True)
+    ID = Column(Integer, primary_key=True)
+    Name = Column(Text(50))
+    DefaultMarkup = Column(Float, default=0.0)
 
     Resources = relationship('Resource',
                               backref=backref('ResourceType'))
@@ -1538,7 +1540,7 @@ class Resource(Node):
     Name = Column(Text(50))
     Description = Column(Text(100))
     UnitID = Column(Integer, ForeignKey('Unit.ID'))
-    Type = Column(Text(50), ForeignKey('ResourceType.Name'))
+    Type = Column(Text(50), ForeignKey('ResourceType.ID'))
     _Rate = Column('Rate', Numeric, default=Decimal(0.00))
     SupplierID = Column(Integer, ForeignKey('Supplier.ID'))
 
@@ -1628,7 +1630,7 @@ class Resource(Node):
                 'unit': self.unitName(),
                 'node_type': self.type,
                 'rate': str(self.Rate),
-                'resource_type': self.Type}
+                'resource_type': self.ResourceType.Name}
 
     def __eq__(self, other):
         """ Test for equality on the Resource product Code
@@ -1965,7 +1967,7 @@ class Invoice(Base):
     OrderID = Column(Integer, ForeignKey('Order.ID'))
     InvoiceDate = Column(DateTime)
     PaymentDate = Column(DateTime)
-    VAT = Column(Float)
+    VAT = Column(Numeric)
     Amount = Column(Numeric)
 
     Order = relationship('Order',
@@ -2033,8 +2035,7 @@ class Invoice(Base):
 
     @property
     def Total(self):
-        return Decimal(float(self.Amount) * (1+self.VAT)
-                        ).quantize(Decimal('.01'))
+        return Decimal(self.Amount + self.VAT).quantize(Decimal('.01'))
 
 
     def tableData(self):
@@ -2066,17 +2067,12 @@ class Invoice(Base):
         jsonindate = None
         if self.InvoiceDate:
             jsonindate = self.InvoiceDate.isoformat()
-        vatcost = Decimal(0.00)
-        if self.VAT:
-            vatcost = Decimal(float(self.Amount) * self.VAT
-                                ).quantize(Decimal('.01'))
         return {'id': self.ID,
                 'orderid': self.OrderID,
                 'invoicedate': jsonindate,
                 'paymentdate': jsonpaydate,
                 'amount' : str(self.Amount),
                 'vat': self.VAT,
-                'vatcost': str(vatcost),
                 'total': str(self.Total),
                 'ordertotal': str(self.Order.Total),
                 'status': self.Status}

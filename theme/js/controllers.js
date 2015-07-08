@@ -2289,7 +2289,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
                 $scope.formData.paymentdate = new Date($scope.formData.paymentdate);
                 $scope.formData['NodeType'] = 'invoice';
                 $scope.calculatedAmounts = [{'name': 'Subtotal', 'amount': response.amount},
-                                        {'name': 'VAT', 'amount': response.vatcost},
+                                        {'name': 'VAT', 'amount': response.vat},
                                         {'name': 'Total', 'amount': response.total},
                                         {'name': 'Order total', 'amount': response.ordertotal}];
             });
@@ -2328,8 +2328,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
 
         $scope.updateAmounts = function(){
             var subtotal = parseFloat($scope.formData.amount);
-            var vatperc = parseFloat($scope.formData.vat);
-            var vatcost = subtotal * vatperc;
+            var vatcost = parseFloat($scope.formData.vat);
             var total = subtotal + vatcost;
 
             var parts = subtotal.toString().split(".");
