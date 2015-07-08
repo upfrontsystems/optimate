@@ -2047,7 +2047,7 @@ class Valuation(Base):
         else:
             date = ''
         return {'ID': self.ID,
-                'Project': self.ProjectID,
+                'Project': self.Project.Name,
                 'Date': date,
                 'PercentageClaimed': 'XX',
                 'AmountClaimed': 'XX'}
@@ -2077,11 +2077,12 @@ class ValuationItem(Base):
         """
         return {'ID': self.ID,
                 'BudgetGroup': self.BudgetGroupID,
-                'PercentageComplete': self.PercentageComplete}
+                'name': self.BudgetGroup.Name,
+                'PercentageComplete': str(self.PercentageComplete),
+                'percentage_complete': str(self.PercentageComplete)}
 
     def __repr__(self):
         """Return a representation of this valuation item
         """
         return '<ValuationItem(ID="%s", BudgetGroupID="%s")>' % (
             self.ID, self.BudgetGroupID)
-

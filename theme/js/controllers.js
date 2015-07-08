@@ -26,7 +26,7 @@ allControllers.factory('sharedService', ['$rootScope',
         }
 
         shared.reloadValuationSlickgrid = function() {
-            $rootScope.$broadcast('handleReloadValuationOrderSlickgrid');
+            $rootScope.$broadcast('handleReloadValuationSlickgrid');
         }
         return shared;
 }]);

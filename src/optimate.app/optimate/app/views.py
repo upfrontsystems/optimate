@@ -1804,7 +1804,7 @@ def valuationview(request):
     """ The valuationview handles different cases for valuations
         depending on the http method
     """
-    # if the method is delete, delete the order
+    # if the method is delete, delete the valuation
     if request.method == 'DELETE':
         deleteid = request.matchdict['id']
         # Deleting it from the table deletes the object
@@ -1816,7 +1816,7 @@ def valuationview(request):
 
         return HTTPOk()
 
-    # if the method is post, add a new order
+    # if the method is post, add a new valuation
     if request.method == 'POST':
         proj = request.json_body.get('ProjectID', None)
         # convert to date from json format
@@ -1852,7 +1852,7 @@ def valuationview(request):
         if date:
             date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
 
-        valuation.ProjectID=proj
+        valuation.ProjectID = proj
         valuation.Date = date
 
         # get a list of id's used in the valuationitems
@@ -1896,8 +1896,9 @@ def valuationview(request):
     # otherwise return the selected valuation
     valuationid = request.matchdict['id']
     valuation = DBSession.query(Valuation).filter_by(ID=valuationid).first()
-    # build a list of the valuations used in the order from the valuation items
-    valuationslist = []
+    # build a list of the budgetgroups used in the valuation from the valuation 
+    # items
+    budgetgrouplist = []
     for valuationitem in valuation.ValuationItems:
         if valuationitem.BudgetGroup:
             budgetgrouplist.append(valuationitem.toDict())

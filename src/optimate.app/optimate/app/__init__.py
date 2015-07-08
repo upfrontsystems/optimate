@@ -117,6 +117,7 @@ def main(global_config, **settings):
     config.add_route('reports_tree_view', '/reports/tree/{id}/')
     config.add_route('resourcelist', '/resource_list_report/{id}/')
     config.add_route('order', '/order_report/{id}/')
+    config.add_route('valuation', '/valuation_report/{id}/')
 
     config.scan()
     return config.make_wsgi_app()

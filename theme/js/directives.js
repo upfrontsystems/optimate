@@ -986,11 +986,25 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                      cssClass: "cell editable-column",
                      width: valuations_column_width.percentage_complete, editor: Slick.Editors.CustomEditor}];
                     // XXX THIS NEEDS ATTENTION - some code possibly missing here
+                if (budgetgrouplist.length > 0) {
+                    grid.setColumns(columns);
+                    dataView.beginUpdate();
+                    dataView.setItems(budgetgrouplist);
+                    dataView.endUpdate();
+                    grid.render();
+                }
+                else {
+                    grid.setColumns(columns);
+                    dataView.beginUpdate();
+                    dataView.setItems([]);
+                    dataView.endUpdate();
+                    grid.render();
+                }
             }, true);
 
             // on cell change update the totals
             grid.onCellChange.subscribe(function (e, ctx) {
-                // console.log("component cell changed changed");
+                console.log("budgetgroup cell changed changed");
                 var item = ctx.item
                 var oldtotal = item.total;
 
@@ -1006,7 +1020,9 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
             // listening for the handle to reload the order slickgrid
             // timeout to wait until the modal has finished rendering
             $scope.$on('handleReloadValuationSlickgrid', function() {
+                console.log("budgetitem handle reload grid");
                 $timeout(function(){
+                    console.log(dataView.getItems());
                     grid.resizeCanvas();
                 });
             });

@@ -257,3 +257,8 @@ label.filters-label {
 .dropdown-toggle .input-group {
     width: 150px;
 }
+
+p#valuationNumber,
+p#orderNumber {
+    margin-top: 7px !important;
+}
