@@ -264,7 +264,7 @@ class Project(Node):
                 'order_cost': str(self.OrderCost),
                 'run_cost': str(self.RunningCost),
                 'claim_cost': str(self.ClaimedCost),
-                'income_rec': str(self.IncomeReceived), # FIXME spelling
+                'income_rec': str(self.IncomeReceived),
                 'client_cost': str(self.ClientCost),
                 'proj_profit': str(self.ProjectedProfit),
                 'act_profit': str(self.ActualProfit),
