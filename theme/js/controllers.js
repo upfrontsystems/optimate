@@ -1037,7 +1037,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 $scope.isDisabled = true;
                 var currentid = $scope.currentNode.ID;
                 $scope.formData['OverheadList'] = $scope.componentOverheadList || [];
-                console.log($scope.componentOverheadList)
                 $http({
                     method: 'POST',
                     url: globalServerURL + 'node/' + currentid + '/',

@@ -1,12 +1,4 @@
 """ The pyramid views and their functions are being tested.
-    That is: Child view
-             Add view
-             Delete view
-             Paste view
-             Cost view
-             Clients view
-             Suppliers view
-             The POST, PUT, DELETE versions of client and supplier view
 """
 from pyramid.paster import (
     get_appsettings,
@@ -1284,6 +1276,101 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         response = node_cost(request)
         # true if the cost is correct
         self.assertEqual(response['Cost'], '2900.00')
+
+class TestEditItemSuccessCondition(unittest.TestCase):
+    """ Test if the nodeview functions correctly when editing a node
+    """
+
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        self.session.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        if not 'json_body' in request.__dict__:
+            request.json_body = {}
+        from optimate.app.views import nodeview
+        return nodeview(request)
+
+    def test_edit_budgetgroup(self):
+        _registerRoutes(self.config)
+
+        # Add the default data using json in the request
+        request = testing.DummyRequest(json_body={
+            'ID': 2,
+            'Name': 'EditedName',
+            'Description': 'Edit test item',
+            'NodeType': 'BudgetGroup'
+        })
+        # add it to id:1 the project
+        request.matchdict = {'id': 2}
+        request.method = 'PUT'
+        response = self._callFUT(request)
+        # assert if the response from the add view is OK
+        self.assertEqual(response.code, 200)
+
+        # check if the name has changed
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 2}
+        request.method = 'GET'
+        response = self._callFUT(request)
+        self.assertEqual(response['Name'], 'EditedName')
+
+    def test_edit_component(self):
+        _registerRoutes(self.config)
+
+        # Add the default data using json in the request
+        request = testing.DummyRequest(json_body={
+            'Name': 'TestResource',
+            'ID': 7,
+            'uid': 16,
+            'Quantity': 10,
+            'NodeType': 'Component',
+            'OverheadList':[{'Name': 'Overhead',
+                                'ID':1,
+                                'selected':True}],
+        })
+        request.matchdict = {'id': 7}
+        request.method = 'PUT'
+        response = self._callFUT(request)
+
+        # assert if the response returns ok
+        self.assertEqual(response.code, 200)
+
+        # check if the name has changed
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 7}
+        request.method = 'GET'
+        response = self._callFUT(request)
+        self.assertEqual(response['Name'], 'TestResourceA')
+
+    def test_edit_resource(self):
+        _registerRoutes(self.config)
+
+        # Add the default project using json in the request
+        request = testing.DummyRequest(json_body={
+            'ID': 25,
+            'Name': 'EditResource',
+            'NodeType': 'Resource',
+            'Code': 'E000',
+            'Rate': 50
+        })
+        request.matchdict = {'id': 25}
+        request.method = 'PUT'
+        response = self._callFUT(request)
+
+        # assert if the response returns ok
+        self.assertEqual(response.code, 200)
+
+        # check if the name has changed
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 25}
+        request.method = 'GET'
+        response = self._callFUT(request)
+        self.assertEqual(response['Name'], 'EditResource')
 
 class TestDeleteviewSuccessCondition(unittest.TestCase):
     """ Test if the delete view functions correctly and deletes the node

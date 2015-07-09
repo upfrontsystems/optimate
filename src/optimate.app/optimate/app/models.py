@@ -1622,7 +1622,8 @@ class Resource(Node):
                 'Rate': str(self._Rate),
                 'ResourceType': self.Type,
                 'Unit': self.UnitID,
-                'Supplier': self.SupplierID}
+                'Supplier': self.SupplierID,
+                'NodeType': self.type}
 
     def getGridData(self):
         return {'name': self.Name,
