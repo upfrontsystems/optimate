@@ -774,25 +774,30 @@ def node_grid(request):
 
     childrenlist = []
     # Execute the sql query on the Node table to find the parent
-    qry = DBSession.query(Node).filter_by(ParentID=parentid).all()
+    qry = DBSession.query(Node).filter_by(ParentID=parentid)
     node_type = DBSession.query(Node).filter_by(ID=parentid).first().type
-    if qry == []:
+    if qry.count() == 0:
         # if the node doesnt have any children, query for the node's data instead
-        qry = DBSession.query(Node).filter_by(ID=parentid).all()
+        qry = DBSession.query(Node).filter_by(ID=parentid)
 
     # Filter out all the Budgetitems and Components
     # Test if the result is the same length as the query
     # Therefore there will be empty columns
-    emptyresult = DBSession.query(Node).filter(
-            Node.ParentID==parentid,
+    emptyresult = qry.filter(
             Node.type != 'BudgetItem',
             Node.type != 'Component',
-            Node.type != 'SimpleComponent').all()
-    emptycolumns = len(emptyresult) == len(qry)
+            Node.type != 'SimpleComponent')
+    emptycolumns = emptyresult.count() == qry.count()
+
+    # if the query has any components it will contain subtotal columns
+    sub_cost_result = qry.filter(
+            (Node.type == 'Component') |
+            (Node.type == 'SimpleComponent'))
+    no_sub_cost = sub_cost_result.count() == 0
 
     # put the ResourceCategories in another list that is appended first
     rescatlist = []
-
+    qry = qry.all()
     # Get the griddata dict from each child and add it to the list
     for child in qry:
         if child.type == 'ResourceCategory':
@@ -804,18 +809,9 @@ def node_grid(request):
     sorted_rescatlist = sorted(rescatlist, key=lambda k: k['name'].upper())
     sorted_childrenlist = sorted_rescatlist+sorted_childrenlist
 
-    # if children contain no subtotal data - notify the grid
-    for child in sorted_childrenlist:
-        if child.has_key('sub_cost'):
-            if child['sub_cost'] != None:
-                return {'list': sorted_childrenlist,
-                        'emptycolumns': emptycolumns,
-                        'no_sub_cost' : False,
-                        'type': node_type}
-
     return {'list': sorted_childrenlist,
             'emptycolumns': emptycolumns,
-            'no_sub_cost' : True,
+            'no_sub_cost' : no_sub_cost,
             'type': node_type}
 
 
