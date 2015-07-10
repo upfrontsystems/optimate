@@ -2155,7 +2155,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
         $scope.maxPageSize = 20;
         $scope.valuationListLength = $scope.maxPageSize + 1;
 
-        // get the length of the list of all the orders
+        // get the length of the list of all the valuations
         $http.get(globalServerURL + 'valuations/length').success(function(data) {
             $scope.valuationListLength = data['length'];
         });
@@ -2200,7 +2200,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                         url: globalServerURL + $scope.formData['NodeType'] + '/' + $scope.formData['ID'] + '/',
                         data: $scope.formData
                     }).success(function (response) {
-                        // edit the order in the list
+                        // edit the valuation in the list
                         $scope.handleEdited(response);
                         $scope.formData = {'NodeType': $scope.formData['NodeType']};
                     });
@@ -2211,7 +2211,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                         url: globalServerURL + $scope.formData['NodeType'] + '/0/',
                         data: $scope.formData
                     }).success(function (response) {
-                        // add the new order to the list
+                        // add the new valuation to the list
                         $scope.handleNew(response);
                         $scope.formData = {'NodeType': $scope.formData['NodeType']};
                     });
@@ -2228,7 +2228,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                 // only need to add it if it's id falls in the current section
                 if (newvaluation.ID > low && newvaluation.ID < high) {
                     $scope.jsonvaluations.push(newvaluation);
-                    // sort by order id
+                    // sort by valuation id
                     $scope.jsonvaluations.sort(function(a, b) {
                         var idA = a.ID;
                         var idB = b.ID;
@@ -2244,7 +2244,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
 
         // handle editing a valuation
         $scope.handleEdited = function(editedvaluation) {
-            // search for the order and edit in the list
+            // search for the valuation and edit in the list
             var result = $.grep($scope.jsonvaluations, function(e) {
                 return e.ID == editedvaluation.ID;
             });
@@ -2255,7 +2255,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
             console.log ("Valuation edited");
         };
 
-        // Set the selected order and change the css
+        // Set the selected valuation and change the css
         $scope.showActionsFor = function(obj) {
             $scope.selectedValuation = obj;
             $('#valuation-'+obj.ID).addClass('active').siblings().removeClass('active');

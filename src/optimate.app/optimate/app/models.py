@@ -495,7 +495,7 @@ class BudgetGroup(Node):
         for child in self.Children:
             if child.type == 'BudgetGroup':
                 budgetgrouplist.append(child)
-            else:
+            elif child.type != 'BudgetItem' and child.type != 'Component':
                 budgetgrouplist += child.getBudgetGroups()
         return budgetgrouplist
 
@@ -2076,6 +2076,7 @@ class ValuationItem(Base):
         """ Returns a dictionary of this ValuationItem
         """
         return {'ID': self.ID,
+                'id': self.ID,
                 'BudgetGroup': self.BudgetGroupID,
                 'name': self.BudgetGroup.Name,
                 'PercentageComplete': str(self.PercentageComplete),

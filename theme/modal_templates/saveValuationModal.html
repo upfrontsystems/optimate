@@ -74,7 +74,8 @@
                 </div>
                 <form class="form-horizontal">
                     <div class="form-group">
-                        <label for="addBudgetgroupButton" class="col-sm-2 control-label"></label>
+                        <label for="addBudgetgroupButton" class="col-sm-2 control-label" data-ng-show="isCollapsed"></label>
+                        <label for="addBudgetgroupButton" class="col-sm-0 control-label" data-ng-show="!isCollapsed"></label>
                             <button class="btn btn-default"
                                     id="addBudgetgroupButton"
                                     data-ng-click="toggleBudgetgroupGrid()"

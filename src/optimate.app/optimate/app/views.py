@@ -1869,7 +1869,7 @@ def valuationview(request):
                 p_complete = float(budgetgroup.get('percentage_complete', 0))
 
                 newvaluationitem = ValuationItem(ValuationID=valuation.ID,
-                                               ComponentID=component['ID'],
+                                               BudgetGroupID=budgetgroup['ID'],
                                                PercentageComplete=p_complete)
                 DBSession.add(newvaluationitem)
             else:

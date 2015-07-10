@@ -885,20 +885,20 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                     }
                     catch (exception) {
                         console.log("No columns widths found in storage. Setting to default.");
-                        orders_column_width= {'name': 250,
-                                              'percentage_complete': 150};
+                        orders_column_width = {'name': 250,
+                                               'percentage_complete': 150};
                         localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
                     }
                     if ( valuations_column_width.length == 0 ) {
-                        valuations_column_width= {'name': 250,
-                                                  'percentage_complete': 150};
+                        valuations_column_width = {'name': 250,
+                                                   'percentage_complete': 150};
                         localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
                     }
                 }
                 else {
                     console.log("LOCAL STORAGE NOT SUPPORTED")
-                    valuations_column_width= {'name': 250,
-                                              'percentage_complete': 150};
+                    valuations_column_width = {'name': 250,
+                                               'percentage_complete': 150};
                 }
             };
             $scope.preloadWidths();
@@ -936,6 +936,7 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                 for (var i in gridcolumns) {
                     if (gridcolumns[i].previousWidth != gridcolumns[i].width)
                         valuations_column_width[gridcolumns[i].field] = gridcolumns[i].width;
+                        console.log(gridcolumns[i].width);
                 }
                 if(hasStorage){
                     localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
@@ -952,22 +953,6 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
               grid.render();
             });
 
-            // Formatter for displaying the vat percentage
-            function VATFormatter(row, cell, value, columnDef, dataContext) {
-                // console.log("component curreny formaater");
-                if (value != undefined) {
-                    var percentile = parseFloat(value)*100.0;
-                    var parts = percentile.toString().split(".");
-                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                    if (parts.length > 1){
-                        parts[parts.length-1] = parts[parts.length-1].slice(0,2);
-                    }
-                    return (parts.join(".") + " %");
-                }
-                else {
-                    return "0.00 %";
-                }
-            }
             grid.onAddNewRow.subscribe(function (e, args) {
                 var item = args.item;
                 grid.invalidateRow(dataView.length);
@@ -977,7 +962,6 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
             });
 
             // observe the budgetgroup list for changes and update the slickgrid
-            // calculate and update the valuation total as well
             $scope.$watch(attrs.budgetgroups, function(budgetgrouplist) {
                 columns = [
                     {id: "name", name: "Budget Group", field: "name",
@@ -985,7 +969,6 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                     {id: "percentage_complete", name: "Percentage Complete", field: "percentage_complete", 
                      cssClass: "cell editable-column",
                      width: valuations_column_width.percentage_complete, editor: Slick.Editors.CustomEditor}];
-                    // XXX THIS NEEDS ATTENTION - some code possibly missing here
                 if (budgetgrouplist.length > 0) {
                     grid.setColumns(columns);
                     dataView.beginUpdate();
@@ -1001,21 +984,6 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                     grid.render();
                 }
             }, true);
-
-            // on cell change update the totals
-            grid.onCellChange.subscribe(function (e, ctx) {
-                console.log("budgetgroup cell changed changed");
-                var item = ctx.item
-                var oldtotal = item.total;
-
-                item.total = oldtotal; // XXX THIS NEEDS TO BE FIXED
-                dataView.updateItem(item.id, item);
-                // get the last row and update the values
-                var datalength = dataView.getLength();
-                var lastrow = dataView.getItem(datalength-1);
-                lastrow.total = lastrow.total + (item.total - oldtotal);
-                dataView.updateItem(lastrow.id, lastrow);
-            });
 
             // listening for the handle to reload the order slickgrid
             // timeout to wait until the modal has finished rendering
