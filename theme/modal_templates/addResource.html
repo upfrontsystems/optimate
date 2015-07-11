@@ -9,19 +9,17 @@
             </div>
             <div class="modal-body">
                 <form class="form-horizontal" name="addResourceForm" novalidate>
-                    <div class="form-group"
-                        ng-class="{'has-error': addResourceForm.inputName.$invalid}">
+                    <div class="form-group">
                         <label for="inputName" class="col-sm-2 control-label">Name:</label>
                         <input type="text"
                                class="col-sm-7"
                                id="inputName"
                                name="inputName"
-                               ng-model="formData['Name']"
+                               data-ng-model="formData['Name']"
                                required
                                autofocus>
                     </div>
-                    <div class="form-group"
-                        ng-class="{'has-error': addResourceForm.inputDescription.$invalid}">
+                    <div class="form-group">
                         <label for="inputDescription" class="col-sm-2 control-label">Description:</label>
                         <textarea id="inputDescription"
                                   class="col-sm-7"
@@ -30,28 +28,25 @@
                                   rows="5" cols="40">
                         </textarea>
                     </div>
-                    <div class="form-group"
-                        ng-class="{'has-error': addResourceForm.inputProductCode.$invalid}">
+                    <div class="form-group">
                         <label for="inputProductCode" class="col-sm-2 control-label">Product Code:</label>
                         <input type="text"
                                class="col-sm-7"
                                id="inputProductCode"
                                name="inputProductCode"
-                               ng-model="formData['Code']"
+                               data-ng-model="formData['Code']"
                                required>
                     </div>
-                    <div class="form-group"
-                        ng-class="{'has-error': addResourceForm.inputRate.$invalid}">
+                    <div class="form-group">
                         <label for="inputRate" class="col-sm-2 control-label">Rate:</label>
                         <input type="text"
                                class="col-sm-7"
                                id="inputRate"
                                name="inputRate"
-                               ng-model="formData['Rate']"
+                               data-ng-model="formData['Rate']"
                                smart-float>
                     </div>
-                    <div class="form-group"
-                        ng-class="{'has-error': addResourceForm.inputUnit.$invalid}">
+                    <div class="form-group">
                         <label for="inputUnit" class="col-sm-2 control-label">Unit:</label>
                         <select chosen
                                 class="col-sm-7"
@@ -63,8 +58,7 @@
                             <option value="">Select a unit</option>
                         </select>
                     </div>
-                    <div class="form-group"
-                        ng-class="{'has-error': addResourceForm.inputType.$invalid}">
+                    <div class="form-group">
                         <label for="inputType" class="col-sm-2 control-label">Type:</label>
                         <select chosen
                                 class="col-sm-7"
@@ -76,8 +70,7 @@
                             <option value="">Select a type</option>
                         </select>
                     </div>
-                    <div class="form-group"
-                        ng-class="{'has-error': addResourceForm.inputSupplier.$invalid}">
+                    <div class="form-group">
                         <label for="inputSupplier" class="col-sm-2 control-label">Supplier:</label>
                         <select chosen
                                 class="col-sm-7"

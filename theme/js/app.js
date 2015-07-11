@@ -7,7 +7,18 @@ var myApp = angular.module('myApp', [
                     'services',
                     'ui.bootstrap.datetimepicker',
                     'angularMoment',
-                    'localytics.directives']);
+                    'localytics.directives',
+                    'ngInputModified',
+                    'ngFormValidation']);
+
+myApp.config(function(formValidationDecorationsProvider, formValidationErrorsProvider) {
+    formValidationDecorationsProvider
+        .useBuiltInDecorator('bootstrap')
+    ;
+    formValidationErrorsProvider
+        .useBuiltInErrorListRenderer('bootstrap')
+    ;
+});
 
 myApp.config(['$routeProvider', '$httpProvider',
   function($routeProvider, $httpProvider) {
@@ -61,7 +72,7 @@ myApp.config(['$routeProvider', '$httpProvider',
       when('/invoices', {
         templateUrl: 'partials/invoices.html',
         controller: 'invoicesController'
-      });;
+      });
     $httpProvider.interceptors.push(function($window){
         return {
             request: function (config) {
