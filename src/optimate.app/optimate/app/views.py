@@ -62,6 +62,39 @@ resourcecatlist = {"A-B": ("A-B"),
                     "U-V": ("U-V"),
                     "W-X-Y-Z": ("W-X-Y-Z")}
 
+def sortResource(parentId, resourcename):
+    """ Give the Resource List id and Resource name, return the id of the
+        ResourceCategories the Resource should be listed in
+    """
+    rcat = DBSession.query(ResourceCategory).filter_by(ID=parentId).first()
+    while rcat.Parent.type != 'Project':
+        rcat = rcat.Parent
+
+    parentCategoryId =rcat.ID
+    letter = resourcename[0].upper()
+    if letter.isalpha():
+        # get the category the resource falls in
+        result = next(v for (k,v) in
+            resourcecatlist.iteritems() if letter in k)
+        if result:
+            category = DBSession.query(ResourceCategory).filter_by(ParentID=parentCategoryId, Name=result).first()
+            if not category:
+                category = ResourceCategory(Name=result,
+                            Description="Resources from " + result,
+                            ParentID=parentCategoryId)
+                DBSession.add(category)
+                DBSession.flush()
+            return category.ID
+    else:
+        category = DBSession.query(ResourceCategory).filter_by(ParentID=parentCategoryId, Name="Other").first()
+        if not category:
+            category = ResourceCategory(Name="Other",
+                        Description="Other Resources",
+                        ParentID=parentCategoryId)
+            DBSession.add(category)
+            DBSession.flush()
+        return category.ID
+
 
 @view_config(route_name='options', renderer='json')
 def options_view(request):
@@ -216,7 +249,6 @@ def additemview(request):
     quantity = float(request.json_body.get('Quantity', 0))
     rate = request.json_body.get('Rate', 0)
     rate = Decimal(rate).quantize(Decimal('.01'))
-    resourcetype = request.json_body.get('ResourceType', None)
     unit = request.json_body.get('Unit', '')
     objecttype = request.json_body['NodeType']
     city = request.json_body.get('City', '')
@@ -230,6 +262,7 @@ def additemview(request):
     # Determine the type of object to be added and build it
     if objecttype == 'Resource':
         code = request.json_body['Code']
+        resourcetype = request.json_body['ResourceType']
         # check if the resource is not in the resource category
         resourcecategory = DBSession.query(
                 ResourceCategory).filter_by(ID=parentid).first()
@@ -239,6 +272,7 @@ def additemview(request):
         else:
             return HTTPInternalServerError()
 
+        parentid = sortResource(parentid, name)
         newnode = Resource(Name=name,
                             Description = desc,
                             Code=code,
@@ -506,7 +540,6 @@ def edititemview(request):
         unit = request.json_body.get('Unit', '')
         supplier = request.json_body.get('Supplier', '')
         resource = DBSession.query(Resource).filter_by(ID=nodeid).first()
-        resource.Name=name
         resource.Description=desc
         resource.Code = request.json_body['Code']
         resource._Rate=rate
@@ -514,6 +547,11 @@ def edititemview(request):
         resource.Type=request.json_body.get('ResourceType', None)
         resource.UnitID=unit
         resource.SupplierID=supplier
+
+        if resource.Name != name:
+            parentid = sortResource(resource.ParentID, name)
+            resource.ParentID = parentid
+        resource.Name=name
 
     else:
         return HTTPInternalServerError()
@@ -903,8 +941,9 @@ def node_paste(request):
             copiedresourceIds = {}
             for component in sourcecomponents:
                 if component.ResourceID not in copiedresourceIds:
-                    copiedresource = component.Resource.copy(rescatid)
-                    resourcecategory.Children.append(copiedresource)
+                    newparentid = sortResource(rescatid, component.Resource.Name)
+                    copiedresource = component.Resource.copy(newparentid)
+                    DBSession.add(copiedresource)
                     DBSession.flush()
                     copiedresourceIds[
                             component.Resource.ID] = copiedresource.ID
@@ -927,8 +966,8 @@ def node_paste(request):
             projectid = dest.getProjectID()
             resourcecategory = DBSession.query(
                     ResourceCategory).filter_by(ParentID=projectid).first()
+            rescatid = resourcecategory.ID
             destresources = resourcecategory.getResources()
-            newcategory = None
             # loop through all the source resources
             # if they are duplicated, check what the action should be taken
             for resource in sourceresources:
@@ -940,12 +979,11 @@ def node_paste(request):
                                 destresource.overwrite(resource)
                 # otherwise paste the resource into the new category
                 else:
-                    if not newcategory:
-                        # add the source resource category to the destination category
-                        newcategory = source.copy(parentid)
-                        DBSession.add(newcategory)
-                        DBSession.flush()
-                    newcategory.paste(resource.copy(newcategory.ID), [])
+                    # add the source resource category to the destination category
+                    newparentid = sortResource(rescatid, source.Name)
+                    newresource = resource.copy(newparentid)
+                    DBSession.add(newresource)
+                    DBSession.flush()
 
             # if the source is cut, delete it
             if request.json_body["cut"]:
@@ -976,10 +1014,13 @@ def node_paste(request):
             destresources = resourcecategory.getResources()
             if source not in destresources:
                 if request.json_body["cut"]:
-                    source.ParentID = destinationid
+                    newparentid = sortResource(destinationid, source.Name)
+                    source.ParentID = newparentid
                 else:
                     # Paste the source into the destination
-                    dest.paste(source.copy(dest.ID), source.Children)
+                    newparentid = sortResource(destinationid, source.Name)
+                    newresource = source.copy(newparentid)
+                    DBSession.add(newresource)
             else:
                 if request.json_body["cut"]:
                     destprojectid = dest.getProjectID()
@@ -1014,8 +1055,9 @@ def node_paste(request):
                 copiedresourceIds = {}
                 for component in sourcecomponents:
                     if component.ResourceID not in copiedresourceIds:
-                        copiedresource = component.Resource.copy(rescatid)
-                        resourcecategory.Children.append(copiedresource)
+                        newparentid = sortResource(rescatid, component.Resource.Name)
+                        copiedresource = component.Resource.copy(newparentid)
+                        DBSession.add(newresource)
                         DBSession.flush()
                         copiedresourceIds[
                                 component.Resource.ID] = copiedresource.ID
@@ -1073,8 +1115,9 @@ def node_paste(request):
                 copiedresourceIds = {}
                 for component in sourcecomponents:
                     if component.ResourceID not in copiedresourceIds:
-                        copiedresource = component.Resource.copy(rescatid)
-                        resourcecategory.Children.append(copiedresource)
+                        newparentid = sortResource(rescatid, component.Resource.Name)
+                        copiedresource = component.Resource.copy(newparentid)
+                        DBSession.add(newresource)
                         DBSession.flush()
                         copiedresourceIds[
                                 component.Resource.ID] = copiedresource.ID
