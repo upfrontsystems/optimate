@@ -63,7 +63,7 @@
                         ng-class="{'has-error': addComponentForm.inputQuantity.$invalid}">
                         <label for="inputQuantity" class="col-sm-2 control-label">Quantity:</label>
                         <input type="smartFloat"
-                               min="0" 
+                               min="0"
                                class="col-sm-1"
                                id="inputQuantity"
                                name="inputQuantity"
@@ -90,7 +90,7 @@
                                 name="resourcetype"
                                 ng-disabled="addComponentForm.has_selection"
                                 ng-model="formData['ResourceType']"
-                                ng-options="type.Name as type.Name for type in restypeList"
+                                ng-options="type.ID as type.Name for type in restypeList"
                                 required>
                             <option value="">Select a type</option>
                         </select>

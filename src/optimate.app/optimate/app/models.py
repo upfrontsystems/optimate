@@ -22,6 +22,9 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     ForeignKeyConstraint,
+    func,
+    select,
+    case
 )
 
 from sqlalchemy.orm import (
@@ -261,7 +264,7 @@ class Project(Node):
                 'order_cost': str(self.OrderCost),
                 'run_cost': str(self.RunningCost),
                 'claim_cost': str(self.ClaimedCost),
-                'income_rec': str(self.IncomeReceived), # FIXME spelling
+                'income_rec': str(self.IncomeReceived),
                 'client_cost': str(self.ClientCost),
                 'proj_profit': str(self.ProjectedProfit),
                 'act_profit': str(self.ActualProfit),
@@ -1255,7 +1258,7 @@ class SimpleComponent(Node, ComponentMixin):
     Description = Column(Text(100))
     _Quantity = Column('Quantity', Float)
     _Total = Column('Total', Numeric)
-    Type = Column(Unicode(50), ForeignKey('ResourceType.Name'))
+    Type = Column(Unicode(50), ForeignKey('ResourceType.ID'))
     _Rate = Column('Rate', Numeric, default=Decimal(0.00))
     _Ordered = Column('Ordered', Numeric(12, 2), default=Decimal(0.00))
     _Invoiced = Column('Invoiced', Numeric(12, 2), default=Decimal(0.00))
@@ -1508,7 +1511,9 @@ class ResourceType(Base):
         or form path of the project hierarchy
     """
     __tablename__ = 'ResourceType'
-    Name = Column(Text(50), primary_key=True)
+    ID = Column(Integer, primary_key=True)
+    Name = Column(Text(50))
+    DefaultMarkup = Column(Float, default=0.0)
 
     Resources = relationship('Resource',
                               backref=backref('ResourceType'))
@@ -1535,7 +1540,7 @@ class Resource(Node):
     Name = Column(Text(50))
     Description = Column(Text(100))
     UnitID = Column(Integer, ForeignKey('Unit.ID'))
-    Type = Column(Text(50), ForeignKey('ResourceType.Name'))
+    Type = Column(Text(50), ForeignKey('ResourceType.ID'))
     _Rate = Column('Rate', Numeric, default=Decimal(0.00))
     SupplierID = Column(Integer, ForeignKey('Supplier.ID'))
 
@@ -1617,7 +1622,8 @@ class Resource(Node):
                 'Rate': str(self._Rate),
                 'ResourceType': self.Type,
                 'Unit': self.UnitID,
-                'Supplier': self.SupplierID}
+                'Supplier': self.SupplierID,
+                'NodeType': self.type}
 
     def getGridData(self):
         return {'name': self.Name,
@@ -1625,7 +1631,7 @@ class Resource(Node):
                 'unit': self.unitName(),
                 'node_type': self.type,
                 'rate': str(self.Rate),
-                'resource_type': self.Type}
+                'resource_type': self.ResourceType.Name}
 
     def __eq__(self, other):
         """ Test for equality on the Resource product Code
@@ -1962,30 +1968,120 @@ class Invoice(Base):
     __tablename__ = 'Invoice'
     ID = Column(Integer, primary_key=True)
     OrderID = Column(Integer, ForeignKey('Order.ID'))
-    InvoiceNumber = Column(Text(50), unique=True)
-    Date = Column(DateTime)
+    InvoiceDate = Column(DateTime)
+    PaymentDate = Column(DateTime)
+    VAT = Column(Numeric)
     Amount = Column(Numeric)
-    Paid = Column(Boolean, default=False)
 
     Order = relationship('Order',
                               backref=backref('Invoices'))
+
+    @hybrid_property
+    def ProjectID(self):
+        """ Return the id of the Project this Invoice's Order uses
+        """
+        return self.Order.ProjectID
+
+    @ProjectID.expression
+    def ProjectID(cls):
+        """ Expression to filter Invoice by ProjectID
+        """
+        return select([Order.ProjectID]).where(cls.OrderID == Order.ID).as_scalar()
+
+    @hybrid_property
+    def ClientID(self):
+        """ Return the id of the Client this Invoice's Order uses
+        """
+        return self.Order.ClientID
+
+    @ClientID.expression
+    def ClientID(cls):
+        """ Expression to filter Invoice by ClientID
+        """
+        return select([Order.ClientID]).where(cls.OrderID == Order.ID).as_scalar()
+
+    @hybrid_property
+    def SupplierID(self):
+        """ Return the id   of the Supplier this Invoice's Order uses
+        """
+        return self.Order.SupplierID
+
+    @SupplierID.expression
+    def SupplierID(cls):
+        """ Expression to filter Invoice by SupplierID
+        """
+        return select([Order.SupplierID]).where(cls.OrderID == Order.ID).as_scalar()
+
+    @hybrid_property
+    def Status(self):
+        """ Return paid if the payment date is in the past, otherwise unpaid
+        """
+        if self.PaymentDate:
+            if self.PaymentDate < datetime.now():
+                return 'Paid'
+            else:
+                return 'Unpaid'
+        else:
+            return 'Unpaid'
+
+    @Status.expression
+    def Status(cls):
+        """ Expression to filter Invoice by Status
+        """
+        return case([(cls.PaymentDate == None, "Unpaid"),
+                    (cls.PaymentDate > func.now(), "Unpaid")],
+                    else_="Paid")
+
+    @property
+    def Subtotal(self):
+        return self.Amount
+
+    @property
+    def Total(self):
+        return Decimal(self.Amount + self.VAT).quantize(Decimal('.01'))
+
+
+    def tableData(self):
+        """ Return a dictionary with the values used in displaying the
+            invoice in a table
+        """
+        # get the date in json format
+        jsonindate = None
+        if self.InvoiceDate:
+            jsonindate = self.InvoiceDate.strftime("%d %B %Y")
+        jsonpaydate = None
+        if self.PaymentDate:
+            jsonpaydate = self.PaymentDate.strftime("%d %B %Y")
+        return {'id':self.ID,
+                'orderid': self.OrderID,
+                'project': self.Order.Project.Name,
+                'supplier': self.Order.Supplier.Name,
+                'amount': str(self.Total),
+                'paymentdate': jsonpaydate,
+                'status': self.Status}
 
     def toDict(self):
         """ Returns a dictionary of this Invoice
         """
         # get the date in json format
-        jsondate = None
-        if self.Date:
-            jsondate = self.Date.isoformat()
+        jsonpaydate = None
+        if self.PaymentDate:
+            jsonpaydate = self.PaymentDate.isoformat()
+        jsonindate = None
+        if self.InvoiceDate:
+            jsonindate = self.InvoiceDate.isoformat()
         return {'id': self.ID,
                 'orderid': self.OrderID,
-                'invoicenumber': self.InvoiceNumber,
-                'date': jsondate,
+                'invoicedate': jsonindate,
+                'paymentdate': jsonpaydate,
                 'amount' : str(self.Amount),
-                'paid': self.Paid}
+                'vat': str(self.VAT),
+                'total': str(self.Total),
+                'ordertotal': str(self.Order.Total),
+                'status': self.Status}
 
     def __repr__(self):
-        """Return a representation of this invoice
+        """ Return a representation of this invoice
         """
         return '<Invoice(ID="%s", OrderID="%s", InvoiceNumber="%s")>' % (
             self.ID, self.OrderID, self.InvoiceNumber)
@@ -2043,4 +2139,3 @@ class ValuationItem(Base):
         """
         return '<ValidationItem(ID="%s", BudgetGroupID="%s")>' % (
             self.ID, self.BudgetGroupID)
-

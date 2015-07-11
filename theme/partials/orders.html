@@ -25,29 +25,20 @@
                 </a>
             </li>
             <li ng-show="selectedOrder">
-                <a title="Invoice"
-                    data-target="#invoiceOrderModal"
-                    data-ng-click="openInvoices()"
-                    data-toggle="modal">
-                        <i class="fa fa-credit-card"></i>
-                </a>
-            </li>
-            <li ng-show="selectedOrder">
                 <a title="Order Report"
                 data-ng-click="getReport('order')"
                 class="pdf_download">
                 <i class="fa fa-file-pdf-o"></i></a>
                 <a class="pdf_hidden_download"></a> <!-- hidden anchor for download hook -->
             </li>
-            <li class="filters-flexbox active">
-                <label class="filters-label">Filter by:</label>
+            <li class="order-filters-flexbox active">
                 <input type="number"
                        data-ng-model="filters.OrderNumber"
                        data-ng-model-options="{ debounce: 500 }"
                        placeholder="Order number"
                        data-ng-change="loadOrderSection(); filterBy('ordernumber')">
                <select chosen
-                        class="order-filters"
+                        class="filter-bar"
                         id="projectFilter"
                         data-ng-model="filters.Project"
                         data-ng-options="project.ID as project.Name for project in projectsList"
@@ -55,7 +46,7 @@
                     <option value="">Project</option>
                 </select>
                 <select chosen
-                        class="order-filters"
+                        class="filter-bar"
                         id="clientFilter"
                         data-ng-model="filters.Client"
                         data-ng-options="client.ID as client.Name for client in clientsList"
@@ -63,7 +54,7 @@
                     <option value="">Client</option>
                 </select>
                 <select chosen
-                        class="order-filters"
+                        class="filter-bar"
                         id="supplierFilter"
                         data-ng-model="filters.Supplier"
                         data-ng-options="supplier.ID as supplier.Name for supplier in suppliersList"
@@ -75,6 +66,7 @@
                     Clear
                 </a>
             <li>
+            <li class="filters-label"><label>Filter by:</label></li>
         </ul>
     </div>
 </nav>
@@ -95,11 +87,6 @@
 <div custom-modals modal-id="saveOrderModal"
     modal-type="order"
     modal-src="modal_templates/saveOrderModal.html">
-</div>
-
-<div custom-modals modal-id="invoiceOrderModal"
-    modal-type="order"
-    modal-src="modal_templates/invoiceOrderModal.html">
 </div>
 
 <div id="deleteOrderModal" class="modal" tabindex='-1'>
