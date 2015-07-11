@@ -979,7 +979,7 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                      width: valuations_column_width.name, cssClass: "cell-title non-editable-column"},
                     {id: "percentage_complete", name: "Percentage Complete", field: "percentage_complete", 
                      cssClass: "cell editable-column", formatter: PercentageFormatter,
-                     width: valuations_column_width.percentage_complete, editor: Slick.Editors.CustomEditor}];
+                     width: valuations_column_width.percentage_complete, editor: Slick.Editors.Float}];
                 if (budgetgrouplist.length > 0) {
                     grid.setColumns(columns);
                     dataView.beginUpdate();
