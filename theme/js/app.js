@@ -58,6 +58,10 @@ myApp.config(['$routeProvider', '$httpProvider',
         templateUrl: 'partials/orders.html',
         controller: 'ordersController'
       }).
+      when('/invoices', {
+        templateUrl: 'partials/invoices.html',
+        controller: 'invoicesController'
+      }).
       when('/valuations', {
         templateUrl: 'partials/valuations.html',
         controller: 'valuationsController'

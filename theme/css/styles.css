@@ -190,7 +190,7 @@ i.checkbox-icon {
     background-color: white;
 }
 
-li.filters-flexbox {
+li.order-filters-flexbox {
     display: inline-flex;
     justify-content: flex-end;
     align-items: center;
@@ -198,12 +198,35 @@ li.filters-flexbox {
     width: 55vw;
 }
 
-.order-filters {
+li.invoice-filters-flexbox {
+    display: inline-flex;
+    justify-content: flex-end;
+    align-items: center;
+    float: right;
+    width: 60vw;
+}
+
+.filter-bar {
     flex: 1;
 }
 
-label.filters-label {
-    width: 200px;
+li.filters-label {
+    float: right;
+    margin-top: 3px;
+    font-weight: lighter;
+}
+
+.filter-datepicker{
+    width: 50%;
+    float: left;
+    position: relative;
+    min-height: 1px;
+    padding-left: 1px;
+    padding-right: 1px;
+}
+
+input.custom-datepicker{
+    height: 14px !important;
 }
 
 /* overwriting bootstrap in order table */

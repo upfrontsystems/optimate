@@ -30,7 +30,10 @@ from optimate.app.models import (
     Resource,
     Base,
     CompanyInformation,
-    User
+    User,
+    Order,
+    OrderItem,
+    Invoice
 )
 
 

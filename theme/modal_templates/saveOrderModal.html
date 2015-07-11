@@ -58,14 +58,14 @@
                                         <input type="text"
                                                 date-parser="DD/MM/YYYY"
                                                 class="col-sm-7 form-control"
-                                                data-ng-model="date">
+                                                data-ng-model="formData.Date">
                                         <span class="input-group-addon">
                                             <i class="fa fa-calendar"></i>
                                         </span>
                                     </div>
                                 </a>
                                 <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-                                    <datetimepicker data-ng-model="date"
+                                    <datetimepicker data-ng-model="formData.Date"
                                         data-datetimepicker-config="{ dropdownSelector: '#dateDropdown' ,
                                                                         minView:'day'}"/>
                                 </ul>

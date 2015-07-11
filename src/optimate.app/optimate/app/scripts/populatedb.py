@@ -104,6 +104,58 @@ if __name__ == '__main__':
     Base.metadata.create_all(engine)
 
     with transaction.manager:
+        # add the companyinformation
+        print "Adding Company Information"
+        companybook = xlrd.open_workbook(exceldatapath + 'CompanyProfile.xls')
+        sheet = companybook.sheet_by_index(0)
+        code = sheet.cell(1, 0).value
+        try:
+            name = sheet.cell(1, 1).value
+            name = name.encode('ascii')
+        except UnicodeEncodeError, u:
+            name = unicodedata.normalize('NFKD',
+                                name).encode('ascii', 'ignore')
+        try:
+            address = sheet.cell(1, 2).value
+            address = address.encode('ascii')
+        except UnicodeEncodeError, u:
+            address = unicodedata.normalize('NFKD',
+                                address).encode('ascii', 'ignore')
+        tel = sheet.cell(1, 3).value
+        fax = sheet.cell(1, 4).value
+        cell = sheet.cell(1, 5).value
+        tax = float(sheet.cell(1, 8).value)
+        try:
+            bankname = sheet.cell(1, 2).value
+            bankname = bankname.encode('ascii')
+        except UnicodeEncodeError, u:
+            bankname = unicodedata.normalize('NFKD',
+                                bankname).encode('ascii', 'ignore')
+        bankcode = sheet.cell(1, 10).value
+        accnum = sheet.cell(1, 11).value
+        try:
+            accname = sheet.cell(1, 2).value
+            accname = accname.encode('ascii')
+        except UnicodeEncodeError, u:
+            accname = unicodedata.normalize('NFKD',
+                                accname).encode('ascii', 'ignore')
+
+        companyinfo = CompanyInformation(ID = code,
+                Name = name,
+                Address = address,
+                Tel = tel,
+                Fax = fax,
+                Cell = cell,
+                BankName = bankname,
+                BranchCode = bankcode,
+                AccountNo = accnum,
+                AccountName = accname,
+                DefaultTaxrate = tax)
+
+        DBSession.add(companyinfo)
+        transaction.commit()
+
+
         # add the root node
         root = Node(ID=0)
         DBSession.add(root)
@@ -133,7 +185,7 @@ if __name__ == '__main__':
                 city = city.encode('ascii')
             except UnicodeEncodeError, u:
                 city = unicodedata.normalize('NFKD',
-                                    name).encode('ascii', 'ignore')
+                                    city).encode('ascii', 'ignore')
 
             if len(city) > 0:
                 existingcity = DBSession.query(City).filter_by(Name=city).first()
@@ -152,7 +204,7 @@ if __name__ == '__main__':
                 city = city.encode('ascii')
             except UnicodeEncodeError, u:
                 city = unicodedata.normalize('NFKD',
-                                    name).encode('ascii', 'ignore')
+                                    city).encode('ascii', 'ignore')
 
             if len(city) > 0:
                 existingcity = DBSession.query(City).filter_by(Name=city).first()
@@ -171,7 +223,7 @@ if __name__ == '__main__':
                 city = city.encode('ascii')
             except UnicodeEncodeError, u:
                 city = unicodedata.normalize('NFKD',
-                                    name).encode('ascii', 'ignore')
+                                    city).encode('ascii', 'ignore')
 
             if len(city) > 0:
                 existingcity = DBSession.query(City).filter_by(Name=city).first()
@@ -224,7 +276,7 @@ if __name__ == '__main__':
                 city = city.encode('ascii')
             except UnicodeEncodeError, u:
                 city = unicodedata.normalize('NFKD',
-                                    name).encode('ascii', 'ignore')
+                                    city).encode('ascii', 'ignore')
 
             try:
                 clientid = int(sheet.cell(x, clientidindex).value)
@@ -629,6 +681,25 @@ if __name__ == '__main__':
 
         transaction.commit()
 
+        print 'Converting Resource Type table'
+        typebook = xlrd.open_workbook(exceldatapath + 'CompTypes.xls')
+        sheet = typebook.sheet_by_index(0)
+        codeindex = 0
+        nameindex = 1
+
+        for x in range(1, sheet.nrows):
+            code = int(sheet.cell(x, codeindex).value)
+            try:
+                name = sheet.cell(x, nameindex).value
+                name = name.encode('ascii')
+            except UnicodeEncodeError, u:
+                name = unicodedata.normalize('NFKD',
+                                    name).encode('ascii', 'ignore')
+            resourcetype = ResourceType(ID=code, Name=name)
+            DBSession.add(resourcetype)
+
+        transaction.commit()
+
         # build the components
         print 'Converting Components table'
         componentbook = xlrd.open_workbook(exceldatapath + 'Components.xls')
@@ -760,6 +831,12 @@ if __name__ == '__main__':
                     actprofitindex).value).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 actprofit = Decimal(0.00)
+            try:
+                rtype = int(sheet.cell(x, typeindex).value)
+                if rtype == 0:
+                    rtype = None
+            except:
+                rtype = None
 
             # if the code has been changed assign it here
             if code in changedcocodes:
@@ -827,6 +904,7 @@ if __name__ == '__main__':
                             else:
                                 measureunit = None
                             newresource = Resource(ID=resourceid,
+                                            Type=rtype,
                                             Name=resource.Name,
                                             Code=resource.Code,
                                             UnitID=measureunit,
@@ -851,6 +929,7 @@ if __name__ == '__main__':
                         else:
                             measureunit = None
                         resource = Resource(ID=resourceid,
+                                        Type=rtype,
                                         Code=resourcecode,
                                         Name=checkname,
                                         Description=description,
@@ -888,16 +967,6 @@ if __name__ == '__main__':
 
         transaction.commit()
         stdout.write('\n')
-
-        print 'Converting Resource Type table'
-        labtype = ResourceType(Name='Labour')
-        DBSession.add(labtype)
-        mattype = ResourceType(Name='Material')
-        DBSession.add(mattype)
-        subtype = ResourceType(Name='Subcontractor')
-        DBSession.add(subtype)
-
-        transaction.commit()
 
         print 'Recalculating the totals of the projects'
         projectlist = DBSession.query(Project).all()
@@ -1003,7 +1072,7 @@ if __name__ == '__main__':
                 city = city.encode('ascii')
             except UnicodeEncodeError, u:
                 city = unicodedata.normalize('NFKD',
-                                    name).encode('ascii', 'ignore')
+                                    city).encode('ascii', 'ignore')
 
 
 
@@ -1117,9 +1186,24 @@ if __name__ == '__main__':
         for x in range(1, sheet.nrows):
             code = int(sheet.cell(x, codeindex).value)
             auth = str(sheet.cell(x, authindex).value).encode('ascii')
-            projid = sheet.cell(x, projidindex).value
-            supid = sheet.cell(x, supidindex).value
-            clientid = sheet.cell(x, clientidindex).value
+            try:
+                projid = int(sheet.cell(x, projidindex).value)
+                if projid == 0:
+                    projid = None
+            except:
+                projid = None
+            try:
+                supid = int(sheet.cell(x, supidindex).value)
+                if supid == 0:
+                    supid = None
+            except:
+                supid = None
+            try:
+                clientid = sheet.cell(x, clientidindex).value
+                if clientid == 0:
+                    clientid = None
+            except:
+                clientid = None
             try:
                 tup=xlrd.xldate_as_tuple(sheet.cell(x,
                                     dateindex).value,0)
@@ -1165,49 +1249,63 @@ if __name__ == '__main__':
         print 'Converting Order Item table'
         for x in range(1, sheet.nrows):
             code = int(sheet.cell(x, codeindex).value)
-            orderid = int(sheet.cell(x, orderidindex).value)
-            compid = sheet.cell(x, compidindex).value
-            try:
-                quantity = float(sheet.cell(x,
-                    quantityindex).value)
-            except ValueError, e:
-                quantity = 0.0
-            try:
-                rate = Decimal(sheet.cell(x,
-                    rateindex).value).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                rate = Decimal(0.00)
+            if code != 0:
+                orderid = int(sheet.cell(x, orderidindex).value)
+                compid = sheet.cell(x, compidindex).value
+                try:
+                    quantity = float(sheet.cell(x,
+                        quantityindex).value)
+                except ValueError, e:
+                    quantity = 0.0
+                try:
+                    rate = Decimal(sheet.cell(x,
+                        rateindex).value).quantize(Decimal('.01'))
+                except InvalidOperation, e:
+                    rate = Decimal(0.00)
 
-            # if the code has been changed assign it here
-            if compid in changedcocodes:
-                compid = changedcocodes[compid]
+                # if the code has been changed assign it here
+                if compid in changedcocodes:
+                    compid = changedcocodes[compid]
 
-            if compid != 149999:
-                # make sure the component exists
-                comp = DBSession.query(Component).filter_by(ID=compid).first()
-                if comp:
-                    comp.Ordered = Decimal(quantity * float(rate)
-                        ).quantize(Decimal('.01'))
-                    # set the order tax rate to the order item tax rate
-                    tax = 0.0
-                    try:
-                        tax = ordertaxrate[str(orderid)]
-                    except:
-                        pass
-                        # print ordertaxrate
-                    orderitem = OrderItem(ID=code,
-                                    OrderID=orderid,
-                                    ComponentID=compid,
-                                    _Quantity=quantity,
-                                    _Rate=rate,
-                                    VAT=tax)
-                    DBSession.add(orderitem)
+                if compid != 149999:
+                    # make sure the component exists
+                    comp = DBSession.query(Component).filter_by(ID=compid).first()
+                    if comp:
+                        comp.Ordered = Decimal(quantity * float(rate)
+                            ).quantize(Decimal('.01'))
+                        # set the order tax rate to the order item tax rate
+                        tax = 0.0
+                        try:
+                            tax = ordertaxrate[str(orderid)]
+                        except:
+                            pass
+                            # print ordertaxrate
+                        orderitem = OrderItem(ID=code,
+                                        OrderID=orderid,
+                                        ComponentID=compid,
+                                        _Quantity=quantity,
+                                        _Rate=rate,
+                                        VAT=tax)
+                        DBSession.add(orderitem)
 
         transaction.commit()
         print "Recalculating Order totals"
         orders = DBSession.query(Order).all()
+        # if the order has no order items delete it
         for order in orders:
-            order.resetTotal()
+            if len(order.OrderItems) == 0:
+                DBSession.delete(order)
+            else:
+                order.resetTotal()
         transaction.commit()
 
-    print '\ndone'
+        print "Setting Resource SupplierID"
+        resources = DBSession.query(Resource).all()
+        for resource in resources:
+            component = resource.Components[0]
+            if len(component.OrderItems) > 0:
+                orderitem = component.OrderItems[0]
+                if orderitem.Order:
+                    resource.SupplierID = orderitem.Order.SupplierID
+
+    print '\nDone'
