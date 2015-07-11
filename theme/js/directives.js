@@ -885,20 +885,20 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                     }
                     catch (exception) {
                         console.log("No columns widths found in storage. Setting to default.");
-                        orders_column_width = {'name': 250,
-                                               'percentage_complete': 150};
+                        valuations_column_width = {'name': 300,
+                                                   'percentage_complete': 100};
                         localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
                     }
                     if ( valuations_column_width.length == 0 ) {
-                        valuations_column_width = {'name': 250,
-                                                   'percentage_complete': 150};
+                        valuations_column_width = {'name': 300,
+                                                   'percentage_complete': 100};
                         localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
                     }
                 }
                 else {
                     console.log("LOCAL STORAGE NOT SUPPORTED")
-                    valuations_column_width = {'name': 250,
-                                               'percentage_complete': 150};
+                    valuations_column_width = {'name': 300,
+                                               'percentage_complete': 100};
                 }
             };
             $scope.preloadWidths();
@@ -907,7 +907,7 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                     {id: "name", name: "Budget Group", field: "name",
                      width: valuations_column_width.name, cssClass: "cell-title non-editable-column"},
                     {id: "percentage_complete", name: "Percentage Complete", field: "percentage_complete", 
-                     cssClass: "cell editable-column",
+                     cssClass: "cell editable-column", formatter: PercentageFormatter,
                      width: valuations_column_width.percentage_complete, editor: Slick.Editors.CustomEditor}];
 
             var options = {
@@ -953,6 +953,17 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
               grid.render();
             });
 
+            // Formatter for displaying percentages
+            function PercentageFormatter(row, cell, value, columnDef, dataContext) {
+                // console.log("percentage format");
+                if (value != undefined) {
+                    return value + ' %';
+                }
+                else {
+                    return "0 %";
+                }
+            }
+
             grid.onAddNewRow.subscribe(function (e, args) {
                 var item = args.item;
                 grid.invalidateRow(dataView.length);
@@ -967,7 +978,7 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                     {id: "name", name: "Budget Group", field: "name",
                      width: valuations_column_width.name, cssClass: "cell-title non-editable-column"},
                     {id: "percentage_complete", name: "Percentage Complete", field: "percentage_complete", 
-                     cssClass: "cell editable-column",
+                     cssClass: "cell editable-column", formatter: PercentageFormatter,
                      width: valuations_column_width.percentage_complete, editor: Slick.Editors.CustomEditor}];
                 if (budgetgrouplist.length > 0) {
                     grid.setColumns(columns);
@@ -988,9 +999,9 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
             // listening for the handle to reload the order slickgrid
             // timeout to wait until the modal has finished rendering
             $scope.$on('handleReloadValuationSlickgrid', function() {
-                console.log("budgetitem handle reload grid");
+                // console.log("budgetitem handle reload grid");
                 $timeout(function(){
-                    console.log(dataView.getItems());
+                    // console.log(dataView.getItems());
                     grid.resizeCanvas();
                 });
             });
