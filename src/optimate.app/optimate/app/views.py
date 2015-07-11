@@ -1850,7 +1850,6 @@ def valuationview(request):
 
         valuation.ProjectID = proj
         valuation.Date = date
-
         # get a list of id's used in the valuationitems
         iddict = {}
         for valuationitem in valuation.ValuationItems:
@@ -1860,7 +1859,7 @@ def valuationview(request):
         # iterate through the new id's and add any new valuations
         # remove the id from the list if it is there already
         for budgetgroup in budgetgrouplist:
-            if budgetgroup['ID'] not in iddict.keys():
+            if budgetgroup['ID'] not in iddict.values():
                 # add the new valuation item
                 p_complete = float(budgetgroup.get('percentage_complete', 0))
 
@@ -1871,12 +1870,12 @@ def valuationview(request):
             else:
                 # otherwise remove the id from the list and update the
                 # percentage complete
-                valuationitemid = iddict[budgetgroup['ID']]
+                valuationitemid = iddict[budgetgroup['BudgetGroup']]
                 valuationitem = DBSession.query(ValuationItem).filter_by(
                                     ID=valuationitemid).first()
                 valuationitem.PercentageComplete = \
                     float(budgetgroup['percentage_complete'])
-                del iddict[budgetgroup['ID']]
+                del iddict[budgetgroup['BudgetGroup']]
         # delete the leftover id's
         for oldid in iddict.values():
             deletethis = DBSession.query(
