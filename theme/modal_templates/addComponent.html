@@ -9,8 +9,7 @@
             </div>
             <div class="modal-body">
                 <form class="form-horizontal" name="addComponentForm" novalidate>
-                    <div class="form-group"
-                        ng-class="{'has-error': addComponentForm.inputResources.$invalid}">
+                    <div class="form-group">
                         <label for="inputResources"
                                class="col-sm-2 control-label">Resource:
                         </label>
@@ -59,8 +58,7 @@
                                   ng-model="formData['Description']"
                                   ng-disabled="addComponentForm.has_selection"></textarea>
                     </div>
-                    <div class="form-group"
-                        ng-class="{'has-error': addComponentForm.inputQuantity.$invalid}">
+                    <div class="form-group">
                         <label for="inputQuantity" class="col-sm-2 control-label">Quantity:</label>
                         <input type="smartFloat"
                                min="0"
@@ -69,8 +67,7 @@
                                name="inputQuantity"
                                ng-model="formData['Quantity']">
                     </div>
-                    <div class="form-group"
-                         ng-class="{'has-error': addComponentForm.rate.$invalid}">
+                    <div class="form-group">
                         <label class="col-sm-2 control-label"
                                for="rate">Rate:</label>
                         <input class="col-sm-7" id="rate"
@@ -80,8 +77,7 @@
                                ng-disabled="addComponentForm.has_selection"
                                required />
                     </div>
-                    <div class="form-group"
-                         ng-class="{'has-error': addComponentForm.resourcetype.$invalid}">
+                    <div class="form-group">
                         <label class="col-sm-2 control-label"
                                for="resourcetype">Type:</label>
                         <select chosen

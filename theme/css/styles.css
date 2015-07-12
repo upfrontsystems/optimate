@@ -264,4 +264,8 @@ input.custom-datepicker{
     width: 100% !important;
 }
 
-
+/* indents the form validation icon to the left so it shows in the input box */
+.indent-left{
+    right:14% !important;
+    top: -4px !important;
+}

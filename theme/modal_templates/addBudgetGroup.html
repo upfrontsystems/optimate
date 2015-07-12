@@ -5,12 +5,11 @@
                 <button type="button" class="close"
                         data-dismiss="modal" aria-hidden="true">&times;
                 </button>
-                <h3 class="modal-title">{{modalState}} Budget Group</h3>                
+                <h3 class="modal-title">{{modalState}} Budget Group</h3>
             </div>
             <div class="modal-body">
                 <form class="form-horizontal" name="addBudgetGroupForm" novalidate>
-                    <div class="form-group"
-                        ng-class="{'has-error': addBudgetGroupForm.inputName.$invalid}">
+                    <div class="form-group">
                         <label for="inputName" class="col-sm-2 control-label">Name:</label>
                         <input type="text"
                                class="col-sm-7"
@@ -20,8 +19,7 @@
                                required
                                autofocus>
                     </div>
-                    <div class="form-group"
-                        ng-class="{'has-error': addBudgetGroupForm.inputDescription.$invalid}">
+                    <div class="form-group">
                         <label for="inputDescription" class="col-sm-2 control-label">Description:</label>
                         <textarea class="col-sm-7"
                                   id="inputDescription"
@@ -33,9 +31,9 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal" 
+                <button ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal"
                  ng-disabled="!addBudgetGroupForm.$valid" ng-click="addNode()">Save</button>
-                <button ng-show="modalState == 'Edit'" class="btn btn-primary" data-dismiss="modal" 
+                <button ng-show="modalState == 'Edit'" class="btn btn-primary" data-dismiss="modal"
                  ng-disabled="!addBudgetGroupForm.$valid" ng-click="saveNodeEdits()">Update</button>
                 <button class="btn btn-default" data-dismiss="modal">Cancel</button>
             </div>

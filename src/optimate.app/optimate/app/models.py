@@ -94,7 +94,6 @@ class Node(Base):
         ptr = self
         while ptr.Parent and ptr.Parent.ID != 0:
             ptr = ptr.Parent
-
         if not ptr.Parent:
             return 0
         return ptr.ID
@@ -1884,6 +1883,8 @@ class OrderItem(Base):
     def Rate(self):
         """ Get the Rate
         """
+        if not self._Rate:
+            self._Rate = Decimal(0.00)
         return self._Rate.quantize(Decimal('.01'))
 
     @Rate.setter
@@ -1898,6 +1899,8 @@ class OrderItem(Base):
     def Quantity(self):
         """ Get the Quantity
         """
+        if not self._Quantity:
+            self._Quantity = 0.00
         return self._Quantity
 
     @Quantity.setter
