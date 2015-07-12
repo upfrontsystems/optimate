@@ -11,7 +11,9 @@ from xhtml2pdf import pisa
 from optimate.app.models import (
     DBSession,
     Node,
-    Order
+    Order,
+    Valuation,
+    Client
 )
 
 def projectbudget_nodes(node, data, level, level_limit, component_filter):
@@ -358,6 +360,58 @@ def order(request):
 
     filename = "order_report"
     now = datetime.datetime.now()
+    nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
+    last_modified = formatdate(time.mktime(now.timetuple()))
+    response = Response(content_type='application/pdf',
+                        body=pdfcontent)
+    response.headers.add('Content-Disposition',
+                         "attachment; filename=%s.pdf" % nice_filename)
+    # needed so that in a cross-domain situation the header is visible
+    response.headers.add('Access-Control-Expose-Headers','Content-Disposition')
+    response.headers.add("Content-Length", str(len(pdfcontent)))
+    response.headers.add('Last-Modified', last_modified)
+    response.headers.add("Cache-Control", "no-store")
+    response.headers.add("Pragma", "no-cache")
+    return response
+
+
+@view_config(route_name="valuation")
+def valuation(request):
+    print "Generating Valuation Report"
+    valuationid = request.matchdict['id']
+    valuation = DBSession.query(Valuation).filter_by(ID=valuationid).first()
+    vitems = []
+    budget_total = 0
+    for valuationitem in valuation.ValuationItems:
+        vitems.append(valuationitem.toDict())
+        budget_total += valuationitem.BudgetGroup.Total
+    sorted_vitems = sorted(vitems, key=lambda k: k['name'].upper())
+
+    # inject valuation data into template
+    now = datetime.datetime.now()
+    vdate = valuation.Date.strftime("%d %B %Y")
+    clientid = valuation.Project.ClientID
+    client = DBSession.query(Client).filter_by(ID=clientid).first()    
+    template_data = render('templates/valuationreport.pt',
+                           {'valuation': valuation,
+                            'valuation_items': sorted_vitems,
+                            'client': client,
+                            'budget_total': budget_total,
+                            'valuation_date': vdate,
+                            'print_date' : now.strftime("%d %B %Y")},
+                            request=request)
+    # render template
+    html = StringIO(template_data.encode('utf-8'))
+
+    # Generate the pdf
+    pdf = StringIO()
+    pisadoc = pisa.CreatePDF(html, pdf, raise_exception=False)
+    assert pdf.len != 0, 'Pisa PDF generation returned empty PDF!'
+    html.close()
+    pdfcontent = pdf.getvalue()
+    pdf.close()
+
+    filename = "valuation_report"
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
     last_modified = formatdate(time.mktime(now.timetuple()))
     response = Response(content_type='application/pdf',

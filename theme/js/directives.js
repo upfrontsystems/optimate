@@ -851,6 +851,165 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
     }
 }]);
 
+
+allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedService', '$http', '$timeout',
+    function(globalServerURL, sharedService, $http, $timeout) {
+    return {
+        require: '?ngModel',
+        restrict: 'E',
+        replace: true,
+        template: '<div></div>',
+        link: function($scope, element, attrs) {
+
+            var grid;
+            var data = [];
+            var valuations_column_width= {};
+            // aux function to test if we can support localstorage
+            var hasStorage = (function() {
+                try {
+                    var mod = 'modernizr';
+                    localStorage.setItem(mod, mod);
+                    localStorage.removeItem(mod);
+                    return true;
+                }
+                catch (exception) {
+                    return false;
+                }
+            }());
+
+            // load the columns widths (if any) from local storage
+            $scope.preloadWidths = function () {
+                if (hasStorage) {
+                    try {
+                        valuations_column_width = JSON.parse(localStorage["valuations_column_width"])
+                    }
+                    catch (exception) {
+                        console.log("No columns widths found in storage. Setting to default.");
+                        valuations_column_width = {'name': 300,
+                                                   'percentage_complete': 65};
+                        localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
+                    }
+                    if ( valuations_column_width.length == 0 ) {
+                        valuations_column_width = {'name': 300,
+                                                   'percentage_complete': 65};
+                        localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
+                    }
+                }
+                else {
+                    console.log("LOCAL STORAGE NOT SUPPORTED")
+                    valuations_column_width = {'name': 300,
+                                               'percentage_complete': 65};
+                }
+            };
+            $scope.preloadWidths();
+
+            var columns = [
+                    {id: "name", name: "Budget Group", field: "name",
+                     width: valuations_column_width.name, cssClass: "cell-title non-editable-column"},
+                    {id: "percentage_complete", name: "Percentage Complete", field: "percentage_complete", 
+                     cssClass: "cell editable-column", formatter: PercentageFormatter,
+                     width: valuations_column_width.percentage_complete, editor: Slick.Editors.CustomEditor}];
+
+            var options = {
+                    editable: true,
+                    enableAddRow: true,
+                    enableCellNavigation: true,
+                    asyncEditorLoading: true,
+                    autoEdit: true,
+                    syncColumnCellResize: true,
+                    enableColumnReorder: true,
+                    explicitInitialization: true
+                };
+
+            data = []
+            dataView = new Slick.Data.DataView();
+            grid = new Slick.Grid("#budgetgroup-data-grid", dataView, columns, options);
+            grid.setSelectionModel(new Slick.CellSelectionModel());
+            // resize the slickgrid when modal is shown
+            $('#saveValuationModal').on('shown.bs.modal', function() {
+                 grid.init();
+            });
+
+            // when a column is resized change the default size of that column
+            grid.onColumnsResized.subscribe(function(e,args) {
+                var gridcolumns = args.grid.getColumns();
+                for (var i in gridcolumns) {
+                    if (gridcolumns[i].previousWidth != gridcolumns[i].width)
+                        valuations_column_width[gridcolumns[i].field] = gridcolumns[i].width;
+                        console.log(gridcolumns[i].width);
+                }
+                if(hasStorage){
+                    localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
+                }
+            });
+
+            dataView.onRowCountChanged.subscribe(function (e, args) {
+              grid.updateRowCount();
+              grid.render();
+            });
+
+            dataView.onRowsChanged.subscribe(function (e, args) {
+              grid.invalidateRows(args.rows);
+              grid.render();
+            });
+
+            // Formatter for displaying percentages
+            function PercentageFormatter(row, cell, value, columnDef, dataContext) {
+                // console.log("percentage format");
+                if (value != undefined) {
+                    return value + ' %';
+                }
+                else {
+                    return "0 %";
+                }
+            }
+
+            grid.onAddNewRow.subscribe(function (e, args) {
+                var item = args.item;
+                grid.invalidateRow(dataView.length);
+                dataView.push(item);
+                grid.updateRowCount();
+                grid.render();
+            });
+
+            // observe the budgetgroup list for changes and update the slickgrid
+            $scope.$watch(attrs.budgetgroups, function(budgetgrouplist) {
+                columns = [
+                    {id: "name", name: "Budget Group", field: "name",
+                     width: valuations_column_width.name, cssClass: "cell-title non-editable-column"},
+                    {id: "percentage_complete", name: "% Complete", field: "percentage_complete", 
+                     cssClass: "cell editable-column", formatter: PercentageFormatter,
+                     width: valuations_column_width.percentage_complete, editor: Slick.Editors.Float}];
+                if (budgetgrouplist.length > 0) {
+                    grid.setColumns(columns);
+                    dataView.beginUpdate();
+                    dataView.setItems(budgetgrouplist);
+                    dataView.endUpdate();
+                    grid.render();
+                }
+                else {
+                    grid.setColumns(columns);
+                    dataView.beginUpdate();
+                    dataView.setItems([]);
+                    dataView.endUpdate();
+                    grid.render();
+                }
+            }, true);
+
+            // listening for the handle to reload the order slickgrid
+            // timeout to wait until the modal has finished rendering
+            $scope.$on('handleReloadValuationSlickgrid', function() {
+                // console.log("budgetitem handle reload grid");
+                $timeout(function(){
+                    // console.log(dataView.getItems());
+                    grid.resizeCanvas();
+                });
+            });
+        }
+    }
+}]);
+
+
 allControllers.directive('dateParser', dateParser);
 function dateParser() {
     return {

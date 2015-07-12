@@ -118,6 +118,10 @@ input.editor-text {
     padding-right: 0px !important;
 }
 
+.col-sm-0 {
+    width: 1.5%;
+}
+
 .form-signin {
     max-width: 330px;
     padding: 15px;
@@ -252,6 +256,18 @@ input.custom-datepicker{
     width: 60%;
     height: 100%;
 }
+
+#budgetgroup-data-grid-outer {
+    height: 300px;
+/*    height: -moz-calc(100vh / 2);
+    height: -webkit-calc(100vh / 2);
+    height: calc(100vh / 2);*/
+}
+#budgetgroup-data-grid {
+    width: 380px;
+    height: 100%;
+}
+
 .LSHighlight {
     background-color: #2764d7;
 }
@@ -268,4 +284,13 @@ input.custom-datepicker{
 .indent-left{
     right:14% !important;
     top: -4px !important;
+
+/* datepicker restrict size */
+.dropdown-toggle .input-group {
+    width: 150px;
+}
+
+p#valuationNumber,
+p#orderNumber {
+    margin-top: 7px !important;
 }

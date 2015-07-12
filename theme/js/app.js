@@ -72,6 +72,10 @@ myApp.config(['$routeProvider', '$httpProvider',
       when('/invoices', {
         templateUrl: 'partials/invoices.html',
         controller: 'invoicesController'
+      }).
+      when('/valuations', {
+        templateUrl: 'partials/valuations.html',
+        controller: 'valuationsController'
       });
     $httpProvider.interceptors.push(function($window){
         return {

@@ -246,6 +246,20 @@ class Project(Node):
                 componentslist += child.getComponents()
         return componentslist
 
+    def getBudgetGroups(self):
+        """ Returns a list of all the budgetgroups that contained in this 
+            budgetgroup.
+        """
+        budgetgrouplist = []
+        if len(self.Children) == 0:
+            return [self]
+        for child in self.Children:
+            if child.type == 'BudgetGroup':
+                budgetgrouplist.append(child)
+            elif child.type != 'BudgetItem' and child.type != 'Component':
+                budgetgrouplist += child.getBudgetGroups()
+        return budgetgrouplist
+
     def toDict(self):
         """ Return a dictionary of the attributes of this Project
         """
@@ -476,6 +490,33 @@ class BudgetGroup(Node):
             else:
                 componentlist += child.getComponents()
         return componentlist
+
+    def getBudgetGroups(self):
+        """ Returns a list of all the budgetgroups that contained in this 
+            budgetgroup.
+        """
+        budgetgrouplist = []
+        if len(self.Children) == 0:
+            return [self]
+        for child in self.Children:
+            if child.type == 'BudgetGroup':
+                budgetgrouplist.append(child)
+            elif child.type != 'BudgetItem' and child.type != 'Component':
+                budgetgrouplist += child.getBudgetGroups()
+        return budgetgrouplist
+
+    def toValuationDict(self):
+        """ Returns a dictionary of this node used both in the valuation tree 
+            view and slickgrid
+        """
+        return {'Name': self.Name,
+                'name': self.Name,
+                'ID': self.ID,
+                'ParentID': self.ParentID,
+                'id': self.ID,
+                'NodeType': 'BudgetGroup',
+                'node_type': 'BudgetGroup',
+                'NodeTypeAbbr': 'G'}
 
     def toChildDict(self):
         """ Returns a dictionary of this node used in the childview
@@ -1099,6 +1140,7 @@ class ComponentMixin(object):
         """ Updates the Ordered amount for this node
         """
         self.Ordered = ordered
+
 
 class Component(Node, ComponentMixin):
     """ A component represents a unique component in the project.
@@ -2043,7 +2085,6 @@ class Invoice(Base):
     def Total(self):
         return Decimal(self.Amount + self.VAT).quantize(Decimal('.01'))
 
-
     def tableData(self):
         """ Return a dictionary with the values used in displaying the
             invoice in a table
@@ -2108,15 +2149,27 @@ class Valuation(Base):
         else:
             date = ''
         return {'ID': self.ID,
-                'Project': self.ProjectID,
+                'Project': self.Project.Name,
                 'Date': date,
-                'PercentageClaimed': 'XX',
-                'AmountClaimed': 'XX'}
+                'PercentageClaimed': str(self.TotalPercentage),
+                'AmountClaimed': str(self.Total)}
+
+    @property
+    def TotalPercentage(self):
+        totalp = (self.Total/self.Project.Total)*100
+        return Decimal(totalp).quantize(Decimal('.01'))
+
+    @property
+    def Total(self):
+        total = 0
+        for valuationitem in self.ValuationItems:
+            total += valuationitem.Total
+        return Decimal(total).quantize(Decimal('.01'))
 
     def __repr__(self):
         """Return a representation of this valuation
         """
-        return '<Validation(ID="%s", ProjectID="%s", Date="%s")>' % (
+        return '<Valuation(ID="%s", ProjectID="%s", Date="%s")>' % (
             self.ID, self.ProjectID, self.Date)
 
 
@@ -2124,21 +2177,34 @@ class ValuationItem(Base):
     """ A table to hold valuation items. """
     __tablename__ = 'ValuationItem'
     ID = Column(Integer, primary_key=True)
+    ValuationID = Column(Integer, ForeignKey('Valuation.ID'))
     BudgetGroupID = Column(Integer, ForeignKey('BudgetGroup.ID'))
     PercentageComplete = Column(Numeric)
 
     BudgetGroup = relationship('BudgetGroup',
                               backref=backref('BudgetGroups'))
+    Valuation = relationship('Valuation',
+                              backref=backref('ValuationItems'))
 
     def toDict(self):
         """ Returns a dictionary of this ValuationItem
         """
         return {'ID': self.ID,
+                'id': self.ID,
                 'BudgetGroup': self.BudgetGroupID,
-                'PercentageComplete': self.PercentageComplete}
+                'name': self.BudgetGroup.Name,
+                'PercentageComplete': str(self.PercentageComplete),
+                'percentage_complete': str(self.PercentageComplete),
+                'amount_complete': str(self.Total),
+                'total_budget': str(self.BudgetGroup.Total)}
+
+    @property
+    def Total(self):
+        total = (self.BudgetGroup.Total / 100) * self.PercentageComplete 
+        return Decimal(total).quantize(Decimal('.01'))
 
     def __repr__(self):
         """Return a representation of this valuation item
         """
-        return '<ValidationItem(ID="%s", BudgetGroupID="%s")>' % (
+        return '<ValuationItem(ID="%s", BudgetGroupID="%s")>' % (
             self.ID, self.BudgetGroupID)

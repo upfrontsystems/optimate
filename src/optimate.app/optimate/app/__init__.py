@@ -77,6 +77,7 @@ def main(global_config, **settings):
     config.add_route('node_paste', 'node/{id}/paste/')
     config.add_route('node_cost', 'node/{id}/cost/')
     config.add_route('node_components', 'node/{id}/components/')
+    config.add_route('node_budgetgroups', 'node/{id}/budgetgroups/')
     config.add_route('resourcecategory_allresources', 'resourcecategory/{id}/allresources/')
     config.add_route('resourcecategory_resources', 'resourcecategory/{id}/resources/')
 
@@ -90,6 +91,8 @@ def main(global_config, **settings):
     config.add_route('unitview', '/unit/{id}/')
     config.add_route('citiesview', '/cities')
     config.add_route('cityview', '/city/{id}/')
+
+    # orders
     config.add_route('ordersview', '/orders')
     config.add_route('orderview', '/order/{id}/')
     config.add_route('orders_length', '/orders/length')
@@ -98,6 +101,12 @@ def main(global_config, **settings):
     config.add_route('invoicesview', '/invoices')
     config.add_route('invoices_filter', '/invoices/filter')
     config.add_route('invoiceview', '/invoice/{id}/')
+
+    # valuations
+    config.add_route('valuationsview', '/valuations')
+    config.add_route('valuationview', '/valuation/{id}/')
+    config.add_route('valuations_length', '/valuations/length')
+    config.add_route('valuations_tree_view', '/valuations/tree/{id}/')
 
     # Editing users
     config.add_route('usersview', '/users', factory=makeProtected(Administrator))
@@ -109,6 +118,7 @@ def main(global_config, **settings):
     config.add_route('reports_tree_view', '/reports/tree/{id}/')
     config.add_route('resourcelist', '/resource_list_report/{id}/')
     config.add_route('order', '/order_report/{id}/')
+    config.add_route('valuation', '/valuation_report/{id}/')
 
     config.scan()
     return config.make_wsgi_app()

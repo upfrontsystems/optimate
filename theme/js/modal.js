@@ -12,4 +12,10 @@ $(document).on('shown.bs.modal', function(){
      if ( $('#costComparisonReport.in').length != 0 ) {
          $('input#inputLevelLimit').focus();
      }
+     if ( $('#saveValuationModal.in').length != 0 ) {
+         $('#addBudgetgroupButton').focus();
+     }
+     if ( $('#saveOrderModal.in').length != 0 ) {
+         $('#addComponentsButton').focus();
+     }
 });
