@@ -12,7 +12,8 @@ from optimate.app.models import (
     DBSession,
     Node,
     Order,
-    Valuation
+    Valuation,
+    Client
 )
 
 def projectbudget_nodes(node, data, level, level_limit, component_filter):
@@ -389,9 +390,12 @@ def valuation(request):
     # inject valuation data into template
     now = datetime.datetime.now()
     vdate = valuation.Date.strftime("%d %B %Y")
+    clientid = valuation.Project.ClientID
+    client = DBSession.query(Client).filter_by(ID=clientid).first()    
     template_data = render('templates/valuationreport.pt',
                            {'valuation': valuation,
                             'valuation_items': sorted_vitems,
+                            'client': client,
                             'budget_total': budget_total,
                             'valuation_date': vdate,
                             'print_date' : now.strftime("%d %B %Y")},

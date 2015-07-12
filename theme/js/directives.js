@@ -886,19 +886,19 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                     catch (exception) {
                         console.log("No columns widths found in storage. Setting to default.");
                         valuations_column_width = {'name': 300,
-                                                   'percentage_complete': 100};
+                                                   'percentage_complete': 65};
                         localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
                     }
                     if ( valuations_column_width.length == 0 ) {
                         valuations_column_width = {'name': 300,
-                                                   'percentage_complete': 100};
+                                                   'percentage_complete': 65};
                         localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
                     }
                 }
                 else {
                     console.log("LOCAL STORAGE NOT SUPPORTED")
                     valuations_column_width = {'name': 300,
-                                               'percentage_complete': 100};
+                                               'percentage_complete': 65};
                 }
             };
             $scope.preloadWidths();
@@ -977,7 +977,7 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                 columns = [
                     {id: "name", name: "Budget Group", field: "name",
                      width: valuations_column_width.name, cssClass: "cell-title non-editable-column"},
-                    {id: "percentage_complete", name: "Percentage Complete", field: "percentage_complete", 
+                    {id: "percentage_complete", name: "% Complete", field: "percentage_complete", 
                      cssClass: "cell editable-column", formatter: PercentageFormatter,
                      width: valuations_column_width.percentage_complete, editor: Slick.Editors.Float}];
                 if (budgetgrouplist.length > 0) {

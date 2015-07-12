@@ -6,14 +6,14 @@
         @page {
             @frame {
                 margin: 2cm;
-                top :3.6cm;
+                top :4.6cm;
             }
             @frame header {
                 -pdf-frame-content: headerContent;
                 top :1cm;
                 margin-left: 2cm;
                 margin-right: 2cm; 
-                height: 4.2cm;
+                height: 5.2cm;
             }
             @frame footer {
                 -pdf-frame-content: pageNumber;
@@ -27,11 +27,12 @@
 
 <body>
     <div id="headerContent">
+        <h1>Valuation for Certificate #</h1>
         <table class="order-font">
             <tr></tr>
             <tr>
                 <td style="width: 150px">To:</td>
-                <td class="bold" style="width: 200px; text-align:left" tal:content="valuation.Project.ClientID|nothing"></td>
+                <td class="bold" style="width: 200px; text-align:left" tal:content="client.Name|nothing"></td>
             </tr>
             <tr>
                 <td style="width: 150px">Date</td>
