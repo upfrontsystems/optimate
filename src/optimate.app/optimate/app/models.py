@@ -252,6 +252,8 @@ class Project(Node):
             budgetgroup.
         """
         budgetgrouplist = []
+        if len(self.Children) == 0:
+            return [self]
         for child in self.Children:
             if child.type == 'BudgetGroup':
                 budgetgrouplist.append(child)
@@ -495,6 +497,8 @@ class BudgetGroup(Node):
             budgetgroup.
         """
         budgetgrouplist = []
+        if len(self.Children) == 0:
+            return [self]
         for child in self.Children:
             if child.type == 'BudgetGroup':
                 budgetgrouplist.append(child)
