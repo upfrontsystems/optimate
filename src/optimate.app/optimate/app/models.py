@@ -2145,8 +2145,20 @@ class Valuation(Base):
         return {'ID': self.ID,
                 'Project': self.Project.Name,
                 'Date': date,
-                'PercentageClaimed': 'XX',
-                'AmountClaimed': 'XX'}
+                'PercentageClaimed': str(self.TotalPercentage),
+                'AmountClaimed': str(self.Total)}
+
+    @property
+    def TotalPercentage(self):
+        totalp = (self.Total/self.Project.Total)*100
+        return Decimal(totalp).quantize(Decimal('.01'))
+
+    @property
+    def Total(self):
+        total = 0
+        for valuationitem in self.ValuationItems:
+            total += valuationitem.Total
+        return Decimal(total).quantize(Decimal('.01'))
 
     def __repr__(self):
         """Return a representation of this valuation
@@ -2177,6 +2189,11 @@ class ValuationItem(Base):
                 'name': self.BudgetGroup.Name,
                 'PercentageComplete': str(self.PercentageComplete),
                 'percentage_complete': str(self.PercentageComplete)}
+
+    @property
+    def Total(self):
+        total = (self.BudgetGroup.Total / 100) * self.PercentageComplete 
+        return Decimal(total).quantize(Decimal('.01'))
 
     def __repr__(self):
         """Return a representation of this valuation item
