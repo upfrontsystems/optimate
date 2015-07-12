@@ -380,16 +380,21 @@ def valuation(request):
     valuationid = request.matchdict['id']
     valuation = DBSession.query(Valuation).filter_by(ID=valuationid).first()
     vitems = []
+    budget_total = 0
     for valuationitem in valuation.ValuationItems:
         vitems.append(valuationitem.toDict())
+        budget_total += valuationitem.BudgetGroup.Total
     sorted_vitems = sorted(vitems, key=lambda k: k['name'].upper())
 
-    # inject order data into template
+    # inject valuation data into template
+    now = datetime.datetime.now()
     vdate = valuation.Date.strftime("%d %B %Y")
     template_data = render('templates/valuationreport.pt',
-                           {'order': order,
+                           {'valuation': valuation,
                             'valuation_items': sorted_vitems,
-                            'valuation_date': vdate},
+                            'budget_total': budget_total,
+                            'valuation_date': vdate,
+                            'print_date' : now.strftime("%d %B %Y")},
                             request=request)
     # render template
     html = StringIO(template_data.encode('utf-8'))
@@ -403,7 +408,6 @@ def valuation(request):
     pdf.close()
 
     filename = "valuation_report"
-    now = datetime.datetime.now()
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
     last_modified = formatdate(time.mktime(now.timetuple()))
     response = Response(content_type='application/pdf',

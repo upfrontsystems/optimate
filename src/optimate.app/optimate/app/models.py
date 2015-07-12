@@ -2078,7 +2078,6 @@ class Invoice(Base):
     def Total(self):
         return Decimal(self.Amount + self.VAT).quantize(Decimal('.01'))
 
-
     def tableData(self):
         """ Return a dictionary with the values used in displaying the
             invoice in a table
@@ -2188,7 +2187,9 @@ class ValuationItem(Base):
                 'BudgetGroup': self.BudgetGroupID,
                 'name': self.BudgetGroup.Name,
                 'PercentageComplete': str(self.PercentageComplete),
-                'percentage_complete': str(self.PercentageComplete)}
+                'percentage_complete': str(self.PercentageComplete),
+                'amount_complete': str(self.Total),
+                'total_budget': str(self.BudgetGroup.Total)}
 
     @property
     def Total(self):
