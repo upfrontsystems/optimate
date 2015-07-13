@@ -113,6 +113,7 @@ input.editor-text {
           box-sizing: border-box;
 }
 
+
 .col-sm-7 {
     padding-left: 0px !important;
     padding-right: 0px !important;
@@ -241,6 +242,7 @@ input.custom-datepicker{
 #invoice-data-grid-outer {
     height: 200px;
 }
+
 #invoice-data-grid {
     width: 80%;
     height: 100%;
@@ -263,6 +265,7 @@ input.custom-datepicker{
     height: -webkit-calc(100vh / 2);
     height: calc(100vh / 2);*/
 }
+
 #budgetgroup-data-grid {
     width: 380px;
     height: 100%;
@@ -281,9 +284,10 @@ input.custom-datepicker{
 }
 
 /* indents the form validation icon to the left so it shows in the input box */
-.indent-left{
+.indent-left {
     right:14% !important;
     top: -4px !important;
+}
 
 /* datepicker restrict size */
 .dropdown-toggle .input-group {
