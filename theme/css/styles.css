@@ -283,6 +283,10 @@ input.custom-datepicker{
     width: 100% !important;
 }
 
+.chosen.width20 {
+    width: 20% !important;
+}
+
 /* indents the form validation icon to the left so it shows in the input box */
 .indent-left {
     right:14% !important;
@@ -297,4 +301,8 @@ input.custom-datepicker{
 p#valuationNumber,
 p#orderNumber {
     margin-top: 7px !important;
+}
+
+.center {
+    text-align: center;
 }

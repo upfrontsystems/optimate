@@ -1,19 +1,10 @@
-.calc-main { /* center / center */
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	margin-top: -170px;
-	margin-left: -250px;
-}
-.calc-small {
-	margin-left: -130px;
-}
+
 
 /* ------- calculator housing ------- */
 
 .calc-main {
-	display: block;
-	/* width: 480px; */ /* only needed in Chrome extension */
+	display: inline-block;
+	width: 480px; /* only needed in Chrome extension */
 	padding: 16px 10px 18px;
 	font: bold 15px/28px Arial, Helvetica, sans-serif;
 	border-radius: 12px;
