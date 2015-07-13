@@ -6,62 +6,86 @@
     }
   });
 
-
   function CustomSelectionModel(options) {
     var _grid;
-    var _canvas;
     var _ranges = [];
     var _self = this;
-    var _selector = new Slick.CellRangeSelector({
-      "selectionCss": {
-        "border": "2px solid black"
-      }
-    });
+    var _handler = new Slick.EventHandler();
+    var _inHandler;
     var _options;
     var _defaults = {
-      selectActiveCell: true
+      selectActiveRow: true
     };
-
 
     function init(grid) {
       _options = $.extend(true, {}, _defaults, options);
       _grid = grid;
-      _canvas = _grid.getCanvasNode();
-      _grid.onActiveCellChanged.subscribe(handleActiveCellChange);
-      _grid.onKeyDown.subscribe(handleKeyDown);
-      grid.registerPlugin(_selector);
-      _selector.onCellRangeSelected.subscribe(handleCellRangeSelected);
-      _selector.onBeforeCellRangeSelected.subscribe(handleBeforeCellRangeSelected);
+      _handler.subscribe(_grid.onActiveCellChanged,
+          wrapHandler(handleActiveCellChange));
+      _handler.subscribe(_grid.onKeyDown,
+          wrapHandler(handleKeyDown));
+      _handler.subscribe(_grid.onClick,
+          wrapHandler(handleClick));
     }
 
     function destroy() {
-      _grid.onActiveCellChanged.unsubscribe(handleActiveCellChange);
-      _grid.onKeyDown.unsubscribe(handleKeyDown);
-      _selector.onCellRangeSelected.unsubscribe(handleCellRangeSelected);
-      _selector.onBeforeCellRangeSelected.unsubscribe(handleBeforeCellRangeSelected);
-      _grid.unregisterPlugin(_selector);
+      _handler.unsubscribeAll();
     }
 
-    function removeInvalidRanges(ranges) {
-      var result = [];
+    function wrapHandler(handler) {
+      return function () {
+        if (!_inHandler) {
+          _inHandler = true;
+          handler.apply(this, arguments);
+          _inHandler = false;
+        }
+      };
+    }
 
+    function rangesToRows(ranges) {
+      var rows = [];
       for (var i = 0; i < ranges.length; i++) {
-        var r = ranges[i];
-        if (_grid.canCellBeSelected(r.fromRow, r.fromCell) && _grid.canCellBeSelected(r.toRow, r.toCell)) {
-          result.push(r);
+        for (var j = ranges[i].fromRow; j <= ranges[i].toRow; j++) {
+          rows.push(j);
         }
       }
+      return rows;
+    }
 
-      return result;
+    function rowsToRanges(rows) {
+      var ranges = [];
+      var lastCell = _grid.getColumns().length - 1;
+      for (var i = 0; i < rows.length; i++) {
+        ranges.push(new Slick.Range(rows[i], 0, rows[i], lastCell));
+      }
+      return ranges;
+    }
+
+    function getRowsRange(from, to) {
+      var i, rows = [];
+      for (i = from; i <= to; i++) {
+        rows.push(i);
+      }
+      for (i = to; i < from; i++) {
+        rows.push(i);
+      }
+      return rows;
+    }
+
+    function getSelectedRows() {
+      return rangesToRows(_ranges);
+    }
+
+    function setSelectedRows(rows) {
+      setSelectedRanges(rowsToRanges(rows));
     }
 
     function setSelectedRanges(ranges) {
-      _ranges = removeInvalidRanges(ranges);
-      console.log(_ranges)
-      if (_ranges.length > 1){
-        for (var i in _ranges){
-          _ranges[i].fromCell = _ranges[i].toCell;
-        }
+      _ranges = ranges;
+      if (_ranges.length == 1){
+        var activeCell = _grid.getActiveCell().cell;
+        _ranges[0].fromCell = activeCell;
+        _ranges[0].toCell = activeCell;
       }
       _self.onSelectedRangesChanged.notify(_ranges);
     }
@@ -70,84 +94,92 @@
       return _ranges;
     }
 
-    function handleBeforeCellRangeSelected(e, args) {
-      if (_grid.getEditorLock().isActive()) {
-        e.stopPropagation();
-        return false;
-      }
-    }
-
-    function handleCellRangeSelected(e, args) {
-      setSelectedRanges([args.range]);
-    }
-
-    function handleActiveCellChange(e, args) {
-      if (_options.selectActiveCell && args.row != null && args.cell != null) {
-        setSelectedRanges([new Slick.Range(args.row, args.cell)]);
+    function handleActiveCellChange(e, data) {
+      if (_options.selectActiveRow && data.row != null) {
+        setSelectedRanges([new Slick.Range(data.row, 0, data.row, _grid.getColumns().length - 1)]);
       }
     }
 
     function handleKeyDown(e) {
-      /***
-       * Кey codes
-       * 37 left
-       * 38 up
-       * 39 right
-       * 40 down
-       */
-      var ranges, last;
-      var active = _grid.getActiveCell();
+      var activeRow = _grid.getActiveCell();
+      if (activeRow && e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && (e.which == 38 || e.which == 40)) {
+        var selectedRows = getSelectedRows();
+        selectedRows.sort(function (x, y) {
+          return x - y
+        });
 
-      if ( active && e.shiftKey && !e.ctrlKey && !e.altKey &&
-          (e.which == 37 || e.which == 39 || e.which == 38 || e.which == 40) ) {
-
-        ranges = getSelectedRanges();
-        if (!ranges.length)
-         ranges.push(new Slick.Range(active.row, active.cell));
-
-        // keyboard can work with last range only
-        last = ranges.pop();
-
-        // can't handle selection out of active cell
-        if (!last.contains(active.row, active.cell))
-          last = new Slick.Range(active.row, active.cell);
-
-        var dRow = last.toRow - last.fromRow,
-            dCell = last.toCell - last.fromCell,
-            // walking direction
-            dirRow = active.row == last.fromRow ? 1 : -1,
-            dirCell = active.cell == last.fromCell ? 1 : -1;
-
-        if (e.which == 37) {
-          dCell -= dirCell;
-        } else if (e.which == 39) {
-          dCell += dirCell ;
-        } else if (e.which == 38) {
-          dRow -= dirRow;
-        } else if (e.which == 40) {
-          dRow += dirRow;
+        if (!selectedRows.length) {
+          selectedRows = [activeRow.row];
         }
 
-        // define new selection range
-        var new_last = new Slick.Range(active.row, active.cell, active.row + dirRow*dRow, active.cell + dirCell*dCell);
-        if (removeInvalidRanges([new_last]).length) {
-          ranges.push(new_last);
-          var viewRow = dirRow > 0 ? new_last.toRow : new_last.fromRow;
-          var viewCell = dirCell > 0 ? new_last.toCell : new_last.fromCell;
-         _grid.scrollRowIntoView(viewRow);
-         _grid.scrollCellIntoView(viewRow, viewCell);
-        }
-        else
-          ranges.push(last);
+        var top = selectedRows[0];
+        var bottom = selectedRows[selectedRows.length - 1];
+        var active;
 
-        setSelectedRanges(ranges);
+        if (e.which == 40) {
+          active = activeRow.row < bottom || top == bottom ? ++bottom : ++top;
+        } else {
+          active = activeRow.row < bottom ? --bottom : --top;
+        }
+
+        if (active >= 0 && active < _grid.getDataLength()) {
+          _grid.scrollRowIntoView(active);
+          _ranges = rowsToRanges(getRowsRange(top, bottom));
+          setSelectedRanges(_ranges);
+        }
 
         e.preventDefault();
         e.stopPropagation();
       }
     }
 
+    function handleClick(e) {
+      var cell = _grid.getCellFromEvent(e);
+      if (!cell || !_grid.canCellBeActive(cell.row, cell.cell)) {
+        return false;
+      }
+
+      if (!_grid.getOptions().multiSelect || (
+          !e.ctrlKey && !e.shiftKey && !e.metaKey)) {
+        return false;
+      }
+
+      var selection = rangesToRows(_ranges);
+      var idx = $.inArray(cell.row, selection);
+
+      if (idx === -1 && (e.ctrlKey || e.metaKey)) {
+        selection.push(cell.row);
+        _grid.setActiveCell(cell.row, cell.cell);
+      } else if (idx !== -1 && (e.ctrlKey || e.metaKey)) {
+        selection = $.grep(selection, function (o, i) {
+          return (o !== cell.row);
+        });
+        _grid.setActiveCell(cell.row, cell.cell);
+      } else if (selection.length && e.shiftKey) {
+        var last = selection.pop();
+        var from = Math.min(cell.row, last);
+        var to = Math.max(cell.row, last);
+        selection = [];
+        for (var i = from; i <= to; i++) {
+          if (i !== last) {
+            selection.push(i);
+          }
+        }
+        selection.push(last);
+        _grid.setActiveCell(cell.row, cell.cell);
+      }
+
+      _ranges = rowsToRanges(selection);
+      setSelectedRanges(_ranges);
+      e.stopImmediatePropagation();
+
+      return true;
+    }
+
     $.extend(this, {
+      "getSelectedRows": getSelectedRows,
+      "setSelectedRows": setSelectedRows,
+
       "getSelectedRanges": getSelectedRanges,
       "setSelectedRanges": setSelectedRanges,
 
