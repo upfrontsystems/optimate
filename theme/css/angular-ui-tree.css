@@ -109,6 +109,7 @@ div[ui-tree] li .normal {
 }
 
 .circle {
+    vertical-align: top;
     border-radius: 50%;
     width: 12px;
     height: 12px;
@@ -166,4 +167,19 @@ a.resource-button {
 
 a.resource-category-button {
     color: #a9385e;
+}
+
+/* fix for wrapping in tree buttons*/
+button.treenode {
+    text-align: left;
+    white-space: normal;
+    padding-right: 50px;
+}
+
+div.tree-node-content {
+    white-space: nowrap;
+}
+
+input.tree-control {
+    vertical-align: top;
 }

@@ -1,17 +1,17 @@
 <script type="text/ng-template" id="angularOrderTree.html">
   <div ui-tree-handle class="tree-node order-tree-node-content">
       <input type="button"
-          class="collapsed"
+          class="tree-control collapsed"
           data-ng-show="node.Subitem.length && node.collapsed"
           data-ng-click="selectNodeHead(node)">
       </input>
       <input type="button"
-          class="expanded"
+          class="tree-control expanded"
           data-ng-show="node.Subitem.length && !node.collapsed"
           data-ng-click="selectNodeHead(node)">
       </button>
       <input type="button"
-        class="normal"
+        class="tree-control normal"
         data-ng-hide="node.Subitem.length">
       </input>
       <span class="circle {{node.NodeType}}">&nbsp;{{node.NodeTypeAbbr}}&nbsp;</span>
