@@ -514,9 +514,19 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     if (data){
                         item.budg_cost = data['total'];
                         item.sub_cost = data['subtotal'];
+                        //store the active cell and editor
+                        var activeCell = grid.getActiveCell();
+                        var activeEditor = grid.getCellEditor();
                         dataView.updateItem(item.id, item);
+
+                        grid.setActiveCell(activeCell.row, activeCell.cell);
+                        grid.editActiveCell();
+                        dataView.syncGridSelection(grid, true);
+                        console.log('Node '+ item.id + ' updated')
                     }
-                    console.log('id_'+ item.id + ' updated')
+                    else{
+                        console.log("No updates performed");
+                    }
                 })
             });
         }
