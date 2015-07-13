@@ -269,3 +269,7 @@ input.custom-datepicker{
     right:14% !important;
     top: -4px !important;
 }
+
+.slick-row.selected {
+  background: #428BCA;
+}

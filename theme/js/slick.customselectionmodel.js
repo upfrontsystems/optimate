@@ -2,12 +2,12 @@
   // register namespace
   $.extend(true, window, {
     "Slick": {
-      "CellSelectionModel": CellSelectionModel
+      "CustomSelectionModel": CustomSelectionModel
     }
   });
 
 
-  function CellSelectionModel(options) {
+  function CustomSelectionModel(options) {
     var _grid;
     var _canvas;
     var _ranges = [];
@@ -57,6 +57,12 @@
 
     function setSelectedRanges(ranges) {
       _ranges = removeInvalidRanges(ranges);
+      console.log(_ranges)
+      if (_ranges.length > 1){
+        for (var i in _ranges){
+          _ranges[i].fromCell = _ranges[i].toCell;
+        }
+      }
       _self.onSelectedRangesChanged.notify(_ranges);
     }
 

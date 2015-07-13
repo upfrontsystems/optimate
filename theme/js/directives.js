@@ -141,7 +141,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             data = []
             dataView = new Slick.Data.DataView();
             grid = new Slick.Grid("#optimate-data-grid", dataView, columns, options);
-            grid.setSelectionModel(new Slick.CellSelectionModel());
+            grid.setSelectionModel(new Slick.CustomSelectionModel());
 
             // show tooltips on hover if the cellsize is so small, that an ellipsis
             // '...' is being shown.

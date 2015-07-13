@@ -597,7 +597,7 @@ def node_components(request):
     itemlist = []
     for comp in componentslist:
         itemlist.append(comp.toOrderDict())
-    return itemlist
+    return sorted(itemlist, key=lambda k: k['name'].upper())
 
 
 @view_config(route_name="projects", renderer='json')
