@@ -467,6 +467,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         toggleMenu('projects');
         // variable for disabling submit button after user clicked it
         $scope.isDisabled = false;
+        $scope.calculatorHidden = true; // set calculator to be hidden by default
 
         // load the projects used in the select project modal
         // Add a loading value to the project list while it loads
@@ -1084,6 +1085,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         // reloaded even if the node type is the same
         // reset the formdata to the type
         $scope.changeAddingType = function(nodetype) {
+            $scope.calculatorHidden = true;
             if ($scope.addingNodeType == nodetype) {
                 $scope.addingNodeType = '';
                 $timeout(function() {
@@ -1101,6 +1103,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         // fetch the properties of the node being edited
         // to populate the respective edit form
         $scope.editNode = function(nodeid, nodetype) {
+            $scope.calculatorHidden = true; 
             $scope.modalState = "Edit"
             $scope.isDisabled = false;
             var req = {
@@ -1499,6 +1502,10 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             else{
                 selectedNode.collapsed = false;
             }
+        };
+
+        $scope.toggleCalculator = function() {
+            $scope.calculatorHidden = !$scope.calculatorHidden;
         };
 
 }]);
