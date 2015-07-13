@@ -298,3 +298,7 @@ p#valuationNumber,
 p#orderNumber {
     margin-top: 7px !important;
 }
+
+.slick-row.selected {
+  background: #428BCA;
+}

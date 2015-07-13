@@ -1931,8 +1931,16 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             // if the component is not in the list
             // and the node is being selected
             else if ((i==-1) & flag) {
+                // find the index to insert the node into
+                var index = $scope.locationOf(comp);
+                console.log("index: " +index);
                 // add the component
-                $scope.componentsList.push(comp);
+                if (index == -1){
+                    $scope.componentsList.push(comp);
+                }
+                else{
+                    $scope.componentsList.splice(index, 0, comp);
+                }
             }
         }
 
@@ -1940,7 +1948,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         $scope.removeComponent = function(node) {
             var deleteid = node.ID;
             var result = $.grep($scope.componentsList, function(e) {
-                    return e.id == deleteid;
+                return e.id == deleteid;
             });
             var i = $scope.componentsList.indexOf(result[0]);
             if (i>-1) {
@@ -1992,22 +2000,35 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             // add the components to the list
             $http.get(globalServerURL + 'node/' + nodeid + '/components/')
             .success(function(response) {
-                for (var v = 0; v<response.length; v++) {
-                    var comp = response[v];
-                    // find the component in the component list
-                    var i = $scope.componentsList.map(function(e)
-                        { return e.id; }).indexOf(comp.ID);
-                    // if the component is already in the list
-                    // and the node is deselected
-                    if ((i>-1) &(!flag)) {
-                        // remove it
-                        $scope.componentsList.splice(i, 1);
-                    }
-                    // if the component is not in the list
-                    // and the node is being selected
-                    else if ((i==-1) & flag) {
-                        // add the component
-                        $scope.componentsList.push(comp);
+                // if the component list is empty just add all the nodes in order
+                if ($scope.componentsList.length == 0){
+                    $scope.componentsList =response;
+                }
+                else{
+                    for (var v = 0; v<response.length; v++) {
+                        var comp = response[v];
+                        // find the component in the component list
+                        var i = $scope.componentsList.map(function(e)
+                            { return e.id; }).indexOf(comp.ID);
+                        // if the component is already in the list
+                        // and the node is deselected
+                        if ((i>-1) &(!flag)) {
+                            // remove it
+                            $scope.componentsList.splice(i, 1);
+                        }
+                        // if the component is not in the list
+                        // and the node is being selected
+                        else if ((i==-1) & flag) {
+                            // add the component
+                            var index = $scope.locationOf(comp);
+                            // add the component
+                            if (index == -1){
+                                $scope.componentsList.push(comp);
+                            }
+                            else{
+                                $scope.componentsList.splice(index, 0, comp);
+                            }
+                        }
                     }
                 }
             });
@@ -2040,6 +2061,33 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 $scope.openProjectsList = [data];
                 $scope.selectNodeHead(data);
             });
+        };
+
+        $scope.locationOf = function(element, start, end) {
+            // return the location the object should be inserted in a sorted array
+            if ($scope.componentsList.length === 0){
+                return -1;
+            }
+
+            start = start || 0;
+            end = end || $scope.componentsList.length;
+            var pivot = (start + end) >> 1;
+            var c = $scope.nodeCompare(element, $scope.componentsList[pivot]);
+            if (end - start <= 1) {
+                return c == -1 ? pivot: pivot + 1;
+
+            }
+            switch (c) {
+                case -1: return $scope.locationOf(element, start, pivot);
+                case 0: return pivot;
+                case 1: return $scope.locationOf(element, pivot, end);
+            };
+        };
+
+        $scope.nodeCompare = function (a, b) {
+            if (a.name.toUpperCase() < b.name.toUpperCase()) return -1;
+            if (a.name.toUpperCase() > b.name.toUpperCase()) return 1;
+            return 0;
         };
 
         // if node head clicks, get the children of the node
