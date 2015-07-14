@@ -56,6 +56,7 @@ allControllers.controller('companyinformationController', ['$scope', '$http', '$
             }).success(function(response) {
                 $scope.formData = response;
             })
+            $scope.EditCompanyInformationForm.$setPristine();
         }
 
         // editing company information data
@@ -67,6 +68,7 @@ allControllers.controller('companyinformationController', ['$scope', '$http', '$
             }).success(function (data) {
                 $scope.company_information = $scope.formData
             });
+            $scope.EditCompanyInformationForm.$setPristine();
         };
 
     }
@@ -167,6 +169,7 @@ allControllers.controller('clientsController', ['$scope', '$http', 'globalServer
                 $('#client-'+$scope.selectedClient.ID).removeClass('active');
                 $scope.selectedClient = undefined;
             }
+            $scope.saveModalForm.$setPristine();
         }
 
         // When the edit button is pressed change the state and set the data
@@ -178,6 +181,7 @@ allControllers.controller('clientsController', ['$scope', '$http', 'globalServer
                 $scope.formData = response;
                 $scope.formData['NodeType'] = 'client';
             })
+            $scope.saveModalForm.$setPristine();
         }
 
         // Delete client and remove from the clients list
@@ -294,6 +298,7 @@ allControllers.controller('suppliersController', ['$scope', '$http', 'globalServ
                 $('#supplier-'+$scope.selectedSupplier.ID).removeClass('active');
                 $scope.selectedSupplier = undefined;
             }
+            $scope.saveModalForm.$setPristine();
         }
 
         // When the edit button is pressed change the state and set the data
@@ -307,6 +312,7 @@ allControllers.controller('suppliersController', ['$scope', '$http', 'globalServ
                 $scope.formData = response;
                 $scope.formData['NodeType'] = 'supplier';
             })
+            $scope.saveModalForm.$setPristine();
         }
 
         // Delete supplier and remove from the supplier list
@@ -780,23 +786,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     $scope.addNodeBack = false;
                 }
             },
-
-            // beforeDrop: function(event) {
-            //     console.log("before drop");
-            // },
-
-            // beforeDrag: function(sourceNodeScope) {
-            //     console.log("before drag");
-            //     return true;
-            // },
-
-            // dragStart: function(event) {
-            //     console.log("drag start");
-            // },
-
-            // dragMove: function(event) {
-            //     console.log("drag move");
-            // }
         };
 
         // if node head clicks, get the children of the node
@@ -1103,6 +1092,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             $scope.isDisabled = false;
             $scope.modalState = "Add"
             $scope.formData = {'NodeType': nodetype};
+            $scope['add' + nodetype + 'Form'].$setPristine();
         }
 
         // fetch the properties of the node being edited
@@ -1153,6 +1143,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     });
                 }
             });
+            $scope['add' + nodetype + 'Form'].$setPristine();
         }
 
         // save changes made to the node's properties
@@ -1576,6 +1567,7 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
                 templateUrl: 'addUser',
                 scope: $scope
             });
+            $scope.saveUserForm.$setPristine();
         };
 
         $scope.editingState = function () {
@@ -1601,6 +1593,7 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
                     alert('Error while fetching user information');
                 }
             );
+            $scope.saveUserForm.$setPristine();
         };
 
         $scope.saveUser = function() {
@@ -1896,6 +1889,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 $('#order-'+$scope.selectedOrder.ID).removeClass('active');
                 $scope.selectedOrder = undefined;
             }
+            $scope.saveOrderModalForm.$setPristine();
         }
 
         // When the edit button is pressed change the state and set the data
@@ -1915,6 +1909,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 $scope.formData['Date'] = new Date($scope.formData['Date']);
                 $scope.formData['NodeType'] = 'order';
             });
+            $scope.saveOrderModalForm.$setPristine();
         }
 
         // Delete an order and remove from the orders list
@@ -2344,6 +2339,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
                 $('#invoice-'+$scope.selectedInvoice.id).removeClass('active');
                 $scope.selectedInvoice = undefined;
             }
+            $scope.saveInvoiceModalForm.$setPristine();
         }
 
         // When the edit button is pressed change the state and set the data
@@ -2365,6 +2361,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
                                         {'name': 'Total', 'amount': response.total},
                                         {'name': 'Order total', 'amount': response.ordertotal}];
             });
+            $scope.saveInvoiceModalForm.$setPristine();
         }
 
         // Delete an invoice and remove from the list
@@ -2610,6 +2607,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                 $('#valuation-'+$scope.selectedValuation.ID).removeClass('active');
                 $scope.selectedValuation = undefined;
             }
+            $scope.saveValuationModalForm.$setPristine();
         }
 
         // When the edit button is pressed change the state and set the data
@@ -2627,6 +2625,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                 $scope.date = new Date($scope.formData['Date']);
                 $scope.formData['NodeType'] = 'valuation';
             });
+            $scope.saveValuationModalForm.$setPristine();
         }
 
         // Delete a valuation and remove from the valuations list
