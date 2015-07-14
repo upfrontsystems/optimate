@@ -322,3 +322,12 @@ a.enabled {
     cursor: pointer;
     pointer-events: autos;
 }
+
+/* keep form labels the same color no matter validation */
+label.control-label{
+    color: black !important;
+}
+
+span.fa-asterisk{
+    display: block !important;
+}

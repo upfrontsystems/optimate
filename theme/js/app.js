@@ -9,12 +9,14 @@ var myApp = angular.module('myApp', [
                     'angularMoment',
                     'localytics.directives',
                     'ngInputModified',
-                    'ngFormValidation']);
+                    'ngFormValidation'
+                    ]);
 
 myApp.config(function(formValidationDecorationsProvider, formValidationErrorsProvider) {
     formValidationDecorationsProvider
-        .useBuiltInDecorator('bootstrap')
-    ;
+    .useBuiltInDecorator('bootstrap')
+        .useIconLibrary('fontawesome')
+  ;
     formValidationErrorsProvider
         .useBuiltInErrorListRenderer('bootstrap')
     ;

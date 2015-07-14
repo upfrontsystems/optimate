@@ -236,8 +236,14 @@ function decorationsProvider() {
                         decorator.clearDecorations($element);
                     }
                 } else {
-                    // Removing all decorations if it's pristine.
-                    decorator.clearDecorations($element);
+                    // if it is pristine and invalid set required
+                    if (ngModel.$invalid){
+                        decorator.decorateElement($element, undefined);
+                    }
+                    else{
+                        // Removing all decorations if it's pristine and valid
+                        decorator.clearDecorations($element);
+                    }
                 }
             },
 
@@ -278,6 +284,7 @@ function ClassNameDecorator() {
 
     var validClassName   = 'valid';
     var invalidClassName = 'invalid';
+    var requiredClassName = 'required';
 
     var traverser;
 
@@ -321,6 +328,17 @@ function ClassNameDecorator() {
         },
 
         /**
+         * Sets required class name.
+         *
+         * @param {string} className
+         * @returns {ClassNameDecorator}
+         */
+        setRequiredClassName: function(className) {
+            requiredClassName = className;
+            return this;
+        },
+
+        /**
          * Instructs decorator to use specified traverser.
          *
          * @param {function} _traverser
@@ -345,15 +363,23 @@ function ClassNameDecorator() {
                 return;
             }
 
-            if (valid) {
+            if (valid == true) {
                 $decoratedElement
+                    .removeClass(requiredClassName)
                     .removeClass(invalidClassName)
                     .addClass(validClassName)
                 ;
-            } else {
+            } else if (valid == false){
                 $decoratedElement
+                    .removeClass(requiredClassName)
                     .removeClass(validClassName)
                     .addClass(invalidClassName)
+                ;
+            }else{
+                $decoratedElement
+                    .removeClass(invalidClassName)
+                    .removeClass(validClassName)
+                    .addClass(requiredClassName)
                 ;
             }
         },
@@ -374,6 +400,7 @@ function ClassNameDecorator() {
             $decoratedElement
                 .removeClass(invalidClassName)
                 .removeClass(validClassName)
+                .removeClass(requiredClassName)
             ;
         }
     };
@@ -388,6 +415,7 @@ function BootstrapDecorator() {
 
     var validClassName = 'has-success';
     var invalidClassName = 'has-error';
+    var requiredClassName = 'is-required';
     var elementClassName = 'has-feedback';
     var iconElementType = 'span';
     var iconClassName = 'form-control-feedback indent-left';
@@ -400,14 +428,16 @@ function BootstrapDecorator() {
     var iconClasses = {
         glyphicons: {
             valid: 'glyphicon glyphicon-ok',
-            invalid: 'glyphicon glyphicon-remove'
+            invalid: 'glyphicon glyphicon-remove',
+            required: 'glyphicon glyphicon-asterisk'
         },
         fontawesome: {
             valid: 'fa fa-check',
-            invalid: 'fa fa-times'
+            invalid: 'fa fa-times',
+            required: 'fa fa-asterisk',
         }
     };
-    var noIconElementTypes = ['checkbox', 'radio'];
+    var noIconElementTypes = ['checkbox', 'radio', 'password'];
 
     /**
      * This traverser will walk from the input element
@@ -437,6 +467,7 @@ function BootstrapDecorator() {
 
     var iconValidClassName;
     var iconInvalidClassName;
+    var iconRequiredClassName;
 
     // Creating ClassNameDecorator's instance to extend it.
     var classNameDecorator = new ClassNameDecorator();
@@ -444,6 +475,7 @@ function BootstrapDecorator() {
     // Setting default class names used in Bootstrap.
     classNameDecorator.setValidClassName(validClassName);
     classNameDecorator.setInvalidClassName(invalidClassName);
+    classNameDecorator.setRequiredClassName(requiredClassName);
     classNameDecorator.useTraverser(formGroupTraverser);
 
     var bootstrapDecorator = {
@@ -500,6 +532,18 @@ function BootstrapDecorator() {
             return this;
         },
 
+        /**
+         * Sets icon required class name.
+         *
+         * @param className
+         * @returns {BootstrapDecorator}
+         */
+        setIconRequiredClassName: function(className) {
+            iconRequiredClassName = className;
+            // noinspection JSValidateTypes
+            return this;
+        },
+
         //-------------//
         // API SECTION //
         //-------------//
@@ -511,17 +555,23 @@ function BootstrapDecorator() {
          * @returns {string}
          */
         getIconClassName: function(valid) {
-            if (valid) {
+            if (valid == true) {
                 if ('undefined' !== typeof iconValidClassName) {
                     return iconValidClassName;
                 } else {
                     return iconClasses[iconLibrary]['valid'];
                 }
-            } else {
+            } else if (valid == false){
                 if ('undefined' !== typeof iconInvalidClassName) {
                     return iconInvalidClassName;
                 } else {
                     return iconClasses[iconLibrary]['invalid'];
+                }
+            } else{
+                if ('undefined' !== typeof iconRequiredClassName) {
+                    return iconRequiredClassName;
+                } else {
+                    return iconClasses[iconLibrary]['required'];
                 }
             }
         },
@@ -594,7 +644,6 @@ function BootstrapDecorator() {
 
             // Decorating icons.
             if (useIcons && iconRequired) {
-
                 var $decoratedElement = classNameDecorator.getDecoratedElement($inputElement);
                 if (null === $decoratedElement) {
                     console.log('Missing decorated element for input element', $inputElement);
@@ -611,14 +660,28 @@ function BootstrapDecorator() {
                     $iconElement = this.createIconElement($decoratedElement);
                 }
 
-                // Making sure proper class is set for icon element.
-                $iconElement
-                    .removeClass(this.getIconClassName(!valid))
-                    .addClass(this.getIconClassName(valid))
-                ;
+                if (valid != undefined){
+                    // Making sure proper class is set for icon element.
+                    $iconElement
+                        .removeClass(this.getIconClassName(undefined))
+                        .removeClass(this.getIconClassName(!valid))
+                        .addClass(this.getIconClassName(valid))
+                    ;
 
-                // Making sure icon element is shown.
-                this.showIconElement($iconElement);
+                    // Making sure icon element is shown.
+                    this.showIconElement($iconElement);
+                }
+                else{
+                    // Making sure proper class is set for icon element.
+                    $iconElement
+                        .removeClass(this.getIconClassName(true))
+                        .removeClass(this.getIconClassName(false))
+                        .addClass(this.getIconClassName(valid))
+                    ;
+
+                    // Making sure icon element is shown.
+                    this.showIconElement($iconElement);
+                }
             }
         },
 
@@ -659,7 +722,6 @@ function BootstrapDecorator() {
 function errorsProvider() {
 
     var self = this;
-
     var traverser;
     var language;
     var dictionary;
@@ -1445,9 +1507,7 @@ function hideElement($element)
     }
 
     if ('undefined' !== typeof $element.hide) {
-
         $element.hide();
-
     } else {
 
         var elementComputedStyle = window.getComputedStyle($element[0], null);
@@ -1461,7 +1521,6 @@ function hideElement($element)
 
         // Saving old display mode.
         $element.data('oldDisplayMode', displayMode);
-
         // Hiding the element.
         $element.css('display', 'none');
     }
@@ -1478,7 +1537,6 @@ function showElement($element)
     if (0 == $element.length) {
         return;
     }
-
     if ('undefined' !== typeof $element.show) {
 
         $element.show();
@@ -1490,7 +1548,6 @@ function showElement($element)
             // @todo: Determine default display mode by elements type.
             displayMode = 'block';
         }
-
         // Showing the element.
         $element.css('display', displayMode);
     }
