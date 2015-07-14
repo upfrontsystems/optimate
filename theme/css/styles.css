@@ -320,7 +320,7 @@ a.disabled {
 a.enabled {
     color: #428BCA;
     cursor: pointer;
-    pointer-events: autos;
+    pointer-events: auto;
 }
 
 /* keep form labels the same color no matter validation */
@@ -330,4 +330,13 @@ label.control-label{
 
 span.fa-asterisk{
     display: block !important;
+}
+
+/* make the datepicker clickable area smaller */
+#inputDate {
+    pointer-events: none;
+}
+
+.input-group{
+    pointer-events: auto;
 }
