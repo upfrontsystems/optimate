@@ -83,6 +83,9 @@
 
 </head>
 <body>
+    <div id="status_message">
+        <span>Here is the message</span>
+    </div>
     <div ng-app="myApp" class="main-container">
         <nav class="navbar navbar-default navbar-fixed-top"
              ng-controller="navController" ng-show="logged_in">
@@ -117,7 +120,6 @@
                 </ul>
             </div>
         </nav>
-
         <div ng-view></div>
     </div>
 </body>
