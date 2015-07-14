@@ -14,7 +14,8 @@ allControllers.factory('sharedService', ['$rootScope',
         }
 
         shared.clearSlickgrid = function() {
-            $rootScope.$broadcast('handleClearSlickgrid');
+            console.log("clearSlickgrid() function deprecated");
+            // $rootScope.$broadcast('handleClearSlickgrid');
         }
 
         shared.reloadSlickgrid = function(nodeid) {
@@ -24,11 +25,13 @@ allControllers.factory('sharedService', ['$rootScope',
         }
 
         shared.reloadOrderSlickgrid = function() {
-            $rootScope.$broadcast('handleReloadOrderSlickgrid');
+            console.log("reloadOrderSlickgrid() function deprecated");
+            // $rootScope.$broadcast('handleReloadOrderSlickgrid');
         }
 
         shared.reloadValuationSlickgrid = function() {
-            $rootScope.$broadcast('handleReloadValuationSlickgrid');
+            console.log("reloadValuationSlickgrid() function deprecated");
+            // $rootScope.$broadcast('handleReloadValuationSlickgrid');
         }
         return shared;
 }]);
@@ -589,7 +592,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         // Close a project and remove it from the tree
         $scope.closeProject = function (project_id) {
             // clear the slickgrid
-            sharedService.clearSlickgrid();
+            $scope.handleClearSlickgrid();
             var result = $.grep($scope.projectsRoot.Subitem, function(e) {
                 return e.ID == project_id;
             });
@@ -1364,7 +1367,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         $scope.nodeDeleted = function() {
             $scope.currentNode = undefined;
             $scope.currentNodeScope.remove();
-            sharedService.clearSlickgrid();
+            $scope.handleClearSlickgrid();
         }
 
         // Load the children and add to the tree
@@ -2064,7 +2067,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         $scope.toggleComponentsGrid = function() {
             $scope.isCollapsed = !$scope.isCollapsed;
             if ($scope.isCollapsed) {
-                sharedService.reloadOrderSlickgrid();
+                $scope.handleReloadOrderSlickgrid();
             }
         };
 
@@ -2760,7 +2763,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
         $scope.toggleBudgetgroupGrid = function() {
             $scope.isCollapsed = !$scope.isCollapsed;
             if ($scope.isCollapsed) {
-                sharedService.reloadValuationSlickgrid();
+                $scope.handleReloadValuationSlickgrid();
             }
         };
 

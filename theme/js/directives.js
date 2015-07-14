@@ -479,7 +479,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 console.log("Slickgrid data loaded");
             }
 
-            // listening for the handle to reload the slickgrid
+            // reload the slickgrid
             $scope.handleReloadSlickgrid = function(reloadid) {
                 var nodeid = reloadid;
                 var url = globalServerURL +'node/' + nodeid + '/grid/'
@@ -492,15 +492,15 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 });
             };
 
-            // Listen for the call to clear the slickgrid
-            $scope.$on('handleClearSlickgrid', function() {
+            // clear the slickgrid
+            $scope.handleClearSlickgrid = function() {
                 dataView.beginUpdate();
                 dataView.setItems([]);
                 dataView.endUpdate();
                 grid.resetActiveCell();
                 grid.setSelectedRows([]);
                 grid.render();
-            });
+            };
 
             // on cell change post to the server and update the totals
             grid.onCellChange.subscribe(function (e, ctx) {
@@ -889,15 +889,13 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                 dataView.updateItem(lastrow.id, lastrow);
             });
 
-            // listening for the handle to reload the order slickgrid
+            // reload the order slickgrid
             // timeout to wait until the modal has finished rendering
-            $scope.$on('handleReloadOrderSlickgrid', function() {
-                // console.log("component handle reload grid");
+            $scope.handleReloadOrderSlickgrid = function() {
                 $timeout(function(){
-                    // console.log(dataView.getItems());
                     grid.resizeCanvas();
                 });
-            });
+            };
         }
     }
 }]);
@@ -1047,15 +1045,13 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                 }
             }, true);
 
-            // listening for the handle to reload the order slickgrid
+            // reload the valuation slickgrid
             // timeout to wait until the modal has finished rendering
-            $scope.$on('handleReloadValuationSlickgrid', function() {
-                // console.log("budgetitem handle reload grid");
+            $scope.handleReloadValuationSlickgrid = function() {
                 $timeout(function(){
-                    // console.log(dataView.getItems());
                     grid.resizeCanvas();
                 });
-            });
+            };
         }
     }
 }]);
