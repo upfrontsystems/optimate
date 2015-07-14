@@ -397,8 +397,7 @@ def valuation(request):
                             'valuation_items': sorted_vitems,
                             'client': client,
                             'budget_total': budget_total,
-                            'valuation_date': vdate,
-                            'print_date' : now.strftime("%d %B %Y")},
+                            'valuation_date': vdate},
                             request=request)
     # render template
     html = StringIO(template_data.encode('utf-8'))

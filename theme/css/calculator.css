@@ -40,10 +40,10 @@
 	margin: 0 5px 6px 5px;
 	padding: 0 8px;
 	border-radius: 5px;
-	box-shadow:
+/*	box-shadow:
 		inset 0 30px 1px rgba(255, 255, 255, 0.25),
 		inset 0 -1px 2px rgba(255, 255, 255, 0.5),
-		inset 0  2px 3px rgba(  0,   0,   0, 0.40);
+		inset 0  2px 3px rgba(  0,   0,   0, 0.40); */
 	font-size: 45px;
 	line-height: 61px;
 	text-align: right;
@@ -181,7 +181,7 @@
 	height: 28px;
 	background-color: #4c5356;
 	border: 1px solid black;
-	box-shadow: 0 1px rgba(255, 255, 255, 0.1);
+/*	box-shadow: 0 1px rgba(255, 255, 255, 0.1); */
 	border-radius: 6px;
 	overflow: hidden;
 	float: left;
@@ -205,10 +205,10 @@
 	border-top-right-radius: 6px;
 	border-bottom-left-radius: 26px 6px;
 	border-bottom-right-radius: 26px 6px;
-	box-shadow:
+/*	box-shadow:
 		inset 0 -15px 1px rgba(  0,   0,   0, 0.25),
 		inset 0   1px 1px rgba(255, 255, 255, 0.4),
-		inset 0   6px 6px rgba(255, 255, 255, 0.25);
+		inset 0   6px 6px rgba(255, 255, 255, 0.25); */
 	border: none;
 }
 .calc-left > div > div:hover, .calc-right > div > div:hover {
@@ -263,21 +263,22 @@
 }
 
 .calc-right .calc-black > div {
-	background-color: #000;
+	background-color: #343434;
+/*	background-color: #000;
 	box-shadow:
 		inset 0 -13px 1px rgba(50,   50,  50, 0.5),
 		inset 0   1px 1px rgba(255, 255, 255, 0.25),
-		inset 0   8px 6px rgba(255, 255, 255, 0.2);
+		inset 0   8px 6px rgba(255, 255, 255, 0.2); */
 }
 .calc-right .calc-black {
 	background-color: #181818;
 }
 .calc-right .calc-orange > div {
 	background-color: #FF7113;
-	box-shadow:
+/*	box-shadow:
 		inset 0 -13px 1px rgba(148,  77,  18, 0.20),
 		inset 0  7px  6px rgba(255, 255, 255, 0.3),
-		inset 0  6px  6px rgba(255, 255, 255, 0.1);
+		inset 0  6px  6px rgba(255, 255, 255, 0.1); */
 }
 .calc-left > div:active, .calc-right > div:active,
 .calc-left .calc-press, .calc-right .calc-press {

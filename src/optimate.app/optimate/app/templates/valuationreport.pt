@@ -36,7 +36,7 @@
             </tr>
             <tr>
                 <td style="width: 150px">Date</td>
-                <td class="bold" style="width: 200px; text-align:left">${print_date}</td>
+                <td class="bold" style="width: 200px; text-align:left">${valuation_date}</td>
             </tr>
             <tr>
                 <td style="width: 150px">Project</td>
@@ -67,7 +67,7 @@
             <td></td>
         </tr>
         <tr style="padding-top: 6px;">
-            <td style="width: 450px; text-align:right">NETT COST Excl. VAT</td>
+            <td style="width: 450px; text-align:right">Total</td>
             <td style="width: 120px; text-align:right" tal:content="budget_total|nothing"></td>
             <td style="width: 90px; text-align:right"></td>
             <td style="width: 120px; text-align:right" tal:content="valuation.Total|nothing"></td>

@@ -803,7 +803,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     console.log("Children loaded");
                 });
             }
-            else{
+            else {
                 selectedNode.collapsed = false;
             }
         };
@@ -1178,6 +1178,10 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         // The id is sent to the server to be deleted and the node
         // removed from the treemodel
         $scope.deleteThisNode = function ( nodeid ) {
+            $('#status_message span').text("Deleted " + $scope.currentNode.Name);
+            $('#status_message').fadeIn('fast',function() {
+                $('#status_message span').animate({'top':'13%'},1500);
+            });
             $http({
                 method: 'DELETE',
                 url:globalServerURL + 'node/' + nodeid + '/'
@@ -1188,6 +1192,11 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 else{
                     $scope.nodeDeleted();
                 }
+                window.setTimeout(function () {
+                    $('#status_message span').animate({'top':'-200px'},1500,function() {
+                        $('#status_message').fadeOut('fast');
+                    });
+                }, 2500);
             });
         };
 
