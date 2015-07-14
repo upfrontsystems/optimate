@@ -310,3 +310,15 @@ p#orderNumber {
 .center {
     text-align: center;
 }
+
+/* makes the anchor tag look disabled*/
+a.disabled {
+    color: #AAAAAA;
+    cursor: default;
+    pointer-events: none;
+}
+a.enabled {
+    color: #428BCA;
+    cursor: pointer;
+    pointer-events: autos;
+}

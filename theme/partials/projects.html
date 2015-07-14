@@ -1,6 +1,12 @@
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div class="container-fluid">
         <ul class="nav nav-pills">
+            <li class="pull-right active">
+                <a href="" data-ng-class="{true:'enabled',false:'disabled'}[rowsSelected]"
+                            data-ng-click="deleteSelectedRecords(currentNode.ID)">
+                    Delete selected records
+                </a>
+            <li>
             <li>
                 <a title="Add Project" data-ng-click="changeAddingType('Project'); loadProjectRelatedList()"
                  data-target="#addProject" data-toggle="modal" class="project-button">

@@ -805,11 +805,13 @@ def node_grid(request):
     childrenlist = []
     # Execute the sql query on the Node table to find the parent
     qry = DBSession.query(Node).filter_by(ParentID=parentid)
-    node_type = DBSession.query(Node).filter_by(ID=parentid).first().type
     if qry.count() == 0:
         # if the node doesnt have any children, query for the node's data instead
         qry = DBSession.query(Node).filter_by(ID=parentid)
-
+        if qry.count() == 0:
+            # the node has been deleted, return an empty response
+            return {'list':[]}
+    node_type = DBSession.query(Node).filter_by(ID=parentid).first().type
     # Filter out all the Budgetitems and Components
     # Test if the result is the same length as the query
     # Therefore there will be empty columns
@@ -1049,7 +1051,7 @@ def node_paste(request):
                     if component.ResourceID not in copiedresourceIds:
                         newparentid = sortResource(rescatid, component.Resource.Name)
                         copiedresource = component.Resource.copy(newparentid)
-                        DBSession.add(newresource)
+                        DBSession.add(copiedresource)
                         DBSession.flush()
                         copiedresourceIds[
                                 component.Resource.ID] = copiedresource.ID
@@ -1109,7 +1111,7 @@ def node_paste(request):
                     if component.ResourceID not in copiedresourceIds:
                         newparentid = sortResource(rescatid, component.Resource.Name)
                         copiedresource = component.Resource.copy(newparentid)
-                        DBSession.add(newresource)
+                        DBSession.add(copiedresource)
                         DBSession.flush()
                         copiedresourceIds[
                                 component.Resource.ID] = copiedresource.ID
@@ -1786,7 +1788,7 @@ def orderview(request):
 @view_config(route_name="valuations_tree_view", renderer='json')
 def valuations_tree_view(request):
     """ This view is for when the user requests the children of a node
-        in the valuations tree. The nodes used by the orders use a different 
+        in the valuations tree. The nodes used by the orders use a different
         format than the projects tree view
     """
 
@@ -1809,7 +1811,7 @@ def valuations_tree_view(request):
 
 @view_config(route_name='valuationsview', renderer='json')
 def valuationsview(request):
-    """ The valuationsview returns a list in json format of a section of the 
+    """ The valuationsview returns a list in json format of a section of the
         valuations in the server database
     """
     paramsdict = request.params.dict_of_lists()
@@ -1934,7 +1936,7 @@ def valuationview(request):
     # otherwise return the selected valuation
     valuationid = request.matchdict['id']
     valuation = DBSession.query(Valuation).filter_by(ID=valuationid).first()
-    # build a list of the budgetgroups used in the valuation from the valuation 
+    # build a list of the budgetgroups used in the valuation from the valuation
     # items
     budgetgrouplist = []
     for valuationitem in valuation.ValuationItems:

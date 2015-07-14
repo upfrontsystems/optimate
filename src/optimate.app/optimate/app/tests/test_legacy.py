@@ -1206,7 +1206,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
             'Name': 'AddingNewResource',
             'Description': 'Adding Resource',
             'Unit': 5,
-            'Type': 'Labour',
+            'ResourceType': 1,
             'Rate': 29,
             'Code': 'ADD005',
             'NodeType': 'Resource'

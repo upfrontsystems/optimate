@@ -480,8 +480,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             }
 
             // listening for the handle to reload the slickgrid
-            $scope.$on('handleReloadSlickgrid', function() {
-                var nodeid = sharedService.reloadId;
+            $scope.handleReloadSlickgrid = function(reloadid) {
+                var nodeid = reloadid;
                 var url = globalServerURL +'node/' + nodeid + '/grid/'
                 var target = document.getElementsByClassName('slick-viewport');
                 var spinner = new Spinner().spin(target[0]);
@@ -490,7 +490,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     spinner.stop(); // stop the spinner - ajax call complete
                     loadSlickgrid(response);
                 });
-            });
+            };
 
             // Listen for the call to clear the slickgrid
             $scope.$on('handleClearSlickgrid', function() {
@@ -529,6 +529,47 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     }
                 })
             });
+
+            var rowsSelected = false;
+            grid.onSelectedRowsChanged.subscribe(function(e, args) {
+                var selectedrows = grid.getSelectedRows();
+                if (selectedrows.length > 0){
+                    var selectedRowIds = dataView.mapRowsToIds(selectedrows);
+                    if(selectedRowIds.length > 0){
+                        rowsSelected = true;
+                    }
+                    else{
+                        rowsSelected = false;
+                    }
+                }
+                else{
+                    rowsSelected = false;
+                }
+                $scope.toggleRowsSelected(rowsSelected);
+            });
+
+
+            $scope.deleteSelectedRecords = function(nodeid){
+                // all the currently selected records in the slickgrid are
+                // deleted from the database and the grid is reloaded
+                if (rowsSelected){
+                    if (confirm("Are you sure you want to deleted the selected records?")){
+                        var selectedRowIds = dataView.mapRowsToIds(grid.getSelectedRows());
+                        for (var i in selectedRowIds){
+                            $http({
+                                method: 'DELETE',
+                                url:globalServerURL + 'node/' + selectedRowIds[i] + '/'
+                            }).success(function (response) {
+                                console.log(selectedRowIds[i] + " deleted");
+                                // on the last loop reload the slickgrid
+                                if (i == selectedRowIds.length-1){
+                                    $scope.handleReloadSlickgrid(nodeid);
+                                }
+                            });
+                        }
+                    }
+                }
+            };
         }
     }
 }]);
@@ -916,7 +957,7 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
             var columns = [
                     {id: "name", name: "Budget Group", field: "name",
                      width: valuations_column_width.name, cssClass: "cell-title non-editable-column"},
-                    {id: "percentage_complete", name: "Percentage Complete", field: "percentage_complete", 
+                    {id: "percentage_complete", name: "Percentage Complete", field: "percentage_complete",
                      cssClass: "cell editable-column", formatter: PercentageFormatter,
                      width: valuations_column_width.percentage_complete, editor: Slick.Editors.CustomEditor}];
 
@@ -987,7 +1028,7 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                 columns = [
                     {id: "name", name: "Budget Group", field: "name",
                      width: valuations_column_width.name, cssClass: "cell-title non-editable-column"},
-                    {id: "percentage_complete", name: "% Complete", field: "percentage_complete", 
+                    {id: "percentage_complete", name: "% Complete", field: "percentage_complete",
                      cssClass: "cell editable-column", formatter: PercentageFormatter,
                      width: valuations_column_width.percentage_complete, editor: Slick.Editors.Float}];
                 if (budgetgrouplist.length > 0) {

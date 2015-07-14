@@ -9,7 +9,8 @@ allControllers.factory('sharedService', ['$rootScope',
         // when a node is added to the projects treeview
         // the slickgrid should be reloaded
         shared.nodeAdded = function(currentid) {
-            this.reloadSlickgrid(currentid);
+            console.log("nodeAdded() function deprecated");
+            // this.reloadSlickgrid(currentid);
         }
 
         shared.clearSlickgrid = function() {
@@ -17,8 +18,9 @@ allControllers.factory('sharedService', ['$rootScope',
         }
 
         shared.reloadSlickgrid = function(nodeid) {
-            this.reloadId = nodeid;
-            $rootScope.$broadcast('handleReloadSlickgrid');
+            console.log("reloadSlickgrid() function deprecated");
+            // this.reloadId = nodeid;
+            // $rootScope.$broadcast('handleReloadSlickgrid');
         }
 
         shared.reloadOrderSlickgrid = function() {
@@ -468,6 +470,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         // variable for disabling submit button after user clicked it
         $scope.isDisabled = false;
         $scope.calculatorHidden = true; // set calculator to be hidden by default
+        $scope.rowsSelected = false;    // set selected rows false
 
         // load the projects used in the select project modal
         // Add a loading value to the project list while it loads
@@ -816,7 +819,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         // if node label clicks,
         $scope.selectNodeLabel = function(scope) {
             // reload the slickgrid
-            sharedService.reloadSlickgrid(scope.$modelValue.ID);
+            $scope.handleReloadSlickgrid(scope.$modelValue.ID);
+            // sharedService.reloadSlickgrid(scope.$modelValue.ID);
             // set the current scope
             $scope.currentNodeScope = scope;
             // remove highlight from previous node
@@ -1048,7 +1052,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     data: $scope.formData
                 }).success(function () {
                     $scope.formData = {'NodeType':$scope.formData['NodeType']};
-                    sharedService.reloadSlickgrid(currentid);
+                    $scope.handleReloadSlickgrid(currentid)
+                    // sharedService.reloadSlickgrid(currentid);
                     $scope.loadNodeChildren(currentid);
                     // expand the node if this is its first child
                     if ($scope.currentNode.Subitem.length == 0) {
@@ -1103,7 +1108,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         // fetch the properties of the node being edited
         // to populate the respective edit form
         $scope.editNode = function(nodeid, nodetype) {
-            $scope.calculatorHidden = true; 
+            $scope.calculatorHidden = true;
             $scope.modalState = "Edit"
             $scope.isDisabled = false;
             var req = {
@@ -1170,7 +1175,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     });
                 }
                 $scope.currentNode.Description = $scope.formData.Description
-                sharedService.reloadSlickgrid($scope.formData['ID']);
+                $scope.handleReloadSlickgrid($scope.formData.ID);
+                // sharedService.reloadSlickgrid($scope.formData['ID']);
             });
         }
 
@@ -1328,7 +1334,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         });
                     }
                     else{
-                        sharedService.reloadSlickgrid(nodeid);
+                        $scope.handleReloadSlickgrid(nodeid);
+                        // sharedService.reloadSlickgrid(nodeid);
                         $scope.loadNodeChildren(nodeid);
                     }
                     // expand the node if this is its first child
@@ -1353,7 +1360,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     if ($scope.currentNode.Subitem.length == 0) {
                         $scope.currentNode.collapsed = true;
                     }
-                    sharedService.reloadSlickgrid(nodeid);
+                    $scope.handleReloadSlickgrid(nodeid);
+                    // sharedService.reloadSlickgrid(nodeid);
                     $scope.loadNodeChildren(nodeid);
                 }).error(function() {
                     console.log("Server error");
@@ -1407,6 +1415,12 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             console.log("Suppliers list loaded");
             $scope.filterBySupplier = false;
         };
+
+        $scope.toggleRowsSelected = function(rowsselected){
+            $timeout(function() {
+                $scope.rowsSelected = rowsselected;
+            });
+        }
 
         $scope.openNodeList = [];
         // load the node that has been selected into the tree for pdf printing
