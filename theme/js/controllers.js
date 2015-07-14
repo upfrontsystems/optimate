@@ -1202,18 +1202,36 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
         // Function to copy a node
         $scope.copyThisNode = function(node) {
+            $('#status_message span').text(node.Name + " copied.");
+            $('#status_message').fadeIn('fast',function() {
+                $('#status_message span').animate({'top':'13%'},1500);
+            });
             $scope.copiedNode = node;
             $scope.cut = false;
             console.log("Node id copied: " + node.ID);
+            window.setTimeout(function () {
+                $('#status_message span').animate({'top':'-200px'},1500,function() {
+                    $('#status_message').fadeOut('fast');
+                });
+            }, 2500);
         }
 
         // Function to cut a node
         // the node is removed from the tree (but not deleted)
         $scope.cutThisNode = function(node) {
+            $('#status_message span').text(node.Name + " cut.");
+            $('#status_message').fadeIn('fast',function() {
+                $('#status_message span').animate({'top':'13%'},1500);
+            });
             $scope.copiedNode = node;
             console.log("Node id cut: " + node.ID);
             $scope.cut = true;
             $scope.nodeDeleted();
+            window.setTimeout(function () {
+                $('#status_message span').animate({'top':'-200px'},1500,function() {
+                    $('#status_message').fadeOut('fast');
+                });
+            }, 2500);
         }
 
         // function to paste copied node into another node

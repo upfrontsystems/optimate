@@ -352,7 +352,7 @@ span.fa-asterisk{
     width: 100%;
     height: 100%;
     text-align: center;
-    z-index: 1000;
+    z-index: 10000;
 }
 
 #status_message span {
