@@ -1315,21 +1315,21 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                                             }
                                         });
                                     }
-                                    else{
+                                    else {
                                         // skip has been selected
                                         // set the overwrite to the skip value
                                         selectionlist[duplicateResource.Code] = doAll;
                                         if (keys.length) {
                                             checkItems();
                                         }
-                                        else{
+                                        else {
                                             pasteResourceCategory(selectionlist);
                                         }
 
                                     }
                                 })();
                             }
-                            else{
+                            else {
                                 pasteResourceCategory({});
                             }
                         });
@@ -1343,6 +1343,10 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     data:{'ID': cnode.ID,
                             'cut': $scope.cut}
                 }).success(function (response) {
+                    $('#status_message span').text(cnode.Name + " pasted.");
+                    $('#status_message').fadeIn('fast',function() {
+                        $('#status_message span').animate({'top':'13%'},1500);
+                    });
                     console.log('Success: Node pasted');
                     // if a project was pasted into the root
                     if (nodeid == 0) {
@@ -1354,7 +1358,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                             $scope.projectAdded(data);
                         });
                     }
-                    else{
+                    else {
                         $scope.handleReloadSlickgrid(nodeid);
                         // sharedService.reloadSlickgrid(nodeid);
                         $scope.loadNodeChildren(nodeid);
@@ -1363,6 +1367,11 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     if ($scope.currentNode.Subitem.length == 0) {
                         $scope.currentNode.collapsed = true;
                     }
+                    window.setTimeout(function () {
+                        $('#status_message span').animate({'top':'-200px'},1500,function() {
+                            $('#status_message').fadeOut('fast');
+                        });
+                    }, 2500);
                 }).error(function() {
                     console.log("Server error");
                 });
