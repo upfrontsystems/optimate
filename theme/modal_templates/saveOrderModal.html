@@ -8,7 +8,7 @@
                         aria-hidden="true" data-ng-show="!isCollapsed">&times;</button>
                 <h3 class="modal-title">{{modalState}} an {{formData.NodeType}}</h3>
             </div>
-            <div class="modal-body">
+            <div class="order-modal-body">
                 <div data-ng-show="isCollapsed">
                     <form class="form-horizontal"  name="saveOrderModalForm" novalidate>
                         <div class="form-group" data-ng-show="modalState == 'Edit'">
@@ -70,18 +70,6 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="inputTaxRate" class="col-sm-2 control-label">Calculate VAT:</label>
-                            <button class="custom-checkbox"
-                                    id="inputTaxRate"
-                                    name="inputTaxRate"
-                                    data-ng-click="formData['TaxRate'] = !formData['TaxRate']">
-                                  <i data-ng-class="{true:'fa fa-check-square-o',false:'fa fa-square-o'}[formData['TaxRate']]"
-                                      class="checkbox-icon">
-                                  </i>
-                            </button>
-                        </div>
-                        <div class="form-group">
-                            <label for="order_components" class="col-sm-2 control-label">Components:</label>
                             <div id="order_components" class="row form-group">
                                 <div id="component-data-grid-outer">
                                     <componentslickgridjs id="component-data-grid"
@@ -98,30 +86,24 @@
                     </div>
                     <div>&nbsp;</div>
                 </div>
-                <form class="form-horizontal">
-                    <div class="form-group">
-                        <label for="addComponentsButton" class="col-sm-2 control-label" data-ng-show="isCollapsed"></label>
-                        <label for="addComponentsButton" class="col-sm-0 control-label" data-ng-show="!isCollapsed"></label>
-                            <button class="btn btn-default"
-                                    id="addComponentsButton"
-                                    data-ng-click="toggleComponentsGrid()"
-                                    tabindex="1"
-                                    data-ng-disabled="saveOrderModalForm.inputProject.$invalid">
-                                Add Components
-                            </button>
-                        </div>
-                </form>
             </div>
-            <div class="modal-footer" data-ng-show="isCollapsed">
+            <div class="modal-footer">
+                <button class="btn btn-default"
+                        id="addComponentsButton"
+                        data-ng-click="toggleComponentsGrid()"
+                        tabindex="1"
+                        data-ng-disabled="saveOrderModalForm.inputProject.$invalid">
+                    Add Components
+                </button>
                 <button data-ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal"
-                 data-ng-disabled="!saveOrderModalForm.$valid" data-ng-click="save()">
+                 data-ng-disabled="!saveOrderModalForm.$valid" data-ng-click="save()" data-ng-show="isCollapsed">
                     Save
                 </button>
                 <button data-ng-show="modalState == 'Edit'" class="btn btn-primary" data-dismiss="modal"
-                 data-ng-disabled="!saveOrderModalForm.$valid" data-ng-click="save()">
+                 data-ng-disabled="!saveOrderModalForm.$valid" data-ng-click="save()" data-ng-show="isCollapsed">
                     Update
                 </button>
-                <button class="btn btn-default" data-dismiss="modal">
+                <button class="btn btn-default" data-dismiss="modal" data-ng-show="isCollapsed">
                     Cancel
                 </button>
             </div>

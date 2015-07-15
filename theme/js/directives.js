@@ -618,7 +618,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     }
                     catch (exception) {
                         console.log("No columns widths found in storage. Setting to default.");
-                        orders_column_width= {'name': 150,
+                        orders_column_width= {'name': 350,
                                     'quantity': 75,
                                     'rate': 75,
                                     'subtotal': 75,
@@ -628,7 +628,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                         localStorage["orders_column_width"] = JSON.stringify(orders_column_width);
                     }
                     if ( orders_column_width.length == 0 ) {
-                        orders_column_width= {'name': 150,
+                        orders_column_width= {'name': 350,
                                     'quantity': 75,
                                     'rate': 75,
                                     'subtotal': 75,
@@ -640,7 +640,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                 }
                 else {
                     console.log("LOCAL STORAGE NOT SUPPORTED")
-                    orders_column_width= {'name': 150,
+                    orders_column_width= {'name': 350,
                                 'quantity': 75,
                                 'rate': 75,
                                 'subtotal': 75,
