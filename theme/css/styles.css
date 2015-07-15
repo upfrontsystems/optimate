@@ -69,6 +69,7 @@ body {
     height: 100%;
     float: right;
     overflow:auto;
+    margin-top:-5px;
 }
 
 /* handle on the right resize handle*/
@@ -366,3 +367,11 @@ span.fa-asterisk{
     top: -200px;
     padding: 10px 250px 10px 250px;
 }
+
+/* centering nav-bar icons */
+ul.nav-pills-center {
+    width: 100%;
+    display: inline-flex;
+    justify-content: center;
+}
+
