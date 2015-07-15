@@ -624,6 +624,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 catch (exception) {
                 }
                 if ( open_projects.length != 0 ) {
+                    $scope.projectsRoot = {"Name": "Root", "ID": 0, "NodeType":"Root", "Subitem": []};
                     for (var i = 0; i < open_projects.length; i++) {
                         var id = open_projects[i];
                         var url = globalServerURL + 'node/' + id + '/'
@@ -1410,10 +1411,11 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         $scope.loadNodeChildren = function(parentid) {
             // if the parent id is 0 reload the projectslist
             if (parentid == 0) {
-
+                $scope.preloadProjects();
             }
             else if ($scope.currentNode) {
-                $http.get(globalServerURL + 'node/' + parentid + '/children/').success(function(data) {
+                $http.get(globalServerURL + 'node/' + parentid + '/children/')
+                .success(function(data) {
                     $scope.currentNode.Subitem = data;
                     console.log("Children loaded");
                 });

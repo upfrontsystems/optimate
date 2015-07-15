@@ -165,6 +165,8 @@ def node_children(request):
                 resourcecategories.append(child.toChildDict())
             else:
                 childrenlist.append(child.toChildDict())
+    else:
+        return HTTPInternalServerError("Node does not exist")
 
     # sort childrenlist
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'].upper())
@@ -1788,7 +1790,7 @@ def orderview(request):
 @view_config(route_name="valuations_tree_view", renderer='json')
 def valuations_tree_view(request):
     """ This view is for when the user requests the children of a node
-        in the valuations tree. The nodes used by the orders use a different
+        in the valuations tree. The nodes used by the valuations use a different
         format than the projects tree view
     """
 
