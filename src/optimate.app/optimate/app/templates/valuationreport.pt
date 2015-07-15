@@ -59,18 +59,18 @@
     <table class="order-font">
         <tr tal:repeat="valuation_item valuation_items">
             <td style="width: 450px" tal:content="valuation_item['name']|nothing"></td>
-            <td style="width: 120px; text-align:right" tal:content="valuation_item['total_budget']|nothing"></td>
+            <td style="width: 120px; text-align:right">R${valuation_item['total_budget']|nothing}</td>
             <td style="width: 90px; text-align:right" tal:content="valuation_item['percentage_complete']|nothing"></td>
-            <td style="width: 120px; text-align:right" tal:content="valuation_item['amount_complete']|nothing"></td>
+            <td style="width: 120px; text-align:right">R${valuation_item['amount_complete']|nothing}</td>
         </tr>
         <tr style="border-bottom: 1px solid #000;">
             <td></td>
         </tr>
         <tr style="padding-top: 6px;">
             <td style="width: 450px; text-align:right">Total</td>
-            <td style="width: 120px; text-align:right" tal:content="budget_total|nothing"></td>
+            <td style="width: 120px; text-align:right">R${budget_total|nothing}</td>
             <td style="width: 90px; text-align:right"></td>
-            <td style="width: 120px; text-align:right" tal:content="valuation.Total|nothing"></td>
+            <td style="width: 120px; text-align:right">R${valuation.Total|nothing}</td>
         </tr>
         <tr style="border-top: 1px solid #000;">
             <td></td>
