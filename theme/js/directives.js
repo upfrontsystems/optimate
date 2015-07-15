@@ -548,46 +548,16 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 $scope.toggleRowsSelected(rowsSelected);
             });
 
-            $scope.copySelectedRecords = function(node){
-                console.log("TODO add copy function");
-            };
+            $scope.getSelectedNodes = function(){
+                return dataView.mapRowsToIds(grid.getSelectedRows());
+            }
 
-            $scope.cutSelectedRecords = function(node){
-                console.log("TODO add cut function");
-            };
-
-            $scope.pasteSelectedRecords = function(nodeid){
-                console.log("TODO add paste function");
-            };
-
-            $scope.deleteSelectedRecords = function(nodeid){
-                // all the currently selected records in the slickgrid are
-                // deleted from the database and the grid is reloaded
-                if (rowsSelected){
-                    var selectedRowIds = dataView.mapRowsToIds(grid.getSelectedRows());
-                    for (var i in selectedRowIds){
-                        $http({
-                            method: 'DELETE',
-                            url:globalServerURL + 'node/' + selectedRowIds[i] + '/'
-                        }).success(function (response) {
-                            console.log(selectedRowIds[i] + " deleted");
-                            // on the last loop reload the slickgrid and node
-                            if (i == selectedRowIds.length-1){
-                                // if the deleted id equals the selected id
-                                // simply remove it from the tree
-                                if (nodeid == selectedRowIds[i]){
-                                    $scope.nodeDeleted();
-                                }
-                                else{
-                                    $scope.loadNodeChildren(nodeid);
-                                    $scope.handleReloadSlickgrid(nodeid);
-                                }
-                                rowsSelected = false;
-                                $scope.toggleRowsSelected(rowsSelected);
-                            }
-                        });
-                    }
+            $scope.cutSelectedNodes = function(idarray){
+                for (var i in idarray){
+                    dataView.deleteItem(idarray[i]);
                 }
+                grid.invalidate();
+                grid.render();
             };
         }
     }

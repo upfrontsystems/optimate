@@ -1448,10 +1448,102 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             $scope.filterBySupplier = false;
         };
 
+        $scope.copySelectedRecords = function(node){
+            // put the id's of the selected records in an array
+            if ($scope.rowsSelected){
+                var selectedRowIds = $scope.getSelectedNodes();
+                $scope.toggleCopiedRecords(selectedRowIds, false);
+                console.log("Records copied");
+            }
+        };
+
+        $scope.cutSelectedRecords = function(node){
+            // put the id's of the selected records in an array
+            if ($scope.rowsSelected){
+                var selectedRowIds = $scope.getSelectedNodes();
+                $scope.toggleCopiedRecords(selectedRowIds, true);
+                // remove rows from slickgrid
+                $scope.cutSelectedNodes(selectedRowIds);
+                // get node in scope and remove
+                if (selectedRowIds[0] == node.ID){
+                    $scope.nodeDeleted()
+                }
+                else{
+                    for (var i in selectedRowIds){
+                        var result = $.grep($scope.currentNode.Subitem, function(e) {
+                            return e.ID == selectedRowIds[i];
+                        });
+                        var index = $scope.currentNode.Subitem.indexOf(result[0]);
+                        if (index>-1) {
+                            $scope.currentNode.Subitem.splice(index, 1);
+                        }
+                    }
+                }
+                console.log("Records cut");
+            }
+        };
+
+        $scope.pasteSelectedRecords = function(nodeid){
+            // paste each node
+            for (var i in $scope.copiedRecords){
+                $http({
+                    method: 'POST',
+                    url: globalServerURL + 'node/' + nodeid + '/paste/',
+                    data:{'ID': $scope.copiedRecords[i],
+                            'cut': $scope.cut}
+                }).success(function () {
+                    console.log('Success: Node pasted');
+                    // on the last loop reload the slickgrid and node
+                    if (i == $scope.copiedRecords.length-1){
+                        $scope.loadNodeChildren(nodeid);
+                        $scope.handleReloadSlickgrid(nodeid);
+                        $scope.toggleRowsSelected(false);
+                    }
+                }).error(function() {
+                    console.log("Server error");
+                });
+            }
+        };
+
+        $scope.deleteSelectedRecords = function(nodeid){
+            // all the currently selected records in the slickgrid are
+            // deleted from the database and the grid is reloaded
+            if ($scope.rowsSelected){
+                var selectedRowIds = $scope.getSelectedNodes()
+                for (var i in selectedRowIds){
+                    $http({
+                        method: 'DELETE',
+                        url:globalServerURL + 'node/' + selectedRowIds[i] + '/'
+                    }).success(function (response) {
+                        console.log(selectedRowIds[i] + " deleted");
+                        // on the last loop reload the slickgrid and node
+                        if (i == selectedRowIds.length-1){
+                            // if the deleted id equals the selected id
+                            // simply remove it from the tree
+                            if (nodeid == selectedRowIds[i]){
+                                $scope.nodeDeleted();
+                            }
+                            else{
+                                $scope.loadNodeChildren(nodeid);
+                                $scope.handleReloadSlickgrid(nodeid);
+                            }
+                            $scope.toggleRowsSelected(false);
+                        }
+                    });
+                }
+            }
+        };
+
+
         $scope.toggleRowsSelected = function(rowsselected){
             $timeout(function() {
                 $scope.rowsSelected = rowsselected;
             });
+        }
+
+        $scope.toggleCopiedRecords = function(copiedrecords, cut){
+            $scope.copiedRecords = copiedrecords;
+            $scope.cut = cut;
         }
 
         $scope.openNodeList = [];
