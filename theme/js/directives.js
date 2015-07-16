@@ -535,7 +535,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 var selectedrows = grid.getSelectedRows();
                 if (selectedrows.length > 0){
                     var selectedRowIds = dataView.mapRowsToIds(selectedrows);
-                    if(selectedRowIds.length > 0){
+                    if((selectedRowIds.length > 0) && grid.getSelectionModel().ctrlClicked()){
                         rowsSelected = true;
                     }
                     else{
@@ -548,27 +548,16 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 $scope.toggleRowsSelected(rowsSelected);
             });
 
+            $scope.getSelectedNodes = function(){
+                return dataView.mapRowsToIds(grid.getSelectedRows());
+            }
 
-            $scope.deleteSelectedRecords = function(nodeid){
-                // all the currently selected records in the slickgrid are
-                // deleted from the database and the grid is reloaded
-                if (rowsSelected){
-                    if (confirm("Are you sure you want to deleted the selected records?")){
-                        var selectedRowIds = dataView.mapRowsToIds(grid.getSelectedRows());
-                        for (var i in selectedRowIds){
-                            $http({
-                                method: 'DELETE',
-                                url:globalServerURL + 'node/' + selectedRowIds[i] + '/'
-                            }).success(function (response) {
-                                console.log(selectedRowIds[i] + " deleted");
-                                // on the last loop reload the slickgrid
-                                if (i == selectedRowIds.length-1){
-                                    $scope.handleReloadSlickgrid(nodeid);
-                                }
-                            });
-                        }
-                    }
+            $scope.cutSelectedNodes = function(idarray){
+                for (var i in idarray){
+                    dataView.deleteItem(idarray[i]);
                 }
+                grid.invalidate();
+                grid.render();
             };
         }
     }
@@ -608,7 +597,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     }
                     catch (exception) {
                         console.log("No columns widths found in storage. Setting to default.");
-                        orders_column_width= {'name': 150,
+                        orders_column_width= {'name': 350,
                                     'quantity': 75,
                                     'rate': 75,
                                     'subtotal': 75,
@@ -618,7 +607,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                         localStorage["orders_column_width"] = JSON.stringify(orders_column_width);
                     }
                     if ( orders_column_width.length == 0 ) {
-                        orders_column_width= {'name': 150,
+                        orders_column_width= {'name': 350,
                                     'quantity': 75,
                                     'rate': 75,
                                     'subtotal': 75,
@@ -630,7 +619,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                 }
                 else {
                     console.log("LOCAL STORAGE NOT SUPPORTED")
-                    orders_column_width= {'name': 150,
+                    orders_column_width= {'name': 350,
                                 'quantity': 75,
                                 'rate': 75,
                                 'subtotal': 75,
