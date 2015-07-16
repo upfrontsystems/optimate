@@ -1027,7 +1027,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 }
                 var req = {
                     method: 'PUT',
-                    url: globalServerURL + 'node/' + $scope.formData['ID'] + '/',
+                    url: globalServerURL + 'node/' + $scope.currentNode.ID + '/',
                     data: $scope.formData,
                 }
                 $http(req).success(function(response) {
@@ -1035,12 +1035,15 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     // set the current node name to the name in the modal form
                     if ($scope.currentNode.Name != $scope.formData.Name) {
                         $scope.currentNode.Name = $scope.formData.Name;
-                        // sort the sibling items in scope
-                        $scope.currentNodeScope.$parentNodesScope.$modelValue.sort(function(a, b) {
-                            var textA = a.Name.toUpperCase();
-                            var textB = b.Name.toUpperCase();
-                            return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
-                        });
+                        // only sort if its not a project's resource category
+                        var parent = $scope.currentNodeScope.$parentNodeScope || {'$modelValue':{'NodeType':'Project'}};
+                        if (!($scope.currentNode.NodeType == 'ResourceCategory' && parent.$modelValue.NodeType == 'Project')){
+                            $scope.currentNodeScope.$parentNodesScope.$modelValue.sort(function(a, b) {
+                                var textA = a.Name.toUpperCase();
+                                var textB = b.Name.toUpperCase();
+                                return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+                            });
+                        }
                     }
                     $scope.currentNode.Description = $scope.formData.Description
                     $scope.handleReloadSlickgrid($scope.formData.ID);

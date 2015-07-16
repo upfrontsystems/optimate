@@ -285,7 +285,7 @@ class Project(Node):
                 'NodeTypeAbbr' : 'P'}
 
     def toChildDict(self):
-        """ Returns a dictionary of this node used in the childview
+        """ Returns a dictionary of the project used in the childview
         """
         subitem = []
         if len(self.Children) > 0:
@@ -519,7 +519,7 @@ class BudgetGroup(Node):
                 'NodeTypeAbbr': 'G'}
 
     def toChildDict(self):
-        """ Returns a dictionary of this node used in the childview
+        """ Returns a dictionary of the budgetgroup node used in the childview
         """
         subitem = []
         if len(self.Children) > 0:
@@ -802,7 +802,7 @@ class BudgetItem(Node):
         return componentlist
 
     def toChildDict(self):
-        """ Returns a dictionary of this node used in the childview
+        """ Returns a dictionary of the budgetitem used in the childview
         """
         subitem = []
         if len(self.Children) > 0:
@@ -1048,7 +1048,7 @@ class ComponentMixin(object):
         pass
 
     def toChildDict(self):
-        """ Returns a dictionary of this node used in the childview
+        """ Returns a dictionary of the component used in the childview
         """
         return {'Name': self.Name,
                 'Description': self.Description,
@@ -1502,7 +1502,7 @@ class ResourceCategory(Node):
             source.paste(child.copy(source.ID), child.Children)
 
     def toChildDict(self):
-        """ Returns a dictionary of this node used in the childview
+        """ Returns a dictionary of the resource category used in the childview
         """
         subitem = []
         if len(self.Children) > 0:
@@ -1520,7 +1520,8 @@ class ResourceCategory(Node):
         """ Returns a dictionary of this ResourceCategory
         """
         return {'Name': self.Name,
-                'Description' : self.Description}
+                'Description' : self.Description,
+                'NodeType': self.type}
 
     def getGridData(self):
         """ Returns a dictionary with the data needed for the slick grid
@@ -2181,7 +2182,7 @@ class ValuationItem(Base):
     ValuationID = Column(Integer, ForeignKey('Valuation.ID'))
     BudgetGroupID = Column(Integer, ForeignKey('BudgetGroup.ID'))
     PercentageComplete = Column(Numeric)
-    BudgetGroupTotal = Column('BudgetGroupTotal', Numeric) # stores snapshot of 
+    BudgetGroupTotal = Column('BudgetGroupTotal', Numeric) # stores snapshot of
                                                            #a budgetgroups total
 
     BudgetGroup = relationship('BudgetGroup',
