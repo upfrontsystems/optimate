@@ -247,7 +247,7 @@ class Project(Node):
         return componentslist
 
     def getBudgetGroups(self):
-        """ Returns a list of all the budgetgroups that contained in this 
+        """ Returns a list of all the budgetgroups that contained in this
             budgetgroup.
         """
         budgetgrouplist = []
@@ -492,7 +492,7 @@ class BudgetGroup(Node):
         return componentlist
 
     def getBudgetGroups(self):
-        """ Returns a list of all the budgetgroups that contained in this 
+        """ Returns a list of all the budgetgroups that contained in this
             budgetgroup.
         """
         budgetgrouplist = []
@@ -506,7 +506,7 @@ class BudgetGroup(Node):
         return budgetgrouplist
 
     def toValuationDict(self):
-        """ Returns a dictionary of this node used both in the valuation tree 
+        """ Returns a dictionary of this node used both in the valuation tree
             view and slickgrid
         """
         return {'Name': self.Name,
@@ -1100,7 +1100,7 @@ class ComponentMixin(object):
                 'Description': self.Description,
                 'Rate': str(self.Rate),
                 'Quantity': self.Quantity,
-                'ResourceType': self.Type,
+                'ResourceType': int(self.Type),
                 'NodeType': self.type,
                 'ItemQuantity': self.ItemQuantity,
                 'Ordered': str(self.Ordered),
@@ -1661,7 +1661,7 @@ class Resource(Node):
                 'Description': self.Description,
                 'Code': self.Code,
                 'Rate': str(self._Rate),
-                'ResourceType': self.Type,
+                'ResourceType': int(self.Type),
                 'Unit': self.UnitID,
                 'Supplier': self.SupplierID,
                 'NodeType': self.type}
@@ -2200,7 +2200,7 @@ class ValuationItem(Base):
 
     @property
     def Total(self):
-        total = (self.BudgetGroup.Total / 100) * self.PercentageComplete 
+        total = (self.BudgetGroup.Total / 100) * self.PercentageComplete
         return Decimal(total).quantize(Decimal('.01'))
 
     def __repr__(self):
