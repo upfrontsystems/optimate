@@ -1657,7 +1657,8 @@ class Resource(Node):
     def toDict(self):
         """ Return a dictionary of the attributes of this Resource
         """
-        return {'Name': self.Name,
+        return {'ID': self.ID,
+                'Name': self.Name,
                 'Description': self.Description,
                 'Code': self.Code,
                 'Rate': str(self._Rate),

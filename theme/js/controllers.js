@@ -481,11 +481,81 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         $scope.calculatorHidden = true; // set calculator to be hidden by default
         $scope.rowsSelected = false;    // set selected rows false
 
+        // aux function to test if we can support localstorage
+        var hasStorage = (function() {
+            try {
+                var mod = 'modernizr';
+                localStorage.setItem(mod, mod);
+                localStorage.removeItem(mod);
+                return true;
+            }
+            catch (exception) {
+                return false;
+            }
+        }());
+        // reopen projects that were previously opened upon page load
+        $scope.preloadProjects = function () {
+            if (hasStorage) {
+                open_projects = []
+                try {
+                    open_projects = JSON.parse(localStorage["open_projects"])
+                }
+                catch (exception) {
+                }
+                if ( open_projects.length != 0 ) {
+                    for (var i = 0; i < open_projects.length; i++) {
+                        var id = open_projects[i];
+                        var url = globalServerURL + 'node/' + id + '/'
+                        $http.get(url).success(function(data) {
+                            $scope.projectsRoot.Subitem.push(data);
+                            $scope.projectsRoot.Subitem.sort(function(a, b) {
+                                return a.Name.localeCompare(b.Name)
+                            });
+                        });
+                    }
+                }
+            }
+            else {
+                console.log("LOCAL STORAGE NOT SUPPORTED!")
+            }
+        };
+        // build the root for the projects in the tree
+        $scope.projectsRoot = {"Name": "Root", "ID": 0, "NodeType":"Root", "Subitem": []};
+        $scope.preloadProjects(); // check if anything is stored in local storage
+
         // load the projects used in the select project modal
-        // Add a loading value to the project list while it loads
-        $scope.projectsList = [{"Name": "Loading..."}];
         $http.get(globalServerURL + 'projects/').success(function(data) {
             $scope.projectsList = data;
+        });
+
+        // load the unit list
+        $http.get(globalServerURL + 'units').success(function(data) {
+            $scope.unitList = data;
+            console.log("Unit list loaded");
+        });
+
+        // load the resource types
+        $http.get(globalServerURL + 'resourcetypes').success(function(data) {
+            $scope.restypeList = data;
+            console.log("Resource Type list loaded");
+        });
+
+        // load the suppliers list
+        $http.get(globalServerURL + 'suppliers').success(function(data) {
+            $scope.supplierList = data;
+            console.log("Resource Supplier list loaded");
+        });
+
+        // load the city list
+        $http.get(globalServerURL + 'cities').success(function(data) {
+            $scope.cityList = data;
+            console.log("City list loaded");
+        });
+
+        // load the client list
+        $http.get(globalServerURL + 'clients').success(function(data) {
+            $scope.clientList = data;
+            console.log("Client list loaded");
         });
 
         // When a new project is added to the tree
@@ -538,18 +608,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }
             return false;
         }
-        // aux function to test if we can support localstorage
-        var hasStorage = (function() {
-            try {
-                var mod = 'modernizr';
-                localStorage.setItem(mod, mod);
-                localStorage.removeItem(mod);
-                return true;
-            }
-            catch (exception) {
-                return false;
-            }
-        }());
 
         // load the project that has been selected into the tree
         $scope.loadProject = function () {
@@ -614,36 +672,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 }
             }
         };
-        // reopen projects that were previously opened upon page load
-        $scope.preloadProjects = function () {
-            if (hasStorage) {
-                open_projects = []
-                try {
-                    open_projects = JSON.parse(localStorage["open_projects"])
-                }
-                catch (exception) {
-                }
-                if ( open_projects.length != 0 ) {
-                    $scope.projectsRoot = {"Name": "Root", "ID": 0, "NodeType":"Root", "Subitem": []};
-                    for (var i = 0; i < open_projects.length; i++) {
-                        var id = open_projects[i];
-                        var url = globalServerURL + 'node/' + id + '/'
-                        $http.get(url).success(function(data) {
-                            $scope.projectsRoot.Subitem.push(data);
-                            $scope.projectsRoot.Subitem.sort(function(a, b) {
-                                return a.Name.localeCompare(b.Name)
-                            });
-                        });
-                    }
-                }
-            }
-            else {
-                console.log("LOCAL STORAGE NOT SUPPORTED!")
-            }
-        };
-        // build the root for the projects in the tree
-        $scope.projectsRoot = {"Name": "Root", "ID": 0, "NodeType":"Root", "Subitem": []};
-        $scope.preloadProjects(); // check if anything is stored in local storage
 
         // functions used by the treeview
         // --------------------------------------------------------------------
@@ -653,7 +681,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         $scope.$broadcast('expandAll');
 
         // set the allowed types to be dropped
-        $scope.allowed = {}
+        $scope.allowed = {};
         $scope.allowed['Project'] = ['BudgetGroup'];
         $scope.allowed['BudgetGroup'] = ['BudgetGroup', 'BudgetItem',
                                     'Component'];
@@ -884,151 +912,36 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             $scope.newOverhead = undefined;
         }
 
-        // Load the resources the user can select from the resource list
-        $scope.searching = false;
-        $scope.loadResourceList = function(state) {
-            var finder = $('.finder').get(0);
-            $scope.finder = $scope.finder || new ContentFinder(finder, function(id, search) {
-                var url,
-                    params = {};
-                if (id === undefined || id === null || search) {
-                    url = globalServerURL + 'project/' + $scope.currentNode.ID + '/resources/';
-                } else {
-                    url = globalServerURL + 'resource/' + id + '/';
-                }
-                if (search) {
-                    params['search'] = search;
-                    $scope.searching = true;
-                } else {
-                    $scope.searching = false;
-                }
-                return $http({
+        // transform the tag to a new resource-like object
+        $scope.tagTransform = function (newTag) {
+            var item = {
+                Name: newTag,
+                ID: undefined,
+                Description: "",
+                Rate: "0.00",
+                Quantity: "0.00",
+                Type: undefined
+            };
+            return item;
+        };
+
+        // search for the resources in the node's category that match the search term
+        $scope.refreshResources = function(searchterm){
+            if ($scope.currentNode){
+                var req = {
                     method: 'GET',
-                    cache: $cacheFactory.get('optimate.resources'),
-                    params: params,
-                    url: url
-                })
-            }, function(item) {
-                // Designed three-way. If item is a string, then the user
-                // wants to define his own component. If it is an object
-                // then he selected something. If it is null, he deselected
-                // an item or cleared the selection.
-                var $addComponent = $('#addComponent'),
-                    $description = $addComponent.find('#description');
-
-                if (item && item.indexOf) {
-                    // String value
-                    $scope.addComponentForm.has_selection = false;
-                    $scope.formData.Description = '';
-                    $scope.formData.Rate = '';
-                    $scope.formData.ResourceType = '';
-                    $description.focus();
-                } else if(item) {
-                    // object
-                    $scope.addComponentForm.has_selection = true;
-                    $scope.formData.Description = item.description;
-                    $scope.formData.Rate = +item.rate;
-                    $scope.formData.ResourceType = item.type;
-                    $addComponent.find('#inputQuantity').focus();
-                } else {
-                    // null
-                    $scope.addComponentForm.has_selection = false;
-                    $scope.formData.Description = '';
-                    $scope.formData.Rate = '';
-                    $scope.formData.ResourceType = '';
-                    $addComponent.find('#inputResources').focus();
-                }
-            });
-            if (state == 'add') { $scope.finder.clear_selection(); }
-            $scope.finder.listdir();
-        };
-
-        $scope.refreshResourceList = function() {
-            $cacheFactory.get('optimate.resources').removeAll();
-            $scope.finder.listdir();
-        };
-
-        // Not the most angular approach, but it does help it go away
-        // when you click outside the dropdown.
-        $scope.closeDropdown = function(e) {
-            if (!e.isDefaultPrevented()) {
-                $scope.finder && $scope.finder.opened && $scope.finder.close_dropdown();
+                    url: globalServerURL + 'project/' + $scope.currentNode.ID + '/resources/',
+                    params: {'search': searchterm}
+                };
+                $http(req).success(function(response) {
+                    $scope.resourceList = response;
+                });
             }
-        };
-
-        // Load a list of the fields used in adding a project
-        $scope.loadProjectRelatedList = function() {
-            // load the city list
-            $scope.cityList = [{"Name": "Loading..."}];
-            var req = {
-                method: 'GET',
-                url: globalServerURL + 'cities'
-            }
-            $http(req).success(function(data) {
-                $scope.cityList = data;
-                console.log("City list loaded");
-            });
-
-            // load the client list
-            $scope.clientList = [{"Name": "Loading..."}];
-            var req = {
-                method: 'GET',
-                url: globalServerURL + 'clients'
-            }
-            $http(req).success(function(data) {
-                $scope.clientList = data;
-                console.log("Client list loaded");
-            });
         }
 
-        // Load a list of the fields used in adding a resource
-        $scope.loadResourceRelatedList = function() {
-            // load the unit list
-            $scope.unitList = [{"Name": "Loading..."}];
-            var req = {
-                method: 'GET',
-                url: globalServerURL + 'units'
-            }
-            $http(req).success(function(data) {
-                $scope.unitList = data;
-                console.log("Unit list loaded");
-            });
-
-            // load the resource types
-            $scope.restypeList = [{"Name": "Loading..."}];
-            var req = {
-                method: 'GET',
-                url: globalServerURL + 'resourcetypes'
-            }
-            $http(req).success(function(data) {
-                $scope.restypeList = data;
-                console.log("Resource Type list loaded");
-            });
-
-            // load the suppliers list
-            $scope.supplierList = [{"Name": "Loading..."}];
-            var req = {
-                method: 'GET',
-                url: globalServerURL + 'suppliers'
-            }
-            $http(req).success(function(data) {
-                $scope.supplierList = data;
-                console.log("Resource Supplier list loaded");
-            });
-        }
-
-        // Add the selected resource from the list to the form data as name, if
-        // nothing selected, add the text as name so a simple component can be
-        // created. Ideally we want to get this data from formData rather than
-        // using jquery here. TODO some day.
-        $scope.selectedResource = function() {
-            var selected = $('#related_items_finder .finder-choices .search-choice .selected-resource');
-            if (selected.length) {
-                $scope.formData['Name'] = selected.text();
-                $scope.formData['uid'] = selected.parent().data('uid');
-            } else {
-                $scope.formData['Name'] = $('#related_items_finder #inputResources').val();
-            }
+        // load the lists used in adding/editing a component
+        $scope.loadComponentRelatedList = function(nodeid){
+            $scope.loadComponentOverheads(nodeid);
         };
 
         // When the addNode button is clicked on the modal a new node
@@ -1038,13 +951,29 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             if (!$scope.isDisabled) {
                 $scope.isDisabled = true;
                 var currentid = $scope.currentNode.ID;
-                $scope.formData['OverheadList'] = $scope.componentOverheadList || [];
+                // if the node is a component set the selected data to the form
+                if ($scope.formData.NodeType == 'Component' || $scope.formData.NodeType == 'SimpleComponent'){
+                    $scope.formData['OverheadList'] = $scope.componentOverheadList || [];
+                    if ($scope.formData.selected.ID === undefined){
+                        $scope.formData.Quantity = $scope.formData.selected.Quantity;
+                        $scope.formData.NodeType = 'SimpleComponent'
+                        $scope.formData.Rate = $scope.formData.selected.Rate
+                        $scope.formData.Name = $scope.formData.selected.Name
+                        $scope.formData.Description = $scope.formData.selected.Description
+                        $scope.formData.ResourceType = $scope.formData.selected.ResourceType
+                    }
+                    else{
+                        $scope.formData.ResourceID = $scope.formData.selected.ID;
+                        $scope.formData.Quantity = $scope.formData.selected.Quantity;
+                        $scope.formData.NodeType = 'Component'
+                    }
+                }
                 $http({
                     method: 'POST',
                     url: globalServerURL + 'node/' + currentid + '/',
                     data: $scope.formData
                 }).success(function () {
-                    $scope.formData = {'NodeType':$scope.formData['NodeType']};
+                    $scope.formData = {'NodeType':$scope.formData.NodeType};
                     $scope.handleReloadSlickgrid(currentid)
                     // sharedService.reloadSlickgrid(currentid);
                     $scope.loadNodeChildren(currentid);
@@ -1077,6 +1006,48 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }
         };
 
+        // save changes made to the node's properties
+        $scope.saveNodeEdits = function() {
+            if (!$scope.isDisabled) {
+                $scope.isDisabled = true;
+                // if the node is a component set the selected data to the form
+                if ($scope.formData.NodeType == 'Component' || $scope.formData.NodeType == 'SimpleComponent'){
+                    $scope.formData.ResourceID = $scope.formData.selected.ID;
+                    $scope.formData.Quantity = $scope.formData.selected.Quantity;
+                    if ($scope.formData.ResourceID == undefined){
+                        $scope.formData.NodeType == 'SimpleComponent'
+                        $scope.formData.Rate = $scope.formData.selected.Rate
+                        $scope.formData.Name = $scope.formData.selected.Name
+                        $scope.formData.Description = $scope.formData.selected.Description
+                        $scope.formData.ResourceType = $scope.formData.selected.ResourceType
+                    }
+                    else{
+                        $scope.formData.NodeType == 'Component'
+                    }
+                }
+                var req = {
+                    method: 'PUT',
+                    url: globalServerURL + 'node/' + $scope.formData['ID'] + '/',
+                    data: $scope.formData,
+                }
+                $http(req).success(function(response) {
+                    console.log($scope.formData['NodeType'] + " edited")
+                    // set the current node name to the name in the modal form
+                    if ($scope.currentNode.Name != $scope.formData.Name) {
+                        $scope.currentNode.Name = $scope.formData.Name;
+                        // sort the sibling items in scope
+                        $scope.currentNodeScope.$parentNodesScope.$modelValue.sort(function(a, b) {
+                            var textA = a.Name.toUpperCase();
+                            var textB = b.Name.toUpperCase();
+                            return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+                        });
+                    }
+                    $scope.currentNode.Description = $scope.formData.Description
+                    $scope.handleReloadSlickgrid($scope.formData.ID);
+                });
+            }
+        };
+
         // Setting the type of the node to be added
         // refresh it if the type is the same
         // $timeout is used so that the scope is refreshed and the directive
@@ -1101,7 +1072,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
         // fetch the properties of the node being edited
         // to populate the respective edit form
-        $scope.editNode = function(nodeid, nodetype) {
+        $scope.editNode = function(nodeid) {
             $scope.calculatorHidden = true;
             $scope.modalState = "Edit"
             $scope.isDisabled = false;
@@ -1111,27 +1082,13 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }
             $http(req).success(function(response) {
                 var nodetype = response.NodeType;
-                $scope.formData = response;
-                $scope.formData['NodeType'] = nodetype;
-                $scope.formData['ID'] = nodeid;
+                $scope.formData.ID = nodeid;
                 // special case for component types
-                if (nodetype == 'SimpleComponent') {
-                    // populate the finder with current choice
-                    $scope.finder.input.val(response.Name)
-                }
                 if (nodetype == 'Component') {
-                    // populate the finder with current choice
-                    $scope.finder.selecteditems = [{
-                        uid: response.ResourceID,
-                        title: response.Name,
-                        type: response.ResourceType,
-                        description: response.Description,
-                        folderish: false,
-                        normalized_type: 'document',
-                        rate: response.Rate
-                    }];
-                    $scope.finder.update_selection();
-
+                    // populate the selection
+                    $scope.formData.selected = response;
+                    $scope.formData.selected.ID = response.ResourceID
+                    $scope.formData.NodeType = nodetype;
                     // update overheadlist
                     $http.get(globalServerURL + 'component/' + nodeid + '/overheads/')
                     .success(function(data) {
@@ -1146,36 +1103,20 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         $scope.formData['OverheadList'] = $scope.componentOverheadList;
                     });
                 }
-            });
-            $scope['add' + nodetype + 'Form'].$setPristine();
-        }
-
-        // save changes made to the node's properties
-        $scope.saveNodeEdits = function() {
-            var req = {
-                method: 'PUT',
-                url: globalServerURL + 'node/' + $scope.formData['ID'] + '/',
-                data: $scope.formData,
-            }
-            $http(req).success(function(response) {
-                console.log($scope.formData['NodeType'] + " edited")
-                // set the current node name to the name in the modal form
-                if ($scope.currentNode.Name != $scope.formData.Name) {
-                    $scope.currentNode.Name = $scope.formData.Name;
-                    // sort the sibling items in scope
-                    $scope.currentNodeScope.$parentNodesScope.$modelValue.sort(function(a, b) {
-                        var textA = a.Name.toUpperCase();
-                        var textB = b.Name.toUpperCase();
-                        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
-                    });
+                else if(nodetype == 'SimpleComponent'){
+                    // populate the selection
+                    $scope.formData.selected = response;
+                    $scope.formData.NodeType = nodetype;
+                    nodetype = 'Component';
                 }
-                $scope.currentNode.Description = $scope.formData.Description
-                $scope.handleReloadSlickgrid($scope.formData.ID);
-                // sharedService.reloadSlickgrid($scope.formData['ID']);
+                else{
+                    $scope.formData = response;
+                }
+                $scope['add' + nodetype + 'Form'].$setPristine();
             });
-        }
+        };
 
-        // Deleting a node. It recieves the id of the node
+        // Deleting a node. It receives the id of the node
         // The id is sent to the server to be deleted and the node
         // removed from the treemodel
         $scope.deleteThisNode = function ( nodeid ) {

@@ -224,7 +224,6 @@ def additemview(request):
     # Get the parent to add the object to from the path
     parentid = int(request.matchdict['id'])
     # Get the data to be added to the new object from the request body
-    name = request.json_body['Name']
     desc = request.json_body.get('Description', '')
     quantity = float(request.json_body.get('Quantity', 0))
     rate = request.json_body.get('Rate', 0)
@@ -240,9 +239,122 @@ def additemview(request):
     newnode = None
 
     # Determine the type of object to be added and build it
-    if objecttype == 'Resource':
+    if objecttype == 'Project':
+        newnode = Project(Name=request.json_body['Name'],
+                        Description=desc,
+                        ClientID=client,
+                        CityID=city,
+                        SiteAddress=siteaddress,
+                        FileNumber=filenumber,
+                        ParentID=parentid)
+        DBSession.add(newnode)
+        DBSession.flush()
+        newid = newnode.ID
+        # Automatically add a Resource Category to a new Project
+        newresourcecat = ResourceCategory(Name='Resource List',
+                                        Description='List of Resources',
+                                        ParentID=newid)
+        DBSession.add(newresourcecat)
+        DBSession.flush()
+    elif objecttype == 'Component':
+        # Components need to reference a Resource. If they don't, we create
+        # a SimpleComponent instead.
+        uid = request.json_body['ResourceID']
+        quantity = float(request.json_body.get('Quantity', 0))
+        # check the resource exists
+        resource = DBSession.query(Resource).filter_by(ID=uid).first()
+        if not resource:
+            return HTTPNotFound()
+
+        pt = DBSession.query(Node).filter_by(ID=parentid).first().type
+        if pt == 'BudgetGroup':
+            # In the context of budget group, you enter a Quantity and it is
+            # persisted as Quantity and ItemQuantity is updated to have the
+            # same value.
+            itemquantity = quantity
+        elif pt == 'BudgetItem':
+            # quantity is persisted as ItemQuantity. Quantity is calculated by
+            # the system and only visible in the slickgrid as a readonly value.
+            itemquantity=quantity
+            parent = DBSession.query(Node).filter_by(ID=parentid).first()
+            quantity=itemquantity*parent.Quantity
+
+        newcomp = Component(ResourceID=resource.ID,
+                        _ItemQuantity=itemquantity,
+                        _Quantity=quantity,
+                        ParentID=parentid)
+
+        DBSession.add(newcomp)
+        DBSession.flush()
+
+        # get the list of overheads used in the checkboxes
+        checklist = request.json_body['OverheadList']
+        for record in checklist:
+            if record['selected']:
+                overheadid = record['ID']
+                overhead = DBSession.query(
+                            Overhead).filter_by(ID=overheadid).first()
+                newcomp.Overheads.append(overhead)
+
+    elif objecttype == 'SimpleComponent':
+        rate = request.json_body.get('Rate', 0)
+        rate = Decimal(rate).quantize(Decimal('.01'))
+        quantity = float(request.json_body.get('Quantity', 0))
+
+        pt = DBSession.query(Node).filter_by(ID=parentid).first().type
+        if pt == 'BudgetGroup':
+            # In the context of budget group, you enter a Quantity and it is
+            # persisted as Quantity and ItemQuantity is updated to have the
+            # same value.
+            itemquantity = quantity
+        elif pt == 'BudgetItem':
+            # quantity is persisted as ItemQuantity. Quantity is calculated by
+            # the system and only visible in the slickgrid as a readonly value.
+            itemquantity=quantity
+            parent = DBSession.query(Node).filter_by(ID=parentid).first()
+            quantity=itemquantity*parent.Quantity
+
+        newcomp = SimpleComponent(
+            ParentID=parentid,
+            Name=request.json_body['Name'],
+            Description=request.json_body.get('Description', None),
+            _ItemQuantity=itemquantity,
+            _Quantity=quantity,
+            _Rate=rate,
+            Type=request.json_body['ResourceType'])
+        DBSession.add(newcomp)
+        DBSession.flush()
+
+    elif objecttype == 'BudgetGroup':
+        newnode = BudgetGroup(Name=request.json_body['Name'],
+                        Description=desc,
+                        ParentID=parentid)
+    elif objecttype == 'BudgetItem':
+        pt = DBSession.query(Node).filter_by(ID=parentid).first().type
+        if pt == 'BudgetItem':
+            # quantity is persisted as ItemQuantity. Quantity is calculated by
+            # the system and only visible in the slickgrid as a readonly value.
+            itemquantity=quantity
+            parent = DBSession.query(Node).filter_by(ID=parentid).first()
+            quantity=itemquantity*parent.Quantity
+        else:
+            itemquantity=quantity
+
+        newnode = BudgetItem(Name=request.json_body['Name'],
+                        Description=desc,
+                        _ItemQuantity = itemquantity,
+                        _Quantity = quantity,
+                        ParentID=parentid)
+
+    elif objecttype == 'ResourceCategory':
+        newnode = ResourceCategory(Name=request.json_body['Name'],
+                        Description=desc,
+                        ParentID=parentid)
+
+    elif objecttype == 'Resource':
         code = request.json_body['Code']
         resourcetype = request.json_body['ResourceType']
+        name =  request.json_body['Name']
         # check if the resource is not in the resource category
         resourcecategory = DBSession.query(
                 ResourceCategory).filter_by(ID=parentid).first()
@@ -273,114 +385,6 @@ def additemview(request):
         numerseq = '0'*(4-len(str(newid))) + str(newid)
         finalcode = name+numerseq
         newnode.Code = finalcode
-    elif objecttype == 'Project':
-        newnode = Project(Name=name,
-                        Description=desc,
-                        ClientID=client,
-                        CityID=city,
-                        SiteAddress=siteaddress,
-                        FileNumber=filenumber,
-                        ParentID=parentid)
-        DBSession.add(newnode)
-        DBSession.flush()
-        newid = newnode.ID
-        # Automatically add a Resource Category to a new Project
-        newresourcecat = ResourceCategory(Name='Resource List',
-                                        Description='List of Resources',
-                                        ParentID=newid)
-        DBSession.add(newresourcecat)
-        DBSession.flush()
-    elif objecttype == 'Component':
-        # Components need to reference a Resource. If they don't, we create
-        # a SimpleComponent instead.
-        uid = request.json_body.get('uid', None)
-        if uid is None:
-            rate = request.json_body.get('Rate', 0)
-            rate = Decimal(rate).quantize(Decimal('.01'))
-
-            pt = DBSession.query(Node).filter_by(ID=parentid).first().type
-            if pt == 'BudgetGroup':
-                # In the context of budget group, you enter a Quantity and it is
-                # persisted as Quantity and ItemQuantity is updated to have the
-                # same value.
-                itemquantity = quantity
-            elif pt == 'BudgetItem':
-                # quantity is persisted as ItemQuantity. Quantity is calculated by
-                # the system and only visible in the slickgrid as a readonly value.
-                itemquantity=quantity
-                parent = DBSession.query(Node).filter_by(ID=parentid).first()
-                quantity=itemquantity*parent.Quantity
-
-            newcomp = SimpleComponent(
-                ParentID=parentid,
-                Name=request.json_body['Name'],
-                Description=request.json_body.get('Description', None),
-                _ItemQuantity=itemquantity,
-                _Quantity=quantity,
-                _Rate=rate,
-                Type=request.json_body['ResourceType'])
-            DBSession.add(newcomp)
-            DBSession.flush()
-        else:
-            # check the resource exists
-            resource = DBSession.query(Resource).filter_by(ID=uid).first()
-            if not resource:
-                return HTTPNotFound()
-
-            pt = DBSession.query(Node).filter_by(ID=parentid).first().type
-            if pt == 'BudgetGroup':
-                # In the context of budget group, you enter a Quantity and it is
-                # persisted as Quantity and ItemQuantity is updated to have the
-                # same value.
-                itemquantity = quantity
-            elif pt == 'BudgetItem':
-                # quantity is persisted as ItemQuantity. Quantity is calculated by
-                # the system and only visible in the slickgrid as a readonly value.
-                itemquantity=quantity
-                parent = DBSession.query(Node).filter_by(ID=parentid).first()
-                quantity=itemquantity*parent.Quantity
-
-            newcomp = Component(ResourceID=resource.ID,
-                            _ItemQuantity=itemquantity,
-                            _Quantity=quantity,
-                            ParentID=parentid)
-
-            DBSession.add(newcomp)
-            DBSession.flush()
-
-            # get the list of overheads used in the checkboxes
-            checklist = request.json_body['OverheadList']
-            for record in checklist:
-                if record['selected']:
-                    overheadid = record['ID']
-                    overhead = DBSession.query(
-                                Overhead).filter_by(ID=overheadid).first()
-                    newcomp.Overheads.append(overhead)
-
-    elif objecttype == 'BudgetGroup':
-        newnode = BudgetGroup(Name=name,
-                        Description=desc,
-                        ParentID=parentid)
-    elif objecttype == 'BudgetItem':
-        pt = DBSession.query(Node).filter_by(ID=parentid).first().type
-        if pt == 'BudgetItem':
-            # quantity is persisted as ItemQuantity. Quantity is calculated by
-            # the system and only visible in the slickgrid as a readonly value.
-            itemquantity=quantity
-            parent = DBSession.query(Node).filter_by(ID=parentid).first()
-            quantity=itemquantity*parent.Quantity
-        else:
-            itemquantity=quantity
-
-        newnode = BudgetItem(Name=name,
-                        Description=desc,
-                        _ItemQuantity = itemquantity,
-                        _Quantity = quantity,
-                        ParentID=parentid)
-    elif objecttype == 'ResourceCategory':
-        newnode = ResourceCategory(Name=name,
-                        Description=desc,
-                        ParentID=parentid)
     else:
         return HTTPInternalServerError()
 
@@ -404,11 +408,8 @@ def edititemview(request):
     """ The edittemview is called when a PUT request is sent from the client.
         The method updates the specified node with properties as specified by the user.
     """
-    nodeid = request.json_body['ID']
+    nodeid = request.matchdict['id']
     objecttype = request.json_body['NodeType']
-    name = request.json_body['Name']
-    desc = request.json_body.get('Description', '')
-    quantity = float(request.json_body.get('Quantity', 0))
 
     # Determine the type of object to be edited
     if objecttype == 'Project':
@@ -417,15 +418,15 @@ def edititemview(request):
         siteaddress = request.json_body.get('SiteAddress', '')
         filenumber = request.json_body.get('FileNumber', '')
         project = DBSession.query(Project).filter_by(ID=nodeid).first()
-        project.Name=name
-        project.Description=desc
+        project.Name= request.json_body['Name']
+        project.Description=request.json_body.get('Description', '')
         project.ClientID=client
         project.CityID=city
         project.SiteAddress=siteaddress
         project.FileNumber=filenumber
 
     elif objecttype == 'Component':
-        uid = request.json_body['uid']
+        uid = request.json_body['ResourceID']
         component = DBSession.query(Component).filter_by(ID=nodeid).first()
 
         # if a different resource is used, get the new resource
@@ -451,7 +452,7 @@ def edititemview(request):
                 newoverheads.append(overhead)
         component.Overheads = newoverheads
         component.resetTotal()
-
+        quantity= float(request.json_body.get('Quantity', 0))
         pt = DBSession.query(Node).filter_by(ID=component.ParentID).first().type
         if pt == 'BudgetGroup':
             # In the context of budget group, you enter a Quantity and it is
@@ -471,11 +472,11 @@ def edititemview(request):
         rate = Decimal(rate).quantize(Decimal('.01'))
         component = DBSession.query(SimpleComponent).filter_by(
             ID=nodeid).first()
-        component.Name = name
-        component.Description = desc
+        component.Name = request.json_body['Name']
+        component.Description = request.json_body['Description']
         component._Rate=rate
         component.Type=request.json_body['ResourceType']
-
+        quantity = float(request.json_body.get('Quantity', 0))
         pt = DBSession.query(Node).filter_by(ID=component.ParentID).first().type
         if pt == 'BudgetGroup':
             # In the context of budget group, you enter a Quantity and it is
@@ -492,13 +493,14 @@ def edititemview(request):
 
     elif objecttype == 'BudgetGroup':
         budgetgroup = DBSession.query(BudgetGroup).filter_by(ID=nodeid).first()
-        budgetgroup.Name=name
-        budgetgroup.Description=desc
+        budgetgroup.Name= request.json_body['Name']
+        budgetgroup.Description= request.json_body.get('Description', '')
 
     elif objecttype == 'BudgetItem':
         budgetitem = DBSession.query(BudgetItem).filter_by(ID=nodeid).first()
-        budgetitem.Name=name
-        budgetitem.Description=desc
+        budgetitem.Name= request.json_body['Name']
+        budgetitem.Description= request.json_body.get('Description', '')
+        quantity = float(request.json_body.get('Quantity', 0))
         budgetitem.Quantity=quantity
         budgetitem.ItemQuantity=quantity
 
@@ -511,8 +513,8 @@ def edititemview(request):
 
     elif objecttype == 'ResourceCategory':
         resourcecategory = DBSession.query(ResourceCategory).filter_by(ID=nodeid).first()
-        resourcecategory.Name=name
-        resourcecategory.Description=desc
+        resourcecategory.Name= request.json_body['Name']
+        resourcecategory.Description=request.json_body.get('Description', '')
 
     elif objecttype == 'Resource':
         rate = request.json_body.get('Rate', 0)
@@ -520,14 +522,14 @@ def edititemview(request):
         unit = request.json_body.get('Unit', '')
         supplier = request.json_body.get('Supplier', '')
         resource = DBSession.query(Resource).filter_by(ID=nodeid).first()
-        resource.Description=desc
+        resource.Description=request.json_body.get('Description', '')
         resource.Code = request.json_body['Code']
         resource._Rate=rate
         resource.UnitID=request.json_body.get('Unit', '')
         resource.Type=request.json_body.get('ResourceType', None)
         resource.UnitID=unit
         resource.SupplierID=supplier
-
+        name = request.json_body['Name']
         if resource.Name != name:
             parentid = sortResource(resource.ParentID, name)
             resource.ParentID = parentid
@@ -618,67 +620,28 @@ def search_resources(top, search):
 @view_config(route_name="project_resources", renderer='json')
 @view_config(route_name="resources", renderer='json')
 def project_resources(request):
-    """ Returns a list of all the resources and resource categories in the
-        node's project's resourcecategory in a format
-        that the related items widget can read
+    """ Return a list of all the resources in a nodes project's resourcecategory
+        If an optional search term is included the resources are filtered by it.
     """
     nodeid = request.matchdict['id']
     if request.matched_route.name == 'project_resources':
         currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
         resourcecategory = DBSession.query(ResourceCategory).filter_by(
                 ParentID=currentnode.getProjectID()).first()
-        if 'search' in request.params:
-            resources = search_resources(resourcecategory, request.params['search'])
-            return {
-                "path": [{ "url": None, "title": u'Search results', "uid": None }],
-                "items": [{
-                    'title': item.Name,
-                    'description': item.Description.strip(),
-                    'rate': str(item.Rate),
-                    'type': item.Type,
-                    'uid': item.ID,
-                    'normalized_type': item.type == 'ResourceCategory' and 'folder' or 'document',
-                    'folderish': item.type == 'ResourceCategory',
-                } for item in sorted(resources, key=lambda o: o.Name.upper())]
-            }
     else:
         resourcecategory = DBSession.query(Node).filter_by(ID=nodeid).first()
 
     # if it doesnt exist return the empty list
     if not resourcecategory:
-        return {
-            "path": [ {"url": request.route_url('project_resources', id=nodeid)} ],
-            "items": []
-        }
+        return []
 
-    l = lambda i, rate, type: (rate is not None) and dict(i, rate=str(rate), type=type) or i
-    items = [l({
-        'title': item.Name,
-        'description': item.Description.strip(),
-        'uid': item.ID,
-        'normalized_type': item.type == 'ResourceCategory' and 'folder' or 'document', # FIXME
-        'folderish': item.type == 'ResourceCategory',
-    }, getattr(
-        item, 'Rate', None), getattr(
-        item, 'Type', None)) for item in sorted(
-        resourcecategory.Children, key=lambda o: o.Name.upper())]
-
-    def pathlist(node):
-        p = node.Parent
-        if p is not None and type(p) is not Project:
-            for u in pathlist(p):
-                yield u
-        yield (node.ID,
-            getattr(node, 'Name', None),
-            request.route_url('project_resources', id=node.ID))
-
-    return {
-        "path": [{
-            "url": url,
-            "title": title,
-            "uid": uid } for uid, title, url in pathlist(resourcecategory)],
-        "items": items
-    }
+    if 'search' in request.params:
+        resources = search_resources(resourcecategory, request.params['search'])
+    else:
+        resources = resourcecategory.getResources()
+    return [
+            item.toDict()
+         for item in sorted(resources, key=lambda o: o.Name.upper())]
 
 
 @view_config(route_name="resourcecategory_allresources", renderer='json')
