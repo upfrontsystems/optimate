@@ -1336,7 +1336,7 @@ def company_information(request):
     """
     # if the method is put, edit the company information data
     if request.method == 'PUT':
-        company_information = DBSession.query(CompanyInformation).filter_by(ID=0).first()
+        company_information = DBSession.query(CompanyInformation).first()
         company_information.Name=request.json_body.get('Name', '')
         company_information.Address=request.json_body.get('Address', '')
         company_information.Tel=request.json_body.get('Tel', '')

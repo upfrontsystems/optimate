@@ -68,7 +68,7 @@ allControllers.controller('companyinformationController', ['$scope', '$http', '$
                 method: 'PUT',
                 url: globalServerURL + 'company_information',
                 data: $scope.formData
-            }).success(function (data) {
+            }).success(function(response) {
                 $scope.company_information = $scope.formData
             });
             $scope.EditCompanyInformationForm.$setPristine();
@@ -1700,7 +1700,6 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
                 templateUrl: 'addUser',
                 scope: $scope
             });
-            $scope.saveUserForm.$setPristine();
         };
 
         $scope.editingState = function () {
@@ -1726,7 +1725,6 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
                     alert('Error while fetching user information');
                 }
             );
-            $scope.saveUserForm.$setPristine();
         };
 
         $scope.saveUser = function() {
