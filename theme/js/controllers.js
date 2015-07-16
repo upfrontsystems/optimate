@@ -2422,47 +2422,47 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             });
         };
 
-        $scope.checkOrderNumber = function(){
+        $scope.checkOrderNumber = function() {
             // check if the order exists and set the form valid or invalid
             $http.get(globalServerURL + 'order/' + $scope.formData.orderid + '/')
-            .success(function(response){
+            .success(function(response) {
                 $scope.saveInvoiceModalForm.inputOrderNumber.$setValidity('default1', true);
                 $scope.calculatedAmounts[3].amount = response.Total
             })
-            .error(function(response){
+            .error(function(response) {
                 $scope.saveInvoiceModalForm.inputOrderNumber.$setValidity('default1', false);
             });
         };
 
-        $scope.updateAmounts = function(){
+        $scope.updateAmounts = function() {
             var subtotal = parseFloat($scope.formData.amount);
             var vatcost = parseFloat($scope.formData.vat);
             var total = subtotal + vatcost;
 
             var parts = subtotal.toString().split(".");
-            if (parts.length > 1){
+            if (parts.length > 1) {
                 parts[1] = parts[1].slice(0,2);
                 subtotal = parts.join('.');
             }
-            else{
+            else {
                 subtotal = subtotal.toString() + '.00'
             }
 
             parts = vatcost.toString().split(".");
-            if (parts.length > 1){
+            if (parts.length > 1) {
                 parts[1] = parts[1].slice(0,2);
                 vatcost = parts.join('.');
             }
-            else{
+            else {
                 vatcost = vatcost.toString() + '.00'
             }
 
             parts = total.toString().split(".");
-            if (parts.length > 1){
+            if (parts.length > 1) {
                 parts[1] = parts[1].slice(0,2);
                 total = parts.join('.');
             }
-            else{
+            else {
                 total = total.toString() + '.00'
             }
 
@@ -2471,13 +2471,30 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             $scope.calculatedAmounts[2].amount = total;
         }
 
+        // fetch the report filter options
+        $scope.filterReportBy = function() {
+            var req = {
+                method: 'GET',
+                url: globalServerURL + 'invoices_report_filter'
+            };
+            $http(req).success(function(response) {
+                $scope.invoiceReportProjectsList = response['projects'];
+                $scope.invoiceReportSuppliersList = response['suppliers'];
+                $scope.invoiceReportPaymentDateList = response['paymentdates'];
+                $scope.invoiceReportStatusList = response['statuses'];
+                console.log("Invoice report filter options loaded")
+            })
+        };
+
         $scope.getReport = function (report) {
-            if ( report == 'invoice' ) {
+            if ( report == 'invoices' ) {
                 var target = document.getElementsByClassName('pdf_download');
                 var spinner = new Spinner().spin(target[0]);
+                $scope.formData['InvoiceFilterTypeList'] = $scope.invoiceFilterTypeList || [];
+                // XXX insert parameters that will go to invoice report
                 $http({
                     method: 'POST',
-                    url: globalServerURL + 'invoice_report/' + $scope.selectedInvoice.id + '/'},
+                    url: globalServerURL + 'invoices_report'},
                     {responseType: 'arraybuffer'})
                 .success(function (response, status, headers, config) {
                     spinner.stop(); // stop the spinner - ajax call complete

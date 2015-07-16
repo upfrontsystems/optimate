@@ -1,6 +1,6 @@
 import os
 import time
-import datetime
+from datetime import datetime
 from email.Utils import formatdate
 from pyramid.view import view_config
 from pyramid.response import Response
@@ -13,7 +13,8 @@ from optimate.app.models import (
     Node,
     Order,
     Valuation,
-    Client
+    Client,
+    Invoice
 )
 
 def projectbudget_nodes(node, data, level, level_limit, component_filter):
@@ -121,7 +122,7 @@ def projectbudget(request):
         count+= 1
 
     # render template
-    now = datetime.datetime.now()
+    now = datetime.now()
     template_data = render('templates/projectbudgetreport.pt',
                            {'nodes': nodes,
                             'project_name': project.Name,
@@ -216,7 +217,7 @@ def costcomparison(request):
         nodes_colour.append((node[0], node[1], node[2], tc, oc, ic))
 
     # render template
-    now = datetime.datetime.now()
+    now = datetime.now()
     template_data = render('templates/costcomparisonreport.pt',
                            {'nodes': nodes_colour,
                             'project_name': project.Name,
@@ -294,7 +295,7 @@ def resourcelist(request):
 
     # render template
     # XXX add a filtered by to title.. if exists
-    now = datetime.datetime.now()
+    now = datetime.now()
     template_data = render('templates/resourcelistreport.pt',
                            {'nodes': nodes,
                             'project_name': project.Name,
@@ -359,7 +360,7 @@ def order(request):
     pdf.close()
 
     filename = "order_report"
-    now = datetime.datetime.now()
+    now = datetime.now()
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
     last_modified = formatdate(time.mktime(now.timetuple()))
     response = Response(content_type='application/pdf',
@@ -388,7 +389,7 @@ def valuation(request):
     sorted_vitems = sorted(vitems, key=lambda k: k['name'].upper())
 
     # inject valuation data into template
-    now = datetime.datetime.now()
+    now = datetime.now()
     vdate = valuation.Date.strftime("%d %B %Y")
     clientid = valuation.Project.ClientID
     client = DBSession.query(Client).filter_by(ID=clientid).first()    
@@ -411,6 +412,75 @@ def valuation(request):
     pdf.close()
 
     filename = "valuation_report"
+    nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
+    last_modified = formatdate(time.mktime(now.timetuple()))
+    response = Response(content_type='application/pdf',
+                        body=pdfcontent)
+    response.headers.add('Content-Disposition',
+                         "attachment; filename=%s.pdf" % nice_filename)
+    # needed so that in a cross-domain situation the header is visible
+    response.headers.add('Access-Control-Expose-Headers','Content-Disposition')
+    response.headers.add("Content-Length", str(len(pdfcontent)))
+    response.headers.add('Last-Modified', last_modified)
+    response.headers.add("Cache-Control", "no-store")
+    response.headers.add("Pragma", "no-cache")
+    return response
+
+
+@view_config(route_name='invoices_report_filter', renderer='json')
+def invoices_report_filter(request):
+    """ Returns a list of the available filters used by an invoice report
+    """
+    qry = DBSession.query(Invoice)
+    suppliers = qry.distinct(Invoice.SupplierID).group_by(Invoice.SupplierID)
+    supplierlist = []
+    for supplier in suppliers:
+        if supplier.SupplierID:
+            supplierlist.append({'Name': supplier.Order.Supplier.Name, 
+                                 'ID': supplier.SupplierID})
+    projects = qry.distinct(Invoice.ProjectID).group_by(Invoice.ProjectID)
+    projectlist = []
+    for project in projects:
+        if project.ProjectID:
+            projectlist.append({'Name': project.Order.Project.Name, 
+                                'ID': project.ProjectID})
+    paymentdatelist = []
+    paymentdates = qry.distinct(Invoice.PaymentDate).group_by(Invoice.PaymentDate)
+    for paymentdate in paymentdates:
+        if paymentdate.PaymentDate:
+            paymentdatelist.append(paymentdate.PaymentDate.strftime("%d %B %Y"))
+    return {'projects': sorted(projectlist, key=lambda k: k['Name'].upper()),
+            'suppliers': sorted(supplierlist, key=lambda k: k['Name'].upper()),
+            'paymentdates': sorted(paymentdatelist),
+            'statuses': ['Paid', 'Unpaid']}
+
+
+@view_config(route_name="invoices")
+def invoices(request):
+    print "Generating Invoices Report"
+#    invoiceid = request.matchdict['id']
+#    invoice = DBSession.query(Invoice).filter_by(ID=invoiceid).first()
+
+    filter_type = 'project'; # will change dynamically
+    invoices = []
+    # inject invoice data into template
+    template_data = render('templates/invoicesreport.pt',
+                           {'invoices': invoices,
+                            'filter' : filter_type},
+                            request=request)
+    # render template
+    html = StringIO(template_data.encode('utf-8'))
+
+    # Generate the pdf
+    pdf = StringIO()
+    pisadoc = pisa.CreatePDF(html, pdf, raise_exception=False)
+    assert pdf.len != 0, 'Pisa PDF generation returned empty PDF!'
+    html.close()
+    pdfcontent = pdf.getvalue()
+    pdf.close()
+
+    filename = "invoice_report"
+    now = datetime.datetime.now()
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
     last_modified = formatdate(time.mktime(now.timetuple()))
     response = Response(content_type='application/pdf',

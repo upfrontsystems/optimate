@@ -24,12 +24,13 @@
                         <i class="fa fa-trash"></i>
                 </a>
             </li>
-            <li ng-show="selectedInvoice">
-                <a title="Invoice Report"
-                data-ng-click="getReport('invoice')"
+            <li> <!-- ng-show="invoicesExist"> -->
+                <a title="Invoices Report" data-target="#invoicesReport"
+                data-toggle="modal" data-ng-click="filterReportBy()"
                 class="pdf_download">
                 <i class="fa fa-file-pdf-o"></i></a>
-                <a class="pdf_hidden_download"></a> <!-- hidden anchor for download hook -->
+                 <!-- hidden anchor for download hook -->
+                <a class="pdf_hidden_download"></a>
             </li>
             <li class="invoice-filters-flexbox active">
                 <input type="number"
@@ -110,6 +111,9 @@
 <div custom-modals modal-id="saveInvoiceModal"
     modal-type="invoice"
     modal-src="modal_templates/saveInvoiceModal.html">
+</div>
+<div custom-modals modal-id="invoicesReport"
+    modal-src="modal_templates/invoicesReport.html">
 </div>
 
 <div id="deleteInvoiceModal" class="modal" tabindex='-1'>

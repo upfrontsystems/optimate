@@ -1,0 +1,111 @@
+<div id="invoicesReport" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close"
+                        data-dismiss="modal" aria-hidden="true">&times;
+                </button>
+                <h3 class="modal-title">Invoices Report</h3>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" name="invoiceReportForm" novalidate>
+                    <div class="form-group">
+                        <label class="col-sm-3">Filter on:
+                        </label>
+                        <table>
+                            <tr>
+                                <td>
+                                    <button class="custom-checkbox" ng-model="filterByProject"
+                                          data-ng-click="filterByProject = !filterByProject; filterBySupplier = false; filterByPaymentDate = false; filterByStatus = false">
+                                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[filterByProject]">
+                                        </i>
+                                    </button>
+                                </td>
+                                <td>Project &nbsp;</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <button class="custom-checkbox" ng-model="filterBySupplier"
+                                          data-ng-click="filterBySupplier = !filterBySupplier; filterByProject = false; filterByPaymentDate = false; filterByStatus = false">
+                                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[filterBySupplier]">
+                                        </i>
+                                    </button>
+                                </td>
+                                <td>Supplier &nbsp;</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <button class="custom-checkbox" ng-model="filterByPaymentDate"
+                                          data-ng-click="filterByPaymentDate = !filterByPaymentDate; filterByProject = false; filterBySupplier = false; filterByStatus = false">
+                                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[filterByPaymentDate]">
+                                        </i>
+                                    </button>
+                                </td>
+                                <td>Payment Date &nbsp;</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <button class="custom-checkbox" ng-model="filterByStatus"
+                                          data-ng-click="filterByStatus = !filterByStatus; filterByProject = false; filterBySupplier = false; filterByPaymentDate = false">
+                                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[filterByStatus]">
+                                        </i>
+                                    </button>
+                                </td>
+                                <td>Status &nbsp;</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="form-group" data-ng-show="filterByProject">
+                        <label for="inputProject" class="col-sm-3">Project:</label>
+                        <select chosen
+                                class="col-sm-7"
+                                id="inputProject"
+                                name="inputProject"
+                                data-ng-model="formData['Project']"
+                                data-ng-options="project.ID as project.Name for project in invoiceReportProjectsList">
+                            <option value="">Select a project</option>
+                        </select>
+                    </div>
+                    <div class="form-group" data-ng-show="filterBySupplier">
+                        <label for="inputSupplier" class="col-sm-3">Supplier:</label>
+                        <select chosen
+                                class="col-sm-7"
+                                id="inputSupplier"
+                                name="inputSupplier"
+                                data-ng-model="formData['Supplier']"
+                                data-ng-options="supplier.ID as supplier.Name for supplier in invoiceReportSuppliersList">
+                            <option value="">Select a supplier</option>
+                        </select>
+                    </div>
+                    <div class="form-group" data-ng-show="filterByPaymentDate">
+                        <label for="inputPaymentDate" class="col-sm-3">Payment Date:</label>
+                        <select chosen
+                                class="col-sm-7"
+                                id="inputPaymentDate"
+                                name="inputPaymentDate"
+                                data-ng-model="formData['PaymentDate']"
+                                data-ng-options="pd as pd for pd in invoiceReportPaymentDateList">
+                            <option value="">Select a payment date</option>
+                        </select>
+                    </div>
+                    <div class="form-group" data-ng-show="filterByStatus">
+                        <label for="inputStatus" class="col-sm-3">Status:</label>
+                        <select chosen
+                                class="col-sm-7"
+                                id="inputStatus"
+                                name="inputStatus"
+                                data-ng-model="formData['Status']"
+                                data-ng-options="status as status for status in invoiceReportStatusList">
+                            <option value="">Select a status</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-dismiss="modal"
+                 ng-disabled="!invoiceReportForm.$valid" ng-click="getReport('invoices')">Print</button>
+                <button class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
