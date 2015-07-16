@@ -795,11 +795,16 @@ def node_grid(request):
     rescatlist = []
     qry = qry.all()
     # Get the griddata dict from each child and add it to the list
+    no_item_quantity = True
     for child in qry:
         if child.type == 'ResourceCategory':
-            rescatlist.append(child.getGridData())
+            rescatlist.append(child.getGridData())        
         else:
             childrenlist.append(child.getGridData())
+        if child.type == 'BudgetItem':
+            # show the item quantity column
+            # if at least one of the children is a budgetitem
+            no_item_quantity = False
 
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['name'].upper())
     sorted_rescatlist = sorted(rescatlist, key=lambda k: k['name'].upper())
@@ -807,7 +812,8 @@ def node_grid(request):
 
     return {'list': sorted_childrenlist,
             'emptycolumns': emptycolumns,
-            'no_sub_cost' : no_sub_cost,
+            'no_sub_cost': no_sub_cost,
+            'no_item_quantity' : no_item_quantity,
             'type': node_type}
 
 
