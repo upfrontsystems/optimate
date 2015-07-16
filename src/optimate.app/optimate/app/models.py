@@ -1520,7 +1520,8 @@ class ResourceCategory(Node):
         """ Returns a dictionary of this ResourceCategory
         """
         return {'Name': self.Name,
-                'Description' : self.Description}
+                'Description' : self.Description,
+                'NodeType': self.type}
 
     def getGridData(self):
         """ Returns a dictionary with the data needed for the slick grid
