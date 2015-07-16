@@ -1023,6 +1023,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     }
                     else{
                         $scope.formData.NodeType == 'Component'
+                        $scope.formData.Name = $scope.formData.selected.Name
                     }
                 }
                 var req = {
@@ -1171,12 +1172,92 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             $scope.nodeDeleted();
         }
 
+        // handle pasting a resource category and the selected resources
+        $scope.pasteResourceCategory = function(nodeid, selectionlist) {
+            $http({
+                method: 'POST',
+                url: globalServerURL + 'node/' + nodeid + '/paste/',
+                data:{'ID': $scope.copiedNode.ID,
+                        'cut': $scope.cut,
+                        'duplicates': selectionlist}
+            }).success(function () {
+                console.log('Success: Resource Category pasted');
+                // expand the node if this is its first child
+                if ($scope.currentNode.Subitem.length == 0) {
+                    $scope.currentNode.collapsed = true;
+                }
+                $scope.handleReloadSlickgrid(nodeid);
+                $scope.loadNodeChildren(nodeid);
+            }).error(function() {
+                console.log("Server error");
+            });
+        };
+
+        // loop over a list of duplicate resources and get the user action for each
+        $scope.handleDuplicateResourceActions = function(nodeid, duplicatelist){
+            var doAll = undefined;
+            var overwrite = false;
+            var keys = Object.keys(duplicatelist);
+
+            var openModal = function() {
+                var modalInstance = $modal.open({
+                    templateUrl: 'duplicateConfirmationModal.html',
+                    controller: duplicateModalController,
+                    resolve: {
+                        selections: function () {
+                            return $scope.selections;
+                        }
+                    }
+                });
+
+                return modalInstance.result.then(function (selections) {
+                    overwrite = selections.overwrite;
+                    if (selections.doAll) {
+                        doAll = selections.doAll;
+                    }
+                });
+            };
+
+            (function checkItems() {
+                // get the first key and remove it from array
+                var key = keys.shift();
+                var duplicateResource = duplicatelist[key];
+                if (doAll == undefined) {
+                    // open the modal
+                    $scope.selections = {'overwrite': overwrite,
+                                        'doAll': doAll,
+                                        'resourceName': duplicateResource.Name};
+                    // continue when response from modal is returned
+                    openModal().finally(function() {
+                        selectionlist[duplicateResource.Code] = overwrite;
+                        if (keys.length) {
+                            checkItems();
+                        }
+                        else{
+                            $scope.pasteResourceCategory(nodeid, selectionlist);
+                        }
+                    });
+                }
+                else {
+                    // skip has been selected
+                    // set the overwrite to the skip value
+                    selectionlist[duplicateResource.Code] = doAll;
+                    if (keys.length) {
+                        checkItems();
+                    }
+                    else {
+                        $scope.pasteResourceCategory(nodeid, selectionlist);
+                    }
+                }
+            })();
+        };
+
+
         // function to paste copied node into another node
         // the id is sent to the server and the node pasted there
         // the user can't paste into the same node
         $scope.pasteThisNode = function(nodeid) {
             var cnode = $scope.copiedNode;
-            var doAll = undefined;
             var duplicatelist = undefined;
             var flag = false;
             if (cnode) {
@@ -1210,64 +1291,10 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                                 }
                             }
                             if (duplicatelist.length > 0) {
-                                var overwrite = false;
-                                var keys = Object.keys(duplicatelist);
-
-                                var openModal = function() {
-                                    var modalInstance = $modal.open({
-                                        templateUrl: 'duplicateConfirmationModal.html',
-                                        controller: duplicateModalController,
-                                        resolve: {
-                                            selections: function () {
-                                                return $scope.selections;
-                                            }
-                                        }
-                                    });
-
-                                    return modalInstance.result.then(function (selections) {
-                                        overwrite = selections.overwrite;
-                                        if (selections.doAll) {
-                                            doAll = selections.doAll;
-                                        }
-                                    });
-                                };
-
-                                (function checkItems() {
-                                    // get the first key and remove it from array
-                                    var key = keys.shift();
-                                    var duplicateResource = duplicatelist[key];
-                                    if (doAll == undefined) {
-                                        // open the modal
-                                        $scope.selections = {'overwrite': overwrite,
-                                                            'doAll': doAll,
-                                                            'resourceName': duplicateResource.Name};
-                                        // continue when response from modal is returned
-                                        openModal().finally(function() {
-                                            selectionlist[duplicateResource.Code] = overwrite;
-                                            if (keys.length) {
-                                                checkItems();
-                                            }
-                                            else{
-                                                pasteResourceCategory(selectionlist);
-                                            }
-                                        });
-                                    }
-                                    else {
-                                        // skip has been selected
-                                        // set the overwrite to the skip value
-                                        selectionlist[duplicateResource.Code] = doAll;
-                                        if (keys.length) {
-                                            checkItems();
-                                        }
-                                        else {
-                                            pasteResourceCategory(selectionlist);
-                                        }
-
-                                    }
-                                })();
+                                $scope.handleDuplicateResourceActions(nodeid, duplicatelist);
                             }
                             else {
-                                pasteResourceCategory({});
+                                $scope.pasteResourceCategory(nodeid, {});
                             }
                         });
                     });
@@ -1313,28 +1340,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     console.log("Server error");
                 });
             }
-
-            var pasteResourceCategory = function(selectionlist) {
-                $http({
-                    method: 'POST',
-                    url: globalServerURL + 'node/' + nodeid + '/paste/',
-                    data:{'ID': cnode.ID,
-                            'cut': $scope.cut,
-                            'duplicates': selectionlist}
-                }).success(function () {
-                    console.log('Success: Resource Category pasted');
-                    // expand the node if this is its first child
-                    if ($scope.currentNode.Subitem.length == 0) {
-                        $scope.currentNode.collapsed = true;
-                    }
-                    $scope.handleReloadSlickgrid(nodeid);
-                    // sharedService.reloadSlickgrid(nodeid);
-                    $scope.loadNodeChildren(nodeid);
-                }).error(function() {
-                    console.log("Server error");
-                });
-            };
-        }
+        };
 
         // when a node is deleted clear the slickgrid and remove it from the tree
         $scope.nodeDeleted = function() {
