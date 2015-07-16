@@ -1,5 +1,5 @@
 <div id="addComponent" class="modal fade" ng-click="closeDropdown($event)">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"
@@ -16,40 +16,22 @@
                                    class="col-sm-2 control-label">Resource:
                             </label>
                             <div id="content">
-                                <div id="related_items_finder"
-                                     class="finder icons-on col-sm-7">
-                                    <ul class="finder-choices">
-                                        <li class="search-field">
-                                            <input type="text" autocomplete="off"
-                                                   size="62"
-                                                   class="default" id="inputResources" name="inputResources"
-                                                   ng-model="formData['inputResources']"
-                                                   placeholder="Click to search or browse or enter the Name of a new component"
-                                                   ng-required="!addComponentForm.has_selection">
-                                        </li>
-                                    </ul>
-                                    <div style="left: -9000px; width: 99.9%; top: 29px;" class="finder-dropdown">
-                                        <div class="finder-pathbar">
-                                            <strong>You are here:</strong>
-                                            <span class="internalpath">
-                                                <span>Home</span>
-                                            </span>
-                                            <div class="pull-right">
-                                                <a ng-show="searching"
-                                                   href=""
-                                                   title="Abandon search"
-                                                   ng-click="finder.listdir()"
-                                                   ><i class="glyphicon glyphicon-trash"> </i></a>
-                                                <a href=""
-                                                   title="Refresh list"
-                                                   ng-click="refreshResourceList()"
-                                                   ><i class="glyphicon glyphicon-refresh"> </i></a>
-                                            </div>
-                                        </div>
-                                        <ul class="finder-results">
-                                        </ul>
-                                    </div>
-                                </div>
+                              <ui-select data-ng-model="formData.selected"
+                                        tagging="tagTransform"
+                                        tagging-label="false"
+                                        tagging-tokens="['ENTER'|'TAB']"
+                                         theme="bootstrap"
+                                         ng-disabled="disabled"
+                                         reset-search-input="false"
+                                         class="col-sm-7"
+                                         ng-required="!addComponentForm.has_selection">
+                                <ui-select-match placeholder="Search or enter the name of a new component">{{$select.selected.Name}}</ui-select-match>
+                                <ui-select-choices repeat="resource in resourceList"
+                                         refresh="refreshResources($select.search)"
+                                         refresh-delay="300">
+                                  <div ng-bind-html="resource.Name | highlight: $select.search"></div>
+                                </ui-select-choices>
+                              </ui-select>
                             </div>
                         </div>
                         <div class="form-group">
@@ -57,7 +39,7 @@
                                    for="description">Description:</label>
                             <textarea class="col-sm-7" id="description"
                                       name="description"
-                                      ng-model="formData['Description']"
+                                      ng-model="formData.selected.Description"
                                       ng-disabled="addComponentForm.has_selection"></textarea>
                         </div>
                         <div class="form-group">
@@ -67,7 +49,7 @@
                                    class="col-sm-1"
                                    id="inputQuantity"
                                    name="inputQuantity"
-                                   ng-model="formData['Quantity']">
+                                   ng-model="formData.selected.Quantity">
                         </div>
                         <div class="form-group">
                             <label class="col-sm-2 control-label"
@@ -75,7 +57,7 @@
                             <input class="col-sm-2" id="rate"
                                    type="smartFloat"
                                    name="rate"
-                                   ng-model="formData['Rate']"
+                                   ng-model="formData.selected.Rate"
                                    ng-disabled="addComponentForm.has_selection"
                                    required />
                           <!--  <ul class="nav nav-pills no-top-margin">
@@ -98,7 +80,7 @@
                                     id="resourcetype"
                                     name="resourcetype"
                                     ng-disabled="addComponentForm.has_selection"
-                                    ng-model="formData['ResourceType']"
+                                    ng-model="formData.selected.ResourceType"
                                     ng-options="type.ID as type.Name for type in restypeList"
                                     required>
                                 <option value="">Select a type</option>
@@ -198,10 +180,10 @@
             <div class="modal-footer" data-ng-show="calculatorHidden">
                 <button ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal"
                  ng-disabled="!addComponentForm.$valid"
-                 ng-click="selectedResource(); addNode()">Save</button>
+                 ng-click="addNode()">Save</button>
                 <button ng-show="modalState == 'Edit'" class="btn btn-primary" data-dismiss="modal"
                  ng-disabled="!addComponentForm.$valid"
-                 ng-click="selectedResource(); saveNodeEdits()">Update</button>
+                 ng-click="saveNodeEdits()">Update</button>
                 <button class="btn btn-default" ng-click="cancel()" data-dismiss="modal">Cancel</button>
             </div>
             <div class="modal-footer" data-ng-show="!calculatorHidden">
