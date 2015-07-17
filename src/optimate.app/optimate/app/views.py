@@ -764,7 +764,7 @@ def node_grid(request):
     """
 
     parentid = request.matchdict['parentid']
-
+    parentlist = None
     childrenlist = []
     # Execute the sql query on the Node table to find the parent
     qry = DBSession.query(Node).filter_by(ParentID=parentid)
@@ -774,6 +774,12 @@ def node_grid(request):
         if qry.count() == 0:
             # the node has been deleted, return an empty response
             return {'list':[]}
+    else:
+        # otherwise, if the parent is a budgetgroup/item, add it to the list
+        parent = DBSession.query(Node).filter_by(ID=parentid).first()
+        if parent.type == 'BudgetGroup' or parent.type == 'BudgetItem':
+            parentlist = [parent.getGridData()]
+
     node_type = DBSession.query(Node).filter_by(ID=parentid).first().type
     # Filter out all the Budgetitems and Components
     # Test if the result is the same length as the query
@@ -808,6 +814,8 @@ def node_grid(request):
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['name'].upper())
     sorted_rescatlist = sorted(rescatlist, key=lambda k: k['name'].upper())
     sorted_childrenlist = sorted_rescatlist+sorted_childrenlist
+    if parentlist:
+        sorted_childrenlist = parentlist + sorted_childrenlist
 
     return {'list': sorted_childrenlist,
             'emptycolumns': emptycolumns,
