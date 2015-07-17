@@ -505,7 +505,6 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             // on cell change post to the server and update the totals
             grid.onCellChange.subscribe(function (e, ctx) {
                 var item = ctx.item
-                console.log(item);
                 var req = {
                     method: 'POST',
                     url: globalServerURL +'node/' + item.id + '/update_value/',
@@ -550,12 +549,21 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             });
 
             $scope.getSelectedNodes = function(){
-                return dataView.mapRowsToIds(grid.getSelectedRows());
+                var ids = dataView.mapRowsToIds(grid.getSelectedRows());
+                var selectedNodes = [];
+                for (var i in ids){
+                    var node = dataView.getItemById(ids[i]);
+                    node.NodeType = node.node_type;
+                    node.ID = node.id;
+                    node.Name = node.name;
+                    selectedNodes.push(node);
+                }
+                return selectedNodes;
             }
 
-            $scope.cutSelectedNodes = function(idarray){
-                for (var i in idarray){
-                    dataView.deleteItem(idarray[i]);
+            $scope.cutSelectedNodes = function(nodearray){
+                for (var i in nodearray){
+                    dataView.deleteItem(nodearray[i].ID);
                 }
                 grid.invalidate();
                 grid.render();

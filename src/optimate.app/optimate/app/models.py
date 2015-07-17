@@ -1344,7 +1344,6 @@ class SimpleComponent(Node, ComponentMixin):
                 Description=self.Description,
                 _Quantity=self._Quantity,
                 _Total=self._Total,
-                UnitID=self.UnitID,
                 Type=self.Type,
                 _Rate=self._Rate,
                 OrderCost=self.OrderCost,

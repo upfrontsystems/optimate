@@ -24,14 +24,14 @@
                     <i class="fa fa-cut"></i>
                 </a>
             </li>
-            <li data-ng-switch="copiedRecords.length">
-                <a data-ng-switch-when=0
+            <li data-ng-switch="copiedRecords || '_undefined_'">
+                <a data-ng-switch-when="_undefined_"
                     role="button" style="color: gray;">
                     <i class="fa fa-clipboard"></i>
                 </a>
                 <a data-ng-switch-default
                     role="button"
-                    data-ng-click="pasteSelectedRecords(currentNode.ID)"
+                    data-ng-click="pasteSelectedRecords(currentNode)"
                     title="Paste records">
                     <i class="fa fa-clipboard"></i>
                 </a>

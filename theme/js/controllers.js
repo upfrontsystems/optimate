@@ -804,12 +804,12 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         $scope.currentNodeScope = event.source.nodeScope;
                         $scope.cutThisNode(src);
                         $scope.currentNode = dest;
-                        $scope.pasteThisNode(dest.ID);
+                        $scope.pasteThisNode(dest);
                     }
                     // otherwise paste
                     else{
                         $scope.copyThisNode(src);
-                        $scope.pasteThisNode(dest.ID);
+                        $scope.pasteThisNode(dest);
                         // set the flag to indicate the source needs to be added
                         // back to the parent when the node drops
                         $scope.addNodeBack = true;
@@ -1185,10 +1185,11 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         }
 
         // handle pasting nodes
-        $scope.pasteAction = function(nodeid, selectionlist) {
+        $scope.pasteAction = function(node, selectionlist, index) {
+            console.log(node);
             $http({
                 method: 'POST',
-                url: globalServerURL + 'node/' + nodeid + '/paste/',
+                url: globalServerURL + 'node/' + node.ID + '/paste/',
                 data:{'ID': $scope.copiedNode.ID,
                         'cut': $scope.cut,
                         'duplicates': selectionlist}
@@ -1196,7 +1197,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 $scope.statusMessage($scope.copiedNode.Name + " pasted.", 1000, 'alert-info');
                 console.log('Success: Node pasted');
                 // if a project was pasted into the root
-                if (nodeid == 0) {
+                if (node.ID == 0) {
                     var newprojectid = response.newId;
                     // get the new project
                     $http.get(globalServerURL + 'node/' + newprojectid + '/')
@@ -1206,8 +1207,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     });
                 }
                 else {
-                    $scope.handleReloadSlickgrid(nodeid);
-                    $scope.loadNodeChildren(nodeid);
+                    $scope.handleReloadSlickgrid(node.ID);
+                    $scope.loadNodeChildren(node.ID);
                 }
                 // expand the node if this is its first child
                 if ($scope.currentNode.Subitem.length == 0) {
@@ -1216,11 +1217,16 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }).error(function() {
                 console.log("Server error");
                 $scope.statusMessage("Server error.", 1000, 'alert-warning');
+            }).then(function(){
+                if (index !== undefined){
+                    index+=1;
+                    $scope.resolvePastePromise(node, index);
+                }
             });
         };
 
         // loop over a list of duplicate resources and get the user action for each
-        $scope.handleDuplicateResourceActions = function(nodeid, duplicatelist){
+        $scope.handleDuplicateResourceActions = function(node, duplicatelist, index){
             var doAll = undefined;
             var overwrite = false;
             var keys = Object.keys(duplicatelist);
@@ -1235,7 +1241,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         }
                     }
                 });
-
                 return modalInstance.result.then(function (selections) {
                     overwrite = selections.overwrite;
                     if (selections.doAll) {
@@ -1243,7 +1248,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     }
                 });
             };
-
             (function checkItems() {
                 // get the first key and remove it from array
                 var key = keys.shift();
@@ -1260,7 +1264,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                             checkItems();
                         }
                         else{
-                            $scope.pasteAction(nodeid, selectionlist);
+                            $scope.pasteAction(node, selectionlist, index);
                         }
                     });
                 }
@@ -1272,7 +1276,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         checkItems();
                     }
                     else {
-                        $scope.pasteAction(nodeid, selectionlist);
+                        $scope.pasteAction(node, selectionlist, index);
                     }
                 }
             })();
@@ -1282,17 +1286,28 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         // function to paste copied node into another node
         // the id is sent to the server and the node pasted there
         // the user can't paste into the same node
-        $scope.pasteThisNode = function(nodeid) {
+        $scope.pasteThisNode = function(node, index) {
             var cnode = $scope.copiedNode;
             var duplicatelist = undefined;
             var flag = false;
             if (cnode) {
                 flag = true;
             }
-            if (flag && (cnode.ID == nodeid)) {
+            if (flag && (cnode.ID == node.ID)) {
                 flag = false;
                 console.log("You can't paste a node into itself");
                 $scope.statusMessage("You can't paste a node into itself", 1000, 'alert-warning');
+            }
+            // check the allowed array for the types
+            if (flag && ($scope.allowed[node.NodeType].indexOf(cnode.NodeType) == -1)){
+                flag = false;
+                console.log("You can't paste a " + cnode.NodeType + " into a " + node.NodeType);
+                $scope.statusMessage("You can't paste a " + cnode.NodeType + " into a " + node.NodeType, 1000, 'alert-warning');
+                // if the index is set, paste the next record
+                if (index !== undefined){
+                    index+=1;
+                    $scope.resolvePastePromise(node, index);
+                }
             }
             if ($scope.cut) {
                 $scope.statusMessage("Busy moving...", 0, 'alert-info');
@@ -1300,11 +1315,15 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             else {
                 $scope.statusMessage("Busy copying...", 0, 'alert-info');
             }
-            if (flag && ((cnode.NodeType == 'ResourceCategory') && ($scope.currentNode.NodeType == 'ResourceCategory'))) {
+            if (flag && ((cnode.NodeType == 'ResourceCategory') && (node.NodeType == 'ResourceCategory'))) {
                 flag = false;
-                if (cnode.ParentID == nodeid) {
+                if (cnode.ParentID == node.ID) {
                     console.log("You can't paste a Resource Category into the same list");
                     $scope.statusMessage("You can't paste a Resource Category into the same list", 1000, 'alert-warning');
+                    if (index !== undefined){
+                        index+=1;
+                        $scope.resolvePastePromise(node, index);
+                    }
                 }
                 else {
                     // get the resources in the copied category
@@ -1312,7 +1331,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     .success(function (response) {
                         var copiedresources = response;
                         // get the resources in the destination category
-                        $http.get(globalServerURL + 'resourcecategory/' + nodeid + '/allresources/')
+                        $http.get(globalServerURL + 'resourcecategory/' + node.ID + '/allresources/')
                         .success(function (response) {
                             duplicatelist = [];
                             selectionlist = {};
@@ -1325,17 +1344,17 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                                 }
                             }
                             if (duplicatelist.length > 0) {
-                                $scope.handleDuplicateResourceActions(nodeid, duplicatelist);
+                                $scope.handleDuplicateResourceActions(node, duplicatelist, index);
                             }
                             else {
-                                $scope.pasteAction(nodeid, {});
+                                $scope.pasteAction(node, {}, index);
                             }
                         });
                     });
                 }
             }
             if (flag) {
-                $scope.pasteAction(nodeid, {});
+                $scope.pasteAction(node, {}, index);
             }
         };
 
@@ -1390,8 +1409,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         $scope.copySelectedRecords = function(node){
             // put the id's of the selected records in an array
             if ($scope.rowsSelected){
-                var selectedRowIds = $scope.getSelectedNodes();
-                $scope.toggleCopiedRecords(selectedRowIds, false);
+                $scope.toggleCopiedRecords($scope.getSelectedNodes(), false);
                 console.log("Records copied");
                 $scope.statusMessage("Records copied.", 1000, 'alert-info');
             }
@@ -1400,18 +1418,18 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         $scope.cutSelectedRecords = function(node){
             // put the id's of the selected records in an array
             if ($scope.rowsSelected){
-                var selectedRowIds = $scope.getSelectedNodes();
-                $scope.toggleCopiedRecords(selectedRowIds, true);
+                var selectedRows = $scope.getSelectedNodes();
+                $scope.toggleCopiedRecords(selectedRows, true);
                 // remove rows from slickgrid
-                $scope.cutSelectedNodes(selectedRowIds);
+                $scope.cutSelectedNodes(selectedRows);
                 // get node in scope and remove
-                if (selectedRowIds[0] == node.ID){
+                if (selectedRows[0].ID == node.ID){
                     $scope.nodeDeleted()
                 }
                 else{
-                    for (var i in selectedRowIds){
+                    for (var i in selectedRows){
                         var result = $.grep($scope.currentNode.Subitem, function(e) {
-                            return e.ID == selectedRowIds[i];
+                            return e.ID == selectedRows[i].ID;
                         });
                         var index = $scope.currentNode.Subitem.indexOf(result[0]);
                         if (index>-1) {
@@ -1424,51 +1442,43 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }
         };
 
-        $scope.pasteSelectedRecords = function(nodeid){
-            // paste each node
-            for (var i in $scope.copiedRecords){
-                $http({
-                    method: 'POST',
-                    url: globalServerURL + 'node/' + nodeid + '/paste/',
-                    data:{'ID': $scope.copiedRecords[i],
-                            'cut': $scope.cut}
-                }).success(function () {
-                    console.log('Success: Node pasted');
-                    $scope.statusMessage("Node pasted.", 1000, 'alert-info');
-                    // on the last loop reload the slickgrid and node
-                    if (i == $scope.copiedRecords.length-1){
-                        $scope.loadNodeChildren(nodeid);
-                        $scope.handleReloadSlickgrid(nodeid);
-                        $scope.toggleRowsSelected(false);
-                    }
-                }).error(function() {
-                    console.log("Server error");
-                });
-            }
+        $scope.pasteSelectedRecords = function(node){
+            // start pasting each record
+            $scope.resolvePastePromise(node, 0)
         };
+
+        // after operation has finished on pasting a node, pasted the next
+        // selected node
+        $scope.resolvePastePromise = function(node, index){
+            if (index < $scope.copiedRecords.length){
+                $scope.copiedNode = $scope.copiedRecords[index];
+                $scope.pasteThisNode(node, index);
+            }
+        }
 
         $scope.deleteSelectedRecords = function(nodeid){
             // all the currently selected records in the slickgrid are
             // deleted from the database and the grid is reloaded
             if ($scope.rowsSelected){
-                var selectedRowIds = $scope.getSelectedNodes()
-                for (var i in selectedRowIds){
+                var selectedRows = $scope.getSelectedNodes()
+                for (var i in selectedRows){
                     $http({
                         method: 'DELETE',
-                        url:globalServerURL + 'node/' + selectedRowIds[i] + '/'
+                        url:globalServerURL + 'node/' + selectedRows[i].ID + '/'
                     }).success(function (response) {
-                        console.log(selectedRowIds[i] + " deleted");
+                        console.log(selectedRows[i].ID + " deleted");
                         // on the last loop reload the slickgrid and node
-                        if (i == selectedRowIds.length-1){
+                        if (i == selectedRows.length-1){
                             // if the deleted id equals the selected id
                             // simply remove it from the tree
-                            if (nodeid == selectedRowIds[i]){
+                            if (nodeid == selectedRows[i].ID){
                                 $scope.nodeDeleted();
                             }
                             else{
                                 $scope.loadNodeChildren(nodeid);
                                 $scope.handleReloadSlickgrid(nodeid);
-                            }
+                            }3
+                            $scope.statusMessage("Deleted records", 1000, 'alert-info');
                             $scope.toggleRowsSelected(false);
                         }
                     });

@@ -549,7 +549,6 @@ def deleteitemview(request):
     """
     # Get the id of the node to be deleted from the path
     deleteid = request.matchdict['id']
-
     # Deleting it from the node table deleted the object
     deletethis = DBSession.query(Node).filter_by(ID=deleteid).first()
     parentid = deletethis.ParentID
@@ -869,7 +868,9 @@ def node_paste(request):
     destinationid = request.matchdict['id']
     projectid = 0
     source = DBSession.query(Node).filter_by(ID=sourceid).first()
+    print destinationid
     dest = DBSession.query(Node).filter_by(ID=destinationid).first()
+    print dest
     parentid = dest.ID
     sourceparent = source.ParentID
     # if a project is being pasted into the root
