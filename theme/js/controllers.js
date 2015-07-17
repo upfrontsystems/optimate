@@ -953,6 +953,19 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }
         }
 
+        $scope.resourceSelected = function(item){
+            var $addComponent = $('#addComponent'),
+                $description = $addComponent.find('#description');
+            if (item.ID == undefined){
+                $scope.addComponentForm.has_selection = false;
+                $description.focus();
+            }
+            else{
+                $scope.addComponentForm.has_selection = true;
+                $addComponent.find('#inputQuantity').focus();
+            }
+        };
+
         // load the lists used in adding/editing a component
         $scope.loadComponentRelatedList = function(nodeid){
             $scope.loadComponentOverheads(nodeid);
