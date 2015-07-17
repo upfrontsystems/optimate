@@ -103,7 +103,9 @@
 
     function handleKeyDown(e) {
       var activeRow = _grid.getActiveCell();
+      _ctrlClick = false;
       if (activeRow && e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && (e.which == 38 || e.which == 40)) {
+        _ctrlClick = true;
         var selectedRows = getSelectedRows();
         selectedRows.sort(function (x, y) {
           return x - y
@@ -152,13 +154,11 @@
 
       var selection = rangesToRows(_ranges);
       var idx = $.inArray(cell.row, selection);
-
+      _ctrlClick = true;
       if (idx === -1 && (e.ctrlKey || e.metaKey)) {
-        _ctrlClick = true;
         selection.push(cell.row);
         _grid.setActiveCell(cell.row, cell.cell);
       } else if (idx !== -1 && (e.ctrlKey || e.metaKey)) {
-        _ctrlClick = true;
         selection = $.grep(selection, function (o, i) {
           return (o !== cell.row);
         });
