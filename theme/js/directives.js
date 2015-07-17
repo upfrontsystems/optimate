@@ -1099,6 +1099,7 @@ allControllers.directive('smartFloat', function ($filter) {
         require: 'ngModel',
         link: function (scope, elm, attrs, ctrl) {
             ctrl.$parsers.unshift(function (viewValue) {
+                console.log(viewValue);
                 if (FLOAT_REGEXP_1.test(viewValue)) {
                     ctrl.$setValidity('float', true);
                     return parseFloat(viewValue.replace('.', '').replace(',', '.'));
@@ -1119,6 +1120,7 @@ allControllers.directive('smartFloat', function ($filter) {
 
             ctrl.$formatters.unshift(
                function (modelValue) {
+                    console.log(modelValue);
                    return $filter('number')(parseFloat(modelValue) , 2);
                }
            );

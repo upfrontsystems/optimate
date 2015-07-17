@@ -46,7 +46,8 @@
                         </div>
                         <div class="form-group">
                             <label for="inputQuantity" class="col-sm-2 control-label">Quantity:</label>
-                            <input type="smartFloat"
+                            <input type="text"
+                                   smart-float
                                    min="0"
                                    class="col-sm-1"
                                    id="inputQuantity"
@@ -57,7 +58,8 @@
                             <label class="col-sm-2 control-label"
                                    for="rate">Rate:</label>
                             <input class="col-sm-2" id="rate"
-                                   type="smartFloat"
+                                   type="text"
+                                   smart-float
                                    name="rate"
                                    ng-model="formData.selected.Rate"
                                    ng-disabled="addComponentForm.has_selection"
