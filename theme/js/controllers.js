@@ -1163,6 +1163,9 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 else {
                     $scope.nodeDeleted();
                 }
+            }).error(function(){
+                console.log("Server error");
+                $scope.statusMessage("Server error.", 1000, 'alert-warning');
             });
         };
 
@@ -1195,8 +1198,10 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }).success(function (response) {
                 console.log('Success: Node pasted');
                 // if a project was pasted into the root
-                if (node.ID == 0) {
+                if (node.ID === 0) {
                     var newprojectid = response.newId;
+                    console.log("New project pasted: ");
+                    console.log(response);
                     // get the new project
                     $http.get(globalServerURL + 'node/' + newprojectid + '/')
                     .success(function(data) {
@@ -1418,6 +1423,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             if ($scope.rowsSelected){
                 $scope.toggleCopiedRecords($scope.getSelectedNodes(), false);
                 console.log("Records copied");
+                console.log($scope.copiedRecords);
                 $scope.statusMessage("Records copied.", 1000, 'alert-info');
             }
         };

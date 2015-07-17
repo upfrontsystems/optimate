@@ -127,6 +127,17 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     //  width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                 ];
 
+            function getItemMetaData(row){
+                if (row == 0 && grid){
+                    if (grid.getDataItem(row)){
+                        if (grid.getDataItem(row).isparent){
+                            return { selectable: false };
+                        }
+                    }
+                }
+                return {};
+            }
+
             var options = {
                     editable: true,
                     enableAddRow: true,
@@ -140,6 +151,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
 
             data = []
             dataView = new Slick.Data.DataView();
+            dataView.getItemMetadata = getItemMetaData;
             grid = new Slick.Grid("#optimate-data-grid", dataView, columns, options);
             grid.setSelectionModel(new Slick.CustomSelectionModel());
 
@@ -555,7 +567,9 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     node.NodeType = node.node_type;
                     node.ID = node.id;
                     node.Name = node.name;
-                    selectedNodes.push(node);
+                    if (!node.isparent){
+                        selectedNodes.push(node);
+                    }
                 }
                 return selectedNodes;
             }
@@ -567,6 +581,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 grid.invalidate();
                 grid.render();
             };
+
+
         }
     }
 }]);
@@ -671,13 +687,11 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             grid.setSelectionModel(new Slick.CellSelectionModel());
             // resize the slickgrid when modal is shown
             $('#saveOrderModal').on('shown.bs.modal', function() {
-                // console.log("order slickgrid shown init ");
                  grid.init();
             });
 
             // when a column is resized change the default size of that column
             grid.onColumnsResized.subscribe(function(e,args) {
-                // console.log("component columns resized");
                 var gridcolumns = args.grid.getColumns();
                 for (var i in gridcolumns) {
                     if (gridcolumns[i].previousWidth != gridcolumns[i].width)
@@ -700,7 +714,6 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
 
             // Formatter for displaying currencies
             function CurrencyFormatter(row, cell, value, columnDef, dataContext) {
-                // console.log("component curreny formaater");
                 if (value != undefined) {
                     var parts = value.toString().split(".");
                     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -716,7 +729,6 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
 
             // Formatter for displaying the vat percentage
             function VATFormatter(row, cell, value, columnDef, dataContext) {
-                // console.log("component curreny formaater");
                 if (value != undefined) {
                     var percentile = parseFloat(value)*100.0;
                     var parts = percentile.toString().split(".");
@@ -741,7 +753,6 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             // watch the VAT checkbox and update all the values in the
             // slickgrid accordingly
             $scope.$watch(attrs.vat, function(vat) {
-                // console.log("component vat changed");
                 if ($scope.vat == undefined){
                     // if vat used to be undefined only update it
                     $scope.vat = vat;
@@ -810,8 +821,6 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             // observe the component list for changes and update the slickgrid
             // calculate and update the order total as well
             $scope.$watch(attrs.components, function(componentlist) {
-                // console.log("component list changed");
-                // console.log(componentlist);
                 columns = [
                     {id: "name", name: "Component", field: "name",
                      width: orders_column_width.name, cssClass: "cell-title non-editable-column"},
@@ -867,7 +876,6 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
 
             // on cell change update the totals
             grid.onCellChange.subscribe(function (e, ctx) {
-                // console.log("component cell changed changed");
                 var item = ctx.item
                 var oldtotal = item.total;
                 var oldsubtotal = item.subtotal;
@@ -982,7 +990,6 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                 for (var i in gridcolumns) {
                     if (gridcolumns[i].previousWidth != gridcolumns[i].width)
                         valuations_column_width[gridcolumns[i].field] = gridcolumns[i].width;
-                        console.log(gridcolumns[i].width);
                 }
                 if(hasStorage){
                     localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
@@ -1001,7 +1008,6 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
 
             // Formatter for displaying percentages
             function PercentageFormatter(row, cell, value, columnDef, dataContext) {
-                // console.log("percentage format");
                 if (value != undefined) {
                     return value + ' %';
                 }

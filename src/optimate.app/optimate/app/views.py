@@ -551,11 +551,10 @@ def deleteitemview(request):
     deleteid = request.matchdict['id']
     # Deleting it from the node table deleted the object
     deletethis = DBSession.query(Node).filter_by(ID=deleteid).first()
+    if not deletethis:
+        return HTTPInternalServerError("Node not found")
     parentid = deletethis.ParentID
     qry = DBSession.delete(deletethis)
-
-    if qry == 0:
-        return HTTPNotFound()
     transaction.commit()
 
     # reset the total of the parent node
@@ -779,6 +778,7 @@ def node_grid(request):
         parent = DBSession.query(Node).filter_by(ID=parentid).first()
         if parent.type == 'BudgetGroup' or parent.type == 'BudgetItem':
             parentlist = [parent.getGridData()]
+            parentlist[0]['isparent'] = True
 
     node_type = DBSession.query(Node).filter_by(ID=parentid).first().type
     # Filter out all the Budgetitems and Components
