@@ -265,22 +265,8 @@ def additemview(request):
         if not resource:
             return HTTPNotFound()
 
-        pt = DBSession.query(Node).filter_by(ID=parentid).first().type
-        if pt == 'BudgetGroup':
-            # In the context of budget group, you enter a Quantity and it is
-            # persisted as Quantity and ItemQuantity is updated to have the
-            # same value.
-            itemquantity = quantity
-        elif pt == 'BudgetItem':
-            # quantity is persisted as ItemQuantity. Quantity is calculated by
-            # the system and only visible in the slickgrid as a readonly value.
-            itemquantity=quantity
-            parent = DBSession.query(Node).filter_by(ID=parentid).first()
-            quantity=itemquantity*parent.Quantity
-
         newcomp = Component(ResourceID=resource.ID,
-                        _ItemQuantity=itemquantity,
-                        _Quantity=quantity,
+                        _ItemQuantity=quantity,
                         ParentID=parentid)
 
         DBSession.add(newcomp)
@@ -300,25 +286,11 @@ def additemview(request):
         rate = Decimal(rate).quantize(Decimal('.01'))
         quantity = float(request.json_body.get('Quantity', 0))
 
-        pt = DBSession.query(Node).filter_by(ID=parentid).first().type
-        if pt == 'BudgetGroup':
-            # In the context of budget group, you enter a Quantity and it is
-            # persisted as Quantity and ItemQuantity is updated to have the
-            # same value.
-            itemquantity = quantity
-        elif pt == 'BudgetItem':
-            # quantity is persisted as ItemQuantity. Quantity is calculated by
-            # the system and only visible in the slickgrid as a readonly value.
-            itemquantity=quantity
-            parent = DBSession.query(Node).filter_by(ID=parentid).first()
-            quantity=itemquantity*parent.Quantity
-
         newcomp = SimpleComponent(
             ParentID=parentid,
             Name=request.json_body['Name'],
             Description=request.json_body.get('Description', None),
-            _ItemQuantity=itemquantity,
-            _Quantity=quantity,
+            _ItemQuantity=quantity,
             _Rate=rate,
             Type=request.json_body['ResourceType'])
         DBSession.add(newcomp)
@@ -328,21 +300,11 @@ def additemview(request):
         newnode = BudgetGroup(Name=request.json_body['Name'],
                         Description=desc,
                         ParentID=parentid)
-    elif objecttype == 'BudgetItem':
-        pt = DBSession.query(Node).filter_by(ID=parentid).first().type
-        if pt == 'BudgetItem':
-            # quantity is persisted as ItemQuantity. Quantity is calculated by
-            # the system and only visible in the slickgrid as a readonly value.
-            itemquantity=quantity
-            parent = DBSession.query(Node).filter_by(ID=parentid).first()
-            quantity=itemquantity*parent.Quantity
-        else:
-            itemquantity=quantity
 
+    elif objecttype == 'BudgetItem':
         newnode = BudgetItem(Name=request.json_body['Name'],
                         Description=desc,
-                        _ItemQuantity = itemquantity,
-                        _Quantity = quantity,
+                        _ItemQuantity = quantity,
                         ParentID=parentid)
 
     elif objecttype == 'ResourceCategory':
@@ -450,21 +412,8 @@ def edititemview(request):
                 overhead = DBSession.query(Overhead).filter_by(ID=overheadid).first()
                 newoverheads.append(overhead)
         component.Overheads = newoverheads
-        component.resetTotal()
         quantity= float(request.json_body.get('Quantity', 0))
-        pt = DBSession.query(Node).filter_by(ID=component.ParentID).first().type
-        if pt == 'BudgetGroup':
-            # In the context of budget group, you enter a Quantity and it is
-            # persisted as Quantity and ItemQuantity is updated to have the
-            # same value.
-            component._ItemQuantity=quantity
-            component._Quantity=quantity
-        elif pt == 'BudgetItem':
-            # quantity is persisted as ItemQuantity. Quantity is calculated by
-            # the system and only visible in the slickgrid as a readonly value.
-            component._ItemQuantity=quantity
-            parent = DBSession.query(Node).filter_by(ID=component.ParentID).first()
-            component._Quantity=component._ItemQuantity*parent.Quantity
+        component.ItemQuantity=quantity
 
     elif objecttype == 'SimpleComponent':
         rate = request.json_body.get('Rate', 0)
@@ -476,19 +425,7 @@ def edititemview(request):
         component._Rate=rate
         component.Type=request.json_body['ResourceType']
         quantity = float(request.json_body.get('Quantity', 0))
-        pt = DBSession.query(Node).filter_by(ID=component.ParentID).first().type
-        if pt == 'BudgetGroup':
-            # In the context of budget group, you enter a Quantity and it is
-            # persisted as Quantity and ItemQuantity is updated to have the
-            # same value.
-            component._ItemQuantity=quantity
-            component._Quantity=quantity
-        elif pt == 'BudgetItem':
-            # quantity is persisted as ItemQuantity. Quantity is calculated by
-            # the system and only visible in the slickgrid as a readonly value.
-            component._ItemQuantity=quantity
-            parent = DBSession.query(Node).filter_by(ID=component.ParentID).first()
-            component._Quantity=component._ItemQuantity*parent.Quantity
+        component.ItemQuantity=quantity
 
     elif objecttype == 'BudgetGroup':
         budgetgroup = DBSession.query(BudgetGroup).filter_by(ID=nodeid).first()
@@ -500,15 +437,7 @@ def edititemview(request):
         budgetitem.Name= request.json_body['Name']
         budgetitem.Description= request.json_body.get('Description', '')
         quantity = float(request.json_body.get('Quantity', 0))
-        budgetitem.Quantity=quantity
         budgetitem.ItemQuantity=quantity
-
-        # however if this budgetitem is in the context of another budget item
-        pt = DBSession.query(Node).filter_by(ID=component.ParentID).first().type
-        if pt == 'BudgetItem':
-            budgetitem._ItemQuantity=quantity
-            parent = DBSession.query(Node).filter_by(ID=budgetitem.ParentID).first()
-            budgetitem._Quantity=budgetitem._ItemQuantity*parent.Quantity
 
     elif objecttype == 'ResourceCategory':
         resourcecategory = DBSession.query(ResourceCategory).filter_by(ID=nodeid).first()
@@ -845,29 +774,33 @@ def node_update_value(request):
     # a budgetitems quantity or itemquantity can be modified
     elif result.type == 'BudgetItem':
         newtotal = None
-        if request.json_body.get('quantity') != None:
-            result.Quantity = float(request.json_body.get('quantity'))
+        if request.json_body.get('item_quantity') != None:
+            result.ItemQuantity = float(request.json_body.get('item_quantity'))
             newtotal = str(result.Total)
-        if request.json_body.get('itemquantity') != None:
-            result.ItemQuantity = float(request.json_body.get('quantity'))
-            newtotal = str(result.Total)
-        return {'total': newtotal, 'subtotal': None}
+            newquantity = result.Quantity
+        return {'total': newtotal, 'subtotal': None, 'quantity': newquantity}
     # only a components itemquantity can be modified
     elif result.type == 'Component':
-        if request.json_body.get('itemquantity') != None:
-            result.ItemQuantity = float(request.json_body.get('itemquantity'))
+        if request.json_body.get('item_quantity') != None:
+            result.ItemQuantity = float(request.json_body.get('item_quantity'))
             newtotal = str(result.Total)
             newsubtotal = str(result.Subtotal)
-            return {'total': newtotal, 'subtotal': newsubtotal}
+            newquantity = result.Quantity
+            return {'total': newtotal,
+                    'subtotal': newsubtotal,
+                    'quantity': newquantity}
     # a simplecomponents itemquantity or rate can be modified
     elif result.type == 'SimpleComponent':
-        if request.json_body.get('itemquantity') != None:
-            result.ItemQuantity = float(request.json_body.get('itemquantity'))
+        if request.json_body.get('item_quantity') != None:
+            result.ItemQuantity = float(request.json_body.get('item_quantity'))
         if request.json_body.get('rate') != None:
             result.Rate = request.json_body.get('rate')
         newtotal = str(result.Total)
         newsubtotal = str(result.Subtotal)
-        return {'total': newtotal, 'subtotal': newsubtotal}
+        newquantity = result.Quantity
+        return {'total': newtotal,
+                'subtotal': newsubtotal,
+                'quantity': newquantity}
 
 
 @view_config(route_name="node_paste", renderer='json')

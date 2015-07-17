@@ -95,8 +95,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             var columns = [
                     {id: "name", name: "Name", field: "name",
                      width: projects_column_width.name, cssClass: "cell-title non-editable-column"},
-                    {id: "quantity", name: "Quantity", field: "quantity", cssClass: "cell editable-column",
-                     width: projects_column_width.quantity, editor: Slick.Editors.CustomEditor},
+                    {id: "quantity", name: "Quantity", field: "quantity",
+                     width: projects_column_width.quantity, cssClass: "cell non-editable-column"},
                     {id: "item_quantity", name: "Item Quantity", field: "item_quantity", cssClass: "cell editable-column",
                      width: projects_column_width.item_quantity, editor: Slick.Editors.CustomEditor},
                     {id: "rate", name: "Rate", field: "rate",
@@ -127,6 +127,9 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     //  width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
                 ];
 
+            // override the getitemmetadata method
+            // on the first row, if it is the parent
+            // set selectable false
             function getItemMetaData(row){
                 if (row == 0 && grid){
                     if (grid.getDataItem(row)){
@@ -330,10 +333,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                             emptycolumns = [{id: "name", name: "Name", field: "name",
                                  width: projects_column_width.name, cssClass: "cell-title non-editable-column"},
                                 {id: "quantity", name: "Quantity", field: "quantity",
-                                 cssClass: "cell editable-column",
-                                 width: projects_column_width.quantity, editor: Slick.Editors.CustomEditor},
-                                {id: "item_quantity", name: "Item Quantity", field: "item_quantity",
-                                 cssClass: "cell editable-column",
+                                 width: projects_column_width.quantity, cssClass: "cell non-editable-column"},
+                                {id: "item_quantity", name: "Item Quantity", field: "item_quantity", cssClass: "cell editable-column",
                                  width: projects_column_width.item_quantity, editor: Slick.Editors.CustomEditor},
                                 {id: "rate", name: "Rate", field: "rate",
                                  width: projects_column_width.rate, cssClass: "cell non-editable-column",
@@ -363,10 +364,10 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                 }
                             }
                             if (no_itemquantity_column) {
-                                // remove item quantity column - determined by backend, depending
+                                // remove quantity column - determined by backend, depending
                                 // if a budgetitem is in the list of children of the selected node
                                 var index = emptycolumns.map(function(e)
-                                    { return e.id; }).indexOf("item_quantity");
+                                    { return e.id; }).indexOf("quantity");
                                 if (index > -1) {
                                     emptycolumns.splice(index, 1);
                                 }
@@ -376,23 +377,14 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                             var itemquantity_type_found = $.inArray(type, hidden_iq_types) > -1;
                             if (!itemquantity_type_found) {
                                 var index = emptycolumns.map(function(e)
-                                    { return e.id; }).indexOf("item_quantity");
-                                if (index > -1) {
-                                    emptycolumns[index].cssClass = "cell non-editable-column";
-                                    delete emptycolumns[index].editor;
-                                }
-                            }
-                            // make quantity column non-editable for certain node types
-                            hidden_q_types = ['BudgetGroup'];
-                            var quantity_type_found = $.inArray(type, hidden_q_types) > -1;
-                            if (!quantity_type_found) {
-                                var index = emptycolumns.map(function(e)
                                     { return e.id; }).indexOf("quantity");
                                 if (index > -1) {
+                                    console.log("making non editable");
                                     emptycolumns[index].cssClass = "cell non-editable-column";
                                     delete emptycolumns[index].editor;
                                 }
                             }
+
                             var overheadnames = [];
                             // Add columns for the overheads in the components
                             for (var i=0; i < data.length; i++) {
@@ -460,8 +452,10 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 else {
                     emptycolumns = [{id: "name", name: "Name", field: "name",
                          width: projects_column_width.name, cssClass: "cell-title non-editable-column"},
-                        {id: "quantity", name: "Quantity", field: "quantity", cssClass: "cell editable-column",
-                         width: projects_column_width.quantity, editor: Slick.Editors.CustomEditor},
+                        {id: "quantity", name: "Quantity", field: "quantity",
+                         width: projects_column_width.quantity, cssClass: "cell non-editable-column"},
+                        {id: "item_quantity", name: "Item Quantity", field: "item_quantity", cssClass: "cell editable-column",
+                         width: projects_column_width.item_quantity},
                         {id: "rate", name: "Rate", field: "rate",
                          width: projects_column_width.rate, cssClass: "cell non-editable-column",
                          formatter: CurrencyFormatter},
@@ -516,6 +510,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             // on cell change post to the server and update the totals
             grid.onCellChange.subscribe(function (e, ctx) {
                 var item = ctx.item
+                console.log(item)
                 var req = {
                     method: 'POST',
                     url: globalServerURL +'node/' + item.id + '/update_value/',
@@ -523,8 +518,9 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 }
                 $http(req).success(function(data) {
                     if (data){
-                        item.budg_cost = data['total'];
-                        item.sub_cost = data['subtotal'];
+                        item.quantity = data.quantity;
+                        item.budg_cost = data.total;
+                        item.sub_cost = data.subtotal;
                         //store the active cell and editor
                         var activeCell = grid.getActiveCell();
                         var activeEditor = grid.getCellEditor();
@@ -581,8 +577,6 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 grid.invalidate();
                 grid.render();
             };
-
-
         }
     }
 }]);
