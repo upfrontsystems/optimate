@@ -212,6 +212,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 // Get the value that indicated whether there are empty columns
                 var emptycolumns = response['emptycolumns'];
                 var no_subtotal_column = response['no_sub_cost'];
+                var no_itemquantity_column = response['no_item_quantity'];
                 var type = response['type'];
                 if (data.length > 0) {
                     // If the grid is only showing resources or resourcecategories
@@ -349,14 +350,12 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                     emptycolumns.splice(index, 1);
                                 }
                             }
-                            iq_types = ['BudgetItem', 'BudgetGroup']; // include item_quantity column in these nodes
-                            var iq_type_found = $.inArray(type, iq_types) > -1;
-                            if (!iq_type_found) {
-                                // remove item_quantity column
+                            if (no_itemquantity_column) {
+                                // remove item quantity column - determined by backend, depending
+                                // if a budgetitem is in the list of children of the selected node
                                 var index = emptycolumns.map(function(e)
                                     { return e.id; }).indexOf("item_quantity");
                                 if (index > -1) {
-                                    // remove the column
                                     emptycolumns.splice(index, 1);
                                 }
                             }
