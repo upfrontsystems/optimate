@@ -797,7 +797,7 @@ def node_grid(request):
     no_item_quantity = True
     for child in qry:
         if child.type == 'ResourceCategory':
-            rescatlist.append(child.getGridData())        
+            rescatlist.append(child.getGridData())
         else:
             childrenlist.append(child.getGridData())
         if child.type == 'BudgetItem':
@@ -874,9 +874,7 @@ def node_paste(request):
     destinationid = request.matchdict['id']
     projectid = 0
     source = DBSession.query(Node).filter_by(ID=sourceid).first()
-    print destinationid
     dest = DBSession.query(Node).filter_by(ID=destinationid).first()
-    print dest
     parentid = dest.ID
     sourceparent = source.ParentID
     # if a project is being pasted into the root

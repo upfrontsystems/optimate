@@ -1186,7 +1186,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
         // handle pasting nodes
         $scope.pasteAction = function(node, selectionlist, index) {
-            console.log(node);
             $http({
                 method: 'POST',
                 url: globalServerURL + 'node/' + node.ID + '/paste/',
@@ -1194,7 +1193,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         'cut': $scope.cut,
                         'duplicates': selectionlist}
             }).success(function (response) {
-                $scope.statusMessage($scope.copiedNode.Name + " pasted.", 1000, 'alert-info');
                 console.log('Success: Node pasted');
                 // if a project was pasted into the root
                 if (node.ID == 0) {
@@ -1206,7 +1204,16 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         $scope.projectAdded(data);
                     });
                 }
+                else if (index !== undefined){
+                    // if we pasted the last node of the copied records
+                    if (index == $scope.copiedRecords.length-1){
+                        $scope.statusMessage("Records pasted.", 1000, 'alert-info');
+                        $scope.handleReloadSlickgrid(node.ID);
+                        $scope.loadNodeChildren(node.ID);
+                    }
+                }
                 else {
+                    $scope.statusMessage($scope.copiedNode.Name + " pasted.", 1000, 'alert-info');
                     $scope.handleReloadSlickgrid(node.ID);
                     $scope.loadNodeChildren(node.ID);
                 }
