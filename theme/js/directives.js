@@ -54,6 +54,30 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 }
             }());
 
+            // override the getitemmetadata method
+            // on the first row, if it is the parent
+            // set selectable false
+            function getItemMetaData(row){
+                if (row == 0 && grid){
+                    if (grid.getDataItem(row)){
+                        if (grid.getDataItem(row).isparent){
+                            return {selectable: false,
+                                    // 'cssClasses': "cell non-editable-column"
+                                };
+                        }
+                    }
+                }
+                // if (grid){
+                //     var rowData = grid.getDataItem(row);
+                //     if(rowData){
+                //         if(rowData.node_type == 'BudgetGroup' || rowData.node_type == 'ResourceCategory'){
+                //             return {'cssClasses': "cell non-editable-column"};
+                //         }
+                //     }
+                // }
+                return {};
+            }
+
             // load the columns widths (if any) from local storage
             $scope.preloadWidths = function () {
                 if (hasStorage) {
@@ -92,54 +116,53 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 }
             };
             $scope.preloadWidths();
+            var name_column = {id: "name", name: "Name", field: "name",
+                                    width: projects_column_width.name,
+                                    cssClass: "cell-title non-editable-column"}
+            var quantity_column = {id: "quantity", name: "Quantity", field: "quantity",
+                                    width: projects_column_width.quantity,
+                                    cssClass: "cell non-editable-column"}
+            var item_quantity_column = {id: "item_quantity", name: "Item Quantity", field: "item_quantity",
+                                    width: projects_column_width.item_quantity,
+                                    cssClass: "cell editable-column",
+                                    editor: Slick.Editors.CustomEditor}
+            var rate_column = {id: "rate", name: "Rate", field: "rate",
+                                    width: projects_column_width.rate,
+                                    cssClass: "cell non-editable-column",
+                                    formatter: CurrencyFormatter}
+            var budg_cost_column = {id: "budg_cost", name: "Total", field: "budg_cost",
+                                    width: projects_column_width.budg_cost,
+                                    cssClass: "cell non-editable-column",
+                                    formatter: CurrencyFormatter}
+            var sub_cost_column = {id: "sub_cost", name: "Subtotal", field: "sub_cost",
+                                    width: projects_column_width.sub_cost,
+                                    cssClass: "cell non-editable-column",
+                                    formatter: CurrencyFormatter}
+            var unit_column = {id: "unit", name: "Unit", field: "unit",
+                                    width: projects_column_width.unit,
+                                    cssClass: "cell non-editable-column"}
+            var ordered_column = {id: "ordered", name: "Ordered", field: "ordered",
+                                    width: projects_column_width.ordered,
+                                    cssClass: "cell non-editable-column",
+                                    formatter: CurrencyFormatter}
+            var invoiced_column = {id: "invoiced", name: "Invoiced", field: "invoiced",
+                                    width: projects_column_width.invoiced,
+                                    cssClass: "cell non-editable-column",
+                                    formatter: CurrencyFormatter}
+            var resource_type_column =  {id: "resource_type", name: "Resource Type", field: "resource_type",
+                                    width: projects_column_width.resource_type,
+                                    cssClass: "cell non-editable-column"}
             var columns = [
-                    {id: "name", name: "Name", field: "name",
-                     width: projects_column_width.name, cssClass: "cell-title non-editable-column"},
-                    {id: "quantity", name: "Quantity", field: "quantity",
-                     width: projects_column_width.quantity, cssClass: "cell non-editable-column"},
-                    {id: "item_quantity", name: "Item Quantity", field: "item_quantity", cssClass: "cell editable-column",
-                     width: projects_column_width.item_quantity, editor: Slick.Editors.CustomEditor},
-                    {id: "rate", name: "Rate", field: "rate",
-                     width: projects_column_width.rate, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                    {id: "budg_cost", name: "Total", field: "budg_cost",
-                     width: projects_column_width.budg_cost, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                    {id: "sub_cost", name: "Subtotal", field: "sub_cost",
-                     width: projects_column_width.sub_cost, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                    {id: "unit", name: "Unit", field: "unit",
-                     width: projects_column_width.unit, cssClass: "cell  non-editable-column"},
-                    {id: "ordered", name: "Ordered", field: "ordered",
-                     width: projects_column_width.ordered, cssClass: "cell  non-editable-column", formatter: CurrencyFormatter},
-                    {id: "invoiced", name: "Invoiced", field: "invoiced",
-                     width: projects_column_width.invoiced, cssClass: "cell  non-editable-column", formatter: CurrencyFormatter}
-                    // {id: "order_cost", name: "Order Cost", field: "order_cost",
-                    //  width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                    // {id: "run_cost", name: "Run Cost", field: "run_cost",
-                    //  width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                    // {id: "claim_cost", name: "Claim Cost", field: "claim_cost",
-                    //  width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                    // {id: "income_rec", name: "Income Rec", field: "income_rec",
-                    //  width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                    // {id: "client_cost", name: "Client Cost", field: "client_cost",
-                    //  width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                    // {id: "proj_profit", name: "Proj. Profit", field: "proj_profit",
-                    //  width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                    // {id: "act_profit", name: "Act. Profit", field: "act_profit",
-                    //  width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                    name_column,
+                    quantity_column,
+                    item_quantity_column,
+                    rate_column,
+                    budg_cost_column,
+                    sub_cost_column,
+                    unit_column,
+                    ordered_column,
+                    invoiced_column
                 ];
-
-            // override the getitemmetadata method
-            // on the first row, if it is the parent
-            // set selectable false
-            function getItemMetaData(row){
-                if (row == 0 && grid){
-                    if (grid.getDataItem(row)){
-                        if (grid.getDataItem(row).isparent){
-                            return { selectable: false };
-                        }
-                    }
-                }
-                return {};
-            }
 
             var options = {
                     editable: true,
@@ -158,10 +181,15 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             grid = new Slick.Grid("#optimate-data-grid", dataView, columns, options);
             grid.setSelectionModel(new Slick.CustomSelectionModel());
 
-            // show tooltips on hover if the cellsize is so small, that an ellipsis
-            // '...' is being shown.
-            //autotooltips_plugin = new Slick.AutoTooltips({enableForHeaderCells: true})
-            //grid.registerPlugin(autotooltips_plugin);
+            // render the grid with the given columns and data
+            var renderGrid = function(columns, data){
+                grid.setColumns(columns);
+                dataView.beginUpdate();
+                dataView.setItems(data);
+                dataView.endUpdate();
+                grid.setSelectedRows([]);
+                grid.render();
+            }
 
             dataView.onRowCountChanged.subscribe(function (e, args) {
               grid.updateRowCount();
@@ -227,7 +255,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 // Get the value that indicated whether there are empty columns
                 var emptycolumns = response['emptycolumns'];
                 var no_subtotal_column = response['no_sub_cost'];
-                var no_itemquantity_column = response['no_item_quantity'];
+                var no_quantity_column = response['no_quantity'];
                 var type = response['type'];
                 if (data.length > 0) {
                     // If the grid is only showing resources or resourcecategories
@@ -240,76 +268,28 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     if ((secondtype == 'Resource') || (secondtype == 'ResourceCategory')) {
                         if (secondtype == 'Resource') {
                             newcolumns = [
-                                {id: "name", name: "Name", field: "name",
-                                 width: projects_column_width.name, cssClass: "cell-title non-editable-column"},
-                                {id: "rate", name: "Rate", field: "rate", cssClass: "cell editable-column",
-                                 width: projects_column_width.rate, formatter: CurrencyFormatter, editor: Slick.Editors.Float},
-                                 {id: "unit", name: "Unit", field: "unit",
-                                width: projects_column_width.unit, cssClass: "cell non-editable-column"},
-                                 {id: "resource_type", name: "Resource Type", field: "resource_type",
-                                width: projects_column_width.resource_type, cssClass: "cell non-editable-column"},
+                                name_column,
+                                rate_column,
+                                unit_column,
+                                resource_type_column,
                             ];
                         }
                         else if (secondtype == 'ResourceCategory') {
                             newcolumns = [
-                                {id: "name", name: "Name", field: "name",
-                                 width: projects_column_width.name, cssClass: "cell-title non-editable-column"},
+                                name_column
                             ];
                         }
-
-                        grid.setColumns(newcolumns);
-                        dataView.beginUpdate();
-                        dataView.setItems(data);
-                        dataView.endUpdate();
-
-                        // Grey out ResourceCategory rate columns
-                        for (var i=0; i < data.length; i++){
-                            if (data[i]['node_type'] == 'ResourceCategory') {
-                                grid.setCellCssStyles("non-editable-cell", {
-                                   i: {
-                                        "rate": "cell non-editable-column",
-                                       },
-                                });
-                            }
-                        }
-                        dataView.beginUpdate();
-                        dataView.endUpdate();
-                        grid.resetActiveCell();
-                        grid.setSelectedRows([]);
-                        grid.render();
+                        renderGrid(newcolumns, data)
                     }
                     else {
                         // if there will be empty columns remove them
                         if (emptycolumns) {
                             newcolumns = [
-                                {id: "name", name: "Name", field: "name",
-                                 width: projects_column_width.name, cssClass: "cell-title non-editable-column"},
-                                {id: "budg_cost", name: "Total", field: "budg_cost",
-                                 width: projects_column_width.budg_cost, cssClass: "cell non-editable-column",
-                                 formatter: CurrencyFormatter},
-                                {id: "sub_cost", name: "Subtotal", field: "sub_cost",
-                                 width: projects_column_width.sub_cost, cssClass: "cell non-editable-column",
-                                 formatter: CurrencyFormatter},
-                                {id: "ordered", name: "Ordered", field: "ordered",
-                                 width: projects_column_width.ordered, cssClass: "cell  non-editable-column",
-                                 formatter: CurrencyFormatter},
-                                {id: "invoiced", name: "Invoiced", field: "invoiced",
-                                 width: projects_column_width.invoiced, cssClass: "cell  non-editable-column",
-                                formatter: CurrencyFormatter}
-                                // {id: "order_cost", name: "Order Cost", field: "order_cost",
-                                //  width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                                // {id: "run_cost", name: "Run Cost", field: "run_cost",
-                                //  width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                                // {id: "claim_cost", name: "Claim Cost", field: "claim_cost",
-                                //  width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                                // {id: "income_rec", name: "Income Rec", field: "income_rec",
-                                //  width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                                // {id: "client_cost", name: "Client Cost", field: "client_cost",
-                                //  width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                                // {id: "proj_profit", name: "Proj. Profit", field: "proj_profit",
-                                //  width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
-                                // {id: "act_profit", name: "Act. Profit", field: "act_profit",
-                                //  width: cell_medium, cssClass: "cell non-editable-column", formatter: CurrencyFormatter},
+                                name_column,
+                                budg_cost_column,
+                                sub_cost_column,
+                                ordered_column,
+                                invoiced_column
                             ];
                             if (no_subtotal_column) {
                                 // remove subtotal column
@@ -319,67 +299,46 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                     newcolumns.splice(index, 1);
                                 }
                             }
-                            grid.setColumns(newcolumns);
-                            dataView.beginUpdate();
-                            dataView.setItems(data);
-                            dataView.endUpdate();
-                            grid.resetActiveCell();
-                            grid.setSelectedRows([]);
-                            grid.render();
+                            renderGrid(newcolumns, data)
                         }
                         // otherwise loop through the data and grey out
                         // uneditable columns
                         else {
-                            emptycolumns = [{id: "name", name: "Name", field: "name",
-                                 width: projects_column_width.name, cssClass: "cell-title non-editable-column"},
-                                {id: "quantity", name: "Quantity", field: "quantity",
-                                 width: projects_column_width.quantity, cssClass: "cell non-editable-column"},
-                                {id: "item_quantity", name: "Item Quantity", field: "item_quantity", cssClass: "cell editable-column",
-                                 width: projects_column_width.item_quantity, editor: Slick.Editors.CustomEditor},
-                                {id: "rate", name: "Rate", field: "rate",
-                                 width: projects_column_width.rate, cssClass: "cell non-editable-column",
-                                formatter: CurrencyFormatter},
-                                {id: "budg_cost", name: "Total", field: "budg_cost",
-                                 width: projects_column_width.budg_cost, cssClass: "cell non-editable-column",
-                                formatter: CurrencyFormatter},
-                                {id: "sub_cost", name: "Subtotal", field: "sub_cost",
-                                 width: projects_column_width.sub_cost, cssClass: "cell non-editable-column",
-                                formatter: CurrencyFormatter},
-                                {id: "unit", name: "Unit", field: "unit",
-                                 width: projects_column_width.unit, cssClass: "cell  non-editable-column"},
-                                {id: "ordered", name: "Ordered", field: "ordered",
-                                 width: projects_column_width.ordered, cssClass: "cell non-editable-column",
-                                formatter: CurrencyFormatter},
-                                {id: "invoiced", name: "Invoiced", field: "invoiced",
-                                 width: projects_column_width.invoiced, cssClass: "cell non-editable-column",
-                                formatter: CurrencyFormatter}];
+                            emptycolumns = [
+                                name_column,
+                                quantity_column,
+                                item_quantity_column,
+                                rate_column,
+                                budg_cost_column,
+                                sub_cost_column,
+                                unit_column,
+                                ordered_column,
+                                invoiced_column
+                            ];
 
                             if (no_subtotal_column) {
-                                // remove subtotal column - determined by backend, depending
-                                // if subtotal data exists for a node or not
+                                // remove subtotal column
                                 var index = emptycolumns.map(function(e)
                                     { return e.id; }).indexOf("sub_cost");
                                 if (index > -1) {
                                     emptycolumns.splice(index, 1);
                                 }
                             }
-                            if (no_itemquantity_column) {
-                                // remove quantity column - determined by backend, depending
-                                // if a budgetitem is in the list of children of the selected node
+                            if (no_quantity_column) {
+                                // remove quantity column
                                 var index = emptycolumns.map(function(e)
                                     { return e.id; }).indexOf("quantity");
                                 if (index > -1) {
                                     emptycolumns.splice(index, 1);
                                 }
                             }
-                            // make item quantity column non-editable for certain node types
+                            // make quantity column non-editable for certain node types
                             hidden_iq_types = ['BudgetItem'];
                             var itemquantity_type_found = $.inArray(type, hidden_iq_types) > -1;
                             if (!itemquantity_type_found) {
                                 var index = emptycolumns.map(function(e)
                                     { return e.id; }).indexOf("quantity");
                                 if (index > -1) {
-                                    console.log("making non editable");
                                     emptycolumns[index].cssClass = "cell non-editable-column";
                                     delete emptycolumns[index].editor;
                                 }
@@ -416,70 +375,23 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                                     cssClass: "cell non-editable-column"})
                             }
                             newcolumns = emptycolumns.concat(overheadcolumns);
-
-                            grid.setColumns(newcolumns);
-                            dataView.beginUpdate();
-                            grid.invalidateAllRows();
-                            dataView.setItems(data);
-                            dataView.endUpdate();
-
-                            for (var i=0; i < data.length; i++) {
-                                if (data[i]['node_type'] == 'BudgetGroup') {
-                                    grid.setCellCssStyles("non-editable-cell", {
-                                       i: {
-                                            quantity: 'cell non-editable-column',
-                                            markup: 'cell non-editable-column'
-                                           },
-                                    });
-                                }
-                                if (data[i]['node_type'] == 'BudgetItem') {
-                                    grid.setCellCssStyles("non-editable-cell", {
-                                       i: {
-                                            item_quantity: 'cell non-editable-column',
-                                            markup: 'cell non-editable-column'
-                                           },
-                                    });
-                                }
-                            }
-                            dataView.beginUpdate();
-                            dataView.endUpdate();
-                            grid.resetActiveCell();
-                            grid.setSelectedRows([]);
-                            grid.render();
+                            renderGrid(newcolumns, data)
                         }
                     }
                 }
                 else {
-                    emptycolumns = [{id: "name", name: "Name", field: "name",
-                         width: projects_column_width.name, cssClass: "cell-title non-editable-column"},
-                        {id: "quantity", name: "Quantity", field: "quantity",
-                         width: projects_column_width.quantity, cssClass: "cell non-editable-column"},
-                        {id: "item_quantity", name: "Item Quantity", field: "item_quantity", cssClass: "cell editable-column",
-                         width: projects_column_width.item_quantity},
-                        {id: "rate", name: "Rate", field: "rate",
-                         width: projects_column_width.rate, cssClass: "cell non-editable-column",
-                         formatter: CurrencyFormatter},
-                        {id: "budg_cost", name: "Total", field: "budg_cost",
-                         width: projects_column_width.budg_cost, cssClass: "cell non-editable-column",
-                         formatter: CurrencyFormatter},
-                        {id: "sub_cost", name: "Subtotal", field: "sub_cost",
-                         width: projects_column_width.sub_cost, cssClass: "cell non-editable-column",
-                         formatter: CurrencyFormatter},
-                        {id: "unit", name: "Unit", field: "unit",
-                         width: projects_column_width.unit, cssClass: "cell  non-editable-column"},
-                        {id: "ordered", name: "Ordered", field: "ordered",
-                         width: projects_column_width.ordered, cssClass: "cell  non-editable-column",
-                         formatter: CurrencyFormatter},
-                        {id: "invoiced", name: "Invoiced", field: "invoiced",
-                         width: projects_column_width.invoiced, cssClass: "cell  non-editable-column",
-                         formatter: CurrencyFormatter}];
-                    grid.setColumns(newcolumns);
-                    dataView.beginUpdate();
-                    dataView.setItems(data);
-                    dataView.endUpdate();
-                    grid.resetActiveCell();
-                    grid.setSelectedRows([]);
-                    grid.render();
+                    emptycolumns = [
+                        name_column,
+                        quantity_column,
+                        item_quantity_column,
+                        rate_column,
+                        budg_cost_column,
+                        sub_cost_column,
+                        unit_column,
+                        ordered_column,
+                        invoiced_column
+                    ];
+                    renderGrid(emptycolumns, data)
                 }
                 console.log("Slickgrid data loaded");
             }
@@ -510,7 +422,6 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             // on cell change post to the server and update the totals
             grid.onCellChange.subscribe(function (e, ctx) {
                 var item = ctx.item
-                console.log(item)
                 var req = {
                     method: 'POST',
                     url: globalServerURL +'node/' + item.id + '/update_value/',

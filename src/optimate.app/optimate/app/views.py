@@ -198,18 +198,6 @@ def nodeview(request):
     nodeid = request.matchdict['id']
     qry = DBSession.query(Node).filter_by(ID=nodeid).first()
     if qry:
-        if qry.type == 'Component' or qry.type == 'SimpleComponent':
-            pt = DBSession.query(Node).filter_by(ID=qry.ParentID).first().type
-            if pt == 'BudgetItem':
-                data = qry.toDict()
-                data['Quantity'] = data['ItemQuantity']
-                return data
-        elif qry.type == 'BudgetItem':
-            pt = DBSession.query(Node).filter_by(ID=qry.ParentID).first().type
-            if pt == 'BudgetItem':
-                data = qry.toDict()
-                data['Quantity'] = data['ItemQuantity']
-                return data
         return qry.toDict()
     else:
         return HTTPNotFound()
@@ -224,7 +212,6 @@ def additemview(request):
     parentid = int(request.matchdict['id'])
     # Get the data to be added to the new object from the request body
     desc = request.json_body.get('Description', '')
-    quantity = float(request.json_body.get('Quantity', 0))
     rate = request.json_body.get('Rate', 0)
     rate = Decimal(rate).quantize(Decimal('.01'))
     unit = request.json_body.get('Unit', '')
@@ -259,14 +246,14 @@ def additemview(request):
         # Components need to reference a Resource. If they don't, we create
         # a SimpleComponent instead.
         uid = request.json_body['ResourceID']
-        quantity = float(request.json_body.get('Quantity', 0))
+        itemquantity = float(request.json_body.get('ItemQuantity', 0))
         # check the resource exists
         resource = DBSession.query(Resource).filter_by(ID=uid).first()
         if not resource:
             return HTTPNotFound()
 
         newcomp = Component(ResourceID=resource.ID,
-                        _ItemQuantity=quantity,
+                        _ItemQuantity=itemquantity,
                         ParentID=parentid)
 
         DBSession.add(newcomp)
@@ -284,13 +271,13 @@ def additemview(request):
     elif objecttype == 'SimpleComponent':
         rate = request.json_body.get('Rate', 0)
         rate = Decimal(rate).quantize(Decimal('.01'))
-        quantity = float(request.json_body.get('Quantity', 0))
+        itemquantity = float(request.json_body.get('ItemQuantity', 0))
 
         newcomp = SimpleComponent(
             ParentID=parentid,
             Name=request.json_body['Name'],
             Description=request.json_body.get('Description', None),
-            _ItemQuantity=quantity,
+            _ItemQuantity=itemquantity,
             _Rate=rate,
             Type=request.json_body['ResourceType'])
         DBSession.add(newcomp)
@@ -302,9 +289,10 @@ def additemview(request):
                         ParentID=parentid)
 
     elif objecttype == 'BudgetItem':
+        itemquantity = float(request.json_body.get('ItemQuantity', 0))
         newnode = BudgetItem(Name=request.json_body['Name'],
                         Description=desc,
-                        _ItemQuantity = quantity,
+                        _ItemQuantity = itemquantity,
                         ParentID=parentid)
 
     elif objecttype == 'ResourceCategory':
@@ -412,8 +400,8 @@ def edititemview(request):
                 overhead = DBSession.query(Overhead).filter_by(ID=overheadid).first()
                 newoverheads.append(overhead)
         component.Overheads = newoverheads
-        quantity= float(request.json_body.get('Quantity', 0))
-        component.ItemQuantity=quantity
+        itemquantity= float(request.json_body.get('ItemQuantity', 0))
+        component.ItemQuantity=itemquantity
 
     elif objecttype == 'SimpleComponent':
         rate = request.json_body.get('Rate', 0)
@@ -424,8 +412,8 @@ def edititemview(request):
         component.Description = request.json_body['Description']
         component._Rate=rate
         component.Type=request.json_body['ResourceType']
-        quantity = float(request.json_body.get('Quantity', 0))
-        component.ItemQuantity=quantity
+        itemquantity = float(request.json_body.get('ItemQuantity', 0))
+        component.ItemQuantity=itemquantity
 
     elif objecttype == 'BudgetGroup':
         budgetgroup = DBSession.query(BudgetGroup).filter_by(ID=nodeid).first()
@@ -436,8 +424,8 @@ def edititemview(request):
         budgetitem = DBSession.query(BudgetItem).filter_by(ID=nodeid).first()
         budgetitem.Name= request.json_body['Name']
         budgetitem.Description= request.json_body.get('Description', '')
-        quantity = float(request.json_body.get('Quantity', 0))
-        budgetitem.ItemQuantity=quantity
+        itemquantity = float(request.json_body.get('ItemQuantity', 0))
+        budgetitem.ItemQuantity=itemquantity
 
     elif objecttype == 'ResourceCategory':
         resourcecategory = DBSession.query(ResourceCategory).filter_by(ID=nodeid).first()
@@ -694,6 +682,8 @@ def node_grid(request):
     parentid = request.matchdict['parentid']
     parentlist = None
     childrenlist = []
+    # put the ResourceCategories in another list that is appended first
+    rescatlist = []
     # Execute the sql query on the Node table to find the parent
     qry = DBSession.query(Node).filter_by(ParentID=parentid)
     if qry.count() == 0:
@@ -725,20 +715,18 @@ def node_grid(request):
             (Node.type == 'SimpleComponent'))
     no_sub_cost = sub_cost_result.count() == 0
 
-    # put the ResourceCategories in another list that is appended first
-    rescatlist = []
+    # if the query has any budgetitems dont show the quantity column
+    no_quantity_result = qry.filter(
+            (Node.type == 'BudgetItem'))
+    no_quantity = no_quantity_result.count() == 0
+
     qry = qry.all()
     # Get the griddata dict from each child and add it to the list
-    no_item_quantity = True
     for child in qry:
         if child.type == 'ResourceCategory':
             rescatlist.append(child.getGridData())
         else:
             childrenlist.append(child.getGridData())
-        if child.type == 'BudgetItem':
-            # show the item quantity column
-            # if at least one of the children is a budgetitem
-            no_item_quantity = False
 
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['name'].upper())
     sorted_rescatlist = sorted(rescatlist, key=lambda k: k['name'].upper())
@@ -749,7 +737,7 @@ def node_grid(request):
     return {'list': sorted_childrenlist,
             'emptycolumns': emptycolumns,
             'no_sub_cost': no_sub_cost,
-            'no_item_quantity' : no_item_quantity,
+            'no_quantity' : no_quantity,
             'type': node_type}
 
 

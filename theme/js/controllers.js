@@ -933,7 +933,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 ID: undefined,
                 Description: "",
                 Rate: "0.00",
-                Quantity: "0.00",
+                ItemQuantity: "0",
                 Type: undefined
             };
             return item;
@@ -982,7 +982,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 if ($scope.formData.NodeType == 'Component' || $scope.formData.NodeType == 'SimpleComponent'){
                     $scope.formData['OverheadList'] = $scope.componentOverheadList || [];
                     if ($scope.formData.selected.ID === undefined){
-                        $scope.formData.Quantity = $scope.formData.selected.Quantity;
+                        $scope.formData.ItemQuantity = $scope.formData.selected.ItemQuantity;
                         $scope.formData.NodeType = 'SimpleComponent'
                         $scope.formData.Rate = $scope.formData.selected.Rate
                         $scope.formData.Name = $scope.formData.selected.Name
@@ -991,7 +991,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     }
                     else{
                         $scope.formData.ResourceID = $scope.formData.selected.ID;
-                        $scope.formData.Quantity = $scope.formData.selected.Quantity;
+                        $scope.formData.ItemQuantity = $scope.formData.selected.ItemQuantity;
                         $scope.formData.NodeType = 'Component'
                     }
                 }
@@ -1040,7 +1040,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 // if the node is a component set the selected data to the form
                 if ($scope.formData.NodeType == 'Component' || $scope.formData.NodeType == 'SimpleComponent'){
                     $scope.formData.ResourceID = $scope.formData.selected.ID;
-                    $scope.formData.Quantity = $scope.formData.selected.Quantity;
+                    $scope.formData.ItemQuantity = $scope.formData.selected.ItemQuantity;
                     if ($scope.formData.ResourceID == undefined){
                         $scope.formData.NodeType == 'SimpleComponent'
                         $scope.formData.Rate = $scope.formData.selected.Rate

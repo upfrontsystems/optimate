@@ -821,7 +821,7 @@ class BudgetItem(Node):
         """
         return {'Name': self.Name,
                 'Description' : self.Description,
-                'Quantity' : self._Quantity,
+                'Quantity' : self.Quantity,
                 'ItemQuantity': self.ItemQuantity,
                 'Ordered': str(self.Ordered),
                 'Invoiced': str(self.Invoiced),
