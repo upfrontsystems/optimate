@@ -458,10 +458,34 @@ def invoices_report_filter(request):
 @view_config(route_name="invoices")
 def invoices(request):
     print "Generating Invoices Report"
-#    invoiceid = request.matchdict['id']
-#    invoice = DBSession.query(Invoice).filter_by(ID=invoiceid).first()
+    filter_by_project = request.json_body['FilterByProject']
+    filter_by_supplier = request.json_body['FilterBySupplier']
+    filter_by_paymentdate = request.json_body['FilterByPaymentDate']
+    filter_by_status = request.json_body['FilterByStatus']
 
-    filter_type = 'project'; # will change dynamically
+    # inject node data into template
+    nodes = []
+
+    if filter_by_project and 'Project' in request.json_body:
+        filter_target = request.json_body['Project']
+        filter_type = 'project';
+
+    elif filter_by_supplier and 'Supplier' in request.json_body:
+        supplier = request.json_body['Supplier']
+        filter_type = 'supplier';
+
+    elif filter_by_paymentdate and 'PaymentDate' in request.json_body:
+        paymentdate = request.json_body['PaymentDate']
+        filter_type = 'paymentdate';
+
+    elif filter_by_status and 'Status' in request.json_body:
+        status = request.json_body['Status']
+        filter_type = 'status';
+
+    else:
+        filter_type = 'none';    
+
+
     invoices = []
     # inject invoice data into template
     template_data = render('templates/invoicesreport.pt',
@@ -480,7 +504,7 @@ def invoices(request):
     pdf.close()
 
     filename = "invoice_report"
-    now = datetime.datetime.now()
+    now = datetime.now()
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
     last_modified = formatdate(time.mktime(now.timetuple()))
     response = Response(content_type='application/pdf',

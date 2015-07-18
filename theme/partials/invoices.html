@@ -24,7 +24,7 @@
                         <i class="fa fa-trash"></i>
                 </a>
             </li>
-            <li> <!-- ng-show="invoicesExist"> -->
+            <li ng-show="invoicesReportEnabled">
                 <a title="Invoices Report" data-target="#invoicesReport"
                 data-toggle="modal" data-ng-click="filterReportBy()"
                 class="pdf_download">

@@ -2246,6 +2246,15 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
         $scope.clientsList = [];
         $scope.clearFilters();
 
+        $scope.invoicesLengthCheck = function() {
+            if ($scope.jsoninvoices.length == 0) {
+               $scope.invoicesReportEnabled = false;
+            }
+            else {
+               $scope.invoicesReportEnabled = true;
+            }
+        }
+
         $scope.loadInvoiceSection = function() {
             var req = {
                 method: 'GET',
@@ -2260,6 +2269,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             };
             $http(req).success(function(response) {
                 $scope.jsoninvoices = response;
+                $scope.invoicesLengthCheck();
                 console.log("Invoices loaded");
             });
         }
@@ -2341,6 +2351,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
                 var idB = b.id;
                 return (idA > idB) ? -1 : (idA < idB) ? 1 : 0;
             });
+            $scope.invoicesLengthCheck();
             console.log ("Invoice added");
         }
 
@@ -2417,6 +2428,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
                 var i = $scope.jsoninvoices.indexOf(result[0]);
                 if (i>-1) {
                     $scope.jsoninvoices.splice(i, 1);
+                    $scope.invoicesLengthCheck();
                     console.log("Deleted invoice");
                 }
             });
@@ -2490,11 +2502,14 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             if ( report == 'invoices' ) {
                 var target = document.getElementsByClassName('pdf_download');
                 var spinner = new Spinner().spin(target[0]);
-                $scope.formData['InvoiceFilterTypeList'] = $scope.invoiceFilterTypeList || [];
-                // XXX insert parameters that will go to invoice report
+                $scope.formData['FilterByProject'] = $scope.filterByProject;
+                $scope.formData['FilterBySupplier'] = $scope.filterBySupplier;
+                $scope.formData['FilterByPaymentDate'] = $scope.filterByPaymentDate;
+                $scope.formData['FilterByStatus'] = $scope.filterByStatus;
                 $http({
                     method: 'POST',
-                    url: globalServerURL + 'invoices_report'},
+                    url: globalServerURL + 'invoices_report',
+                    data: $scope.formData},
                     {responseType: 'arraybuffer'})
                 .success(function (response, status, headers, config) {
                     spinner.stop(); // stop the spinner - ajax call complete
