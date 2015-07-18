@@ -242,6 +242,7 @@ def additemview(request):
                                         ParentID=newid)
         DBSession.add(newresourcecat)
         DBSession.flush()
+
     elif objecttype == 'Component':
         # Components need to reference a Resource. If they don't, we create
         # a SimpleComponent instead.
@@ -252,12 +253,10 @@ def additemview(request):
         if not resource:
             return HTTPNotFound()
 
-        newcomp = Component(ResourceID=resource.ID,
-                        _ItemQuantity=itemquantity,
-                        ParentID=parentid)
-
-        DBSession.add(newcomp)
-        DBSession.flush()
+        newnode = Component(ResourceID=resource.ID,
+                            _ItemQuantity=itemquantity,
+                            _Quantity=quantity,
+                            ParentID=parentid)
 
         # get the list of overheads used in the checkboxes
         checklist = request.json_body['OverheadList']
@@ -266,27 +265,32 @@ def additemview(request):
                 overheadid = record['ID']
                 overhead = DBSession.query(
                             Overhead).filter_by(ID=overheadid).first()
-                newcomp.Overheads.append(overhead)
+                newnode.Overheads.append(overhead)
+
+        DBSession.add(newnode)
+        DBSession.flush()
 
     elif objecttype == 'SimpleComponent':
         rate = request.json_body.get('Rate', 0)
         rate = Decimal(rate).quantize(Decimal('.01'))
         itemquantity = float(request.json_body.get('ItemQuantity', 0))
 
-        newcomp = SimpleComponent(
+        newnode = SimpleComponent(
             ParentID=parentid,
             Name=request.json_body['Name'],
             Description=request.json_body.get('Description', None),
             _ItemQuantity=itemquantity,
             _Rate=rate,
             Type=request.json_body['ResourceType'])
-        DBSession.add(newcomp)
+        DBSession.add(newnode)
         DBSession.flush()
 
     elif objecttype == 'BudgetGroup':
         newnode = BudgetGroup(Name=request.json_body['Name'],
                         Description=desc,
                         ParentID=parentid)
+        DBSession.add(newnode)
+        DBSession.flush()
 
     elif objecttype == 'BudgetItem':
         itemquantity = float(request.json_body.get('ItemQuantity', 0))
@@ -294,11 +298,16 @@ def additemview(request):
                         Description=desc,
                         _ItemQuantity = itemquantity,
                         ParentID=parentid)
+        DBSession.add(newnode)
+        DBSession.flush()
 
     elif objecttype == 'ResourceCategory':
         newnode = ResourceCategory(Name=request.json_body['Name'],
                         Description=desc,
                         ParentID=parentid)
+
+        DBSession.add(newnode)
+        DBSession.flush()
 
     elif objecttype == 'Resource':
         code = request.json_body['Code']
@@ -348,9 +357,10 @@ def additemview(request):
         reset.resetTotal()
 
     # commit the transaction and return ok,
-    # along with the id of the new node
+    # along with the id of the new node, and the node object itself
     transaction.commit()
-    return {'ID': newid}
+    node = DBSession.query(Node).filter_by(ID=newid).first()
+    return {'ID': newid, 'node': node.toChildDict()}
 
 
 def edititemview(request):
