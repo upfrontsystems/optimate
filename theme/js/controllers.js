@@ -68,7 +68,7 @@ allControllers.controller('companyinformationController', ['$scope', '$http', '$
                 method: 'PUT',
                 url: globalServerURL + 'company_information',
                 data: $scope.formData
-            }).success(function (data) {
+            }).success(function(response) {
                 $scope.company_information = $scope.formData
             });
             $scope.EditCompanyInformationForm.$setPristine();
@@ -481,12 +481,96 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         $scope.calculatorHidden = true; // set calculator to be hidden by default
         $scope.rowsSelected = false;    // set selected rows false
 
+        // aux function to test if we can support localstorage
+        var hasStorage = (function() {
+            try {
+                var mod = 'modernizr';
+                localStorage.setItem(mod, mod);
+                localStorage.removeItem(mod);
+                return true;
+            }
+            catch (exception) {
+                return false;
+            }
+        }());
+        // reopen projects that were previously opened upon page load
+        $scope.preloadProjects = function () {
+            if (hasStorage) {
+                open_projects = []
+                try {
+                    open_projects = JSON.parse(localStorage["open_projects"])
+                }
+                catch (exception) {
+                }
+                if ( open_projects.length != 0 ) {
+                    for (var i = 0; i < open_projects.length; i++) {
+                        var id = open_projects[i];
+                        var url = globalServerURL + 'node/' + id + '/'
+                        $http.get(url).success(function(data) {
+                            $scope.projectsRoot.Subitem.push(data);
+                            $scope.projectsRoot.Subitem.sort(function(a, b) {
+                                return a.Name.localeCompare(b.Name)
+                            });
+                        });
+                    }
+                }
+            }
+            else {
+                console.log("LOCAL STORAGE NOT SUPPORTED!")
+            }
+        };
+        // build the root for the projects in the tree
+        $scope.projectsRoot = {"Name": "Root", "ID": 0, "NodeType":"Root", "Subitem": []};
+        $scope.preloadProjects(); // check if anything is stored in local storage
+
         // load the projects used in the select project modal
-        // Add a loading value to the project list while it loads
-        $scope.projectsList = [{"Name": "Loading..."}];
         $http.get(globalServerURL + 'projects/').success(function(data) {
             $scope.projectsList = data;
         });
+
+        // load the unit list
+        $http.get(globalServerURL + 'units').success(function(data) {
+            $scope.unitList = data;
+            console.log("Unit list loaded");
+        });
+
+        // load the resource types
+        $http.get(globalServerURL + 'resourcetypes').success(function(data) {
+            $scope.restypeList = data;
+            console.log("Resource Type list loaded");
+        });
+
+        // load the suppliers list
+        $http.get(globalServerURL + 'suppliers').success(function(data) {
+            $scope.supplierList = data;
+            console.log("Resource Supplier list loaded");
+        });
+
+        // load the city list
+        $http.get(globalServerURL + 'cities').success(function(data) {
+            $scope.cityList = data;
+            console.log("City list loaded");
+        });
+
+        // load the client list
+        $http.get(globalServerURL + 'clients').success(function(data) {
+            $scope.clientList = data;
+            console.log("Client list loaded");
+        });
+
+        $scope.statusMessage = function(message, timeout, type) {
+            $('#status_message span').text(message);
+            $('#status_message span').addClass(type);
+            $('#status_message').show();
+            // setting timeout to 0, makes the message sticky, next non-sticky
+            // message will clear it.
+            if ( timeout != 0 ) {
+                window.setTimeout(function () {
+                    $("#status_message").hide();
+                    $('#status_message span').removeClass(type);
+                }, timeout);
+            }
+        }
 
         // When a new project is added to the tree
         $scope.projectAdded = function(newproject) {
@@ -538,18 +622,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }
             return false;
         }
-        // aux function to test if we can support localstorage
-        var hasStorage = (function() {
-            try {
-                var mod = 'modernizr';
-                localStorage.setItem(mod, mod);
-                localStorage.removeItem(mod);
-                return true;
-            }
-            catch (exception) {
-                return false;
-            }
-        }());
 
         // load the project that has been selected into the tree
         $scope.loadProject = function () {
@@ -614,35 +686,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 }
             }
         };
-        // reopen projects that were previously opened upon page load
-        $scope.preloadProjects = function () {
-            if (hasStorage) {
-                open_projects = []
-                try {
-                    open_projects = JSON.parse(localStorage["open_projects"])
-                }
-                catch (exception) {
-                }
-                if ( open_projects.length != 0 ) {
-                    for (var i = 0; i < open_projects.length; i++) {
-                        var id = open_projects[i];
-                        var url = globalServerURL + 'node/' + id + '/'
-                        $http.get(url).success(function(data) {
-                            $scope.projectsRoot.Subitem.push(data);
-                            $scope.projectsRoot.Subitem.sort(function(a, b) {
-                                return a.Name.localeCompare(b.Name)
-                            });
-                        });
-                    }
-                }
-            }
-            else {
-                console.log("LOCAL STORAGE NOT SUPPORTED!")
-            }
-        };
-        // build the root for the projects in the tree
-        $scope.projectsRoot = {"Name": "Root", "ID": 0, "NodeType":"Root", "Subitem": []};
-        $scope.preloadProjects(); // check if anything is stored in local storage
 
         // functions used by the treeview
         // --------------------------------------------------------------------
@@ -652,7 +695,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         $scope.$broadcast('expandAll');
 
         // set the allowed types to be dropped
-        $scope.allowed = {}
+        $scope.allowed = {};
         $scope.allowed['Project'] = ['BudgetGroup'];
         $scope.allowed['BudgetGroup'] = ['BudgetGroup', 'BudgetItem',
                                     'Component'];
@@ -761,12 +804,12 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         $scope.currentNodeScope = event.source.nodeScope;
                         $scope.cutThisNode(src);
                         $scope.currentNode = dest;
-                        $scope.pasteThisNode(dest.ID);
+                        $scope.pasteThisNode(dest);
                     }
                     // otherwise paste
                     else{
                         $scope.copyThisNode(src);
-                        $scope.pasteThisNode(dest.ID);
+                        $scope.pasteThisNode(dest);
                         // set the flag to indicate the source needs to be added
                         // back to the parent when the node drops
                         $scope.addNodeBack = true;
@@ -883,151 +926,49 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             $scope.newOverhead = undefined;
         }
 
-        // Load the resources the user can select from the resource list
-        $scope.searching = false;
-        $scope.loadResourceList = function(state) {
-            var finder = $('.finder').get(0);
-            $scope.finder = $scope.finder || new ContentFinder(finder, function(id, search) {
-                var url,
-                    params = {};
-                if (id === undefined || id === null || search) {
-                    url = globalServerURL + 'project/' + $scope.currentNode.ID + '/resources/';
-                } else {
-                    url = globalServerURL + 'resource/' + id + '/';
-                }
-                if (search) {
-                    params['search'] = search;
-                    $scope.searching = true;
-                } else {
-                    $scope.searching = false;
-                }
-                return $http({
+        // transform the tag to a new resource-like object
+        $scope.tagTransform = function (newTag) {
+            var item = {
+                Name: newTag,
+                ID: undefined,
+                Description: "",
+                Rate: "0.00",
+                ItemQuantity: "0",
+                Type: undefined
+            };
+            return item;
+        };
+
+        // search for the resources in the node's category that match the search term
+        $scope.refreshResources = function(searchterm){
+            if ($scope.currentNode){
+                var req = {
                     method: 'GET',
-                    cache: $cacheFactory.get('optimate.resources'),
-                    params: params,
-                    url: url
-                })
-            }, function(item) {
-                // Designed three-way. If item is a string, then the user
-                // wants to define his own component. If it is an object
-                // then he selected something. If it is null, he deselected
-                // an item or cleared the selection.
-                var $addComponent = $('#addComponent'),
-                    $description = $addComponent.find('#description');
-
-                if (item && item.indexOf) {
-                    // String value
-                    $scope.addComponentForm.has_selection = false;
-                    $scope.formData.Description = '';
-                    $scope.formData.Rate = '';
-                    $scope.formData.ResourceType = '';
-                    $description.focus();
-                } else if(item) {
-                    // object
-                    $scope.addComponentForm.has_selection = true;
-                    $scope.formData.Description = item.description;
-                    $scope.formData.Rate = +item.rate;
-                    $scope.formData.ResourceType = item.type;
-                    $addComponent.find('#inputQuantity').focus();
-                } else {
-                    // null
-                    $scope.addComponentForm.has_selection = false;
-                    $scope.formData.Description = '';
-                    $scope.formData.Rate = '';
-                    $scope.formData.ResourceType = '';
-                    $addComponent.find('#inputResources').focus();
-                }
-            });
-            if (state == 'add') { $scope.finder.clear_selection(); }
-            $scope.finder.listdir();
-        };
-
-        $scope.refreshResourceList = function() {
-            $cacheFactory.get('optimate.resources').removeAll();
-            $scope.finder.listdir();
-        };
-
-        // Not the most angular approach, but it does help it go away
-        // when you click outside the dropdown.
-        $scope.closeDropdown = function(e) {
-            if (!e.isDefaultPrevented()) {
-                $scope.finder && $scope.finder.opened && $scope.finder.close_dropdown();
+                    url: globalServerURL + 'project/' + $scope.currentNode.ID + '/resources/',
+                    params: {'search': searchterm}
+                };
+                $http(req).success(function(response) {
+                    $scope.resourceList = response;
+                });
             }
-        };
-
-        // Load a list of the fields used in adding a project
-        $scope.loadProjectRelatedList = function() {
-            // load the city list
-            $scope.cityList = [{"Name": "Loading..."}];
-            var req = {
-                method: 'GET',
-                url: globalServerURL + 'cities'
-            }
-            $http(req).success(function(data) {
-                $scope.cityList = data;
-                console.log("City list loaded");
-            });
-
-            // load the client list
-            $scope.clientList = [{"Name": "Loading..."}];
-            var req = {
-                method: 'GET',
-                url: globalServerURL + 'clients'
-            }
-            $http(req).success(function(data) {
-                $scope.clientList = data;
-                console.log("Client list loaded");
-            });
         }
 
-        // Load a list of the fields used in adding a resource
-        $scope.loadResourceRelatedList = function() {
-            // load the unit list
-            $scope.unitList = [{"Name": "Loading..."}];
-            var req = {
-                method: 'GET',
-                url: globalServerURL + 'units'
+        $scope.resourceSelected = function(item){
+            var $addComponent = $('#addComponent'),
+                $description = $addComponent.find('#description');
+            if (item.ID == undefined){
+                $scope.addComponentForm.has_selection = false;
+                $description.focus();
             }
-            $http(req).success(function(data) {
-                $scope.unitList = data;
-                console.log("Unit list loaded");
-            });
+            else{
+                $scope.addComponentForm.has_selection = true;
+                $addComponent.find('#inputQuantity').focus();
+            }
+        };
 
-            // load the resource types
-            $scope.restypeList = [{"Name": "Loading..."}];
-            var req = {
-                method: 'GET',
-                url: globalServerURL + 'resourcetypes'
-            }
-            $http(req).success(function(data) {
-                $scope.restypeList = data;
-                console.log("Resource Type list loaded");
-            });
-
-            // load the suppliers list
-            $scope.supplierList = [{"Name": "Loading..."}];
-            var req = {
-                method: 'GET',
-                url: globalServerURL + 'suppliers'
-            }
-            $http(req).success(function(data) {
-                $scope.supplierList = data;
-                console.log("Resource Supplier list loaded");
-            });
-        }
-
-        // Add the selected resource from the list to the form data as name, if
-        // nothing selected, add the text as name so a simple component can be
-        // created. Ideally we want to get this data from formData rather than
-        // using jquery here. TODO some day.
-        $scope.selectedResource = function() {
-            var selected = $('#related_items_finder .finder-choices .search-choice .selected-resource');
-            if (selected.length) {
-                $scope.formData['Name'] = selected.text();
-                $scope.formData['uid'] = selected.parent().data('uid');
-            } else {
-                $scope.formData['Name'] = $('#related_items_finder #inputResources').val();
-            }
+        // load the lists used in adding/editing a component
+        $scope.loadComponentRelatedList = function(nodeid){
+            $scope.loadComponentOverheads(nodeid);
         };
 
         // When the addNode button is clicked on the modal a new node
@@ -1037,16 +978,36 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             if (!$scope.isDisabled) {
                 $scope.isDisabled = true;
                 var currentid = $scope.currentNode.ID;
-                $scope.formData['OverheadList'] = $scope.componentOverheadList || [];
+                // if the node is a component set the selected data to the form
+                if ($scope.formData.NodeType == 'Component' || $scope.formData.NodeType == 'SimpleComponent'){
+                    $scope.formData['OverheadList'] = $scope.componentOverheadList || [];
+                    if ($scope.formData.selected.ID === undefined){
+                        $scope.formData.ItemQuantity = $scope.formData.selected.ItemQuantity;
+                        $scope.formData.NodeType = 'SimpleComponent'
+                        $scope.formData.Rate = $scope.formData.selected.Rate
+                        $scope.formData.Name = $scope.formData.selected.Name
+                        $scope.formData.Description = $scope.formData.selected.Description
+                        $scope.formData.ResourceType = $scope.formData.selected.ResourceType
+                    }
+                    else{
+                        $scope.formData.ResourceID = $scope.formData.selected.ID;
+                        $scope.formData.ItemQuantity = $scope.formData.selected.ItemQuantity;
+                        $scope.formData.NodeType = 'Component'
+                    }
+                }
                 $http({
                     method: 'POST',
                     url: globalServerURL + 'node/' + currentid + '/',
                     data: $scope.formData
-                }).success(function () {
-                    $scope.formData = {'NodeType':$scope.formData['NodeType']};
+                }).success(function(response) {
+                    $scope.formData = {'NodeType':$scope.formData.NodeType};
                     $scope.handleReloadSlickgrid(currentid)
-                    // sharedService.reloadSlickgrid(currentid);
-                    $scope.loadNodeChildren(currentid);
+                    // insert the newly created node in the correct place 
+                    // in the childlist
+                    $scope.currentNode.Subitem.push(response['node']);
+                    $scope.currentNode.Subitem.sort(function(a, b) {
+                        return a.Name.localeCompare(b.Name)
+                    });
                     // expand the node if this is its first child
                     if ($scope.currentNode.Subitem.length == 0) {
                         $scope.currentNode.collapsed = true;
@@ -1076,6 +1037,52 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }
         };
 
+        // save changes made to the node's properties
+        $scope.saveNodeEdits = function() {
+            if (!$scope.isDisabled) {
+                $scope.isDisabled = true;
+                // if the node is a component set the selected data to the form
+                if ($scope.formData.NodeType == 'Component' || $scope.formData.NodeType == 'SimpleComponent'){
+                    $scope.formData.ResourceID = $scope.formData.selected.ID;
+                    $scope.formData.ItemQuantity = $scope.formData.selected.ItemQuantity;
+                    if ($scope.formData.ResourceID == undefined){
+                        $scope.formData.NodeType == 'SimpleComponent'
+                        $scope.formData.Rate = $scope.formData.selected.Rate
+                        $scope.formData.Name = $scope.formData.selected.Name
+                        $scope.formData.Description = $scope.formData.selected.Description
+                        $scope.formData.ResourceType = $scope.formData.selected.ResourceType
+                    }
+                    else{
+                        $scope.formData.NodeType == 'Component'
+                        $scope.formData.Name = $scope.formData.selected.Name
+                    }
+                }
+                var req = {
+                    method: 'PUT',
+                    url: globalServerURL + 'node/' + $scope.currentNode.ID + '/',
+                    data: $scope.formData,
+                }
+                $http(req).success(function(response) {
+                    console.log($scope.formData['NodeType'] + " edited")
+                    // set the current node name to the name in the modal form
+                    if ($scope.currentNode.Name != $scope.formData.Name) {
+                        $scope.currentNode.Name = $scope.formData.Name;
+                        // only sort if its not a project's resource category
+                        var parent = $scope.currentNodeScope.$parentNodeScope || {'$modelValue':{'NodeType':'Project'}};
+                        if (!($scope.currentNode.NodeType == 'ResourceCategory' && parent.$modelValue.NodeType == 'Project')){
+                            $scope.currentNodeScope.$parentNodesScope.$modelValue.sort(function(a, b) {
+                                var textA = a.Name.toUpperCase();
+                                var textB = b.Name.toUpperCase();
+                                return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+                            });
+                        }
+                    }
+                    $scope.currentNode.Description = $scope.formData.Description
+                    $scope.handleReloadSlickgrid($scope.formData.ID);
+                });
+            }
+        };
+
         // Setting the type of the node to be added
         // refresh it if the type is the same
         // $timeout is used so that the scope is refreshed and the directive
@@ -1100,7 +1107,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
         // fetch the properties of the node being edited
         // to populate the respective edit form
-        $scope.editNode = function(nodeid, nodetype) {
+        $scope.editNode = function(nodeid) {
             $scope.calculatorHidden = true;
             $scope.modalState = "Edit"
             $scope.isDisabled = false;
@@ -1110,27 +1117,13 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }
             $http(req).success(function(response) {
                 var nodetype = response.NodeType;
-                $scope.formData = response;
-                $scope.formData['NodeType'] = nodetype;
-                $scope.formData['ID'] = nodeid;
+                $scope.formData.ID = nodeid;
                 // special case for component types
-                if (nodetype == 'SimpleComponent') {
-                    // populate the finder with current choice
-                    $scope.finder.input.val(response.Name)
-                }
                 if (nodetype == 'Component') {
-                    // populate the finder with current choice
-                    $scope.finder.selecteditems = [{
-                        uid: response.ResourceID,
-                        title: response.Name,
-                        type: response.ResourceType,
-                        description: response.Description,
-                        folderish: false,
-                        normalized_type: 'document',
-                        rate: response.Rate
-                    }];
-                    $scope.finder.update_selection();
-
+                    // populate the selection
+                    $scope.formData.selected = response;
+                    $scope.formData.selected.ID = response.ResourceID
+                    $scope.formData.NodeType = nodetype;
                     // update overheadlist
                     $http.get(globalServerURL + 'component/' + nodeid + '/overheads/')
                     .success(function(data) {
@@ -1145,114 +1138,208 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         $scope.formData['OverheadList'] = $scope.componentOverheadList;
                     });
                 }
-            });
-            $scope['add' + nodetype + 'Form'].$setPristine();
-        }
-
-        // save changes made to the node's properties
-        $scope.saveNodeEdits = function() {
-            var req = {
-                method: 'PUT',
-                url: globalServerURL + 'node/' + $scope.formData['ID'] + '/',
-                data: $scope.formData,
-            }
-            $http(req).success(function(response) {
-                console.log($scope.formData['NodeType'] + " edited")
-                // set the current node name to the name in the modal form
-                if ($scope.currentNode.Name != $scope.formData.Name) {
-                    $scope.currentNode.Name = $scope.formData.Name;
-                    // sort the sibling items in scope
-                    $scope.currentNodeScope.$parentNodesScope.$modelValue.sort(function(a, b) {
-                        var textA = a.Name.toUpperCase();
-                        var textB = b.Name.toUpperCase();
-                        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
-                    });
+                else if(nodetype == 'SimpleComponent'){
+                    // populate the selection
+                    $scope.formData.selected = response;
+                    $scope.formData.NodeType = nodetype;
+                    nodetype = 'Component';
                 }
-                $scope.currentNode.Description = $scope.formData.Description
-                $scope.handleReloadSlickgrid($scope.formData.ID);
-                // sharedService.reloadSlickgrid($scope.formData['ID']);
+                else{
+                    $scope.formData = response;
+                }
+                $scope['add' + nodetype + 'Form'].$setPristine();
             });
-        }
+        };
 
-        // Deleting a node. It recieves the id of the node
+        // Deleting a node. It receives the id of the node
         // The id is sent to the server to be deleted and the node
         // removed from the treemodel
         $scope.deleteThisNode = function ( nodeid ) {
-            $('#status_message span').text("Deleted " + $scope.currentNode.Name);
-            $('#status_message').fadeIn('fast',function() {
-                $('#status_message span').animate({'top':'13%'},1500);
-            });
+            $scope.statusMessage("Deleting " + $scope.currentNode.Name, 0, 'alert-info');
             $http({
                 method: 'DELETE',
                 url:globalServerURL + 'node/' + nodeid + '/'
             }).success(function (response) {
+                $scope.statusMessage("Deleted " + $scope.currentNode.Name, 1000, 'alert-info');
                 if (response['parentid'] == 0) {
                     $scope.closeProject(nodeid);
                 }
-                else{
+                else {
                     $scope.nodeDeleted();
                 }
-                window.setTimeout(function () {
-                    $('#status_message span').animate({'top':'-200px'},1500,function() {
-                        $('#status_message').fadeOut('fast');
-                    });
-                }, 2500);
+            }).error(function(){
+                console.log("Server error");
+                $scope.statusMessage("Server error.", 1000, 'alert-warning');
             });
         };
 
         // Function to copy a node
         $scope.copyThisNode = function(node) {
-            $('#status_message span').text(node.Name + " copied.");
-            $('#status_message').fadeIn('fast',function() {
-                $('#status_message span').animate({'top':'13%'},1500);
-            });
+            $scope.statusMessage(node.Name + " copied.", 1000, 'alert-info');
             $scope.copiedNode = node;
             $scope.cut = false;
             console.log("Node id copied: " + node.ID);
-            window.setTimeout(function () {
-                $('#status_message span').animate({'top':'-200px'},1500,function() {
-                    $('#status_message').fadeOut('fast');
-                });
-            }, 2500);
         }
 
         // Function to cut a node
         // the node is removed from the tree (but not deleted)
         $scope.cutThisNode = function(node) {
-            $('#status_message span').text(node.Name + " cut.");
-            $('#status_message').fadeIn('fast',function() {
-                $('#status_message span').animate({'top':'13%'},1500);
-            });
+            $scope.statusMessage(node.Name + " cut.", 1000, 'alert-info');
             $scope.copiedNode = node;
             console.log("Node id cut: " + node.ID);
             $scope.cut = true;
             $scope.nodeDeleted();
-            window.setTimeout(function () {
-                $('#status_message span').animate({'top':'-200px'},1500,function() {
-                    $('#status_message').fadeOut('fast');
-                });
-            }, 2500);
         }
+
+        // handle pasting nodes
+        $scope.pasteAction = function(node, selectionlist, index) {
+            $http({
+                method: 'POST',
+                url: globalServerURL + 'node/' + node.ID + '/paste/',
+                data:{'ID': $scope.copiedNode.ID,
+                        'cut': $scope.cut,
+                        'duplicates': selectionlist}
+            }).success(function (response) {
+                console.log('Success: Node pasted');
+                // if a project was pasted into the root
+                if (node.ID === 0) {
+                    var newprojectid = response.newId;
+                    console.log("New project pasted: ");
+                    console.log(response);
+                    // get the new project
+                    $http.get(globalServerURL + 'node/' + newprojectid + '/')
+                    .success(function(data) {
+                        // and add it to the open projects
+                        $scope.projectAdded(data);
+                    });
+                }
+                else if (index !== undefined){
+                    // if we pasted the last node of the copied records
+                    if (index == $scope.copiedRecords.length-1){
+                        $scope.statusMessage("Records pasted.", 1000, 'alert-info');
+                        $scope.handleReloadSlickgrid(node.ID);
+                        $scope.loadNodeChildren(node.ID);
+                    }
+                }
+                else {
+                    $scope.statusMessage($scope.copiedNode.Name + " pasted.", 1000, 'alert-info');
+                    $scope.handleReloadSlickgrid(node.ID);
+                    $scope.loadNodeChildren(node.ID);
+                }
+                // expand the node if this is its first child
+                if ($scope.currentNode.Subitem.length == 0) {
+                    $scope.currentNode.collapsed = true;
+                }
+            }).error(function() {
+                console.log("Server error");
+                $scope.statusMessage("Server error.", 1000, 'alert-warning');
+            }).then(function(){
+                if (index !== undefined){
+                    index+=1;
+                    $scope.resolvePastePromise(node, index);
+                }
+            });
+        };
+
+        // loop over a list of duplicate resources and get the user action for each
+        $scope.handleDuplicateResourceActions = function(node, duplicatelist, index){
+            var doAll = undefined;
+            var overwrite = false;
+            var keys = Object.keys(duplicatelist);
+
+            var openModal = function() {
+                var modalInstance = $modal.open({
+                    templateUrl: 'duplicateConfirmationModal.html',
+                    controller: duplicateModalController,
+                    resolve: {
+                        selections: function () {
+                            return $scope.selections;
+                        }
+                    }
+                });
+                return modalInstance.result.then(function (selections) {
+                    overwrite = selections.overwrite;
+                    if (selections.doAll) {
+                        doAll = selections.doAll;
+                    }
+                });
+            };
+            (function checkItems() {
+                // get the first key and remove it from array
+                var key = keys.shift();
+                var duplicateResource = duplicatelist[key];
+                if (doAll == undefined) {
+                    // open the modal
+                    $scope.selections = {'overwrite': overwrite,
+                                        'doAll': doAll,
+                                        'resourceName': duplicateResource.Name};
+                    // continue when response from modal is returned
+                    openModal().finally(function() {
+                        selectionlist[duplicateResource.Code] = overwrite;
+                        if (keys.length) {
+                            checkItems();
+                        }
+                        else{
+                            $scope.pasteAction(node, selectionlist, index);
+                        }
+                    });
+                }
+                else {
+                    // skip has been selected
+                    // set the overwrite to the skip value
+                    selectionlist[duplicateResource.Code] = doAll;
+                    if (keys.length) {
+                        checkItems();
+                    }
+                    else {
+                        $scope.pasteAction(node, selectionlist, index);
+                    }
+                }
+            })();
+        };
+
 
         // function to paste copied node into another node
         // the id is sent to the server and the node pasted there
         // the user can't paste into the same node
-        $scope.pasteThisNode = function(nodeid) {
+        $scope.pasteThisNode = function(node, index) {
             var cnode = $scope.copiedNode;
-            var doAll = undefined;
             var duplicatelist = undefined;
             var flag = false;
             if (cnode) {
                 flag = true;
             }
-            if (flag && (cnode.ID == nodeid)) {
+            if (flag && (cnode.ID == node.ID)) {
                 flag = false;
                 console.log("You can't paste a node into itself");
+                $scope.statusMessage("You can't paste a node into itself", 1000, 'alert-warning');
             }
-            if (flag && ((cnode.NodeType == 'ResourceCategory') && ($scope.currentNode.NodeType == 'ResourceCategory'))) {
+            // check the allowed array for the types
+            if (flag && ($scope.allowed[node.NodeType].indexOf(cnode.NodeType) == -1)){
                 flag = false;
-                if (cnode.ParentID == nodeid) {
+                console.log("You can't paste a " + cnode.NodeType + " into a " + node.NodeType);
+                $scope.statusMessage("You can't paste a " + cnode.NodeType + " into a " + node.NodeType, 1000, 'alert-warning');
+                // if the index is set, paste the next record
+                if (index !== undefined){
+                    index+=1;
+                    $scope.resolvePastePromise(node, index);
+                }
+            }
+            if ($scope.cut) {
+                $scope.statusMessage("Busy moving...", 0, 'alert-info');
+            }
+            else {
+                $scope.statusMessage("Busy copying...", 0, 'alert-info');
+            }
+            if (flag && ((cnode.NodeType == 'ResourceCategory') && (node.NodeType == 'ResourceCategory'))) {
+                flag = false;
+                if (cnode.ParentID == node.ID) {
                     console.log("You can't paste a Resource Category into the same list");
+                    $scope.statusMessage("You can't paste a Resource Category into the same list", 1000, 'alert-warning');
+                    if (index !== undefined){
+                        index+=1;
+                        $scope.resolvePastePromise(node, index);
+                    }
                 }
                 else {
                     // get the resources in the copied category
@@ -1260,7 +1347,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     .success(function (response) {
                         var copiedresources = response;
                         // get the resources in the destination category
-                        $http.get(globalServerURL + 'resourcecategory/' + nodeid + '/allresources/')
+                        $http.get(globalServerURL + 'resourcecategory/' + node.ID + '/allresources/')
                         .success(function (response) {
                             duplicatelist = [];
                             selectionlist = {};
@@ -1273,131 +1360,19 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                                 }
                             }
                             if (duplicatelist.length > 0) {
-                                var overwrite = false;
-                                var keys = Object.keys(duplicatelist);
-
-                                var openModal = function() {
-                                    var modalInstance = $modal.open({
-                                        templateUrl: 'duplicateConfirmationModal.html',
-                                        controller: duplicateModalController,
-                                        resolve: {
-                                            selections: function () {
-                                                return $scope.selections;
-                                            }
-                                        }
-                                    });
-
-                                    return modalInstance.result.then(function (selections) {
-                                        overwrite = selections.overwrite;
-                                        if (selections.doAll) {
-                                            doAll = selections.doAll;
-                                        }
-                                    });
-                                };
-
-                                (function checkItems() {
-                                    // get the first key and remove it from array
-                                    var key = keys.shift();
-                                    var duplicateResource = duplicatelist[key];
-                                    if (doAll == undefined) {
-                                        // open the modal
-                                        $scope.selections = {'overwrite': overwrite,
-                                                            'doAll': doAll,
-                                                            'resourceName': duplicateResource.Name};
-                                        // continue when response from modal is returned
-                                        openModal().finally(function() {
-                                            selectionlist[duplicateResource.Code] = overwrite;
-                                            if (keys.length) {
-                                                checkItems();
-                                            }
-                                            else{
-                                                pasteResourceCategory(selectionlist);
-                                            }
-                                        });
-                                    }
-                                    else {
-                                        // skip has been selected
-                                        // set the overwrite to the skip value
-                                        selectionlist[duplicateResource.Code] = doAll;
-                                        if (keys.length) {
-                                            checkItems();
-                                        }
-                                        else {
-                                            pasteResourceCategory(selectionlist);
-                                        }
-
-                                    }
-                                })();
+                                $scope.handleDuplicateResourceActions(node, duplicatelist, index);
                             }
                             else {
-                                pasteResourceCategory({});
+                                $scope.pasteAction(node, {}, index);
                             }
                         });
                     });
                 }
             }
             if (flag) {
-                $http({
-                    method: 'POST',
-                    url: globalServerURL + 'node/' + nodeid + '/paste/',
-                    data:{'ID': cnode.ID,
-                            'cut': $scope.cut}
-                }).success(function (response) {
-                    $('#status_message span').text(cnode.Name + " pasted.");
-                    $('#status_message').fadeIn('fast',function() {
-                        $('#status_message span').animate({'top':'13%'},1500);
-                    });
-                    console.log('Success: Node pasted');
-                    // if a project was pasted into the root
-                    if (nodeid == 0) {
-                        var newprojectid = response.newId;
-                        // get the new project
-                        $http.get(globalServerURL + 'node/' + newprojectid + '/')
-                        .success(function(data) {
-                            // and add it to the open projects
-                            $scope.projectAdded(data);
-                        });
-                    }
-                    else {
-                        $scope.handleReloadSlickgrid(nodeid);
-                        // sharedService.reloadSlickgrid(nodeid);
-                        $scope.loadNodeChildren(nodeid);
-                    }
-                    // expand the node if this is its first child
-                    if ($scope.currentNode.Subitem.length == 0) {
-                        $scope.currentNode.collapsed = true;
-                    }
-                    window.setTimeout(function () {
-                        $('#status_message span').animate({'top':'-200px'},1500,function() {
-                            $('#status_message').fadeOut('fast');
-                        });
-                    }, 2500);
-                }).error(function() {
-                    console.log("Server error");
-                });
+                $scope.pasteAction(node, {}, index);
             }
-
-            var pasteResourceCategory = function(selectionlist) {
-                $http({
-                    method: 'POST',
-                    url: globalServerURL + 'node/' + nodeid + '/paste/',
-                    data:{'ID': cnode.ID,
-                            'cut': $scope.cut,
-                            'duplicates': selectionlist}
-                }).success(function () {
-                    console.log('Success: Resource Category pasted');
-                    // expand the node if this is its first child
-                    if ($scope.currentNode.Subitem.length == 0) {
-                        $scope.currentNode.collapsed = true;
-                    }
-                    $scope.handleReloadSlickgrid(nodeid);
-                    // sharedService.reloadSlickgrid(nodeid);
-                    $scope.loadNodeChildren(nodeid);
-                }).error(function() {
-                    console.log("Server error");
-                });
-            };
-        }
+        };
 
         // when a node is deleted clear the slickgrid and remove it from the tree
         $scope.nodeDeleted = function() {
@@ -1410,10 +1385,11 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         $scope.loadNodeChildren = function(parentid) {
             // if the parent id is 0 reload the projectslist
             if (parentid == 0) {
-
+                $scope.preloadProjects();
             }
             else if ($scope.currentNode) {
-                $http.get(globalServerURL + 'node/' + parentid + '/children/').success(function(data) {
+                $http.get(globalServerURL + 'node/' + parentid + '/children/')
+                .success(function(data) {
                     $scope.currentNode.Subitem = data;
                     console.log("Children loaded");
                 });
@@ -1446,10 +1422,97 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             $scope.filterBySupplier = false;
         };
 
+        $scope.copySelectedRecords = function(node){
+            // put the id's of the selected records in an array
+            if ($scope.rowsSelected){
+                $scope.toggleCopiedRecords($scope.getSelectedNodes(), false);
+                console.log("Records copied");
+                console.log($scope.copiedRecords);
+                $scope.statusMessage("Records copied.", 1000, 'alert-info');
+            }
+        };
+
+        $scope.cutSelectedRecords = function(node){
+            // put the id's of the selected records in an array
+            if ($scope.rowsSelected){
+                var selectedRows = $scope.getSelectedNodes();
+                $scope.toggleCopiedRecords(selectedRows, true);
+                // remove rows from slickgrid
+                $scope.cutSelectedNodes(selectedRows);
+                // get node in scope and remove
+                if (selectedRows[0].ID == node.ID){
+                    $scope.nodeDeleted()
+                }
+                else{
+                    for (var i in selectedRows){
+                        var result = $.grep($scope.currentNode.Subitem, function(e) {
+                            return e.ID == selectedRows[i].ID;
+                        });
+                        var index = $scope.currentNode.Subitem.indexOf(result[0]);
+                        if (index>-1) {
+                            $scope.currentNode.Subitem.splice(index, 1);
+                        }
+                    }
+                }
+                console.log("Records cut");
+                $scope.statusMessage("Records cut.", 1000, 'alert-info');
+            }
+        };
+
+        $scope.pasteSelectedRecords = function(node){
+            // start pasting each record
+            $scope.resolvePastePromise(node, 0)
+        };
+
+        // after operation has finished on pasting a node, pasted the next
+        // selected node
+        $scope.resolvePastePromise = function(node, index){
+            if (index < $scope.copiedRecords.length){
+                $scope.copiedNode = $scope.copiedRecords[index];
+                $scope.pasteThisNode(node, index);
+            }
+        }
+
+        $scope.deleteSelectedRecords = function(nodeid){
+            // all the currently selected records in the slickgrid are
+            // deleted from the database and the grid is reloaded
+            if ($scope.rowsSelected){
+                var selectedRows = $scope.getSelectedNodes()
+                for (var i in selectedRows){
+                    $http({
+                        method: 'DELETE',
+                        url:globalServerURL + 'node/' + selectedRows[i].ID + '/'
+                    }).success(function (response) {
+                        console.log(selectedRows[i].ID + " deleted");
+                        // on the last loop reload the slickgrid and node
+                        if (i == selectedRows.length-1){
+                            // if the deleted id equals the selected id
+                            // simply remove it from the tree
+                            if (nodeid == selectedRows[i].ID){
+                                $scope.nodeDeleted();
+                            }
+                            else{
+                                $scope.loadNodeChildren(nodeid);
+                                $scope.handleReloadSlickgrid(nodeid);
+                            }3
+                            $scope.statusMessage("Deleted records", 1000, 'alert-info');
+                            $scope.toggleRowsSelected(false);
+                        }
+                    });
+                }
+            }
+        };
+
+
         $scope.toggleRowsSelected = function(rowsselected){
             $timeout(function() {
                 $scope.rowsSelected = rowsselected;
             });
+        }
+
+        $scope.toggleCopiedRecords = function(copiedrecords, cut){
+            $scope.copiedRecords = copiedrecords;
+            $scope.cut = cut;
         }
 
         $scope.openNodeList = [];
@@ -1606,7 +1669,6 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
                 templateUrl: 'addUser',
                 scope: $scope
             });
-            $scope.saveUserForm.$setPristine();
         };
 
         $scope.editingState = function () {
@@ -1632,7 +1694,6 @@ allControllers.controller('usersController', ['$scope', '$http', '$modal', 'glob
                     alert('Error while fetching user information');
                 }
             );
-            $scope.saveUserForm.$setPristine();
         };
 
         $scope.saveUser = function() {

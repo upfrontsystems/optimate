@@ -1,14 +1,8 @@
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div class="container-fluid">
-        <ul class="nav nav-pills">
-            <li class="pull-right active">
-                <a href="" data-ng-class="{true:'enabled',false:'disabled'}[rowsSelected]"
-                            data-ng-click="deleteSelectedRecords(currentNode.ID)">
-                    Delete selected records
-                </a>
+        <ul  data-ng-show="!rowsSelected" class="nav nav-pills">
             <li>
-            <li>
-                <a title="Add Project" data-ng-click="changeAddingType('Project'); loadProjectRelatedList()"
+                <a title="Add Project" data-ng-click="changeAddingType('Project');"
                  data-target="#addProject" data-toggle="modal" class="project-button">
                     <i class="fa fa-plus-square"></i> P</a>
             </li>
@@ -16,6 +10,40 @@
                 <a title="Open Project" data-target="#selectProjectModal" data-toggle="modal"><i class="fa fa-folder-open"></i></a>
             </li>
             <div ng-include="'partials/treeview_menu.html'"></div>
+        </ul>
+        <ul data-ng-show="rowsSelected" class="nav nav-pills nav-pills-center">
+            <li>
+                <a role="button" data-ng-click="copySelectedRecords(currentNode)"
+                   title="Copy records">
+                    <i class="fa fa-files-o"></i>
+                </a>
+            </li>
+            <li>
+                <a role="button" data-ng-click="cutSelectedRecords(currentNode)"
+                   title="Cut records">
+                    <i class="fa fa-cut"></i>
+                </a>
+            </li>
+            <li data-ng-switch="copiedRecords || '_undefined_'">
+                <a data-ng-switch-when="_undefined_"
+                    role="button" style="color: gray;">
+                    <i class="fa fa-clipboard"></i>
+                </a>
+                <a data-ng-switch-default
+                    role="button"
+                    data-ng-click="pasteSelectedRecords(currentNode)"
+                    title="Paste records">
+                    <i class="fa fa-clipboard"></i>
+                </a>
+            </li>
+            <li>
+                <a role="button"
+                    data-target="#deleteRecordsConfirmation"
+                    data-toggle="modal"
+                    title="Delete records">
+                    <i class="fa fa-trash"></i>
+                </a>
+            </li>
         </ul>
     </div>
 </nav>
@@ -80,6 +108,20 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary delete-node" data-dismiss="modal" data-ng-click="deleteThisNode(currentNode.ID)">Delete</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="deleteRecordsConfirmation" class="modal" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h4>Are you sure you want to deleted the selected records?</h4>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary delete-node" data-dismiss="modal" data-ng-click="deleteSelectedRecords(currentNode.ID)">Delete</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
             </div>
         </div>

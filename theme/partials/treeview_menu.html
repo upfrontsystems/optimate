@@ -27,7 +27,7 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addProject"
-                        data-ng-click="loadProjectRelatedList(); editNode(currentNode.ID, currentNode.NodeType)"
+                        data-ng-click="editNode(currentNode.ID)"
                        title="Edit Project">
                         <i class="fa fa-pencil"></i>
                     </a>
@@ -47,13 +47,13 @@
                 <li data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
                     <a data-ng-switch-when="Project"
                         role="button"
-                        data-ng-click="pasteThisNode(0)"
+                        data-ng-click="pasteThisNode(projectsRoot)"
                         title="Paste Project">
                         <i class="fa fa-clipboard"></i>
                     </a>
                     <a data-ng-switch-when="BudgetGroup"
                         role="button"
-                        data-ng-click="pasteThisNode(currentNode.ID)"
+                        data-ng-click="pasteThisNode(currentNode)"
                         title="Paste Budget Group">
                         <i class="fa fa-clipboard"></i>
                     </a>
@@ -123,7 +123,7 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addComponent"
-                        data-ng-click="changeAddingType('Component'); loadResourceList('add'); loadResourceRelatedList(); loadComponentOverheads(currentNode.ID)"
+                        data-ng-click="changeAddingType('Component'); loadComponentRelatedList(currentNode.ID)"
                        title="Add Component" class="component-button">
                         <i class="fa fa-plus-square"></i> C
                     </a>
@@ -134,7 +134,7 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addBudgetGroup"
-                        data-ng-click="editNode(currentNode.ID, currentNode.NodeType)"
+                        data-ng-click="editNode(currentNode.ID)"
                        title="Edit Budget Group">
                         <i class="fa fa-pencil"></i>
                     </a>
@@ -154,25 +154,25 @@
                 <li data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
                     <a data-ng-switch-when="Project"
                         role="button"
-                        data-ng-click="pasteThisNode(0)"
+                        data-ng-click="pasteThisNode(projectsRoot)"
                         title="Paste Project">
                         <i class="fa fa-clipboard"></i>
                     </a>
                     <a data-ng-switch-when="BudgetGroup"
                         role="button"
-                        data-ng-click="pasteThisNode(currentNode.ID)"
+                        data-ng-click="pasteThisNode(currentNode)"
                         title="Paste Budget Group">
                         <i class="fa fa-clipboard"></i>
                     </a>
                     <a data-ng-switch-when="BudgetItem"
                         role="button"
-                        data-ng-click="pasteThisNode(currentNode.ID)"
+                        data-ng-click="pasteThisNode(currentNode)"
                         title="Paste Budget Item">
                         <i class="fa fa-clipboard"></i>
                     </a>
                     <a data-ng-switch-when="Component"
                         role="button"
-                        data-ng-click="pasteThisNode(currentNode.ID)"
+                        data-ng-click="pasteThisNode(currentNode)"
                         title="Paste Component">
                         <i class="fa fa-clipboard"></i>
                     </a>
@@ -209,7 +209,7 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addComponent"
-                        data-ng-click="changeAddingType('Component'); loadResourceList('add'); loadResourceRelatedList(); loadComponentOverheads(currentNode.ID)"
+                        data-ng-click="changeAddingType('Component'); loadComponentRelatedList(currentNode.ID)"
                        title="Add Component" class="component-button">
                         <i class="fa fa-plus-square"></i> C
                     </a>
@@ -220,7 +220,7 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addBudgetItem"
-                        data-ng-click="editNode(currentNode.ID, currentNode.NodeType)"
+                        data-ng-click="editNode(currentNode.ID)"
                        title="Edit Budget Item">
                         <i class="fa fa-pencil"></i>
                     </a>
@@ -240,19 +240,19 @@
                 <li data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
                     <a data-ng-switch-when="Project"
                         role="button"
-                        data-ng-click="pasteThisNode(0)"
+                        data-ng-click="pasteThisNode(projectsRoot)"
                         title="Paste Project">
                         <i class="fa fa-clipboard"></i>
                     </a>
                     <a data-ng-switch-when="BudgetItem"
                         role="button"
-                        data-ng-click="pasteThisNode(currentNode.ID)"
+                        data-ng-click="pasteThisNode(currentNode)"
                         title="Paste BudgetItem">
                         <i class="fa fa-clipboard"></i>
                     </a>
                     <a data-ng-switch-when="Component"
                         role="button"
-                        data-ng-click="pasteThisNode(currentNode.ID)"
+                        data-ng-click="pasteThisNode(currentNode)"
                         title="Paste Component">
                         <i class="fa fa-clipboard"></i>
                     </a>
@@ -290,7 +290,7 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addResource"
-                        data-ng-click="changeAddingType('Resource'); loadResourceRelatedList()"
+                        data-ng-click="changeAddingType('Resource');"
                        title="Add Resource" class="resource-button">
                         <i class="fa fa-plus-square"></i> R
                     </a>
@@ -301,7 +301,7 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addResourceCategory"
-                        data-ng-click="editNode(currentNode.ID, currentNode.NodeType)"
+                        data-ng-click="editNode(currentNode.ID)"
                        title="Edit Resource Category">
                         <i class="fa fa-pencil"></i>
                     </a>
@@ -321,19 +321,19 @@
                 <li data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
                     <a data-ng-switch-when="Project"
                         role="button"
-                        data-ng-click="pasteThisNode(0)"
+                        data-ng-click="pasteThisNode(projectsRoot)"
                         title="Paste Project">
                         <i class="fa fa-clipboard"></i>
                     </a>
                     <a data-ng-switch-when="ResourceCategory"
                         role="button"
-                        data-ng-click="pasteThisNode(currentNode.ID)"
+                        data-ng-click="pasteThisNode(currentNode)"
                         title="Paste Resource Category">
                         <i class="fa fa-clipboard"></i>
                     </a>
                     <a data-ng-switch-when="Resource"
                         role="button"
-                        data-ng-click="pasteThisNode(currentNode.ID)"
+                        data-ng-click="pasteThisNode(currentNode)"
                         title="Paste Resource">
                         <i class="fa fa-clipboard"></i>
                     </a>
@@ -371,7 +371,7 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addComponent"
-                        data-ng-click="loadResourceList('edit'); loadResourceRelatedList(); loadComponentOverheads(currentNode.ID); editNode(currentNode.ID, currentNode.NodeType)"
+                        data-ng-click="loadComponentRelatedList(currentNode.ID); editNode(currentNode.ID)"
                         title="Edit Component">
                         <i class="fa fa-pencil"></i>
                     </a>
@@ -409,7 +409,7 @@
                 </li>
                 <li>
                     <a role="button" data-toggle="modal" data-target="#addResource"
-                        data-ng-click="loadResourceRelatedList(); editNode(currentNode.ID, currentNode.NodeType)"
+                        data-ng-click="editNode(currentNode.ID)"
                        title="Edit Resource">
                         <i class="fa fa-pencil"></i>
                     </a>
@@ -429,7 +429,7 @@
                 <li data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
                     <a data-ng-switch-when="Project"
                         role="button"
-                        data-ng-click="pasteThisNode(0)"
+                        data-ng-click="pasteThisNode(projectsRoot)"
                         title="Paste Project">
                         <i class="fa fa-clipboard"></i>
                     </a>

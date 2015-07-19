@@ -13,6 +13,7 @@
     var _handler = new Slick.EventHandler();
     var _inHandler;
     var _options;
+    var _ctrlClick = false;
     var _defaults = {
       selectActiveRow: true
     };
@@ -80,9 +81,9 @@
       setSelectedRanges(rowsToRanges(rows));
     }
 
-    function setSelectedRanges(ranges) {
+    function setSelectedRanges(ranges, ctrlClick) {
       _ranges = ranges;
-      if (_ranges.length == 1){
+      if ((!ctrlClicked()) && (_ranges.length == 1)){
         var activeCell = _grid.getActiveCell().cell;
         _ranges[0].fromCell = activeCell;
         _ranges[0].toCell = activeCell;
@@ -102,7 +103,9 @@
 
     function handleKeyDown(e) {
       var activeRow = _grid.getActiveCell();
+      _ctrlClick = false;
       if (activeRow && e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && (e.which == 38 || e.which == 40)) {
+        _ctrlClick = true;
         var selectedRows = getSelectedRows();
         selectedRows.sort(function (x, y) {
           return x - y
@@ -133,7 +136,12 @@
       }
     }
 
+    function ctrlClicked(){
+      return _ctrlClick;
+    }
+
     function handleClick(e) {
+      _ctrlClick = false;
       var cell = _grid.getCellFromEvent(e);
       if (!cell || !_grid.canCellBeActive(cell.row, cell.cell)) {
         return false;
@@ -146,7 +154,7 @@
 
       var selection = rangesToRows(_ranges);
       var idx = $.inArray(cell.row, selection);
-
+      _ctrlClick = true;
       if (idx === -1 && (e.ctrlKey || e.metaKey)) {
         selection.push(cell.row);
         _grid.setActiveCell(cell.row, cell.cell);
@@ -186,7 +194,9 @@
       "init": init,
       "destroy": destroy,
 
-      "onSelectedRangesChanged": new Slick.Event()
+      "onSelectedRangesChanged": new Slick.Event(),
+
+      "ctrlClicked": ctrlClicked
     });
   }
 })(jQuery);

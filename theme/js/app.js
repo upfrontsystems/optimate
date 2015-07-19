@@ -9,7 +9,9 @@ var myApp = angular.module('myApp', [
                     'angularMoment',
                     'localytics.directives',
                     'ngInputModified',
-                    'ngFormValidation'
+                    'ngFormValidation',
+                    'ui.select',
+                    'ngSanitize'
                     ]);
 
 myApp.config(function(formValidationDecorationsProvider, formValidationErrorsProvider) {

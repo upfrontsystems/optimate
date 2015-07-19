@@ -247,7 +247,7 @@ class Project(Node):
         return componentslist
 
     def getBudgetGroups(self):
-        """ Returns a list of all the budgetgroups that contained in this 
+        """ Returns a list of all the budgetgroups that contained in this
             budgetgroup.
         """
         budgetgrouplist = []
@@ -285,7 +285,7 @@ class Project(Node):
                 'NodeTypeAbbr' : 'P'}
 
     def toChildDict(self):
-        """ Returns a dictionary of this node used in the childview
+        """ Returns a dictionary of the project used in the childview
         """
         subitem = []
         if len(self.Children) > 0:
@@ -492,7 +492,7 @@ class BudgetGroup(Node):
         return componentlist
 
     def getBudgetGroups(self):
-        """ Returns a list of all the budgetgroups that contained in this 
+        """ Returns a list of all the budgetgroups that contained in this
             budgetgroup.
         """
         budgetgrouplist = []
@@ -506,7 +506,7 @@ class BudgetGroup(Node):
         return budgetgrouplist
 
     def toValuationDict(self):
-        """ Returns a dictionary of this node used both in the valuation tree 
+        """ Returns a dictionary of this node used both in the valuation tree
             view and slickgrid
         """
         return {'Name': self.Name,
@@ -519,7 +519,7 @@ class BudgetGroup(Node):
                 'NodeTypeAbbr': 'G'}
 
     def toChildDict(self):
-        """ Returns a dictionary of this node used in the childview
+        """ Returns a dictionary of the budgetgroup node used in the childview
         """
         subitem = []
         if len(self.Children) > 0:
@@ -802,7 +802,7 @@ class BudgetItem(Node):
         return componentlist
 
     def toChildDict(self):
-        """ Returns a dictionary of this node used in the childview
+        """ Returns a dictionary of the budgetitem used in the childview
         """
         subitem = []
         if len(self.Children) > 0:
@@ -821,7 +821,7 @@ class BudgetItem(Node):
         """
         return {'Name': self.Name,
                 'Description' : self.Description,
-                'Quantity' : self._Quantity,
+                'Quantity' : self.Quantity,
                 'ItemQuantity': self.ItemQuantity,
                 'Ordered': str(self.Ordered),
                 'Invoiced': str(self.Invoiced),
@@ -1048,7 +1048,7 @@ class ComponentMixin(object):
         pass
 
     def toChildDict(self):
-        """ Returns a dictionary of this node used in the childview
+        """ Returns a dictionary of the component used in the childview
         """
         return {'Name': self.Name,
                 'Description': self.Description,
@@ -1100,7 +1100,7 @@ class ComponentMixin(object):
                 'Description': self.Description,
                 'Rate': str(self.Rate),
                 'Quantity': self.Quantity,
-                'ResourceType': self.Type,
+                'ResourceType': int(self.Type),
                 'NodeType': self.type,
                 'ItemQuantity': self.ItemQuantity,
                 'Ordered': str(self.Ordered),
@@ -1344,7 +1344,6 @@ class SimpleComponent(Node, ComponentMixin):
                 Description=self.Description,
                 _Quantity=self._Quantity,
                 _Total=self._Total,
-                UnitID=self.UnitID,
                 Type=self.Type,
                 _Rate=self._Rate,
                 OrderCost=self.OrderCost,
@@ -1502,7 +1501,7 @@ class ResourceCategory(Node):
             source.paste(child.copy(source.ID), child.Children)
 
     def toChildDict(self):
-        """ Returns a dictionary of this node used in the childview
+        """ Returns a dictionary of the resource category used in the childview
         """
         subitem = []
         if len(self.Children) > 0:
@@ -1520,7 +1519,8 @@ class ResourceCategory(Node):
         """ Returns a dictionary of this ResourceCategory
         """
         return {'Name': self.Name,
-                'Description' : self.Description}
+                'Description' : self.Description,
+                'NodeType': self.type}
 
     def getGridData(self):
         """ Returns a dictionary with the data needed for the slick grid
@@ -1657,11 +1657,12 @@ class Resource(Node):
     def toDict(self):
         """ Return a dictionary of the attributes of this Resource
         """
-        return {'Name': self.Name,
+        return {'ID': self.ID,
+                'Name': self.Name,
                 'Description': self.Description,
                 'Code': self.Code,
                 'Rate': str(self._Rate),
-                'ResourceType': self.Type,
+                'ResourceType': int(self.Type),
                 'Unit': self.UnitID,
                 'Supplier': self.SupplierID,
                 'NodeType': self.type}
@@ -2198,6 +2199,8 @@ class ValuationItem(Base):
     ValuationID = Column(Integer, ForeignKey('Valuation.ID'))
     BudgetGroupID = Column(Integer, ForeignKey('BudgetGroup.ID'))
     PercentageComplete = Column(Numeric)
+    BudgetGroupTotal = Column('BudgetGroupTotal', Numeric) # stores snapshot of
+                                                           #a budgetgroups total
 
     BudgetGroup = relationship('BudgetGroup',
                               backref=backref('BudgetGroups'))
@@ -2218,7 +2221,7 @@ class ValuationItem(Base):
 
     @property
     def Total(self):
-        total = (self.BudgetGroup.Total / 100) * self.PercentageComplete 
+        total = (self.BudgetGroup.Total / 100) * self.PercentageComplete
         return Decimal(total).quantize(Decimal('.01'))
 
     def __repr__(self):

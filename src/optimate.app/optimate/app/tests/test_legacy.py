@@ -1404,7 +1404,7 @@ class TestDeleteviewSuccessCondition(unittest.TestCase):
         request.matchdict = {'parentid': 2}
         from optimate.app.views import node_children
         response = node_children(request)
-        self.assertEqual(len(response), 0)
+        self.assertEqual(response.code, 500)
 
         # do another test to see if the cost is correct on the project id 1
         # since it has no children it's cost should be 0

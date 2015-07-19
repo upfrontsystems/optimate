@@ -11,7 +11,7 @@ classes should alter those!
 
 /* Slickgrid non editable columns, editable stays white */
 .non-editable-column {
-    background-color: #eee;
+    background-color: #F8F8F8;
 }
 
 .editable-column {
@@ -39,11 +39,11 @@ classes should alter those!
     overflow: hidden;
     -o-text-overflow: ellipsis;
     text-overflow: ellipsis;
-    height: 16px;
-    line-height: 16px;
+    height: 20px;
+    line-height: 20px;
     margin: 0;
     padding: 4px;
-    border-right: 1px solid silver;
+    border-right: 1px solid #D1D1D1;
     border-left: 0px;
     border-top: 0px;
     border-bottom: 0px;
@@ -68,11 +68,11 @@ classes should alter those!
 }
 
 .slick-sort-indicator-desc {
-    background: url(images/sort-desc.gif);
+    background: url(/img/gridthemes/images/sort-desc.gif);
 }
 
 .slick-sort-indicator-asc {
-    background: url(images/sort-asc.gif);
+    background: url(/img/gridthemes/images/sort-asc.gif);
 }
 
 .slick-resizable-handle {
@@ -87,7 +87,7 @@ classes should alter those!
 }
 
 .slick-sortable-placeholder {
-    background: silver;
+    background: #D1D1D1;
 }
 
 .grid-canvas {
@@ -105,9 +105,8 @@ classes should alter those!
 .slick-cell,
 .slick-headerrow-column {
     position: absolute;
-    border: 1px solid transparent;
-    border-right: 1px dotted silver;
-    border-bottom-color: silver;
+    border-right: 1px solid #D1D1D1;
+    border-bottom:1px solid #D1D1D1;
     overflow: hidden;
     -o-text-overflow: ellipsis;
     text-overflow: ellipsis;
@@ -180,7 +179,7 @@ classes should alter those!
 }
 
 .slick-header-columns {
-    font-size: 0.7em;
+    font-size: 0.8em;
 }
 
 /* Slickgrid table styles */
@@ -196,3 +195,122 @@ classes should alter those!
 .cell-effort-driven {
     text-align: center;
 }
+
+
+/*
+Slick-default-theme
+IMPORTANT:
+In order to preserve the uniform grid appearance, all cell styles need to have padding, margin and border sizes.
+No built-in (selected, editable, highlight, flashing, invalid, loading, :focus) or user-specified CSS
+classes should alter those!
+*/
+
+.slick-header-columns {
+  background-color: #eee;
+  border-bottom: 1px solid #D1D1D1;
+}
+
+.slick-header-column {
+  background-color: #eee;;
+  border-right: 1px solid #D1D1D1;
+}
+
+.slick-headerrow {
+  background: #fafafa;
+}
+
+.slick-headerrow-column {
+  background: #fafafa;
+  border-bottom: 0;
+  height: 100%;
+}
+
+.slick-row.ui-state-active {
+  background: #F5F7D7;
+}
+
+.slick-row {
+  position: absolute;
+  background: white;
+  border: 0px;
+  line-height: 20px;
+}
+
+.slick-row.selected {
+  z-index: 10;
+  background: #DFE8F6;
+}
+
+.slick-cell {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.slick-group {
+  border-bottom: 2px solid #D1D1D1;
+}
+
+.slick-group-toggle {
+  width: 9px;
+  height: 9px;
+  margin-right: 5px;
+}
+
+.slick-group-toggle.expanded {
+  background: url(/img/gridthemes/images/collapse.gif) no-repeat center center;
+}
+
+.slick-group-toggle.collapsed {
+  background: url(/img/gridthemes/images/expand.gif) no-repeat center center;
+}
+
+.slick-group-totals {
+  color: gray;
+  background: white;
+}
+
+.slick-cell.selected {
+  background-color:  #428BCA;
+  color: white;
+}
+
+.slick-cell.active {
+  border-color: gray;
+  border-style: solid;
+}
+
+.slick-sortable-placeholder {
+  background: #D1D1D1 !important;
+}
+
+.slick-row.odd {
+  background: #fafafa;
+}
+
+.slick-row.ui-state-active {
+  background: #F5F7D7;
+}
+
+.slick-row.loading {
+  opacity: 0.5;
+  filter: alpha(opacity = 50);
+}
+
+.slick-cell.invalid {
+  border-color: red;
+  -moz-animation-duration: 0.2s;
+  -webkit-animation-duration: 0.2s;
+  -moz-animation-name: slickgrid-invalid-hilite;
+  -webkit-animation-name: slickgrid-invalid-hilite;
+}
+
+@-moz-keyframes slickgrid-invalid-hilite {
+  from { box-shadow: 0 0 6px red; }
+  to { box-shadow: none; }
+}
+
+@-webkit-keyframes slickgrid-invalid-hilite {
+  from { box-shadow: 0 0 6px red; }
+  to { box-shadow: none; }
+}
+
