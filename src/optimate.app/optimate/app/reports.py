@@ -477,20 +477,36 @@ def invoices(request):
         node = DBSession.query(Node).filter_by(ID=projectid).first()
         heading = node.Name
         filter_type = 'project'
+        for invoice in qry:
+            invoice_data = invoice.toReportDict()
+            if invoice_data['project'] == heading:
+                invoices.append(invoice_data)
 
     elif filter_by_supplier and 'Supplier' in request.json_body:
         supplierid = request.json_body['Supplier']
         node = DBSession.query(Node).filter_by(ID=supplierid).first()
         heading = node.Name
         filter_type = 'supplier'
+        for invoice in qry:
+            invoice_data = invoice.toReportDict()
+            if invoice_data['supplier'] == heading:
+                invoices.append(invoice_data)
 
     elif filter_by_paymentdate and 'PaymentDate' in request.json_body:
         heading = request.json_body['PaymentDate']
         filter_type = 'paymentdate'
+        for invoice in qry:
+            invoice_data = invoice.toReportDict()
+            if invoice_data['paymentdate'] == heading:
+                invoices.append(invoice_data)
 
     elif filter_by_status and 'Status' in request.json_body:
         heading = request.json_body['Status']
         filter_type = 'status'
+        for invoice in qry:
+            invoice_data = invoice.toReportDict()
+            if invoice_data['status'] == heading:
+                invoices.append(invoice_data)
     else:
         filter_type = 'none'
         heading = ''

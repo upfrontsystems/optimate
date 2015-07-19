@@ -29,6 +29,7 @@
     <span tal:replace='structure string:</style>'/>
 
 <body>
+    <!-- header -->
     <div id="headerContent">
         <h1>Invoices Report</h1>
         <tal:entry tal:condition="filter == 'none'">
@@ -40,20 +41,11 @@
                 <tr style="border-bottom: 1px solid #000;">
                     <th class="bold" style="width: 60px; text-align:left">Invoice Number</th>
                     <th class="bold" style="width: 60px; text-align:left">Order Number</th> 
-                    <th class="bold" style="width: 150px; text-align:left">Project</th>
-                    <th class="bold" style="width: 150px; text-align:left">Supplier</th>
-                    <th class="bold" style="width: 120px; text-align:left">Invoice Total</th>
-                    <th class="bold" style="width: 120px; text-align:left">Payment Date</th>
-                    <th class="bold" style="width: 120px; text-align:right">Status</th>
-                </tr>
-                <tr tal:repeat="invoice invoices">
-                    <td style="width: 60px; text-align:left">${invoice['id']|nothing}</td>
-                    <td style="width: 60px; text-align:left">${invoice['orderid']|nothing}</td>
-                    <td style="width: 150px; text-align:left">${invoice['project']|nothing}</td>
-                    <td style="width: 150px; text-align:left">${invoice['supplier']|nothing}</td>
-                    <td style="width: 120px; text-align:left">${invoice['total']|nothing}</td>
-                    <td style="width: 120px; text-align:left">${invoice['paymentdate']|nothing}</td>
-                    <td style="width: 120px; text-align:right">${invoice['status']|nothing}</td>
+                    <th class="bold" style="width: 400px; text-align:left">Project</th>
+                    <th class="bold" style="width: 250px; text-align:left">Supplier</th>
+                    <th class="bold" style="width: 100px; text-align:left">Invoice Total</th>
+                    <th class="bold" style="width: 140px; text-align:left">Payment Date</th>
+                    <th class="bold" style="width: 80px; text-align:right">Status</th>
                 </tr>
             </table>
         </tal:entry>
@@ -67,30 +59,128 @@
                 <tr style="border-bottom: 1px solid #000;">
                     <th class="bold" style="width: 60px; text-align:left">Invoice Number</th>
                     <th class="bold" style="width: 60px; text-align:left">Order Number</th> 
-                    <th class="bold" style="width: 150px; text-align:left">Supplier</th>
-                    <th class="bold" style="width: 120px; text-align:left">Invoice Total</th>
-                    <th class="bold" style="width: 120px; text-align:left">Payment Date</th>
-                    <th class="bold" style="width: 120px; text-align:right">Status</th>
+                    <th class="bold" style="width: 250px; text-align:left">Supplier</th>
+                    <th class="bold" style="width: 100px; text-align:left">Invoice Total</th>
+                    <th class="bold" style="width: 140px; text-align:left">Payment Date</th>
+                    <th class="bold" style="width: 80px; text-align:right">Status</th>
                 </tr>
-                <tr tal:repeat="invoice invoices">
-                    <td style="width: 60px; text-align:left">${invoice['id']|nothing}</td>
-                    <td style="width: 60px; text-align:left">${invoice['orderid']|nothing}</td>
-                    <td style="width: 150px; text-align:left">${invoice['supplier']|nothing}</td>
-                    <td style="width: 120px; text-align:left">${invoice['total']|nothing}</td>
-                    <td style="width: 120px; text-align:left">${invoice['paymentdate']|nothing}</td>
-                    <td style="width: 120px; text-align:right">${invoice['status']|nothing}</td>
+            </table>
+         </tal:entry>
+        <tal:entry tal:condition="filter == 'supplier'">
+        <h1>Supplier: ${report_heading}</h1>
+            <div>&nbsp;</div>
+            <table class="order-font">
+                <tr style="border-top: 1px solid #000;">
+                    <td></td>
+                </tr>
+                <tr style="border-bottom: 1px solid #000;">
+                    <th class="bold" style="width: 60px; text-align:left">Invoice Number</th>
+                    <th class="bold" style="width: 60px; text-align:left">Order Number</th> 
+                    <th class="bold" style="width: 400px; text-align:left">Project</th>
+                    <th class="bold" style="width: 100px; text-align:left">Invoice Total</th>
+                    <th class="bold" style="width: 140px; text-align:left">Payment Date</th>
+                    <th class="bold" style="width: 80px; text-align:right">Status</th>
                 </tr>
             </table>
         </tal:entry>
-        <tal:entry tal:condition="filter == 'supplier'">
-        <h1>Supplier: ${report_heading}</h1>
-        </tal:entry>
         <tal:entry tal:condition="filter == 'paymentdate'">
         <h1>Payment Date: ${report_heading}</h1>
+            <div>&nbsp;</div>
+            <table class="order-font">
+                <tr style="border-top: 1px solid #000;">
+                    <td></td>
+                </tr>
+                <tr style="border-bottom: 1px solid #000;">
+                    <th class="bold" style="width: 60px; text-align:left">Invoice Number</th>
+                    <th class="bold" style="width: 60px; text-align:left">Order Number</th> 
+                    <th class="bold" style="width: 400px; text-align:left">Project</th>
+                    <th class="bold" style="width: 250px; text-align:left">Supplier</th>
+                    <th class="bold" style="width: 100px; text-align:left">Invoice Total</th>
+                    <th class="bold" style="width: 80px; text-align:right">Status</th>
+                </tr>
+            </table>
         </tal:entry>
         <tal:entry tal:condition="filter == 'status'">
         <h1>Status: ${report_heading}</h1>
+            <div>&nbsp;</div>
+            <table class="order-font">
+                <tr style="border-top: 1px solid #000;">
+                    <td></td>
+                </tr>
+                <tr style="border-bottom: 1px solid #000;">
+                    <th class="bold" style="width: 60px; text-align:left">Invoice Number</th>
+                    <th class="bold" style="width: 60px; text-align:left">Order Number</th> 
+                    <th class="bold" style="width: 400px; text-align:left">Project</th>
+                    <th class="bold" style="width: 250px; text-align:left">Supplier</th>
+                    <th class="bold" style="width: 100px; text-align:left">Invoice Total</th>
+                    <th class="bold" style="width: 140px; text-align:left">Payment Date</th>
+                </tr>
+            </table>
         </tal:entry>
+    </div>
+
+    <!-- content -->
+    <tal:entry tal:condition="filter == 'none'">
+        <table class="order-font">
+            <tr tal:repeat="invoice invoices">
+                <td style="width: 60px; text-align:left">${invoice['id']|nothing}</td>
+                <td style="width: 60px; text-align:left">${invoice['orderid']|nothing}</td>
+                <td style="width: 400px; text-align:left">${invoice['project']|nothing}</td>
+                <td style="width: 250px; text-align:left">${invoice['supplier']|nothing}</td>
+                <td style="width: 100px; text-align:left">${invoice['total']|nothing}</td>
+                <td style="width: 140px; text-align:left">${invoice['paymentdate']|nothing}</td>
+                <td style="width: 80px; text-align:right">${invoice['status']|nothing}</td>
+            </tr>
+        </table>
+    </tal:entry>
+    <tal:entry tal:condition="filter == 'project'">
+        <table class="order-font">
+            <tr tal:repeat="invoice invoices">
+                <td style="width: 60px; text-align:left">${invoice['id']|nothing}</td>
+                <td style="width: 60px; text-align:left">${invoice['orderid']|nothing}</td>
+                <td style="width: 250px; text-align:left">${invoice['supplier']|nothing}</td>
+                <td style="width: 100px; text-align:left">${invoice['total']|nothing}</td>
+                <td style="width: 140px; text-align:left">${invoice['paymentdate']|nothing}</td>
+                <td style="width: 80px; text-align:right">${invoice['status']|nothing}</td>
+            </tr>
+        </table>
+    </tal:entry>
+    <tal:entry tal:condition="filter == 'supplier'">
+        <table class="order-font">
+            <tr tal:repeat="invoice invoices">
+                <td style="width: 60px; text-align:left">${invoice['id']|nothing}</td>
+                <td style="width: 60px; text-align:left">${invoice['orderid']|nothing}</td>
+                <td style="width: 400px; text-align:left">${invoice['project']|nothing}</td>
+                <td style="width: 100px; text-align:left">${invoice['total']|nothing}</td>
+                <td style="width: 140px; text-align:left">${invoice['paymentdate']|nothing}</td>
+                <td style="width: 80px; text-align:right">${invoice['status']|nothing}</td>
+            </tr>
+        </table>
+    </tal:entry>
+    <tal:entry tal:condition="filter == 'paymentdate'">
+        <table class="order-font">
+            <tr tal:repeat="invoice invoices">
+                <td style="width: 60px; text-align:left">${invoice['id']|nothing}</td>
+                <td style="width: 60px; text-align:left">${invoice['orderid']|nothing}</td>
+                <td style="width: 400px; text-align:left">${invoice['project']|nothing}</td>
+                <td style="width: 250px; text-align:left">${invoice['supplier']|nothing}</td>
+                <td style="width: 100px; text-align:left">${invoice['total']|nothing}</td>
+                <td style="width: 80px; text-align:right">${invoice['status']|nothing}</td>
+            </tr>
+        </table>
+    </tal:entry>
+    <tal:entry tal:condition="filter == 'status'">
+        <table class="order-font">
+            <tr tal:repeat="invoice invoices">
+                <td style="width: 60px; text-align:left">${invoice['id']|nothing}</td>
+                <td style="width: 60px; text-align:left">${invoice['orderid']|nothing}</td>
+                <td style="width: 400px; text-align:left">${invoice['project']|nothing}</td>
+                <td style="width: 250px; text-align:left">${invoice['supplier']|nothing}</td>
+                <td style="width: 100px; text-align:left">${invoice['total']|nothing}</td>
+                <td style="width: 140px; text-align:left">${invoice['paymentdate']|nothing}</td>
+            </tr>
+        </table>
+    </tal:entry>
 
     <div id="pageNumber">
         <pdf:pagenumber>
