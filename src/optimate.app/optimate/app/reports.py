@@ -432,23 +432,28 @@ def invoices_report_filter(request):
     """ Returns a list of the available filters used by an invoice report
     """
     qry = DBSession.query(Invoice)
-    suppliers = qry.distinct(Invoice.SupplierID).group_by(Invoice.SupplierID)
     supplierlist = []
-    for supplier in suppliers:
+    for supplier in qry:
         if supplier.SupplierID:
-            supplierlist.append({'Name': supplier.Order.Supplier.Name, 
-                                 'ID': supplier.SupplierID})
-    projects = qry.distinct(Invoice.ProjectID).group_by(Invoice.ProjectID)
+            entry = {'Name': supplier.Order.Supplier.Name, 
+                     'ID': supplier.SupplierID}
+            if entry not in supplierlist:
+                supplierlist.append(entry)
+
     projectlist = []
-    for project in projects:
+    for project in qry:
         if project.ProjectID:
-            projectlist.append({'Name': project.Order.Project.Name, 
-                                'ID': project.ProjectID})
+            entry = {'Name': project.Order.Project.Name, 
+                     'ID': project.ProjectID}
+            if entry not in projectlist:
+                projectlist.append(entry)
+
     paymentdatelist = []
-    paymentdates = qry.distinct(Invoice.PaymentDate).group_by(Invoice.PaymentDate)
-    for paymentdate in paymentdates:
+    for paymentdate in qry:
         if paymentdate.PaymentDate:
-            paymentdatelist.append(paymentdate.PaymentDate.strftime("%d %B %Y"))
+            entry = paymentdate.PaymentDate.strftime("%d %B %Y")
+            if entry not in paymentdatelist:
+                paymentdatelist.append(entry)
 
     return {'projects': sorted(projectlist, key=lambda k: k['Name'].upper()),
             'suppliers': sorted(supplierlist, key=lambda k: k['Name'].upper()),
@@ -465,8 +470,8 @@ def invoices(request):
     filter_by_paymentdate = request.json_body['FilterByPaymentDate']
     filter_by_status = request.json_body['FilterByStatus']
 
-    # inject node data into template
-    nodes = []
+    qry = DBSession.query(Invoice)    
+    invoices = []
     if filter_by_project and 'Project' in request.json_body:
         projectid = request.json_body['Project']
         node = DBSession.query(Node).filter_by(ID=projectid).first()
@@ -488,14 +493,15 @@ def invoices(request):
         filter_type = 'status'
     else:
         filter_type = 'none'
+        heading = ''
+        for invoice in qry:
+            invoices.append(invoice.toReportDict())
 
+    sorted_invoices = sorted(invoices, key=lambda k: k['id'])
 
-
-
-    invoices = []
     # inject invoice data into template
     template_data = render('templates/invoicesreport.pt',
-                           {'invoices': invoices,
+                           {'invoices': sorted_invoices,
                             'filter': filter_type,
                             'report_heading': heading},
                             request=request)
