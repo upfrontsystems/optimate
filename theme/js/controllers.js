@@ -2189,7 +2189,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                     spinner.stop(); // stop the spinner - ajax call complete
                     var file = new Blob([response], {type: 'application/pdf'});
                     var fileURL = URL.createObjectURL(file);
-                    var result = document.getElementsByClassName("pdf_download");
+                    var result = document.getElementsByClassName("pdf_hidden_download");
                     var anchor = angular.element(result);
                     var filename_header = headers('Content-Disposition');
                     var filename = filename_header.split('filename=')[1];
@@ -2485,6 +2485,10 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
 
         // fetch the report filter options
         $scope.filterReportBy = function() {
+            $scope.filterByProject = false;
+            $scope.filterBySupplier = false;
+            $scope.filterByPaymentDate = false;
+            $scope.filterByStatus = false;
             var req = {
                 method: 'GET',
                 url: globalServerURL + 'invoices_report_filter'
@@ -2493,6 +2497,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
                 $scope.invoiceReportProjectsList = response['projects'];
                 $scope.invoiceReportSuppliersList = response['suppliers'];
                 $scope.invoiceReportPaymentDateList = response['paymentdates'];
+                $scope.paymentDatesExist = response['paymentdates_exist'];
                 $scope.invoiceReportStatusList = response['statuses'];
                 console.log("Invoice report filter options loaded")
             })
@@ -2515,7 +2520,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
                     spinner.stop(); // stop the spinner - ajax call complete
                     var file = new Blob([response], {type: 'application/pdf'});
                     var fileURL = URL.createObjectURL(file);
-                    var result = document.getElementsByClassName("pdf_download");
+                    var result = document.getElementsByClassName("pdf_hidden_download");
                     var anchor = angular.element(result);
                     var filename_header = headers('Content-Disposition');
                     var filename = filename_header.split('filename=')[1];
@@ -2890,7 +2895,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                     spinner.stop(); // stop the spinner - ajax call complete
                     var file = new Blob([response], {type: 'application/pdf'});
                     var fileURL = URL.createObjectURL(file);
-                    var result = document.getElementsByClassName("pdf_download");
+                    var result = document.getElementsByClassName("pdf_hidden_download");
                     var anchor = angular.element(result);
                     var filename_header = headers('Content-Disposition');
                     var filename = filename_header.split('filename=')[1];

@@ -449,9 +449,11 @@ def invoices_report_filter(request):
     for paymentdate in paymentdates:
         if paymentdate.PaymentDate:
             paymentdatelist.append(paymentdate.PaymentDate.strftime("%d %B %Y"))
+
     return {'projects': sorted(projectlist, key=lambda k: k['Name'].upper()),
             'suppliers': sorted(supplierlist, key=lambda k: k['Name'].upper()),
             'paymentdates': sorted(paymentdatelist),
+            'paymentdates_exist': paymentdatelist != [],
             'statuses': ['Paid', 'Unpaid']}
 
 
@@ -465,32 +467,37 @@ def invoices(request):
 
     # inject node data into template
     nodes = []
-
     if filter_by_project and 'Project' in request.json_body:
-        filter_target = request.json_body['Project']
-        filter_type = 'project';
+        projectid = request.json_body['Project']
+        node = DBSession.query(Node).filter_by(ID=projectid).first()
+        heading = node.Name
+        filter_type = 'project'
 
     elif filter_by_supplier and 'Supplier' in request.json_body:
-        supplier = request.json_body['Supplier']
-        filter_type = 'supplier';
+        supplierid = request.json_body['Supplier']
+        node = DBSession.query(Node).filter_by(ID=supplierid).first()
+        heading = node.Name
+        filter_type = 'supplier'
 
     elif filter_by_paymentdate and 'PaymentDate' in request.json_body:
-        paymentdate = request.json_body['PaymentDate']
-        filter_type = 'paymentdate';
+        heading = request.json_body['PaymentDate']
+        filter_type = 'paymentdate'
 
     elif filter_by_status and 'Status' in request.json_body:
-        status = request.json_body['Status']
-        filter_type = 'status';
-
+        heading = request.json_body['Status']
+        filter_type = 'status'
     else:
-        filter_type = 'none';    
+        filter_type = 'none'
+
+
 
 
     invoices = []
     # inject invoice data into template
     template_data = render('templates/invoicesreport.pt',
                            {'invoices': invoices,
-                            'filter' : filter_type},
+                            'filter': filter_type,
+                            'report_heading': heading},
                             request=request)
     # render template
     html = StringIO(template_data.encode('utf-8'))

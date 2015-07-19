@@ -28,8 +28,8 @@
 <body>
     <div id="headerContent">
         <h1>Invoices Report</h1>
-        <div>&nbsp;</div>
         <tal:entry tal:condition="filter == 'none'">
+        <div>&nbsp;</div>
             <table class="order-font">
                 <tr style="border-top: 1px solid #000;">
                     <td></td>
@@ -46,12 +46,17 @@
             </table>
         </tal:entry>
         <tal:entry tal:condition="filter == 'project'">
+        <h1>Project: ${report_heading}</h1>
+        <div>&nbsp;</div>
         </tal:entry>
         <tal:entry tal:condition="filter == 'supplier'">
+        <h1>Supplier: ${report_heading}</h1>
         </tal:entry>
         <tal:entry tal:condition="filter == 'paymentdate'">
+        <h1>Payment Date: ${report_heading}</h1>
         </tal:entry>
-        <tal:entry tal:condition="filter == 'project'">
+        <tal:entry tal:condition="filter == 'status'">
+        <h1>Status: ${report_heading}</h1>
         </tal:entry>
 
     <div id="pageNumber">

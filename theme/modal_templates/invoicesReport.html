@@ -33,7 +33,7 @@
                                 </td>
                                 <td>Supplier &nbsp;</td>
                             </tr>
-                            <tr>
+                            <tr data-ng-show="paymentDatesExist">
                                 <td>
                                     <button class="custom-checkbox" ng-model="filterByPaymentDate"
                                           data-ng-click="filterByPaymentDate = !filterByPaymentDate; filterByProject = false; filterBySupplier = false; filterByStatus = false">
