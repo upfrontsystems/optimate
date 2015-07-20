@@ -14,7 +14,9 @@ from optimate.app.models import (
     Order,
     Valuation,
     Client,
-    Invoice
+    Invoice,
+    Supplier,
+    Project
 )
 
 def projectbudget_nodes(node, data, level, level_limit, component_filter):
@@ -474,7 +476,7 @@ def invoices(request):
     invoices = []
     if filter_by_project and 'Project' in request.json_body:
         projectid = request.json_body['Project']
-        node = DBSession.query(Node).filter_by(ID=projectid).first()
+        node = DBSession.query(Project).filter_by(ID=projectid).first()
         heading = node.Name
         filter_type = 'project'
         for invoice in qry:
@@ -484,7 +486,7 @@ def invoices(request):
 
     elif filter_by_supplier and 'Supplier' in request.json_body:
         supplierid = request.json_body['Supplier']
-        node = DBSession.query(Node).filter_by(ID=supplierid).first()
+        node = DBSession.query(Supplier).filter_by(ID=supplierid).first()
         heading = node.Name
         filter_type = 'supplier'
         for invoice in qry:
