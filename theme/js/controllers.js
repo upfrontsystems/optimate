@@ -999,11 +999,15 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     method: 'POST',
                     url: globalServerURL + 'node/' + currentid + '/',
                     data: $scope.formData
-                }).success(function () {
+                }).success(function(response) {
                     $scope.formData = {'NodeType':$scope.formData.NodeType};
                     $scope.handleReloadSlickgrid(currentid)
-                    // sharedService.reloadSlickgrid(currentid);
-                    $scope.loadNodeChildren(currentid);
+                    // insert the newly created node in the correct place 
+                    // in the childlist
+                    $scope.currentNode.Subitem.push(response['node']);
+                    $scope.currentNode.Subitem.sort(function(a, b) {
+                        return a.Name.localeCompare(b.Name)
+                    });
                     // expand the node if this is its first child
                     if ($scope.currentNode.Subitem.length == 0) {
                         $scope.currentNode.collapsed = true;
