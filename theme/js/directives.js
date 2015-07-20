@@ -62,19 +62,19 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     if (grid.getDataItem(row)){
                         if (grid.getDataItem(row).isparent){
                             return {selectable: false,
-                                    // 'cssClasses': "cell non-editable-column"
+                                    'cssClasses': "non-editable-row"
                                 };
                         }
                     }
                 }
-                // if (grid){
-                //     var rowData = grid.getDataItem(row);
-                //     if(rowData){
-                //         if(rowData.node_type == 'BudgetGroup' || rowData.node_type == 'ResourceCategory'){
-                //             return {'cssClasses': "cell non-editable-column"};
-                //         }
-                //     }
-                // }
+                if (grid){
+                    var rowData = grid.getDataItem(row);
+                    if(rowData){
+                        if(rowData.node_type == 'BudgetGroup' || rowData.node_type == 'ResourceCategory'){
+                            return {'cssClasses': "non-editable-row"};
+                        }
+                    }
+                }
                 return {};
             }
 
@@ -756,7 +756,8 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     var totals = {'id': 'T' + componentlist[0].id,
                                     'subtotal': ordersubtotal,
                                     'vatcost': ordervatcost,
-                                    'total': ordertotal};
+                                    'total': ordertotal,
+                                    'cssClasses': 'cell-title non-editable-column'};
 
                     gridlist.push(totals);
                     grid.setColumns(columns);
