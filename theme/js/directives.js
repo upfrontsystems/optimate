@@ -55,9 +55,9 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             }());
 
             // override the getitemmetadata method
-            // on the first row, if it is the parent
-            // set selectable false
             function getItemMetaData(row){
+                // on the first row, if it is the parent
+                // set selectable false and non-editable
                 if (row == 0 && grid){
                     if (grid.getDataItem(row)){
                         if (grid.getDataItem(row).isparent){
@@ -67,6 +67,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                         }
                     }
                 }
+                // set the whole row non-editable for budgetgroups and resource categories
                 if (grid){
                     var rowData = grid.getDataItem(row);
                     if(rowData){
@@ -560,6 +561,19 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             };
             $scope.preloadWidths();
 
+            // override the getitemmetadata method
+            function getItemMetaData(row){
+                // set the css for the last row with the totals
+                if (grid){
+                    console.log(grid.getDataLength());
+                    if(row == grid.getDataLength()-1){
+                        return {selectable: false,
+                                'cssClasses': "sum-row non-editable-row"};
+                    }
+                }
+                return {};
+            }
+
             var columns = [
                     {id: "name", name: "Component", field: "name",
                      width: orders_column_width.name, cssClass: "cell-title non-editable-column"},
@@ -589,6 +603,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
 
             data = []
             dataView = new Slick.Data.DataView();
+            dataView.getItemMetadata = getItemMetaData;
             grid = new Slick.Grid("#component-data-grid", dataView, columns, options);
             grid.setSelectionModel(new Slick.CellSelectionModel());
             // resize the slickgrid when modal is shown
@@ -629,7 +644,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     return parts.join(".");
                 }
                 else {
-                    return "0.00";
+                    return "";
                 }
             }
 
@@ -645,7 +660,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     return (parts.join(".") + " %");
                 }
                 else {
-                    return "0.00 %";
+                    return "";
                 }
             }
             grid.onAddNewRow.subscribe(function (e, args) {

@@ -18,7 +18,7 @@ classes should alter those!
     background-color: #F8F8F8;
 }
 
-div.non-editable-row div.editable-column{
+div.non-editable-row div.cell{
     background-color: #F8F8F8;
 }
 
@@ -202,6 +202,15 @@ div.non-editable-row div.editable-column{
 
 .cell-effort-driven {
     text-align: center;
+}
+
+/* set the font bold in the sum row in the order slickgrid */
+.sum-row {
+    font-weight: bold;
+}
+
+div.sum-row div.cell{
+    font-weight: bold;
 }
 
 
