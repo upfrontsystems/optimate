@@ -209,9 +209,9 @@ def _initTestingDB():
         unit5 = Unit(Name='item',
                     ID=5)
 
-        labtype = ResourceType(Name='Labour')
-        mattype = ResourceType(Name='Material')
-        subtype = ResourceType(Name='Subcontractor')
+        labtype = ResourceType(ID=1, Name='Labour')
+        mattype = ResourceType(ID=2, Name='Material')
+        subtype = ResourceType(ID=3, Name='Subcontractor')
 
         root = Node(ID=0)
         project = Project(Name='TestPName',
@@ -244,7 +244,7 @@ def _initTestingDB():
                        Name='TestResource',
                        Description='Test resource',
                        UnitID=unit1.ID,
-                       Type=mattype.Name,
+                       Type=mattype.ID,
                        _Rate=resrate,
                        ParentID=rescat.ID)
         resa = Resource(ID=16,
@@ -252,7 +252,7 @@ def _initTestingDB():
                        Name='TestResourceA',
                        Description='Test resource',
                        UnitID=unit2.ID,
-                       Type=labtype.Name,
+                       Type=labtype.ID,
                        _Rate=resarate,
                        ParentID=rescat.ID)
         comp = Component(ID=7,
@@ -296,7 +296,7 @@ def _initTestingDB():
                        Code='A002',
                        Description='Test resource',
                        UnitID=unit3.ID,
-                       Type=mattype.Name,
+                       Type=mattype.ID,
                        _Rate=resbrate,
                        ParentID=rescatb.ID)
         resduplicate = Resource(Name='TestResource',
@@ -304,7 +304,7 @@ def _initTestingDB():
                        Code='A000',
                        Description='Test resource',
                        UnitID=unit3.ID,
-                       Type=mattype.Name,
+                       Type=mattype.ID,
                        _Rate=resduplicaterate,
                        ParentID=rescatb.ID)
         compb = Component(ID=8,
@@ -366,7 +366,7 @@ def _initTestingDB():
                        Name='TestResourceB',
                        Description='Test resource',
                        UnitID=unit4.ID,
-                       Type=subtype.Name,
+                       Type=subtype.ID,
                        _Rate=resbduplicaterate,
                        ParentID=rescatc.ID)
         compd = Component(ID=26,
@@ -661,7 +661,7 @@ class TestProjectResourcesViewSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
 
         # test the correct resource is returned
-        self.assertEqual(response['items'][0]['title'], 'TestResourceB')
+        self.assertEqual(response[0]['Name'], 'TestResourceB')
 
 class TestResourcesViewSuccessCondition(unittest.TestCase):
     """ Test the resources of project_resources
@@ -687,7 +687,7 @@ class TestResourcesViewSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
 
         # test the correct resource is returned
-        self.assertEqual(response['items'][0]['title'], 'TestResourceB')
+        self.assertEqual(response[0]['Name'], 'TestResourceB')
 
 class TestProjectOverheadsViewSuccessCondition(unittest.TestCase):
     """ Test the different methods of the overheads of a project
@@ -964,9 +964,11 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
 
         # the children are a mix of budgetgroup and budgetitem
+        # the first row should the the parent
         # emptycolumns should return false
-        self.assertEqual(response['list'][0]['name'], 'TestDBGName')
-        self.assertEqual(response['list'][1]['name'], 'TestEBIName')
+        self.assertEqual(response['list'][0]['name'], 'TestCBGName')
+        self.assertEqual(response['list'][1]['name'], 'TestDBGName')
+        self.assertEqual(response['list'][2]['name'], 'TestEBIName')
         self.assertEqual(response['emptycolumns'], False)
 
     def test_budgetitem_gridview(self):
@@ -976,8 +978,10 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
 
         # assert returns true if the projects are returned correctly
-        self.assertEqual(response['list'][0]['name'], 'TestBBIName')
-        self.assertEqual(response['list'][1]['name'], 'TestCBIName')
+        # first row is the parent
+        self.assertEqual(response['list'][0]['name'], 'TestBBGName')
+        self.assertEqual(response['list'][1]['name'], 'TestBBIName')
+        self.assertEqual(response['list'][2]['name'], 'TestCBIName')
         self.assertEqual(response['emptycolumns'], False)
 
     def test_component_gridview(self):
@@ -987,8 +991,10 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
 
         # assert returns true if the projects are returned correctly
-        self.assertEqual(response['list'][0]['name'], 'TestResource')
-        self.assertEqual(response['list'][1]['name'], 'TestResourceA')
+        # the first row should be the parent
+        self.assertEqual(response['list'][0]['name'], 'TestBIName')
+        self.assertEqual(response['list'][1]['name'], 'TestResource')
+        self.assertEqual(response['list'][2]['name'], 'TestResourceA')
         self.assertEqual(response['emptycolumns'], False)
 
 class TestUpdateValueSuccessCondition(unittest.TestCase):
@@ -1072,7 +1078,7 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         # Update the itemquantity
         request = testing.DummyRequest()
         request.matchdict = {'id': 7}
-        request.json_body = {'itemquantity': 10}
+        request.json_body = {'item_quantity': 10}
         response = self._callFUT(request)
 
         # now the project cost should have changed
@@ -1085,7 +1091,7 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.matchdict = {'id': 3}
-        request.json_body = {'quantity': 50}
+        request.json_body = {'item_quantity': 50}
         response = self._callFUT(request)
         newbiq = 50.0
         newbitot = Decimal(newbiq * float(birate)).quantize(Decimal('.01'))
@@ -1147,9 +1153,9 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         # Add the default data using json in the request
         request = testing.DummyRequest(json_body={
             'Name': 'TestResource',
-            'uid': 18,
+            'ResourceID': 18,
             'Description': 'Test resource',
-            'Quantity': 4,
+            'ItemQuantity': 4,
             'NodeType': 'Component',
             'OverheadList':[{'Name': 'OverheadB',
                                 'ID':2,
@@ -1240,8 +1246,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
             'Name': 'AddingBI',
             'Description': 'Adding test item',
             'NodeType': 'BudgetItem',
-            'Quantity': 10.0,
-            'Quantity': 10.0,
+            'ItemQuantity': 10.0,
         })
         # add it to the parent
         request.matchdict = {'id': newid}
@@ -1255,11 +1260,10 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         # Add a component
         request = testing.DummyRequest(json_body={
             'Name': 'AddingNewResource',
-            'uid': resid,
+            'ResourceID': resid,
             'Description': 'Adding test item',
             'NodeType': 'Component',
-            'Quantity': 10.0,
-            'Quantity': 10.0,
+            'ItemQuantity': 10.0,
             'OverheadList': []
         })
         # add it to the parent
@@ -1326,8 +1330,8 @@ class TestEditItemSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest(json_body={
             'Name': 'TestResource',
             'ID': 7,
-            'uid': 16,
-            'Quantity': 10,
+            'ResourceID': 16,
+            'ItemQuantity': 10,
             'NodeType': 'Component',
             'OverheadList':[{'Name': 'Overhead',
                                 'ID':1,
@@ -1350,13 +1354,14 @@ class TestEditItemSuccessCondition(unittest.TestCase):
     def test_edit_resource(self):
         _registerRoutes(self.config)
 
-        # Add the default project using json in the request
+        # Add the resource data
         request = testing.DummyRequest(json_body={
             'ID': 25,
             'Name': 'EditResource',
             'NodeType': 'Resource',
             'Code': 'E000',
-            'Rate': 50
+            'Rate': 50,
+            'ResourceType': 1
         })
         request.matchdict = {'id': 25}
         request.method = 'PUT'

@@ -161,7 +161,7 @@ class Project(Node):
     }
 
     def recalculateTotal(self):
-        """recursively recalculate the total of all the node in the hierarchy
+        """ Recalculate the total of all the node's children
         """
         total = Decimal(0.00)
         for child in self.Children:
@@ -170,7 +170,7 @@ class Project(Node):
         return self._Total
 
     def resetTotal(self):
-        """return the sum of the totals of this node's children
+        """ Return the sum of the totals of this node's children
         """
         total = Decimal(0.00)
         for child in self.Children:
@@ -188,8 +188,8 @@ class Project(Node):
 
     @property
     def Total(self):
-        """Get property total. If the Total has not been set yet, it is set to
-           zero and recalculated
+        """ Get property total. If the Total has not been set yet, it is set to
+            zero and recalculated
         """
         if self._Total == None:
             self.resetTotal()
@@ -612,9 +612,11 @@ class BudgetItem(Node):
         return self._Total
 
     def resetTotal(self):
-        """ The Total of a BudgetItem equals the sum of the Totals of all it's
+        """ Reset the Total and the Rate.
+            The Total of a BudgetItem equals the sum of the Totals of all it's
             children
         """
+        self.resetRate()
         total = Decimal(0.00)
         for child in self.Children:
             total += child.Total
@@ -628,7 +630,7 @@ class BudgetItem(Node):
         for child in self.Children:
             rate += child.ItemTotal
         self._Rate = rate
-        self.Total = self.Quantity * float(self._Rate)
+        # self.Total = self.Quantity * float(self._Rate)
 
     def clearCosts(self):
         """ Set the Total and Quantity costs to zero and do the same for all
@@ -671,6 +673,18 @@ class BudgetItem(Node):
         return Decimal(self.ItemQuantity * float(self.Rate)
             ).quantize(Decimal('.01'))
 
+    @ItemTotal.setter
+    def ItemTotal(self, itemtotal):
+        """ When the item total changes, the parent rate is changed if it is
+            a BudgetItem
+        """
+        if self.Parent.type == 'BudgetItem':
+            oldtotal = self.ItemTotal
+            difference = itemtotal - oldtotal
+            # update the parent with the new total
+            if difference != 0:
+                self.Parent.Rate = self.Parent.Rate + difference
+
     @hybrid_property
     def Rate(self):
         """ Get the Rate
@@ -685,7 +699,10 @@ class BudgetItem(Node):
         """
         self._Rate = Decimal(rate).quantize(Decimal('.01'))
         # when the rate changes recalculate the total
-        self.Total = self.Quantity * float(self._Rate)
+        # self.Total = self.Quantity * float(self._Rate)
+        # the rate changes from changes to the item quantity
+        # since that updates the total already,
+        # the total does not need change from here
 
     @hybrid_property
     def Quantity(self):
@@ -714,12 +731,12 @@ class BudgetItem(Node):
 
     @ItemQuantity.setter
     def ItemQuantity(self, quantity):
-        """ Set the ItemQuantity. When the ItemQuantity changes the Quantity
-            and ItemTotal change as well.
+        """ Set the ItemQuantity. When the ItemQuantity changes
+            the Quantity and ItemTotal changes as well.
         """
+        self.ItemTotal = Decimal(quantity * float(self.Rate)
+                                    ).quantize(Decimal('.01'))
         self._ItemQuantity = quantity
-        # when the quantity changes recalculate the ItemTotal
-        self.ItemTotal = self.ItemQuantity * float(self.Rate)
         self.Quantity = self.Parent.Quantity * self.ItemQuantity
 
     @hybrid_property
@@ -938,6 +955,18 @@ class ComponentMixin(object):
         return Decimal(self.ItemQuantity * float(self.Rate)
                 ).quantize(Decimal('.01'))
 
+    @ItemTotal.setter
+    def ItemTotal(self, itemtotal):
+        """ When the item total changes, the parent rate is changed if it is
+            a BudgetItem
+        """
+        if self.Parent.type == 'BudgetItem':
+            oldtotal = self.ItemTotal
+            difference = itemtotal - oldtotal
+            # update the parent with the new total
+            if difference != 0:
+                self.Parent.Rate = self.Parent.Rate + difference
+
     @property
     def Subtotal(self):
         """ Subtotal returns the total of the Component with the Overhead
@@ -969,9 +998,10 @@ class ComponentMixin(object):
 
     @ItemQuantity.setter
     def ItemQuantity(self, quantity):
-        """ Set the ItemQuantity, recalculate the Total and if the parent
-            is a BudgetItem update it's Rate
+        """ Set the ItemQuantity, update the ItemTotal and Quantity
         """
+        self.ItemTotal = Decimal(quantity * float(self.Rate)
+                                    ).quantize(Decimal('.01'))
         self._ItemQuantity = quantity
         # recalculate the Quantity
         self.Quantity = self.Parent.Quantity * self.ItemQuantity
@@ -1202,13 +1232,11 @@ class Component(Node, ComponentMixin):
     def Unit(self):
         """ Get the component's Unit, the Unit of this resource is returned
         """
-        if self.Resource:
-            return self.Resource.unitName()
+        return self.Resource.unitName()
 
     @property
     def Type(self):
-        if self.Resource:
-            return self.Resource.Type
+        return self.Resource.Type
 
     @property
     def Markup(self):

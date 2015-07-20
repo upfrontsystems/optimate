@@ -432,6 +432,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                         item.quantity = data.quantity;
                         item.budg_cost = data.total;
                         item.sub_cost = data.subtotal;
+                        item.rate = data.rate;
                         //store the active cell and editor
                         var activeCell = grid.getActiveCell();
                         var activeEditor = grid.getCellEditor();

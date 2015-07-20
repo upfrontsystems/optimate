@@ -58,7 +58,7 @@ def initdb():
         client1 = Client (Name='TestClientOne', ID=1)
         city1 = City(Name='Cape Town', ID=1)
         unit1 = Unit(Name='mm', ID=1)
-        mattype = ResourceType(Name='Material')
+        mattype = ResourceType(ID=1, Name='Material')
 
         root = Node(ID=0)
         project = Project(Name='Project 1', ID=1,
@@ -97,7 +97,7 @@ def initdb():
             Name='Fire pool',
             Description='Security feature',
             _ItemQuantity=sicomp_itemquantity,
-            Type=mattype.Name,
+            Type=mattype.ID,
             _Rate=sicomp_rate,
             ParentID=budgetitem.ID)
 
@@ -136,7 +136,7 @@ class TestSimpleComponent(unittest.TestCase):
         request = testing.DummyRequest()
         request.matchdict = {'id': 8}
         request.json_body = {
-            'itemquantity': 2,
+            'item_quantity': 2,
             'rate': 1000000
         }
 

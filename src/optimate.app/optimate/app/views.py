@@ -223,7 +223,6 @@ def additemview(request):
     supplier = request.json_body.get('Supplier', '')
     newid = 0
     newnode = None
-
     # Determine the type of object to be added and build it
     if objecttype == 'Project':
         newnode = Project(Name=request.json_body['Name'],
@@ -242,15 +241,15 @@ def additemview(request):
                                         ParentID=newid)
         DBSession.add(newresourcecat)
         DBSession.flush()
+    # it's already determined by the ui whether a component
+    # or simple component is being added
     elif objecttype == 'Component':
-        # Components need to reference a Resource. If they don't, we create
-        # a SimpleComponent instead.
         uid = request.json_body['ResourceID']
         itemquantity = float(request.json_body.get('ItemQuantity', 0))
         # check the resource exists
         resource = DBSession.query(Resource).filter_by(ID=uid).first()
         if not resource:
-            return HTTPNotFound()
+            return HTTPInternalServerError()
 
         newcomp = Component(ResourceID=resource.ID,
                         _ItemQuantity=itemquantity,
@@ -440,7 +439,7 @@ def edititemview(request):
         resource = DBSession.query(Resource).filter_by(ID=nodeid).first()
         resource.Description=request.json_body.get('Description', '')
         resource.Code = request.json_body['Code']
-        resource._Rate=rate
+        resource.Rate=rate
         resource.UnitID=request.json_body.get('Unit', '')
         resource.Type=request.json_body.get('ResourceType', None)
         resource.UnitID=unit
@@ -754,19 +753,21 @@ def node_update_value(request):
     """
     nodeid = request.matchdict['id']
     result = DBSession.query(Node).filter_by(ID=nodeid).first()
+    newtotal = None
+    newsubtotal = None
+    newquantity = None
+    newrate = None
     # only a resource's rate can be modified
     if result.type == 'Resource':
         if request.json_body.get('rate') != None:
             result.Rate = request.json_body.get('rate')
-            return HTTPOk()
     # a budgetitems quantity or itemquantity can be modified
     elif result.type == 'BudgetItem':
-        newtotal = None
         if request.json_body.get('item_quantity') != None:
             result.ItemQuantity = float(request.json_body.get('item_quantity'))
             newtotal = str(result.Total)
             newquantity = result.Quantity
-        return {'total': newtotal, 'subtotal': None, 'quantity': newquantity}
+            newrate = str(result.Rate)
     # only a components itemquantity can be modified
     elif result.type == 'Component':
         if request.json_body.get('item_quantity') != None:
@@ -774,21 +775,21 @@ def node_update_value(request):
             newtotal = str(result.Total)
             newsubtotal = str(result.Subtotal)
             newquantity = result.Quantity
-            return {'total': newtotal,
-                    'subtotal': newsubtotal,
-                    'quantity': newquantity}
+            newrate = str(result.Rate)
     # a simplecomponents itemquantity or rate can be modified
     elif result.type == 'SimpleComponent':
         if request.json_body.get('item_quantity') != None:
-            result.ItemQuantity = float(request.json_body.get('item_quantity'))
+            result.ItemQuantity = float(request.json_body['item_quantity'])
         if request.json_body.get('rate') != None:
-            result.Rate = request.json_body.get('rate')
+            result.Rate = request.json_body['rate']
         newtotal = str(result.Total)
         newsubtotal = str(result.Subtotal)
         newquantity = result.Quantity
-        return {'total': newtotal,
-                'subtotal': newsubtotal,
-                'quantity': newquantity}
+        newrate = str(result.Rate)
+    return {'total': newtotal,
+            'subtotal': newsubtotal,
+            'quantity': newquantity,
+            'rate': newrate}
 
 
 @view_config(route_name="node_paste", renderer='json')
