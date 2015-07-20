@@ -506,7 +506,6 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             var grid;
             var data = [];
             var orders_column_width= {};
-            $scope.vat = undefined;
             // aux function to test if we can support localstorage
             var hasStorage = (function() {
                 try {
@@ -565,7 +564,6 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             function getItemMetaData(row){
                 // set the css for the last row with the totals
                 if (grid){
-                    console.log(grid.getDataLength());
                     if(row == grid.getDataLength()-1){
                         return {selectable: false,
                                 'cssClasses': "sum-row non-editable-row"};
@@ -651,13 +649,8 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             // Formatter for displaying the vat percentage
             function VATFormatter(row, cell, value, columnDef, dataContext) {
                 if (value != undefined) {
-                    var percentile = parseFloat(value)*100.0;
-                    var parts = percentile.toString().split(".");
-                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                    if (parts.length > 1){
-                        parts[parts.length-1] = parts[parts.length-1].slice(0,2);
-                    }
-                    return (parts.join(".") + " %");
+                    var percentile = parseFloat(value);
+                    return (percentile.toString() + " %");
                 }
                 else {
                     return "";
@@ -670,74 +663,6 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                 grid.updateRowCount();
                 grid.render();
             });
-
-            // watch the VAT checkbox and update all the values in the
-            // slickgrid accordingly
-            $scope.$watch(attrs.vat, function(vat) {
-                if ($scope.vat == undefined){
-                    // if vat used to be undefined only update it
-                    $scope.vat = vat;
-                }
-                else if (vat){
-                    $scope.vat = vat;
-
-                    var datalength = dataView.getLength();
-                    var dataitems = dataView.getItems();
-                    var ordertotal = 0.0;
-                    var ordervatcost = 0.0
-                    var gridlist = [];
-                    for (var i=0;i<datalength-1; i++) {
-                        var updaterow = dataitems[i]
-                        var subtotal = parseFloat(updaterow.subtotal);
-                        if (parseFloat(updaterow.vatcost) > 0){
-                            ordervatcost += parseFloat(updaterow.vatcost);
-                            ordertotal += parseFloat(updaterow.total);
-                        }
-                        else{
-                            updaterow.vat = 0.14;
-                            updaterow.vatcost = subtotal * 0.14;
-                            updaterow.total = subtotal * 1.14;
-                            ordervatcost += subtotal * 0.14;
-                            ordertotal += subtotal * 1.14;
-                            dataView.updateItem(updaterow.id, updaterow);
-                        }
-                    }
-                    var lastrow = dataitems[datalength-1];
-                    lastrow.vatcost = ordervatcost;
-                    lastrow.total = ordertotal;
-                    dataView.updateItem(lastrow.id, lastrow);
-                }
-                else if (vat == false){
-                    $scope.vat = vat;
-
-                    var datalength = dataView.getLength();
-                    var dataitems = dataView.getItems();
-                    var ordertotal = 0.0;
-                    var ordervatcost = 0.0
-                    var gridlist = [];
-                    for (var i=0;i<datalength-1; i++) {
-                        var updaterow = dataitems[i]
-                        var subtotal = parseFloat(updaterow.subtotal);
-                        if (parseFloat(updaterow.vatcost) > 0){
-                            updaterow.vat = 0.0;
-                            updaterow.vatcost = "0.00";
-                            updaterow.total = subtotal;
-                            ordervatcost += subtotal * 0.14;
-                            ordertotal += subtotal * 1.14;
-                            dataView.updateItem(updaterow.id, updaterow);
-
-                        }
-                    }
-                    var lastrow = dataitems[datalength-1];
-                    lastrow.vatcost = "0.00";
-                    lastrow.total = lastrow.subtotal;
-                    dataView.updateItem(lastrow.id, lastrow);
-                }
-                else {
-                    // vat is set to undefined
-                    $scope.vat = vat;
-                }
-            }, true);
 
             // observe the component list for changes and update the slickgrid
             // calculate and update the order total as well
@@ -804,8 +729,8 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                 var oldvatcost = item.vatcost;
 
                 item.subtotal = item.quantity*item.rate;
-                item.vatcost = item.subtotal * parseFloat(item.vat);
-                item.total = item.subtotal *(1.0 + parseFloat(item.vat));
+                item.vatcost = item.subtotal * (parseFloat(item.vat)/100.0);
+                item.total = item.subtotal *(1.0 + parseFloat(item.vat)/100.0);
                 dataView.updateItem(item.id, item);
                 // get the last row and update the values
                 var datalength = dataView.getLength();

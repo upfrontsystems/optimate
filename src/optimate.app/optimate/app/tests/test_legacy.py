@@ -225,7 +225,7 @@ def _initTestingDB():
         overhead = Overhead(Name="Overhead",
                         ID=1,
                         ProjectID=project.ID,
-                        Percentage=overheadperc)
+                        Percentage=(overheadperc*100.0))
         budgetgroup = BudgetGroup(Name='TestBGName',
                         ID=2,
                         Description='TestBGDesc',
@@ -277,7 +277,7 @@ def _initTestingDB():
         overheadb = Overhead(Name="OverheadB",
                         ID=2,
                         ProjectID=projectb.ID,
-                        Percentage=overheadbperc)
+                        Percentage=(overheadbperc*100.0))
         budgetgroupb = BudgetGroup(Name='TestBBGName',
                         ID=5,
                         Description='BBGDesc',
@@ -334,11 +334,11 @@ def _initTestingDB():
         overheadc = Overhead(Name="OverheadC",
                         ID=3,
                         ProjectID=projectc.ID,
-                        Percentage=overheadcperc)
+                        Percentage=(overheadcperc*100.0))
         overheadd = Overhead(Name="OverheadD",
                         ID=4,
                         ProjectID=projectc.ID,
-                        Percentage=overheaddperc)
+                        Percentage=(overheaddperc*100.0))
         budgetgroupc = BudgetGroup(Name='TestCBGName',
                         ID=20,
                         Description='CBGDesc',

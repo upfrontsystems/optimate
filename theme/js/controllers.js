@@ -1002,7 +1002,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 }).success(function(response) {
                     $scope.formData = {'NodeType':$scope.formData.NodeType};
                     $scope.handleReloadSlickgrid(currentid)
-                    // insert the newly created node in the correct place 
+                    // insert the newly created node in the correct place
                     // in the childlist
                     $scope.currentNode.Subitem.push(response['node']);
                     $scope.currentNode.Subitem.sort(function(a, b) {
@@ -1978,9 +1978,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
 
         // When the Add button is pressed change the state and form data
         $scope.addingState = function () {
-            $scope.formData.TaxRate = undefined;
-            $scope.formData = {'NodeType': 'order',
-                                'TaxRate': false};
+            $scope.formData = {'NodeType': 'order'};
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
             $scope.modalState = "Add";
@@ -1994,8 +1992,6 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
 
         // When the edit button is pressed change the state and set the data
         $scope.editingState = function () {
-            $scope.formData.TaxRate = undefined;
-            $scope.formData.TaxRate = false;
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
             $scope.modalState = "Edit";

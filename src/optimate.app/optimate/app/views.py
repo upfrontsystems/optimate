@@ -647,13 +647,13 @@ def project_overheads(request):
         # build the list and only get the neccesary values
         for overhead in qry:
             overheadlist.append({'Name': overhead.Name,
-                            'Percentage': str(overhead.Percentage*100.0),
+                            'Percentage': str(overhead.Percentage),
                             'ID': overhead.ID})
         return sorted(overheadlist, key=lambda k: k['Name'].upper())
     elif request.method == 'POST':
         projectid = request.matchdict['id']
         name = request.json_body['Name']
-        perc = (float(request.json_body.get('Percentage', 0)))/100.0
+        perc = float(request.json_body.get('Percentage', 0))
         # Build a new overhead with the data
         newoverhead = Overhead(Name = name,
                                 Percentage = perc,

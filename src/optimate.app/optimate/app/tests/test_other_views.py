@@ -193,7 +193,7 @@ def _initTestingDB():
         overhead = Overhead(Name="Overhead",
                         ID=1,
                         ProjectID=project.ID,
-                        Percentage=overheadperc)
+                        Percentage=(overheadperc*100.0))
         budgetgroup = BudgetGroup(Name='TestBGName',
                         ID=2,
                         Description='TestBGDesc',
@@ -245,7 +245,7 @@ def _initTestingDB():
         overhead2 = Overhead(Name="Overhead2",
                         ID=2,
                         ProjectID=project2.ID,
-                        Percentage=overheadperc2)
+                        Percentage=(overheadperc2*100.0))
         budgetgroup2 = BudgetGroup(Name='TestBGName',
                         ID=4,
                         Description='TestBGDesc',
@@ -313,7 +313,7 @@ def _initTestingDB():
                                 ComponentID=comp.ID,
                                 _Quantity=orderitemq,
                                 _Rate=orderitemr,
-                                VAT=orderitemvat)
+                                VAT=(orderitemvat*100.0))
 
         order2 = Order(ID=2,
                         ProjectID=project2.ID,
@@ -325,7 +325,7 @@ def _initTestingDB():
                                 ComponentID=comp2.ID,
                                 _Quantity=orderitemq2,
                                 _Rate=orderitemr2,
-                                VAT=orderitemvat2)
+                                VAT=(orderitemvat2*100.0))
 
         pastpaydate = datetime.date(2000, 1, 1)
         futurepaydate= datetime.date(2050, 1, 1)
