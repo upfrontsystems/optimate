@@ -2247,7 +2247,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                     spinner.stop(); // stop the spinner - ajax call complete
                     var file = new Blob([response], {type: 'application/pdf'});
                     var fileURL = URL.createObjectURL(file);
-                    var result = document.getElementsByClassName("pdf_download");
+                    var result = document.getElementsByClassName("pdf_hidden_download");
                     var anchor = angular.element(result);
                     var filename_header = headers('Content-Disposition');
                     var filename = filename_header.split('filename=')[1];
@@ -2304,6 +2304,15 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
         $scope.clientsList = [];
         $scope.clearFilters();
 
+        $scope.invoicesLengthCheck = function() {
+            if ($scope.jsoninvoices.length == 0) {
+               $scope.invoicesReportEnabled = false;
+            }
+            else {
+               $scope.invoicesReportEnabled = true;
+            }
+        }
+
         $scope.loadInvoiceSection = function() {
             var req = {
                 method: 'GET',
@@ -2318,6 +2327,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             };
             $http(req).success(function(response) {
                 $scope.jsoninvoices = response;
+                $scope.invoicesLengthCheck();
                 console.log("Invoices loaded");
             });
         }
@@ -2399,6 +2409,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
                 var idB = b.id;
                 return (idA > idB) ? -1 : (idA < idB) ? 1 : 0;
             });
+            $scope.invoicesLengthCheck();
             console.log ("Invoice added");
         }
 
@@ -2475,52 +2486,53 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
                 var i = $scope.jsoninvoices.indexOf(result[0]);
                 if (i>-1) {
                     $scope.jsoninvoices.splice(i, 1);
+                    $scope.invoicesLengthCheck();
                     console.log("Deleted invoice");
                 }
             });
         };
 
-        $scope.checkOrderNumber = function(){
+        $scope.checkOrderNumber = function() {
             // check if the order exists and set the form valid or invalid
             $http.get(globalServerURL + 'order/' + $scope.formData.orderid + '/')
-            .success(function(response){
+            .success(function(response) {
                 $scope.saveInvoiceModalForm.inputOrderNumber.$setValidity('default1', true);
                 $scope.calculatedAmounts[3].amount = response.Total
             })
-            .error(function(response){
+            .error(function(response) {
                 $scope.saveInvoiceModalForm.inputOrderNumber.$setValidity('default1', false);
             });
         };
 
-        $scope.updateAmounts = function(){
+        $scope.updateAmounts = function() {
             var subtotal = parseFloat($scope.formData.amount);
             var vatcost = parseFloat($scope.formData.vat);
             var total = subtotal + vatcost;
 
             var parts = subtotal.toString().split(".");
-            if (parts.length > 1){
+            if (parts.length > 1) {
                 parts[1] = parts[1].slice(0,2);
                 subtotal = parts.join('.');
             }
-            else{
+            else {
                 subtotal = subtotal.toString() + '.00'
             }
 
             parts = vatcost.toString().split(".");
-            if (parts.length > 1){
+            if (parts.length > 1) {
                 parts[1] = parts[1].slice(0,2);
                 vatcost = parts.join('.');
             }
-            else{
+            else {
                 vatcost = vatcost.toString() + '.00'
             }
 
             parts = total.toString().split(".");
-            if (parts.length > 1){
+            if (parts.length > 1) {
                 parts[1] = parts[1].slice(0,2);
                 total = parts.join('.');
             }
-            else{
+            else {
                 total = total.toString() + '.00'
             }
 
@@ -2529,19 +2541,44 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             $scope.calculatedAmounts[2].amount = total;
         }
 
+        // fetch the report filter options
+        $scope.filterReportBy = function() {
+            $scope.filterByProject = false;
+            $scope.filterBySupplier = false;
+            $scope.filterByPaymentDate = false;
+            $scope.filterByStatus = false;
+            var req = {
+                method: 'GET',
+                url: globalServerURL + 'invoices_report_filter'
+            };
+            $http(req).success(function(response) {
+                $scope.invoiceReportProjectsList = response['projects'];
+                $scope.invoiceReportSuppliersList = response['suppliers'];
+                $scope.invoiceReportPaymentDateList = response['paymentdates'];
+                $scope.paymentDatesExist = response['paymentdates_exist'];
+                $scope.invoiceReportStatusList = response['statuses'];
+                console.log("Invoice report filter options loaded")
+            })
+        };
+
         $scope.getReport = function (report) {
-            if ( report == 'invoice' ) {
+            if ( report == 'invoices' ) {
                 var target = document.getElementsByClassName('pdf_download');
                 var spinner = new Spinner().spin(target[0]);
+                $scope.formData['FilterByProject'] = $scope.filterByProject;
+                $scope.formData['FilterBySupplier'] = $scope.filterBySupplier;
+                $scope.formData['FilterByPaymentDate'] = $scope.filterByPaymentDate;
+                $scope.formData['FilterByStatus'] = $scope.filterByStatus;
                 $http({
                     method: 'POST',
-                    url: globalServerURL + 'invoice_report/' + $scope.selectedInvoice.id + '/'},
+                    url: globalServerURL + 'invoices_report',
+                    data: $scope.formData},
                     {responseType: 'arraybuffer'})
                 .success(function (response, status, headers, config) {
                     spinner.stop(); // stop the spinner - ajax call complete
                     var file = new Blob([response], {type: 'application/pdf'});
                     var fileURL = URL.createObjectURL(file);
-                    var result = document.getElementsByClassName("pdf_download");
+                    var result = document.getElementsByClassName("pdf_hidden_download");
                     var anchor = angular.element(result);
                     var filename_header = headers('Content-Disposition');
                     var filename = filename_header.split('filename=')[1];
@@ -2916,7 +2953,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                     spinner.stop(); // stop the spinner - ajax call complete
                     var file = new Blob([response], {type: 'application/pdf'});
                     var fileURL = URL.createObjectURL(file);
-                    var result = document.getElementsByClassName("pdf_download");
+                    var result = document.getElementsByClassName("pdf_hidden_download");
                     var anchor = angular.element(result);
                     var filename_header = headers('Content-Disposition');
                     var filename = filename_header.split('filename=')[1];
