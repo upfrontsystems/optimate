@@ -2142,9 +2142,13 @@ class Invoice(Base):
         jsonpaydate = None
         if self.PaymentDate:
             jsonpaydate = self.PaymentDate.isoformat()
+        else:
+            jsonpaydate = datetime.now().isoformat()
         jsonindate = None
         if self.InvoiceDate:
             jsonindate = self.InvoiceDate.isoformat()
+        else:
+            jsonindate = datetime.now().isoformat()
         return {'id': self.ID,
                 'orderid': self.OrderID,
                 'invoicedate': jsonindate,
