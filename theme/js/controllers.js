@@ -1426,8 +1426,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             // put the id's of the selected records in an array
             if ($scope.rowsSelected){
                 $scope.toggleCopiedRecords($scope.getSelectedNodes(), false);
+                $scope.copiedNode = {'NodeType': 'Records'};
                 console.log("Records copied");
-                console.log($scope.copiedRecords);
                 $scope.statusMessage("Records copied.", 1000, 'alert-info');
             }
         };
@@ -1437,6 +1437,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             if ($scope.rowsSelected){
                 var selectedRows = $scope.getSelectedNodes();
                 $scope.toggleCopiedRecords(selectedRows, true);
+                $scope.copiedNode = {'NodeType': 'Records'};
                 // remove rows from slickgrid
                 $scope.cutSelectedNodes(selectedRows);
                 // get node in scope and remove

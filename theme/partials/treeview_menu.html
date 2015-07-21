@@ -45,6 +45,12 @@
                     </a>
                 </li>
                 <li data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
+                    <a data-ng-switch-when="Records"
+                        role="button"
+                        data-ng-click="pasteSelectedRecords(currentNode)"
+                        title="Paste records">
+                        <i class="fa fa-clipboard"></i>
+                    </a>
                     <a data-ng-switch-when="Project"
                         role="button"
                         data-ng-click="pasteThisNode(projectsRoot)"
@@ -151,6 +157,12 @@
                     </a>
                 </li>
                 <li data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
+                    <a data-ng-switch-when="Records"
+                        role="button"
+                        data-ng-click="pasteSelectedRecords(currentNode)"
+                        title="Paste records">
+                        <i class="fa fa-clipboard"></i>
+                    </a>
                     <a data-ng-switch-when="Project"
                         role="button"
                         data-ng-click="pasteThisNode(projectsRoot)"
@@ -237,6 +249,12 @@
                     </a>
                 </li>
                 <li data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
+                    <a data-ng-switch-when="Records"
+                        role="button"
+                        data-ng-click="pasteSelectedRecords(currentNode)"
+                        title="Paste records">
+                        <i class="fa fa-clipboard"></i>
+                    </a>
                     <a data-ng-switch-when="Project"
                         role="button"
                         data-ng-click="pasteThisNode(projectsRoot)"
@@ -318,6 +336,12 @@
                     </a>
                 </li>
                 <li data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
+                    <a data-ng-switch-when="Records"
+                        role="button"
+                        data-ng-click="pasteSelectedRecords(currentNode)"
+                        title="Paste records">
+                        <i class="fa fa-clipboard"></i>
+                    </a>
                     <a data-ng-switch-when="Project"
                         role="button"
                         data-ng-click="pasteThisNode(projectsRoot)"

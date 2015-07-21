@@ -1130,7 +1130,7 @@ class ComponentMixin(object):
                 'Description': self.Description,
                 'Rate': str(self.Rate),
                 'Quantity': self.Quantity,
-                'ResourceType': int(self.Type),
+                'ResourceType': self.Type,
                 'NodeType': self.type,
                 'ItemQuantity': self.ItemQuantity,
                 'Ordered': str(self.Ordered),
@@ -1327,7 +1327,7 @@ class SimpleComponent(Node, ComponentMixin):
     Description = Column(Text(100))
     _Quantity = Column('Quantity', Float)
     _Total = Column('Total', Numeric)
-    Type = Column(Unicode(50), ForeignKey('ResourceType.ID'))
+    Type = Column(Integer, ForeignKey('ResourceType.ID'))
     _Rate = Column('Rate', Numeric, default=Decimal(0.00))
     _Ordered = Column('Ordered', Numeric(12, 2), default=Decimal(0.00))
     _Invoiced = Column('Invoiced', Numeric(12, 2), default=Decimal(0.00))
@@ -1609,7 +1609,7 @@ class Resource(Node):
     Name = Column(Text(50))
     Description = Column(Text(100))
     UnitID = Column(Integer, ForeignKey('Unit.ID'))
-    Type = Column(Text(50), ForeignKey('ResourceType.ID'))
+    Type = Column(Integer, ForeignKey('ResourceType.ID'))
     _Rate = Column('Rate', Numeric, default=Decimal(0.00))
     SupplierID = Column(Integer, ForeignKey('Supplier.ID'))
 
@@ -1690,7 +1690,7 @@ class Resource(Node):
                 'Description': self.Description,
                 'Code': self.Code,
                 'Rate': str(self._Rate),
-                'ResourceType': int(self.Type),
+                'ResourceType': self.Type,
                 'Unit': self.UnitID,
                 'Supplier': self.SupplierID,
                 'NodeType': self.type}
