@@ -1212,6 +1212,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         // and add it to the open projects
                         $scope.projectAdded(data);
                     });
+                    $scope.statusMessage("New project pasted.", 1000, 'alert-info');
                 }
                 else if (index !== undefined){
                     // if we pasted the last node of the copied records
