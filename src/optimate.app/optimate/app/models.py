@@ -1629,12 +1629,14 @@ class Resource(Node):
 
     @Rate.setter
     def Rate(self, rate):
-        """ Set the Resource's rate and reset the Rate of all the component's
-            that reference it
+        """ Set the Resource's rate and reset the Total of all the
+            Components and ResourceParts that reference it
         """
         self._Rate = Decimal(rate).quantize(Decimal('.01'))
         for comp in self.Components:
             comp.resetTotal(self._Rate)
+        for part in self.ResourceParts:
+            part.resetTotal()
 
     def unitName(self):
         if self.Unit:
@@ -1715,7 +1717,7 @@ class Resource(Node):
         return self.Name[index].lower()
 
     def __repr__(self):
-        """Return a representation of this resource
+        """ Return a representation of this resource
         """
         return '<Resource(Name="%s", Code="%s", Rate="%f", ID="%s")>' % (
             self.Name, self.Code, self.Rate, self.ID)
@@ -1728,20 +1730,104 @@ class ResourceUnit(Resource):
     ID = Column(Integer,
                 ForeignKey('Resource.ID', ondelete='CASCADE'),
                 primary_key=True)
-    Code = Column(Text(50))
-    Name = Column(Text(50))
-    Description = Column(Text(100))
-    UnitID = Column(Integer, ForeignKey('Unit.ID'))
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'ResourceUnit',
+        'inherit_condition': (ID == Resource.ID),
+    }
+
+    def resetRate(self):
+        """ Recalculates the rate from the total of it's parts
+        """
+        rate = Decimal(0.00)
+        for part in self.ResourceParts:
+            rate+=part.Total
+
+        self.Rate = rate
+
+    @property
+    def Rate(self):
+        """ Get the Rate of the ResourceUnit
+        """
+        if not self._Rate:
+            self.resetRate()
+        return self._Rate.quantize(Decimal('.01'))
+
+    @Rate.setter
+    def Rate(self, rate):
+        """ When the ResourceUnit Rate is set, update the ResourcePart total
+        """
+        self._Rate = rate
+        for part in self.ResourceParts:
+            part.resetTotal()
+
+    def __repr__(self):
+        """ Return a representation of this ResourceUnit
+        """
+        return '<ResourceUnit(Name="%s", Code="%s", Rate="%f", ID="%s")>' % (
+            self.Name, self.Code, self.Rate, self.ID)
 
 
 class ResourcePart(Node):
-    """ A model that subclasses Resource and extends its functions
+    """ Forms a part of a ResourceUnit
     """
+    __tablename__ = "ResourcePart"
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'),
                 primary_key=True)
     ResourceID = Column(Integer, ForeignKey('Resource.ID'))
     _Quantity = Column('Quantity', Float)
+    _Total = Column('Total', Numeric)
+
+    Resource = relationship('Resource',
+                              backref=backref('ResourceParts'))
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'ResourcePart',
+        'inherit_condition': (ID == Node.ID),
+    }
+
+    def resetTotal():
+        """ Reset the Total of the ResourcePart
+            Total = Quantity * Resource.Rate
+        """
+        self.Total = Decimal(self.Quantity * float(self.Resource.Rate)
+                            ).quantize(Decimal('.01'))
+
+    @property
+    def Total(self):
+        """ Get the Total of the ResourcePart
+        """
+        if not self._Total:
+            self.resetTotal()
+        return self._Total.quantize(Decimal('.01'))
+
+    @Total.setter
+    def Total(self, total):
+        """ When the ResourcePart Total is set, update the ResourceUnit rate
+        """
+        self._Total = total
+        if self.Resource.type == 'ResourceUnit':
+            self.Resource.resetRate()
+
+    @property
+    def Quantity(self):
+        """ Get the Quantity of the ResourcePart
+        """
+        return self._Quantity
+
+    @Quantity.setter
+    def Quantity(self, quantity):
+        """ When the ResourcePart Quantity is set, update the Total
+        """
+        self._Quantity = quantity
+        self.resetTotal()
+
+    def __repr__(self):
+        """ Return a representation of this ResourcePart
+        """
+        return '<ResourcePart(Name="%s", Quantity"%f", Total="%f", ID="%s")>' % (
+            self.Name, self.Quantity, self.Total, self.ID)
 
 
 class Unit(Base):

@@ -117,6 +117,7 @@ class TestSimpleComponent(unittest.TestCase):
         initdb();
 
     def tearDown(self):
+        DBSession.remove()
         testing.tearDown()
 
     def test_total(self):
