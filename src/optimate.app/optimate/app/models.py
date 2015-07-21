@@ -1721,6 +1721,29 @@ class Resource(Node):
             self.Name, self.Code, self.Rate, self.ID)
 
 
+class ResourceUnit(Resource):
+    """ A model that subclasses Resource and extends its functions
+    """
+    __tablename__ = "ResourceUnit"
+    ID = Column(Integer,
+                ForeignKey('Resource.ID', ondelete='CASCADE'),
+                primary_key=True)
+    Code = Column(Text(50))
+    Name = Column(Text(50))
+    Description = Column(Text(100))
+    UnitID = Column(Integer, ForeignKey('Unit.ID'))
+
+
+class ResourcePart(Node):
+    """ A model that subclasses Resource and extends its functions
+    """
+    ID = Column(Integer,
+                ForeignKey('Node.ID', ondelete='CASCADE'),
+                primary_key=True)
+    ResourceID = Column(Integer, ForeignKey('Resource.ID'))
+    _Quantity = Column('Quantity', Float)
+
+
 class Unit(Base):
     """ Unit defines a unit used by a Resource
     """
