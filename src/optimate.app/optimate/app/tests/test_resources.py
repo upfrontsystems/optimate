@@ -19,7 +19,8 @@ from optimate.app.models import (
     Unit,
     Component,
     SimpleComponent,
-    Client
+    Client,
+    City
 )
 
 def _initTestingDB():
@@ -105,7 +106,7 @@ def _initTestingDB():
                             Code="U001",
                             Description="Test Resource Unit A",
                             UnitID=unit2.ID,
-                            Type=labtype,
+                            Type=labtype.ID,
                             ParentID=rescat.ID)
         resourceparta = ResourcePart(ID=14,
                             ResourceID=resourceunit.ID,
@@ -128,6 +129,15 @@ def _initTestingDB():
         transaction.commit()
     return DBSession
 
+def _registerRoutes(config):
+    # the optimate project data views
+    config.add_route('rootview', '/')
+    config.add_route('node_children', 'node/{parentid}/children/')
+    config.add_route('nodeview', 'node/{id}/')
+    config.add_route('project_resources', '/project/{id}/resources/')
+    config.add_route('resources', '/resource/{id}/')
+    config.add_route('node_paste', 'node/{id}/paste/')
+    config.add_route('node_cost', 'node/{id}/cost/')
 
 class TestResourceUnit(unittest.TestCase):
     def setUp(self):
@@ -138,12 +148,26 @@ class TestResourceUnit(unittest.TestCase):
         DBSession.remove()
         testing.tearDown()
 
-    def test_rate(self):
-        # test the rate of a resource unit is correctly calculated
+    def test_resourceunit(self):
+        # test the functions resource unit
 
-        resourceunit = DBSession.query(ResourceUnit).first()
-        print resourceunit
-        # self.assertEqual(str(project.Total), str(newproject_total));
+        resourceunit = DBSession.query(ResourceUnit).filter_by(ID=11).first()
+        self.assertEqual(resourceunit.Children[0].ID, 12);
+        self.assertEqual(resourceunit.ResourceParts[0].ID, 14);
+
+        resparttotal = Decimal(resource_rate*respart_quantity).quantize(Decimal('.01'))
+        self.assertEqual(str(resourceunit.Rate), str(resparttotal));
+
+    def test_resourceunit_a(self):
+        # test the functions resource unit a
+
+        resourceunit = DBSession.query(ResourceUnit).filter_by(ID=13).first()
+        self.assertEqual(len(resourceunit.Children), 2);
+
+        childatotal = (resparta_quantity*(resource_rate*respart_quantity))
+        childbtotal = respartb_quantity*resa_rate
+        unittotal = Decimal(childatotal+childbtotal).quantize(Decimal('.01'))
+        self.assertEqual(str(resourceunit.Rate), str(unittotal));
 
 class TestResourcePart(unittest.TestCase):
     def setUp(self):
@@ -156,10 +180,17 @@ class TestResourcePart(unittest.TestCase):
 
     def test_total(self):
         # test the total of a resource part is correctly calculated
+        resourcepart = DBSession.query(ResourcePart).filter_by(ID=12).first()
+        resparttotal = Decimal(resource_rate*respart_quantity).quantize(Decimal('.01'))
+        self.assertEqual(str(resourcepart.Total), str(resparttotal));
 
-        resourcepart = DBSession.query(ResourcePart).first()
-        print resourcepart
-        # self.assertEqual(str(project.Total), str(newproject_total));
+        resourcepart = DBSession.query(ResourcePart).filter_by(ID=14).first()
+        resparttotal = Decimal(resource_rate*respart_quantity*resparta_quantity).quantize(Decimal('.01'))
+        self.assertEqual(str(resourcepart.Total), str(resparttotal));
+
+        resourcepart = DBSession.query(ResourcePart).filter_by(ID=16).first()
+        resparttotal = Decimal(resa_rate*respartb_quantity).quantize(Decimal('.01'))
+        self.assertEqual(str(resourcepart.Total), str(resparttotal));
 
 class TestTree(unittest.TestCase):
     def setUp(self):
@@ -170,11 +201,40 @@ class TestTree(unittest.TestCase):
         DBSession.remove()
         testing.tearDown()
 
+    def _callFUT(self, request):
+        from optimate.app.views import nodeview
+        return nodeview(request)
+
+    def test_cost(self):
+        from optimate.app.views import node_cost
+        request = testing.DummyRequest()
+        comptotal = Decimal(component_itemquantity*float(resource_rate)).quantize(Decimal('.01'))
+        # check cost beforehand
+        request.matchdict = {'id': 1}
+        self.assertEqual(node_cost(request)['Cost'], str(comptotal))
+        # test adding a resource part and unit functions correctly
+
     def test_add(self):
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 1}
+        request.method = 'POST'
+        # response = self._callFUT(request)
         # test adding a resource part and unit functions correctly
 
     def test_delete(self):
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 1}
+        request.method = 'DELETE'
+        # response = self._callFUT(request)
         # test deleting a resource part and unit functions correctly
 
     def test_paste(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest(json_body={
+            'ID': '2',
+            'cut': False}
+        )
+        request.matchdict = {'id': 1}
+        from optimate.app.views import node_paste
+        response = node_paste(request)
         # test copy/cut and p astinga resource part and unit functions correctly

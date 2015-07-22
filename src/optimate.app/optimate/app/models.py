@@ -1740,7 +1740,7 @@ class ResourceUnit(Resource):
         """ Recalculates the rate from the total of it's parts
         """
         rate = Decimal(0.00)
-        for part in self.ResourceParts:
+        for part in self.Children:
             rate+=part.Total
 
         self.Rate = rate
@@ -1775,19 +1775,21 @@ class ResourcePart(Node):
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'),
                 primary_key=True)
+    Name = Column(Text(50))
     ResourceID = Column(Integer, ForeignKey('Resource.ID'))
     _Quantity = Column('Quantity', Float)
     _Total = Column('Total', Numeric)
 
     Resource = relationship('Resource',
-                              backref=backref('ResourceParts'))
+                            foreign_keys=[ResourceID],
+                            backref=backref('ResourceParts'))
 
     __mapper_args__ = {
         'polymorphic_identity': 'ResourcePart',
         'inherit_condition': (ID == Node.ID),
     }
 
-    def resetTotal():
+    def resetTotal(self):
         """ Reset the Total of the ResourcePart
             Total = Quantity * Resource.Rate
         """
@@ -1804,11 +1806,11 @@ class ResourcePart(Node):
 
     @Total.setter
     def Total(self, total):
-        """ When the ResourcePart Total is set, update the ResourceUnit rate
+        """ When the ResourcePart Total is set, update the
+            parent ResourceUnit rate
         """
         self._Total = total
-        if self.Resource.type == 'ResourceUnit':
-            self.Resource.resetRate()
+        self.Parent.resetRate()
 
     @property
     def Quantity(self):
