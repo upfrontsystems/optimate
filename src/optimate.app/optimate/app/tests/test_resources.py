@@ -17,8 +17,7 @@ from optimate.app.models import (
     ResourceUnit,
     ResourcePart,
     Unit,
-    Component,
-    SimpleComponent,
+    SimpleBudgetItem,
     Client,
     City
 )
@@ -40,16 +39,30 @@ def _initTestingDB():
         global respartb_quantity
         respartb_quantity = 10
 
-        global component_itemquantity
-        component_itemquantity = 5.0
-        global component_quantity
-        component_quantity = component_itemquantity
-        global component_total
-        component_total = Decimal(float(resource_rate)* \
-            component_quantity).quantize(Decimal('.01'))
+        global respart_total
+        respart_total = Decimal(resource_rate*respart_quantity
+                                ).quantize(Decimal('.01'))
+        global resunit_rate
+        resunit_rate = respart_total
+
+        global resparta_total
+        resparta_total = Decimal(
+                                resource_rate*respart_quantity*resparta_quantity
+                                ).quantize(Decimal('.01'))
+        global respartb_total
+        respartb_total = Decimal(resa_rate*respartb_quantity
+                                ).quantize(Decimal('.01'))
+        global resunita_rate
+        resunita_rate = resparta_total + respartb_total
+
+        global budgetitem_quantity
+        budgetitem_quantity = 5.0
+        global budgetitem_total
+        budgetitem_total = Decimal(float(resource_rate)* \
+            budgetitem_quantity).quantize(Decimal('.01'))
 
         global project_total
-        project_total = component_total
+        project_total = budgetitem_total
 
         client1 = Client (Name='TestClientOne', ID=1)
         city1 = City(Name='Cape Town', ID=1)
@@ -82,6 +95,10 @@ def _initTestingDB():
                             Type=mattype.Name,
                             _Rate=resource_rate,
                             ParentID=rescat.ID)
+        budgetitem = BudgetItem(ID=7,
+                            ResourceID = res.ID,
+                            _Quantity=budgetitem_quantity,
+                            ParentID=budgetgroup.ID)
         resourceunit = ResourceUnit(ID=11,
                             Name='ResourceUnit',
                             Code='U000',
@@ -116,14 +133,10 @@ def _initTestingDB():
                             ResourceID=resa.ID,
                             _Quantity=respartb_quantity,
                             ParentID=resourceunita.ID)
-        comp = Component(ID=7,
-                        ResourceID = res.ID,
-                        _ItemQuantity=component_itemquantity,
-                        ParentID=budgetgroup.ID)
 
         for ob in (root, client1, city1, unit1, project, budgetgroup, rescat,
             res, resourceunit, resourcepart, resa, resourceunita, resourceparta,
-            resourcepartb, comp):
+            resourcepartb, budgetitem):
             DBSession().add(ob)
 
         transaction.commit()
@@ -152,22 +165,16 @@ class TestResourceUnit(unittest.TestCase):
         # test the functions resource unit
 
         resourceunit = DBSession.query(ResourceUnit).filter_by(ID=11).first()
-        self.assertEqual(resourceunit.Children[0].ID, 12);
-        self.assertEqual(resourceunit.ResourceParts[0].ID, 14);
-
-        resparttotal = Decimal(resource_rate*respart_quantity).quantize(Decimal('.01'))
-        self.assertEqual(str(resourceunit.Rate), str(resparttotal));
+        self.assertEqual(resourceunit.Children[0].ID, 12)
+        self.assertEqual(resourceunit.ResourceParts[0].ID, 14)
+        self.assertEqual(str(resourceunit.Rate), str(resunit_rate))
 
     def test_resourceunit_a(self):
         # test the functions resource unit a
 
         resourceunit = DBSession.query(ResourceUnit).filter_by(ID=13).first()
-        self.assertEqual(len(resourceunit.Children), 2);
-
-        childatotal = (resparta_quantity*(resource_rate*respart_quantity))
-        childbtotal = respartb_quantity*resa_rate
-        unittotal = Decimal(childatotal+childbtotal).quantize(Decimal('.01'))
-        self.assertEqual(str(resourceunit.Rate), str(unittotal));
+        self.assertEqual(len(resourceunit.Children), 2)
+        self.assertEqual(str(resourceunit.Rate), str(resunita_rate))
 
 class TestResourcePart(unittest.TestCase):
     def setUp(self):
@@ -185,12 +192,10 @@ class TestResourcePart(unittest.TestCase):
         self.assertEqual(str(resourcepart.Total), str(resparttotal));
 
         resourcepart = DBSession.query(ResourcePart).filter_by(ID=14).first()
-        resparttotal = Decimal(resource_rate*respart_quantity*resparta_quantity).quantize(Decimal('.01'))
-        self.assertEqual(str(resourcepart.Total), str(resparttotal));
+        self.assertEqual(str(resourcepart.Total), str(resparta_total));
 
         resourcepart = DBSession.query(ResourcePart).filter_by(ID=16).first()
-        resparttotal = Decimal(resa_rate*respartb_quantity).quantize(Decimal('.01'))
-        self.assertEqual(str(resourcepart.Total), str(resparttotal));
+        self.assertEqual(str(resourcepart.Total), str(respartb_total));
 
 class TestTree(unittest.TestCase):
     def setUp(self):
@@ -208,33 +213,49 @@ class TestTree(unittest.TestCase):
     def test_cost(self):
         from optimate.app.views import node_cost
         request = testing.DummyRequest()
-        comptotal = Decimal(component_itemquantity*float(resource_rate)).quantize(Decimal('.01'))
-        # check cost beforehand
         request.matchdict = {'id': 1}
-        self.assertEqual(node_cost(request)['Cost'], str(comptotal))
-        # test adding a resource part and unit functions correctly
+        self.assertEqual(node_cost(request)['Cost'], str(budgetitem_total))
 
     def test_add(self):
+        # test adding a budgetitem with resourceunit works correctly
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 2}
+        request.method = 'POST'
+        request.json_body = {'NodeType': 'BudgetItem',
+                            'ResourceID': 13,
+                            'Quantity': 6,
+                            'OverheadList': []}
+        response = self._callFUT(request)
+        newid = response['ID']
+        # the new budgetitem needs to have two children
+        request = testing.DummyRequest()
+        request.matchdict = {'parentid': newid}
+        from optimate.app.views import node_children
+        response = node_children(request)
+        self.assertEqual(len(response), 2)
+
+        # check the new cost is correct
+        newbudgetitemtotal = Decimal(6*float(resunita_rate))
+        newprojtotal = (project_total + newbudgetitemtotal).quantize(Decimal('.01'))
+        from optimate.app.views import node_cost
         request = testing.DummyRequest()
         request.matchdict = {'id': 1}
-        request.method = 'POST'
-        # response = self._callFUT(request)
-        # test adding a resource part and unit functions correctly
+        self.assertEqual(node_cost(request)['Cost'], str(newprojtotal))
 
     def test_delete(self):
+        # test deleting a resourceunit works
         request = testing.DummyRequest()
-        request.matchdict = {'id': 1}
+        request.matchdict = {'id': 11}
         request.method = 'DELETE'
-        # response = self._callFUT(request)
-        # test deleting a resource part and unit functions correctly
+        response = self._callFUT(request)
 
-    def test_paste(self):
-        _registerRoutes(self.config)
-        request = testing.DummyRequest(json_body={
-            'ID': '2',
-            'cut': False}
-        )
-        request.matchdict = {'id': 1}
-        from optimate.app.views import node_paste
-        response = node_paste(request)
-        # test copy/cut and p astinga resource part and unit functions correctly
+    # def test_paste(self):
+    #     # test copying and pasting a resource unit works
+    #     _registerRoutes(self.config)
+    #     request = testing.DummyRequest(json_body={
+    #         'ID': '2',
+    #         'cut': False}
+    #     )
+    #     request.matchdict = {'id': 11}
+    #     from optimate.app.views import node_paste
+    #     response = node_paste(request)

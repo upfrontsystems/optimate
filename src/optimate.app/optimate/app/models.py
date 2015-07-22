@@ -1,4 +1,4 @@
-"""Models file contains resources used in the project
+""" Models file defines and builds the models used in Optimate
 """
 
 import os
@@ -235,20 +235,17 @@ class Project(Node):
             if child.type != 'ResourceCategory':
                 source.paste(child.copy(source.ID), child.Children)
 
-    def getComponents(self):
-        """ Returns a list of all the Resources that are used by the children of
-            the project. The resources are retrieved from its children and any
-            children that are components return their resource
+    def getBudgetItems(self):
+        """ Returns a list of all the BudgetItems that are used in this project.
         """
-        componentslist = []
+        budgetitemslist = []
         for child in self.Children:
             if child.type != 'ResourceCategory':
-                componentslist += child.getComponents()
-        return componentslist
+                budgetitemslist += child.getBudgetItems()
+        return budgetitemslist
 
     def getBudgetGroups(self):
-        """ Returns a list of all the budgetgroups that contained in this
-            budgetgroup.
+        """ Return a list of all the budgetgroups that are in this project.
         """
         budgetgrouplist = []
         if len(self.Children) == 0:
@@ -256,7 +253,7 @@ class Project(Node):
         for child in self.Children:
             if child.type == 'BudgetGroup':
                 budgetgrouplist.append(child)
-            elif child.type != 'BudgetItem' and child.type != 'Component':
+            elif child.type != 'BudgetItem':
                 budgetgrouplist += child.getBudgetGroups()
         return budgetgrouplist
 
@@ -468,28 +465,23 @@ class BudgetGroup(Node):
         return copied
 
     def paste(self, source, sourcechildren):
-        """ Paste appends a source object to the children of this node,
+        """ Paste appends a source object to the children of this budgetgroup,
             and then recursively does the same with each child
             of the source object.
         """
         self.Children.append(source)
-        # if the child is of type component copy the component with the
-        # resource category id for use by the component's resource
         for child in sourcechildren:
             source.paste(child.copy(source.ID), child.Children)
 
-    def getComponents(self):
-        """ Returns a list of all the Resources that are used by the children of
-            the budgetgroup. The resources are retrieved from its children and any
-            children that are components return their resource
+    def getBudgetItems(self):
+        """ Returns a list of all the BudgetItems in this BudgetGroup.
         """
-        componentlist = []
+        budgetitemslist = []
         for child in self.Children:
-            if child.type == 'Component':
-                componentlist.append(child)
-            else:
-                componentlist += child.getComponents()
-        return componentlist
+            if child.type == 'BudgetItem':
+                budgetitemslist.append(child)
+            budgetitemslist += child.getBudgetItems()
+        return budgetitemslist
 
     def getBudgetGroups(self):
         """ Returns a list of all the budgetgroups that contained in this
@@ -501,7 +493,7 @@ class BudgetGroup(Node):
         for child in self.Children:
             if child.type == 'BudgetGroup':
                 budgetgrouplist.append(child)
-            elif child.type != 'BudgetItem' and child.type != 'Component':
+            elif child.type != 'BudgetItem':
                 budgetgrouplist += child.getBudgetGroups()
         return budgetgrouplist
 
@@ -578,350 +570,51 @@ class BudgetGroup(Node):
         return '<BudgetGroup(Name="%s", ID="%s", ParentID="%s")>' % (
             self.Name, self.ID, self.ParentID)
 
-
-class BudgetItem(Node):
-    """ A table representing a BudgetItem in Optimate, it has an ID, Name,
-        Description, Quantity, Rate and ParentID that is the ID of its parent.
-    """
-    __tablename__ = 'BudgetItem'
-    ID = Column(Integer,
-                ForeignKey('Node.ID', ondelete='CASCADE'),
-                primary_key=True)
-    Name = Column(Text(50))
-    Description = Column(Text(100))
-    _Quantity = Column('Quantity', Float)
-    _Rate = Column('Rate', Numeric)
-    _Total = Column('Total', Numeric)
-    _Ordered = Column('Ordered', Numeric(12, 2), default=Decimal(0.00))
-    _Invoiced = Column('Invoiced', Numeric(12, 2), default=Decimal(0.00))
-    _ItemQuantity = Column('Item Quantity', Float, default=1.0)
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'BudgetItem',
-        'inherit_condition': (ID == Node.ID),
-    }
-
-    def recalculateTotal(self):
-        """ Recursively recalculate the total of all the nodes in the hierarchy
-            Return the Total of the BudgetItem
-        """
-        total = Decimal(0.00)
-        for child in self.Children:
-            total += child.recalculateTotal()
-        self._Total = total.quantize(Decimal('.01'))
-        return self._Total
-
-    def resetTotal(self):
-        """ Reset the Total and the Rate.
-            The Total of a BudgetItem equals the sum of the Totals of all it's
-            children
-        """
-        self.resetRate()
-        total = Decimal(0.00)
-        for child in self.Children:
-            total += child.Total
-        self.Total = total.quantize(Decimal('.01'))
-
-    def resetRate(self):
-        """ The rate of a BudgetItem is based on the ItemTotals of it's children
-            The Rate is calculated and reset.
-        """
-        rate = Decimal(0.00)
-        for child in self.Children:
-            rate += child.ItemTotal
-        self._Rate = rate
-        # self.Total = self.Quantity * float(self._Rate)
-
-    def clearCosts(self):
-        """ Set the Total and Quantity costs to zero and do the same for all
-            children
-        """
-        self._Total = Decimal(0)
-        self._Quantity = 0.0
-        self._ItemQuantity = 1.0
-        self._Rate = Decimal(0)
-        for child in self.Children:
-            child.clearCosts()
-
-    @property
-    def Total(self):
-        """ Get the Total, if the Total is none it is reset
-        """
-        if self._Total == None:
-            self.resetTotal()
-        return self._Total.quantize(Decimal('.01'))
-
-    @Total.setter
-    def Total(self, total):
-        """ Set the total, update the parent's Total with the difference
-            between the old total and the new total
-        """
-        if self._Total == None:
-            self.recalculateTotal()
-        oldtotal = self.Total
-        self._Total = Decimal(total).quantize(Decimal('.01'))
-        difference = self._Total - oldtotal
-
-        # update the parent with the new total
-        if difference != 0:
-            self.Parent.Total = self.Parent.Total + difference
-
-    @property
-    def ItemTotal(self):
-        """ Get the ItemTotal. ItemTotal = ItemQuantity * Rate
-        """
-        return Decimal(self.ItemQuantity * float(self.Rate)
-            ).quantize(Decimal('.01'))
-
-    @ItemTotal.setter
-    def ItemTotal(self, itemtotal):
-        """ When the item total changes, the parent rate is changed if it is
-            a BudgetItem
-        """
-        if self.Parent.type == 'BudgetItem':
-            oldtotal = self.ItemTotal
-            difference = itemtotal - oldtotal
-            # update the parent with the new total
-            if difference != 0:
-                self.Parent.Rate = self.Parent.Rate + difference
-
-    @hybrid_property
-    def Rate(self):
-        """ Get the Rate
-        """
-        if self._Rate == None:
-            self.resetRate()
-        return self._Rate.quantize(Decimal('.01'))
-
-    @Rate.setter
-    def Rate(self, rate):
-        """ Set the Rate and recalculate the total
-        """
-        self._Rate = Decimal(rate).quantize(Decimal('.01'))
-        # when the rate changes recalculate the total
-        # self.Total = self.Quantity * float(self._Rate)
-        # the rate changes from changes to the item quantity
-        # since that updates the total already,
-        # the total does not need change from here
-
-    @hybrid_property
-    def Quantity(self):
-        """ Get the Quantity. If it is None recalculate it
-        """
-        if self._Quantity is None:
-            self._Quantity = self.Parent.Quantity * self.ItemQuantity
-        return self._Quantity
-
-    @Quantity.setter
-    def Quantity(self, quantity):
-        """ Set the Quantity and recalculate the Quantity of all the children.
-            The Component children resets their Totals and that trickles up
-            the tree.
-        """
-        self._Quantity = quantity
-        # recalculate the Quantity of all the children
-        for child in self.Children:
-            child.Quantity = self.Quantity * child.ItemQuantity
-
-    @hybrid_property
-    def ItemQuantity(self):
-        """ Get the ItemQuantity
-        """
-        return self._ItemQuantity
-
-    @ItemQuantity.setter
-    def ItemQuantity(self, quantity):
-        """ Set the ItemQuantity. When the ItemQuantity changes
-            the Quantity and ItemTotal changes as well.
-        """
-        self.ItemTotal = Decimal(quantity * float(self.Rate)
-                                    ).quantize(Decimal('.01'))
-        self._ItemQuantity = quantity
-        self.Quantity = self.Parent.Quantity * self.ItemQuantity
-
-    @hybrid_property
-    def Ordered(self):
-        """ Get the Ordered property
-        """
-        return self._Ordered.quantize(Decimal('.01'))
-
-    @Ordered.setter
-    def Ordered(self, ordered):
-        """ When the order is changed the parent's order is updated.
-        """
-        oldamount = self.Ordered
-        self._Ordered = Decimal(ordered).quantize(Decimal('.01'))
-        difference = self._Ordered - oldamount
-        # update the parent with the new total
-        self.Parent.Ordered = self.Parent.Ordered + difference
-
-    @hybrid_property
-    def Invoiced(self):
-        """ Get the Invoiced property
-        """
-        return self._Invoiced.quantize(Decimal('.01'))
-
-    @Invoiced.setter
-    def Invoiced(self, invoiced):
-        """ When the invoice is changed the parent's invoiced is updated.
-        """
-        oldamount = self.Invoiced
-        self._Invoiced = Decimal(invoiced).quantize(Decimal('.01'))
-        difference = self._Invoiced - oldamount
-        # update the parent with the new total
-        self.Parent.Invoiced = self.Parent.Invoiced + difference
-
-    def copy(self, parentid):
-        """ Copy returns an exact duplicate of this object,
-            but with the ParentID specified.
-        """
-        copied = BudgetItem(Name=self.Name,
-                            Description=self.Description,
-                            ParentID=parentid,
-                            _Quantity=self._Quantity,
-                            _Rate=self._Rate,
-                            _Total=self._Total,
-                            _ItemQuantity = self._ItemQuantity,
-                            OrderCost=self.OrderCost,
-                            ClaimedCost=self.ClaimedCost,
-                            RunningCost=self.RunningCost,
-                            IncomeReceived=self.IncomeReceived,
-                            ClientCost=self.ClientCost,
-                            ProjectedProfit=self.ProjectedProfit,
-                            ActualProfit=self.ActualProfit,
-                            _Ordered=self.Ordered,
-                            _Invoiced=self.Invoiced)
-
-        return copied
-
-    def paste(self, source, sourcechildren):
-        """ Paste appends a source object to the children of this node,
-            and then recursively does the same
-            with each child of the source object.
-        """
-        self.Children.append(source)
-        # if the child is of type component copy the component with the
-        # resource category id for use by the component's resource
-        for child in sourcechildren:
-            source.paste(child.copy(source.ID), child.Children)
-
-    def getComponents(self):
-        """ Returns a list of all the Resources that are used by the children of
-            the budgetitem. The resources are retrieved from its children and any
-            children that are components return their resource
-        """
-        componentlist = []
-        for child in self.Children:
-            if child.type == 'Component':
-                componentlist.append(child)
-            else:
-                componentlist += child.getComponents()
-        return componentlist
-
-    def toChildDict(self):
-        """ Returns a dictionary of the budgetitem used in the childview
-        """
-        subitem = []
-        if len(self.Children) > 0:
-            subitem = [{'Name': '...', 'NodeType': 'Default'}]
-
-        return {'Name': self.Name,
-                'Description': self.Description,
-                'ID': self.ID,
-                'ParentID': self.ParentID,
-                'Subitem': subitem,
-                'NodeType': self.type,
-                'NodeTypeAbbr' : 'I'}
-
-    def toDict(self):
-        """ Returns a dictionary of all the attributes of this BudgetItem
-        """
-        return {'Name': self.Name,
-                'Description' : self.Description,
-                'Quantity' : self.Quantity,
-                'ItemQuantity': self.ItemQuantity,
-                'Ordered': str(self.Ordered),
-                'Invoiced': str(self.Invoiced),
-                'NodeType': self.type,
-                'budg_cost': str(self.Total),
-                'order_cost': str(self.OrderCost),
-                'run_cost': str(self.RunningCost),
-                'claim_cost': str(self.ClaimedCost),
-                'income_rec': str(self.IncomeReceived),
-                'client_cost': str(self.ClientCost),
-                'proj_profit': str(self.ProjectedProfit),
-                'act_profit': str(self.ActualProfit)}
-
-    def getGridData(self):
-        """ Return the data needed for the slick grid in the
-            required format
-        """
-        return {'name': self.Name,
-            'id': self.ID,
-            'node_type': self.type,
-            'rate': str(self.Rate),
-            'quantity': self.Quantity,
-            'item_quantity': self.ItemQuantity,
-            'budg_cost': str(self.Total),
-            'order_cost': str(self.OrderCost.quantize(Decimal('.01'))),
-            'run_cost': str(self.RunningCost.quantize(Decimal('.01'))),
-            'claim_cost': str(self.ClaimedCost.quantize(Decimal('.01'))),
-            'income_rec': str(self.IncomeReceived.quantize(Decimal('.01'))),
-            'client_cost': str(self.ClientCost.quantize(Decimal('.01'))),
-            'proj_profit': str(self.ProjectedProfit.quantize(Decimal('.01'))),
-            'act_profit': str(self.ActualProfit.quantize(Decimal('.01'))),
-            'ordered': str(self.Ordered),
-            'invoiced': str(self.Invoiced)}
-
-    def updateOrdered(self, ordered):
-        """ Updates the Ordered amount for all the children of this node
-        """
-        self.Ordered = ordered
-        for child in self.Children:
-            child.updateOrdered(ordered)
-
-    def __repr__(self):
-        """ Return a representation of this budgetitem
-        """
-        return '<BudgetItem(Name="%s", ID="%s", ParentID="%s")>' % (
-            self.Name, self.ID, self.ParentID)
-
-
-# Association table for the many-to-many relationship between Component
+# Association table for the many-to-many relationship between BudgetItem
 # and Overhead
-association_table = Table('ComponentOverheadAssociation', Base.metadata,
-    Column('ComponentID', Integer, ForeignKey('Component.ID')),
+association_table = Table('BudgetItemOverheadAssociation', Base.metadata,
+    Column('BudgetItemID', Integer, ForeignKey('BudgetItem.ID')),
     Column('OverheadID', Integer, ForeignKey('Overhead.ID'))
 )
 
-class ComponentMixin(object):
-    """ Contains common functionality between Component and SimpleComponent,
+class BudgetItemMixin(object):
+    """ Contains common functionality between BudgetItem and SimpleBudgetItem,
         mixed into those respective classes using (potentially multiple)
         inheritance. """
 
     def recalculateTotal(self):
-        """ Recalculate the total of this Component
+        """ Recalculate the total of this BudgetItem and of
+            it's children
         """
         self._Total = Decimal((1.0+self.Markup) *
             self.Quantity * float(self.Rate)).quantize(Decimal('.01'))
+        for child in self.Children:
+            child.recalculateTotal()
         return self._Total
 
     def resetTotal(self, rate=None):
-        """ The total of a component is based on its rate and quantity.
+        """ The total of a BudgetItem is based on its rate and quantity.
             Optional rate parameter is there to avoid repeated lookups of
             self.Rate, which involves looking up the referenced Resource.
         """
         if rate is None:
             rate = self.Rate
         # After the rate is set the total property is updated
-        self.Total = (1.0+self.Markup) * self.Quantity * float(self.Rate)
+        if not self._Total:
+            self._Total = Decimal(0.00)
+        self.Total = (1.0+self.Markup) * self.Quantity * float(rate)
+
+    def resetRate(self):
+        """ The rate of a BudgetItem is based on the Rate of it's Resource
+            The Resource Rate is reset.
+        """
+        self._Rate = self.Resource.resetRate()
 
     def clearCosts(self):
         """ Set the Total and Quantity costs to zero
         """
         self._Total = Decimal(0)
         self._Quantity = 0.0
-        self._ItemQuantity = 0.0
 
     @property
     def Total(self):
@@ -933,10 +626,11 @@ class ComponentMixin(object):
 
     @Total.setter
     def Total(self, total):
-        """ Set the Total and update the parent with the new value
+        """ Set the Total, update the parent's Total with the difference
+            between the old total and the new total
         """
         if self._Total == None:
-            self.recalculateTotal()
+            self.resetTotal()
         oldtotal = self.Total
         self._Total = Decimal(total).quantize(Decimal('.01'))
         difference = self._Total - oldtotal
@@ -949,37 +643,30 @@ class ComponentMixin(object):
                 parent.Total = parent.Total + difference
 
     @property
-    def ItemTotal(self):
-        """ Get the ItemTotal. The ItemTotal = ItemQuantity * Rate
-        """
-        return Decimal(self.ItemQuantity * float(self.Rate)
-                ).quantize(Decimal('.01'))
-
-    @ItemTotal.setter
-    def ItemTotal(self, itemtotal):
-        """ When the item total changes, the parent rate is changed if it is
-            a BudgetItem
-        """
-        if self.Parent.type == 'BudgetItem':
-            oldtotal = self.ItemTotal
-            difference = itemtotal - oldtotal
-            # update the parent with the new total
-            if difference != 0:
-                self.Parent.Rate = self.Parent.Rate + difference
-
-    @property
     def Subtotal(self):
-        """ Subtotal returns the total of the Component with the Overhead
+        """ Subtotal returns the total of the BudgetItem with the Overhead
             costs removed
         """
         return (self.Total/Decimal(1+self.Markup)).quantize(Decimal('.01'))
 
     @hybrid_property
-    def Quantity(self):
-        """ Get the Quantity. If it is None recalculate it
+    def Rate(self):
+        """ Get the Rate. If it is None reset it
         """
-        if self._Quantity is None:
-            self._Quantity = self.Parent.Quantity * self.ItemQuantity
+        if self._Rate == None:
+            self.resetRate()
+        return self._Rate.quantize(Decimal('.01'))
+
+    @Rate.setter
+    def Rate(self, rate):
+        """ Set the Rate.
+        """
+        self._Rate = Decimal(rate).quantize(Decimal('.01'))
+
+    @hybrid_property
+    def Quantity(self):
+        """ Get the Quantity.
+        """
         return self._Quantity
 
     @Quantity.setter
@@ -990,25 +677,9 @@ class ComponentMixin(object):
         # change the total when the quantity changes
         self.Total = (1.0+self.Markup) * quantity * float(self.Rate)
 
-    @hybrid_property
-    def ItemQuantity(self):
-        """ Get the ItemQuantity
-        """
-        return self._ItemQuantity
-
-    @ItemQuantity.setter
-    def ItemQuantity(self, quantity):
-        """ Set the ItemQuantity, update the ItemTotal and Quantity
-        """
-        self.ItemTotal = Decimal(quantity * float(self.Rate)
-                                    ).quantize(Decimal('.01'))
-        self._ItemQuantity = quantity
-        # recalculate the Quantity
-        self.Quantity = self.Parent.Quantity * self.ItemQuantity
-
     @property
     def Unit(self):
-        """ Get the component's Unit, the Unit of this resource is returned
+        """ Get the BudgetItem's Unit, the Unit of this resource is returned
         """
         if self.Resource:
             return self.Resource.unitName()
@@ -1046,14 +717,13 @@ class ComponentMixin(object):
         self.Parent.Invoiced = self.Parent.Invoiced + difference
 
     def copy(self, parentid):
-        """ copy returns an exact duplicate of this component,
-            but with the ParentID specified and a copied resource
+        """ copy returns an exact duplicate of this BudgetItem,
+            but with the ParentID specified.
         """
-        copied = Component(ParentID=parentid,
+        copied = BudgetItem(ParentID=parentid,
                             ResourceID = self.ResourceID,
                             _Quantity=self._Quantity,
                             _Total=self._Total,
-                            _ItemQuantity = self._ItemQuantity,
                             OrderCost=self.OrderCost,
                             ClaimedCost=self.ClaimedCost,
                             RunningCost=self.RunningCost,
@@ -1066,33 +736,47 @@ class ComponentMixin(object):
         return copied
 
     def paste(self, source, sourcechildren):
-        """ Nothing is pasted into a component
+        """ Pasting into a BudgetItem is handled by the ResourceUnit, if any,
+            that the BudgetItem references
         """
+        # self.Children.append(source)
+        # for child in sourcechildren:
+        #     source.paste(child.copy(source.ID), child.Children)
+
+
         # This is in the Mixin, as I foresee that pasting, if it is ever
         # needed, will be rather similar for most things.
         pass
 
-    def getComponents(self):
-        """ A component returns nothing
+    def getBudgetItems(self):
+        """ Return a list of all the BudgetItems in this BudgetItem
         """
-        pass
+        budgetitemslist = []
+        for child in self.Children:
+            budgetitemslist.append(child)
+            budgetitemslist += child.getBudgetItems()
+        return budgetitemslist
 
     def toChildDict(self):
-        """ Returns a dictionary of the component used in the childview
+        """ Returns a dictionary of the BudgetItem used in the childview
         """
+        subitem = []
+        if len(self.Children) > 0:
+            subitem = [{'Name': '...', 'NodeType': 'Default'}]
+
         return {'Name': self.Name,
                 'Description': self.Description,
                 'ID': self.ID,
                 'ParentID': self.ParentID,
-                'Subitem': [],
-                'NodeType': 'Component',
-                'NodeTypeAbbr' : 'C'}
+                'Subitem': subitem,
+                'NodeType': self.type,
+                'NodeTypeAbbr' : 'I'}
 
     def toOrderDict(self):
-        """ Returns a dictionary of this node used both in the order tree view
-            and slickgrid
+        """ Returns a dictionary of the BudgetItem used both in the
+            order tree view and order slickgrid
         """
-        # the default quantity is the components quantity minus
+        # the default order quantity is the BudgetItem quantity minus
         # the quantity of all its orders
         orderitemsquantity = 0.0
         for orderitem in self.OrderItems:
@@ -1101,7 +785,7 @@ class ComponentMixin(object):
         subtotal = Decimal(quantity*float(self.Rate)).quantize(Decimal('.01'))
         vat = 14
         companyinfo = DBSession.query(CompanyInformation
-                                ).filter_by(ID=0).first()
+                                ).first()
         if companyinfo:
             vat = companyinfo.DefaultTaxrate
         total = Decimal(float(subtotal)*(1+vat/100.0)).quantize(Decimal('.01'))
@@ -1117,12 +801,12 @@ class ComponentMixin(object):
                 'vat': vat,
                 'vatcost': str(vatcost),
                 'subtotal': str(subtotal),
-                'NodeType': 'Component',
-                'node_type': 'Component',
+                'NodeType': 'BudgetItem',
+                'node_type': 'BudgetItem',
                 'NodeTypeAbbr' : 'C'}
 
     def toDict(self):
-        """ Return a dictionary of all the attributes of this Component. This
+        """ Return a dictionary of all the attributes of this BudgetItem. This
             is extended by the inheriting class.
         """
 
@@ -1152,7 +836,6 @@ class ComponentMixin(object):
             'id': self.ID,
             'node_type': self.type,
             'quantity': self.Quantity,
-            'item_quantity': self.ItemQuantity,
             'rate': str(self.Rate),
             'budg_cost': str(self.Total),
             'sub_cost':str(self.Subtotal),
@@ -1167,80 +850,75 @@ class ComponentMixin(object):
             'invoiced': str(self.Invoiced)}
 
     def updateOrdered(self, ordered):
-        """ Updates the Ordered amount for this node
+        """ Updates the Ordered amount for all the children of this node
         """
         self.Ordered = ordered
+        for child in self.Children:
+            child.updateOrdered(ordered)
 
 
-class Component(Node, ComponentMixin):
-    """ A component represents a unique component in the project.
-        It can be the child of a budgetitem
+class BudgetItem(Node, BudgetItemMixin):
+    """ A BudgetItem represents a unique cost item in the project.
+        It can be the child of another BudgetItem or a BudgetGroup
         It has a many-to-one relationship with Resource, which
         defines its Name, Description, and Rate.
     """
-    __tablename__ = 'Component'
+    __tablename__ = 'BudgetItem'
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'),
                 primary_key=True)
     ResourceID = Column(Integer, ForeignKey('Resource.ID'))
-    _Quantity = Column('Quantity', Float)
+    _Quantity = Column('Quantity', Float, default=0.0)
     _Total = Column('Total', Numeric)
     _Ordered = Column('Ordered', Numeric(12, 2), default=Decimal(0.00))
     _Invoiced = Column('Invoiced', Numeric(12, 2), default=Decimal(0.00))
-    _ItemQuantity = Column('Item Quantity', Float, default=1.0)
 
     Resource = relationship('Resource',
-                            foreign_keys='Component.ResourceID',
-                            backref='Components')
+                            foreign_keys='BudgetItem.ResourceID',
+                            backref='BudgetItems')
 
     Overheads = relationship('Overhead',
                     secondary=association_table,
-                    backref='Components')
-
-    Resource = relationship('Resource',
-                            foreign_keys='Component.ResourceID',
-                            backref='Components')
-
-    Overheads = relationship('Overhead',
-                    secondary=association_table,
-                    backref='Components')
+                    backref='BudgetItems')
 
     __mapper_args__ = {
-        'polymorphic_identity': 'Component',
+        'polymorphic_identity': 'BudgetItem',
         'inherit_condition': (ID == Node.ID),
     }
 
     @property
     def Name(self):
-        """ Get this Components Name, which returns the Resource's Name
+        """ Get this BudgetItem's Name, which returns the Resource's Name
         """
         return self.Resource.Name
 
     @property
     def Description(self):
-        """ Get the Description property
+        """ Get the BudgetItem's Description, which is the Resource's Description
         """
         return self.Resource.Description
 
     @property
     def Rate(self):
-        """ Get the component's Rate, the Rate of this resource is returned
+        """ Get the BudgetItem's Rate, the Rate of the Resource is returned
         """
         return self.Resource.Rate
 
     @property
     def Unit(self):
-        """ Get the component's Unit, the Unit of this resource is returned
+        """ Get the BudgetItem's Unit, the Unit of the Resource is returned
         """
         return self.Resource.unitName()
 
     @property
     def Type(self):
+        """ Get the BudgetItem's Type, the Type of the Resource is returned
+        """
         return self.Resource.Type
 
     @property
     def Markup(self):
-        """ Get the markup of this component
+        """ Get the markup of this BudgetItem.
             It is a composite of all the Overhead percentages
         """
         composite = 1.0
@@ -1249,49 +927,29 @@ class Component(Node, ComponentMixin):
         return composite-1
 
     def overheadsList(self):
-        """ Return a list of all the overheads used for this component
+        """ Return a list of all the overheads used for this BudgetItem
         """
         overheadlist = []
         for overhead in self.Overheads:
             overheadlist.append({'overhead_name': overhead.Name,
-                                'percentage': str(overhead.Percentage*100)})
+                                'percentage': str(overhead.Percentage)})
 
         return overheadlist
 
-    def copy(self, parentid):
-        """ copy returns an exact duplicate of this component,
-            but with the ParentID specified and a copied resource
-        """
-        copied = Component(ParentID=parentid,
-                            ResourceID = self.ResourceID,
-                            _Quantity=self._Quantity,
-                            _Total=self._Total,
-                            OrderCost=self.OrderCost,
-                            ClaimedCost=self.ClaimedCost,
-                            RunningCost=self.RunningCost,
-                            IncomeReceived=self.IncomeReceived,
-                            ClientCost=self.ClientCost,
-                            ProjectedProfit=self.ProjectedProfit,
-                            ActualProfit=self.ActualProfit,
-                            _Ordered=self.Ordered,
-                            _Invoiced=self.Invoiced)
-        return copied
-
     def toDict(self):
-        """ Return a dictionary of all the attributes of this Component
-            Also returns a list of the Overhead ID's used by this component
+        """ Return a dictionary of all the attributes of this BudgetItem
+            Also returns a list of the Overhead ID's used by this BudgetItem
         """
-        resource = DBSession.query(Resource).filter_by(ID=self.ResourceID).first()
         # overheadlist is needed client side to compare
         # the overheads actually used
         # vs the overheads available to use
         overheadlist = []
         for overhead in self.Overheads:
             overheadlist.append(overhead.ID)
-        di = super(Component, self).toDict()
+        di = super(BudgetItem, self).toDict()
         di.update({
             'ResourceID': self.ResourceID,
-            'ResourceName': resource.Name,
+            'ResourceName': self.Name,
             'OverheadList': overheadlist,
             'NodeType': self.type
         })
@@ -1301,7 +959,7 @@ class Component(Node, ComponentMixin):
         """ Return a dictionary of all the data needed for the slick grid
 
         """
-        di = super(Component, self).getGridData()
+        di = super(BudgetItem, self).getGridData()
         di.update({
             'overheads': self.overheadsList(),
             'unit': self.Unit,
@@ -1311,21 +969,21 @@ class Component(Node, ComponentMixin):
         return di
 
     def __repr__(self):
-        """ return a representation of this component
+        """ return a representation of this BudgetItem
         """
         return '<Co(Name="%s", Quantity="%d", ID="%s", ParentID="%s")>' % (
             self.Name, self.Quantity, self.ID, self.ParentID)
 
 
-class SimpleComponent(Node, ComponentMixin):
-    """ Similar to Component, but does not reference a resource. For adding
-        simple cost components in ad hoc fashion. """
-    __tablename__ = 'SimpleComponent'
+class SimpleBudgetItem(Node, BudgetItemMixin):
+    """ Similar to BudgetItem, but does not reference a resource. For adding
+        simple cost items in ad hoc fashion. """
+    __tablename__ = 'SimpleBudgetItem'
     ID = Column(Integer, ForeignKey('Node.ID', ondelete='CASCADE'),
         primary_key=True)
     Name = Column(Unicode(50))
     Description = Column(Text(100))
-    _Quantity = Column('Quantity', Float)
+    _Quantity = Column('Quantity', Float, default=0.0)
     _Total = Column('Total', Numeric)
     Type = Column(Integer, ForeignKey('ResourceType.ID'))
     _Rate = Column('Rate', Numeric, default=Decimal(0.00))
@@ -1334,13 +992,13 @@ class SimpleComponent(Node, ComponentMixin):
     _ItemQuantity = Column('Item Quantity', Float, default=1.0)
 
     __mapper_args__ = {
-        'polymorphic_identity': 'SimpleComponent',
+        'polymorphic_identity': 'SimpleBudgetItem',
         'inherit_condition': (ID == Node.ID),
     }
 
     @property
     def Markup(self):
-        """ Returns zero. No markup on simple components.
+        """ Returns zero. No markup on simple BudgetItems.
         """
         return 0.0
 
@@ -1351,23 +1009,24 @@ class SimpleComponent(Node, ComponentMixin):
 
     @hybrid_property
     def Rate(self):
-        """ Get the component's Rate, the Rate of the
-            simple component is returned
+        """ Get the BudgetItem's Rate, the Rate of the
+            simple budgetitem is returned
         """
         return self._Rate
 
     @Rate.setter
     def Rate(self, rate):
-        """ On a simple component, we can set the rate, and the total must
-            be updated. """
+        """ On a simple budgetitem, we can set the rate, and the total must
+            be updated.
+        """
         self._Rate = Decimal(rate).quantize(Decimal('.01'))
         self.resetTotal(self._Rate)
 
     def copy(self, parentid):
-        """ copy returns an exact duplicate of this component,
-            but with the ParentID specified and a copied resource
+        """ copy returns an exact duplicate of this SimpleBudgetItem,
+            but with the ParentID specified.
         """
-        return SimpleComponent(ParentID=parentid,
+        return SimpleBudgetItem(ParentID=parentid,
                 Name=self.Name,
                 Description=self.Description,
                 _Quantity=self._Quantity,
@@ -1389,7 +1048,7 @@ class SimpleComponent(Node, ComponentMixin):
         """ Return a dictionary of all the data needed for the slick grid
 
         """
-        di = super(SimpleComponent, self).getGridData()
+        di = super(SimpleBudgetItem, self).getGridData()
         di.update({
             'unit': self.Unit,
             'ordered': str(self.Ordered),
@@ -1398,7 +1057,7 @@ class SimpleComponent(Node, ComponentMixin):
         return di
 
     def __repr__(self):
-        """ return a representation of this component
+        """ return a representation of this budgetitem
         """
         return '<SCo(Name="%s", Quantity="%d", ID="%s", ParentID="%s")>' % (
             self.Name, self.Quantity, self.ID, self.ParentID)
@@ -1491,7 +1150,7 @@ class ResourceCategory(Node):
 
     def addResources(self, resourcelist):
         """ Add a list of resources to this ResourceCategory.
-            The Resource is extracted from the component, tested if it is in
+            The Resource is extracted from the BudgetItem, tested if it is in
             the ResourceCategory, and appended
         """
         completeResourcesList = self.getResources()
@@ -1576,8 +1235,6 @@ class ResourceCategory(Node):
 
 class ResourceType(Base):
     """ ResourceType defines the different type of resource
-        It only has a unique name, it does not inherit from Node
-        or form path of the project hierarchy
     """
     __tablename__ = 'ResourceType'
     ID = Column(Integer, primary_key=True)
@@ -1594,11 +1251,11 @@ class ResourceType(Base):
 
 class Resource(Node):
     """ Resource represents a specific resource used in Optimate
-        Each resource is unique and can be referenced by multiple Components
+        Each resource is unique and can be referenced by multiple BudgetItems
         Resource forms part of the Node hierarchy and has a ResourceCategory
         as it's parent.
         It has a _Rate attribute with a Rate property, when the Rate changes
-        the component's Totals change as well
+        the BudgetItem's Totals change as well
         It has a column name Type defined by the table ResourceType.
     """
     __tablename__ = 'Resource'
@@ -1630,11 +1287,11 @@ class Resource(Node):
     @Rate.setter
     def Rate(self, rate):
         """ Set the Resource's rate and reset the Total of all the
-            Components and ResourceParts that reference it
+            BudgetItems and ResourceParts that reference it
         """
         self._Rate = Decimal(rate).quantize(Decimal('.01'))
-        for comp in self.Components:
-            comp.resetTotal(self._Rate)
+        for bi in self.BudgetItems:
+            bi.resetTotal(self._Rate)
         for part in self.ResourceParts:
             part.resetTotal()
 
@@ -1742,8 +1399,13 @@ class ResourceUnit(Resource):
         rate = Decimal(0.00)
         for part in self.Children:
             rate+=part.Total
-
         self.Rate = rate
+
+    def resetTotal(self):
+        """ Reset the total of each resource part
+        """
+        for part in self.Children:
+            part.resetTotal()
 
     @property
     def Rate(self):
@@ -1761,6 +1423,20 @@ class ResourceUnit(Resource):
         for part in self.ResourceParts:
             part.resetTotal()
 
+    def toChildDict(self):
+        """ Returns a dictionary of this node used in the childview
+        """
+        subitem = []
+        if len(self.Children)>0:
+            subitem = {'Name': '...', 'NodeType': 'Default'}
+        return {'Name': self.Name,
+                'Description': self.Description,
+                'ID': self.ID,
+                'ParentID': self.ParentID,
+                'Subitem': subitem,
+                'NodeType': self.type,
+                'NodeTypeAbbr' : 'R'}
+
     def __repr__(self):
         """ Return a representation of this ResourceUnit
         """
@@ -1775,7 +1451,6 @@ class ResourcePart(Node):
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'),
                 primary_key=True)
-    Name = Column(Text(50))
     ResourceID = Column(Integer, ForeignKey('Resource.ID'))
     _Quantity = Column('Quantity', Float)
     _Total = Column('Total', Numeric)
@@ -1824,6 +1499,31 @@ class ResourcePart(Node):
         """
         self._Quantity = quantity
         self.resetTotal()
+
+    def toChildDict(self):
+        """ Returns a dictionary of this node used in the childview
+        """
+        subitem = []
+        return {'Name': self.Resource.Name,
+                'ID': self.ID,
+                'ParentID': self.ParentID,
+                'Subitem': subitem,
+                'NodeType': self.type,
+                'NodeTypeAbbr' : 'R'}
+
+    def toDict(self):
+        """ Return a dictionary of the attributes of this Resource
+        """
+        return {'ID': self.ID,
+                'Name': self.Resource.Name,
+                'Quantity': self.Quantity,
+                'NodeType': self.type}
+
+    def getGridData(self):
+        return {'name': self.Resource.Name,
+                'id': self.ID,
+                'node_type': self.type,
+                'quantity': self.Quantity}
 
     def __repr__(self):
         """ Return a representation of this ResourcePart
@@ -2026,7 +1726,7 @@ class OrderItem(Base):
     __tablename__ = 'OrderItem'
     ID = Column(Integer, primary_key=True, index=True)
     OrderID = Column(Integer, ForeignKey('Order.ID'))
-    ComponentID = Column(Integer, ForeignKey('Component.ID'))
+    BudgetItemID = Column(Integer, ForeignKey('BudgetItem.ID'))
     VAT = Column(Float)
     _Quantity = Column(Float, default=0.0)
     _Rate = Column(Numeric(12, 2), default=Decimal(0.00))
@@ -2034,7 +1734,7 @@ class OrderItem(Base):
 
     Order = relationship('Order',
                               backref=backref('OrderItems'))
-    Component = relationship('Component',
+    BudgetItem = relationship('BudgetItem',
                               backref=backref('OrderItems'))
 
     @hybrid_property
@@ -2097,25 +1797,25 @@ class OrderItem(Base):
         """
         vatcost = Decimal(float(self.Subtotal)*(self.VAT/100.0)
                             ).quantize(Decimal('.01'))
-        return {'name': self.Component.Name,
-                'ID': self.ComponentID,
-                'id': self.ComponentID,
+        return {'name': self.BudgetItem.Name,
+                'ID': self.BudgetItemID,
+                'id': self.BudgetItemID,
                 'quantity': self.Quantity,
-                'unit': self.Component.Unit,
+                'unit': self.BudgetItem.Unit,
                 'rate': str(self.Rate),
                 'vat': self.VAT,
                 'subtotal': str(self.Subtotal),
                 'total': str(self.Total),
                 'vatcost': str(vatcost),
-                'node_type': 'Component'}
+                'node_type': 'BudgetItem'}
 
     def getGridData(self):
         """ Returns a dictionary of this OrderItem for the slickgrid
         """
         vatcost = Decimal(float(self.Subtotal)*(self.VAT/100.0)
                             ).quantize(Decimal('.01'))
-        return {'id': self.Component.ID,
-                'name': self.Component.Name,
+        return {'id': self.BudgetItem.ID,
+                'name': self.BudgetItem.Name,
                 'quantity': self.Quantity,
                 'rate': str(self.Rate),
                 'total': str(self.Total),
@@ -2126,8 +1826,8 @@ class OrderItem(Base):
     def __repr__(self):
         """Return a representation of this order item
         """
-        return '<OrderItem(ID="%s", OrderID="%s", ComponentID="%s")>' % (
-            self.ID, self.OrderID, self.ComponentID)
+        return '<OrderItem(ID="%s", OrderID="%s", BudgetItemID="%s")>' % (
+            self.ID, self.OrderID, self.BudID)
 
 
 class User(Base):
