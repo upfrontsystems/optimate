@@ -359,6 +359,7 @@ span.fa-asterisk{
 
 /* Status messages */
 #status_message {
+    display: none;
     position: fixed;
     top: 40px;
     left: 0;
