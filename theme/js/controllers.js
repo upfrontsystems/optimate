@@ -1230,7 +1230,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         $scope.statusMessage("Records pasted.", 1000, 'alert-info');
                         $scope.handleReloadSlickgrid(node.ID);
                         $scope.loadNodeChildren(node.ID);
-                        console.log("what it tooknever bothered to look");
                     }
                 }
                 else {
@@ -1238,7 +1237,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     $scope.handleReloadSlickgrid(node.ID);
                     // insert the copied/cut node in the correct destination without reloading 
                     // all the children of the parent
-                    console.log("Ama zing");
                     console.log($scope.currentNode);
                     if (!$scope.pastingFromDnd) {
                         $scope.currentNode.Subitem.push(response['node']);
