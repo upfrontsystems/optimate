@@ -23,19 +23,16 @@ from optimate.app.models import (
     Project,
     BudgetGroup,
     BudgetItem,
-    Component,
     ResourceType,
     Unit,
     City,
     Overhead,
     ResourceCategory,
     Resource,
+    ResourceUnit,
+    ResourcePart,
     Client,
     Supplier,
-    CompanyInformation,
-    Order,
-    OrderItem,
-    User
 )
 
 import sys
@@ -62,32 +59,22 @@ def _initTestingDB():
         biq = 5.0
         global overheadperc
         overheadperc = 0.05
-        global resrate
-        resrate = Decimal(5.00)
-
-        global compiq
-        compiq = 5.0
-        global compq
-        compq = biq * compiq
-        global comptot
-        comptot = Decimal((1.0+overheadperc)* \
-                    float(resrate)*compq).quantize(Decimal('.01'))
+        global respartq
+        respartq = 5.895
 
         global resarate
         resarate = Decimal(10.00)
-        global compaiq
-        compaiq = 7.0
-        global compaq
-        compaq = biq * compaiq
-        global compatot
-        compatot = Decimal(float(resarate)*compaq).quantize(Decimal('.01'))
+        global biaq
+        biaq = 7.0
+        global biatot
+        biatot = Decimal(float(resarate)*biaq).quantize(Decimal('.01'))
 
-        global birate
-        birate = Decimal((1.0+overheadperc)* \
-                  float(resrate)*compiq).quantize(Decimal('.01')) + \
-                  Decimal(float(resarate)*compaiq).quantize(Decimal('.01'))
+        global resunitrate
+        resunitrate = Decimal(respartq*float(resarate)).quantize(Decimal('.01'))
         global bitot
-        bitot = Decimal(biq * float(birate)).quantize(Decimal('.01'))
+        bitot = Decimal((1.0+overheadperc)* \
+                    float(resunitrate)*biq).quantize(Decimal('.01'))
+
         global bgtot
         bgtot = bitot
         global projtot
@@ -98,33 +85,20 @@ def _initTestingDB():
         overheadbperc = 0.5
         global bibq
         bibq = 10.0
-        global bicq
-        bicq = 6.5
         global resbrate
         resbrate = Decimal(7.00)
+        global bibtot
+        bibtot = Decimal((1.0+overheadbperc)* \
+                      float(resbrate)*bibq).quantize(Decimal('.01'))
+
         global resduplicaterate
         resduplicaterate = Decimal(5.00)
-
-        global compbiq
-        compbiq = 5.0
-        global compbq
-        compbq = bibq * compbiq
-        global compbtot
-        compbtot = Decimal((1.0+overheadbperc)* \
-                      float(resbrate)*compbq).quantize(Decimal('.01'))
-
-        global compciq
-        compciq = 8.0
-        global compcq
-        compcq = bicq * compciq
-        global compctot
-        compctot = Decimal((1.0+overheadbperc)*float(resduplicaterate)* \
-                    compcq).quantize(Decimal('.01'))
-
-        global bibtot
-        bibtot = (compbtot)
+        global bicq
+        bicq = 6.5
         global bictot
-        bictot = compctot
+        bictot = Decimal((1.0+overheadbperc)*float(resduplicaterate)* \
+                    bicq).quantize(Decimal('.01'))
+
         global bgbtot
         bgbtot = bictot + bibtot
         global projbtot
@@ -136,37 +110,24 @@ def _initTestingDB():
         overheadcperc = 0.01
         global overheaddperc
         overheaddperc = 0.15
-        global bidq
-        bidq = 39.0
-        global bieq
-        bieq = 16.3
         global resbduplicaterate
         resbduplicaterate = Decimal(7.00)
-        global compdiq
-        compdiq = 7.01
-        global compeiq
-        compeiq = 15.0
-
-        global compdq
-        compdq = bidq * compdiq
-        global compdtot
-        compdtot = Decimal((1.0 + overheadcperc) * \
-                    (1.0 + overheaddperc) *
-                    float(resbduplicaterate) * compdq).quantize(Decimal('.01'))
-
-        global compeq
-        compeq = bieq * compeiq
-        global competot
-        competot = Decimal((1.0 + overheaddperc) * \
-                    (1.0 + overheadcperc) *
-                    float(resbduplicaterate) * compeq).quantize(Decimal('.01'))
-
+        global bidq
+        bidq = 39.0
         global bidtot
-        bidtot = compdtot
+        bidtot = Decimal((1.0 + overheadcperc) * \
+                    (1.0 + overheaddperc) *
+                    float(resbduplicaterate) * bidq).quantize(Decimal('.01'))
+
+        global bieq
+        bieq = 16.3
+        global bietot
+        bietot = Decimal((1.0 + overheaddperc) * \
+                    (1.0 + overheadcperc) *
+                    float(resbduplicaterate) * bieq).quantize(Decimal('.01'))
+
         global bgdtot
         bgdtot = bidtot
-        global bietot
-        bietot = competot
         global bgctot
         bgctot = bgdtot+bietot
         global projctot
@@ -230,22 +191,16 @@ def _initTestingDB():
                         ID=2,
                         Description='TestBGDesc',
                         ParentID=project.ID)
-        budgetitem = BudgetItem(Name='TestBIName',
-                        ID=3,
-                        Description='TestBIDesc',
-                        _ItemQuantity=biq,
-                        ParentID=budgetgroup.ID)
         rescat = ResourceCategory(Name='Resource List',
                         ID=9,
                         Description='Test Category',
                         ParentID=project.ID)
-        res = Resource(ID=15,
+        resunit = ResourceUnit(ID=15,
                        Code='A000',
                        Name='TestResource',
                        Description='Test resource',
                        UnitID=unit1.ID,
                        Type=mattype.ID,
-                       _Rate=resrate,
                        ParentID=rescat.ID)
         resa = Resource(ID=16,
                        Code='A001',
@@ -255,15 +210,19 @@ def _initTestingDB():
                        Type=labtype.ID,
                        _Rate=resarate,
                        ParentID=rescat.ID)
-        comp = Component(ID=7,
-                        ResourceID = res.ID,
-                        _ItemQuantity=compiq,
-                        ParentID=budgetitem.ID)
-        comp.Overheads.append(overhead)
-        compa = Component(ID=11,
+        respart = ResourcePart(ID=7,
                         ResourceID=resa.ID,
-                        _ItemQuantity=compaiq,
+                        _Quantity=respartq,
+                        ParentID=resunit.ID)
+        budgetitem = BudgetItem(ID=3,
+                        _Quantity=biq,
+                        ResourceID = resunit.ID,
+                        ParentID=budgetgroup.ID)
+        budgetitema = BudgetItem(ID=11,
+                        _Quantity=biaq,
+                        ResourceID=resa.ID,
                         ParentID=budgetitem.ID)
+        budgetitem.Overheads.append(overhead)
 
 
         projectb = Project(Name='TestBPName',
@@ -282,11 +241,6 @@ def _initTestingDB():
                         ID=5,
                         Description='BBGDesc',
                         ParentID=projectb.ID)
-        budgetitemb = BudgetItem(Name='TestBBIName',
-                        ID=6,
-                        _ItemQuantity=bibq,
-                        Description='TestBBIDesc',
-                        ParentID=budgetgroupb.ID)
         rescatb = ResourceCategory(Name='Resource List',
                         ID=12,
                         Description='Test Category',
@@ -307,21 +261,16 @@ def _initTestingDB():
                        Type=mattype.ID,
                        _Rate=resduplicaterate,
                        ParentID=rescatb.ID)
-        compb = Component(ID=8,
+        budgetitemb = BudgetItem(ID=6,
+                        _Quantity=bibq,
                         ResourceID=resb.ID,
-                        _ItemQuantity=compbiq,
-                        ParentID=budgetitemb.ID)
-        compb.Overheads.append(overheadb)
-        budgetitemc = BudgetItem(Name='TestCBIName',
-                        ID=13,
-                        _ItemQuantity=bicq,
-                        Description='TestCBIDesc',
                         ParentID=budgetgroupb.ID)
-        compc = Component(ID=14,
+        budgetitemb.Overheads.append(overheadb)
+        budgetitemc = BudgetItem(ID=13,
+                        _Quantity=bicq,
                         ResourceID=resduplicate.ID,
-                        _ItemQuantity=compciq,
-                        ParentID=budgetitemc.ID)
-        compc.Overheads.append(overheadb)
+                        ParentID=budgetgroupb.ID)
+        budgetitemc.Overheads.append(overheadb)
 
         projectc = Project(Name='TestCPName',
                         ID=19,
@@ -347,16 +296,6 @@ def _initTestingDB():
                         ID=21,
                         Description='DBGDesc',
                         ParentID=budgetgroupc.ID)
-        budgetitemd = BudgetItem(Name='TestDBIName',
-                        ID=22,
-                        _ItemQuantity=bidq,
-                        Description='TestDBIDesc',
-                        ParentID=budgetgroupd.ID)
-        budgetiteme = BudgetItem(Name='TestEBIName',
-                        ID=23,
-                        _ItemQuantity=bieq,
-                        Description='TestEBIDesc',
-                        ParentID=budgetgroupc.ID)
         rescatc = ResourceCategory(ID=24,
                         Name='Resource List',
                         Description='Test Category',
@@ -369,18 +308,18 @@ def _initTestingDB():
                        Type=subtype.ID,
                        _Rate=resbduplicaterate,
                        ParentID=rescatc.ID)
-        compd = Component(ID=26,
+        budgetitemd = BudgetItem(ID=22,
+                        _Quantity=bidq,
                         ResourceID=resbduplicate.ID,
-                        _ItemQuantity=compdiq,
-                        ParentID=budgetitemd.ID)
-        compd.Overheads.append(overheadd)
-        compd.Overheads.append(overheadc)
-        compe = Component(ID=27,
+                        ParentID=budgetgroupd.ID)
+        budgetitemd.Overheads.append(overheadd)
+        budgetitemd.Overheads.append(overheadc)
+        budgetiteme = BudgetItem(ID=23,
+                        _Quantity=bieq,
                         ResourceID=resbduplicate.ID,
-                        _ItemQuantity=compeiq,
-                        ParentID=budgetiteme.ID)
-        compe.Overheads.append(overheadd)
-        compe.Overheads.append(overheadc)
+                        ParentID=budgetgroupc.ID)
+        budgetiteme.Overheads.append(overheadd)
+        budgetiteme.Overheads.append(overheadc)
 
         DBSession.add(supplier1)
         DBSession.add(supplier2)
@@ -409,10 +348,10 @@ def _initTestingDB():
         DBSession.add(rescat)
         DBSession.add(budgetgroup)
         DBSession.add(budgetitem)
-        DBSession.add(res)
+        DBSession.add(budgetitema)
+        DBSession.add(resunit)
+        DBSession.add(respart)
         DBSession.add(resa)
-        DBSession.add(comp)
-        DBSession.add(compa)
 
         DBSession.add(projectb)
         DBSession.add(overheadb)
@@ -420,9 +359,7 @@ def _initTestingDB():
         DBSession.add(resduplicate)
         DBSession.add(budgetgroupb)
         DBSession.add(budgetitemb)
-        DBSession.add(compb)
         DBSession.add(budgetitemc)
-        DBSession.add(compc)
         DBSession.add(rescatb)
 
         DBSession.add(projectc)
@@ -434,8 +371,6 @@ def _initTestingDB():
         DBSession.add(budgetiteme)
         DBSession.add(rescatc)
         DBSession.add(resbduplicate)
-        DBSession.add(compd)
-        DBSession.add(compe)
 
         transaction.commit()
 
@@ -444,29 +379,24 @@ def _initTestingDB():
                 |
                 budgetgroup - id:2
                             |
-                            budgetitem - id:3
+                            budgetitem - id:3 - resunit id:15
                                        |
-                                       comp - res id:7
-                                       |
-                                       compa - resa id:11
+                                       budgetitema - id:11 - resa id:11
                 |
                 rescat - id:9
                         |
-                        res id:15
+                        resunit - id:15
+                                |
+                                respart - id:7
                         |
                         resa id:16
         projectb -(885) id:4 overheadb: 0.5
                  |
                  budgetgroupb -(525+360=885) id:5
                               |
-                              budgetitemb - (52.5*10=525.00) id:6
-                                          |
-                                          (qty =
-                                          compb - resb (1.5*5*7=52.5) id:8
+                              budgetitemb - id:6 - resb
                               |
-                              budgetitemc - (60*6=360.00) id:13
-                                          |
-                                          compc - resdupli (1.5*8*5=60) id:14
+                              budgetitemc - id:13 - resdupli
                  |
                  rescatb - id:12
                          |
@@ -481,15 +411,9 @@ def _initTestingDB():
                               |
                               budgetgroupd - id:21
                                            |
-                                           budgetitemd -id:22
-                                                       |
-                                                       compd - id:26
-                                                       resbduplicate
+                                           budgetitemd -id:22 - resbduplicate
                               |
-                              budgetiteme - id:23
-                                          |
-                                          compe - id:27
-                                          resbduplicate
+                              budgetiteme - id:23 - resbduplicate
                  |
                  rescatc - id:24
                          |
@@ -508,35 +432,17 @@ def _registerRoutes(config):
     config.add_route('project_resources', '/project/{id}/resources/')
     config.add_route('resources', '/resource/{id}/')
     config.add_route('project_overheads', '/project/{id}/overheads/')
-    config.add_route('component_overheads', '/component/{id}/overheads/')
+    config.add_route('budgetitem_overheads', '/budgetitem/{id}/overheads/')
     config.add_route('overheadview', '/overhead/{id}/')
     config.add_route('resourcetypes', '/resourcetypes')
     config.add_route('node_grid', '/node/{parentid}/grid/')
     config.add_route('node_update_value', '/node/{id}/update_value/')
     config.add_route('node_paste', 'node/{id}/paste/')
     config.add_route('node_cost', 'node/{id}/cost/')
-    config.add_route('node_components', 'node/{id}/components/')
+    config.add_route('node_budgetitems', 'node/{id}/budgetitems/')
+    config.add_route('node_budgetgroups', 'node/{id}/budgetgroups/')
     config.add_route('resourcecategory_allresources', 'resourcecategory/{id}/allresources/')
     config.add_route('resourcecategory_resources', 'resourcecategory/{id}/resources/')
-
-    # the other views
-    config.add_route('clientsview', '/clients')
-    config.add_route('suppliersview', '/suppliers')
-    config.add_route('clientview', '/client/{id}/')
-    config.add_route('supplierview', '/supplier/{id}/')
-    config.add_route('company_information', '/company_information')
-    config.add_route('unitsview', '/units')
-    config.add_route('unitview', '/unit/{id}/')
-    config.add_route('citiesview', '/cities')
-    config.add_route('cityview', '/city/{id}/')
-    config.add_route('ordersview', '/orders')
-    config.add_route('orderview', '/order/{id}/')
-    config.add_route('orders_length', '/orders/length')
-    config.add_route('orders_filter', '/orders/filter')
-    config.add_route('orders_tree_view', '/orders/tree/{id}/')
-    config.add_route('invoicesview', '/invoices')
-    config.add_route('invoices_filter', '/invoices/filter')
-    config.add_route('invoiceview', '/invoice/{id}/')
 
 class DummyRouteName(object):
     def __init__ (self, name):
@@ -579,8 +485,8 @@ class TestResourceCategoryResourcesViewSuccessCondition(unittest.TestCase):
         # should return two resources
         self.assertEqual(len(response), 2)
 
-class TestNodeComponentsViewSuccessCondition(unittest.TestCase):
-    """ Test that the node_components view returns a list of the components
+class TestNodeBudgetItemsViewSuccessCondition(unittest.TestCase):
+    """ Test that the node_budgetitems view returns a list of the budgetitems
         in the node
     """
 
@@ -593,50 +499,26 @@ class TestNodeComponentsViewSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def _callFUT(self, request):
-        from optimate.app.views import node_components
-        return node_components(request)
+        from optimate.app.views import node_budgetitems
+        return node_budgetitems(request)
 
-    def test_project_components(self):
+    def test_project_budgetitems(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
-        request.matchdict['id'] = 1
+        request.matchdict['id'] = 4
         response = self._callFUT(request)
 
-        # should return two components
+        # should return two budgetitems
         self.assertEqual(len(response), 2)
 
-    def test_budgetitem_components(self):
+    def test_budgetitem_budgetitems(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.matchdict['id'] = 22
         response = self._callFUT(request)
 
-        # should return one component
+        # should return one budgetitem
         self.assertEqual(len(response), 1)
-
-class TestResourceTypesViewSuccessCondition(unittest.TestCase):
-    """ Test that a list of the ResourceTypes in the database is returned
-    """
-
-    def setUp(self):
-        self.session = _initTestingDB()
-        self.config = testing.setUp()
-
-    def tearDown(self):
-        DBSession.remove()
-        testing.tearDown()
-
-    def _callFUT(self, request):
-        from optimate.app.views import resourcetypes
-        return resourcetypes(request)
-
-    def test_it(self):
-        _registerRoutes(self.config)
-        request = testing.DummyRequest()
-        response = self._callFUT(request)
-
-        # test the name of the resource type
-        self.assertEqual(response[0]['Name'], 'Labour')
 
 class TestProjectResourcesViewSuccessCondition(unittest.TestCase):
     """ Test that a list of the Resources in a specified project is returned
@@ -722,6 +604,7 @@ class TestProjectOverheadsViewSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 1}
         request.json_body = {'Name':'NewName',
                             'Percentage': 0.1}
+        request.method = 'POST'
         response = self._callFUT(request)
         self.assertEqual(response.code, 200)
 
@@ -749,33 +632,33 @@ class TestProjectOverheadsViewSuccessCondition(unittest.TestCase):
         return overheadview(request)
 
     def test_delete(self):
-            _registerRoutes(self.config)
-            request = testing.DummyRequest()
-            request.matchdict = {'id': 19}
-            request.method = 'GET'
-            from optimate.app.views import project_overheads
-            response = project_overheads(request)
-            # first test that there are two overheads
-            self.assertEqual(len(response), 2)
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 19}
+        request.method = 'GET'
+        from optimate.app.views import project_overheads
+        response = project_overheads(request)
+        # first test that there are two overheads
+        self.assertEqual(len(response), 2)
 
-            request = testing.DummyRequest()
-            request.matchdict = {'id': 3}
-            request.method = 'DELETE'
-            response = self._callFUT(request)
-            # first test that there are two overheads
-            self.assertEqual(response.code, 200)
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 3}
+        request.method = 'DELETE'
+        response = self._callFUT(request)
+        # first test that there are two overheads
+        self.assertEqual(response.code, 200)
 
-            request = testing.DummyRequest()
-            request.matchdict = {'id': 19}
-            request.method = 'GET'
-            from optimate.app.views import project_overheads
-            response = project_overheads(request)
-            # now test that there one overhead
-            self.assertEqual(len(response), 1)
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 19}
+        request.method = 'GET'
+        from optimate.app.views import project_overheads
+        response = project_overheads(request)
+        # now test that there one overhead
+        self.assertEqual(len(response), 1)
 
 
-class TestComponentOverheadsViewSuccessCondition(unittest.TestCase):
-    """ Test the operations on Overheads of a Component
+class TestBudgetItemOverheadsViewSuccessCondition(unittest.TestCase):
+    """ Test the operations on Overheads of a BudgetItem
     """
 
     def setUp(self):
@@ -787,16 +670,16 @@ class TestComponentOverheadsViewSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def _callFUT(self, request):
-        from optimate.app.views import component_overheads
-        return component_overheads(request)
+        from optimate.app.views import budgetitem_overheads
+        return budgetitem_overheads(request)
 
     def test_it(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
-        request.matchdict['id'] = 26
+        request.matchdict['id'] = 22
         response = self._callFUT(request)
 
-        # component with id 26 can use the two overheads of project id 19
+        # budgetitem with id 22 can use the two overheads of project id 19
         self.assertEqual(len(response), 2)
 
 class TestChildViewSuccessCondition(unittest.TestCase):
@@ -876,7 +759,7 @@ class TestProjectListingSuccessCondition(unittest.TestCase):
         self.assertEqual(response[2]['Name'], 'TestPName')
 
 class TestNodeViewSuccessCondition(unittest.TestCase):
-    """ Test if the nodeview works and returns the project specified
+    """ Test if the nodeview works and returns the node specified
     """
 
     def setUp(self):
@@ -910,13 +793,13 @@ class TestNodeViewSuccessCondition(unittest.TestCase):
         # assert returns true if the response code is 404
         self.assertEqual(response.code, 404)
 
-    def test_component_returned(self):
+    def test_budgeitem_returned(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
-        request.matchdict = {'id': 14}
+        request.matchdict = {'id': 3}
         response = self._callFUT(request)
 
-        # assert returns true if the component returns the name of its resource
+        # assert returns true if the budgeitem returns the name of its resource
         self.assertEqual(response['Name'], 'TestResource')
 
 class TestNodeGridViewSuccessCondition(unittest.TestCase):
@@ -957,6 +840,17 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         self.assertEqual(response['list'][1]['name'], 'TestBGName')
         self.assertEqual(response['emptycolumns'], True)
 
+    def test_resource_category_gridview(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict = {'parentid': 12}
+        response = self._callFUT(request)
+
+        # assert returns true if the projects are returned correctly
+        self.assertEqual(response['list'][0]['name'], 'TestResource')
+        self.assertEqual(response['list'][1]['name'], 'TestResourceB')
+        self.assertEqual(response['emptycolumns'], True)
+
     def test_mixed_gridview(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
@@ -968,7 +862,7 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         # emptycolumns should return false
         self.assertEqual(response['list'][0]['name'], 'TestCBGName')
         self.assertEqual(response['list'][1]['name'], 'TestDBGName')
-        self.assertEqual(response['list'][2]['name'], 'TestEBIName')
+        self.assertEqual(response['list'][2]['name'], 'TestResourceB')
         self.assertEqual(response['emptycolumns'], False)
 
     def test_budgetitem_gridview(self):
@@ -980,25 +874,13 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         # assert returns true if the projects are returned correctly
         # first row is the parent
         self.assertEqual(response['list'][0]['name'], 'TestBBGName')
-        self.assertEqual(response['list'][1]['name'], 'TestBBIName')
-        self.assertEqual(response['list'][2]['name'], 'TestCBIName')
-        self.assertEqual(response['emptycolumns'], False)
-
-    def test_component_gridview(self):
-        _registerRoutes(self.config)
-        request = testing.DummyRequest()
-        request.matchdict = {'parentid': 3}
-        response = self._callFUT(request)
-
-        # assert returns true if the projects are returned correctly
-        # the first row should be the parent
-        self.assertEqual(response['list'][0]['name'], 'TestBIName')
         self.assertEqual(response['list'][1]['name'], 'TestResource')
-        self.assertEqual(response['list'][2]['name'], 'TestResourceA')
+        self.assertEqual(response['list'][2]['name'], 'TestResourceB')
         self.assertEqual(response['emptycolumns'], False)
+
 
 class TestUpdateValueSuccessCondition(unittest.TestCase):
-    """ Update values in resource, component, and budgetitem and test
+    """ Update values in resource and budgetitem and test
     """
 
     def setUp(self):
@@ -1023,41 +905,42 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         # check cost beforehand
         request.matchdict = {'id': 1}
         self.assertEqual(node_cost(request)['Cost'], str(projtot))
-
+        newresarate = 150
         request.matchdict = {'id': 16}
-        request.json_body = {'rate': 15}
+        request.json_body = {'rate': newresarate}
         response = self._callFUT(request)
 
         # now the project cost should have changed
         request = testing.DummyRequest()
         request.matchdict = {'id': 1}
 
-        newresarate = Decimal(15.00)
-        newcompatot = Decimal(float(newresarate)*compaq).quantize(Decimal('.01'))
-        newbitot = newcompatot + comptot
+        newresparttot = Decimal(newresarate * respartq).quantize(Decimal('.01'))
+        newresunitrate = newresparttot
+        newbitot = Decimal((1.0+overheadperc)*float(newresunitrate) * biq
+                            ).quantize(Decimal('.01'))
         newprojtot = newbitot
         from optimate.app.views import node_cost
         response = node_cost(request)
         self.assertEqual(response['Cost'], str(newprojtot))
 
-        request.matchdict = {'id': 11}
-        self.assertEqual(node_cost(request)['Cost'], str(newcompatot))
+        request.matchdict = {'id': 7}
+        self.assertEqual(node_cost(request)['Cost'], str(newresparttot))
 
     def test_update_duplicate_resource_rate(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.matchdict = {'id': 25}
-        request.json_body = {'rate': 10}
+        newresbduplicaterate = 100
+        request.json_body = {'rate': newresbduplicaterate}
         response = self._callFUT(request)
 
-        newresbduplicaterate = Decimal(10.00)
-        newcompdtot = Decimal((1.0 + overheadcperc) * \
+        newbietot = Decimal((1.0 + overheadcperc) * \
                     (1.0 + overheaddperc) *
-                    float(newresbduplicaterate) * compdq).quantize(Decimal('.01'))
-        newcompetot = Decimal((1.0 + overheaddperc) * \
+                    float(newresbduplicaterate) * bieq).quantize(Decimal('.01'))
+        newbidtot = Decimal((1.0 + overheaddperc) * \
                     (1.0 + overheadcperc) *
-                    float(newresbduplicaterate) * compeq).quantize(Decimal('.01'))
-        newprojctot = newcompdtot+newcompetot
+                    float(newresbduplicaterate) * bidq).quantize(Decimal('.01'))
+        newprojctot = newbietot+newbidtot
         # now the project cost should have changed
         request = testing.DummyRequest()
         request.matchdict = {'id': 19}
@@ -1065,36 +948,37 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         response = node_cost(request)
         self.assertEqual(response['Cost'], str(newprojctot))
 
-    def test_update_component_itemquantity(self):
-        _registerRoutes(self.config)
-        from optimate.app.views import node_cost
-
-        # Get original cost
-        request = testing.DummyRequest()
-        request.matchdict = {'id': 1}
-        response = node_cost(request)
-        self.assertEqual(response['Cost'], '481.25')
-
-        # Update the itemquantity
-        request = testing.DummyRequest()
-        request.matchdict = {'id': 7}
-        request.json_body = {'item_quantity': 10}
-        response = self._callFUT(request)
-
-        # now the project cost should have changed
-        request = testing.DummyRequest()
-        request.matchdict = {'id': 1}
-        response = node_cost(request)
-        self.assertEqual(response['Cost'], '612.50')
-
     def test_update_budgetitem_quantity(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.matchdict = {'id': 3}
-        request.json_body = {'item_quantity': 50}
-        response = self._callFUT(request)
         newbiq = 50.0
-        newbitot = Decimal(newbiq * float(birate)).quantize(Decimal('.01'))
+        request.json_body = {'quantity': newbiq}
+        response = self._callFUT(request)
+
+        newbitot = Decimal((1.0+overheadperc)*newbiq * float(resunitrate)
+                            ).quantize(Decimal('.01'))
+        newprojtot = newbitot
+
+        # now the project cost should have changed
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 1}
+        from optimate.app.views import node_cost
+        response = node_cost(request)
+        self.assertEqual(response['Cost'], str(newprojtot))
+
+    def test_update_resource_part_quantity(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        newpartq = 50.0
+        request.matchdict = {'id': 7}
+        request.json_body = {'quantity': newpartq}
+        response = self._callFUT(request)
+
+        newresunitrate = Decimal(float(resarate)*newpartq
+                                ).quantize(Decimal('.01'))
+        newbitot = Decimal((1.0+overheadperc)*biq * float(newresunitrate)
+                            ).quantize(Decimal('.01'))
         newprojtot = newbitot
 
         # now the project cost should have changed
@@ -1105,7 +989,7 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         self.assertEqual(response['Cost'], str(newprojtot))
 
 class TestAddItemSuccessCondition(unittest.TestCase):
-    """ Test if the nodeview functions correctly when adding a budgetgroup
+    """ Test if the nodeview functions correctly when adding a node
         Using default data and adding it as the child of one of the objects.
     """
 
@@ -1137,7 +1021,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         request.method = 'POST'
         response = self._callFUT(request)
         # assert if the response from the add view is OK
-        self.assertEqual(response.keys(), ['ID'])
+        self.assertEqual(response.keys(), ['node', 'ID'])
 
         # Create another request for the child of the node added to
         request = testing.DummyRequest()
@@ -1147,37 +1031,73 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         # true if the name of the child added to the node is 'AddingName'
         self.assertEqual(response[1]['Name'], 'AddingName')
 
-    def test_add_component(self):
+    def test_add_budgeitem(self):
         _registerRoutes(self.config)
 
         # Add the default data using json in the request
+        newbiquant= 4
         request = testing.DummyRequest(json_body={
-            'Name': 'TestResource',
             'ResourceID': 18,
-            'Description': 'Test resource',
-            'ItemQuantity': 4,
-            'NodeType': 'Component',
+            'Quantity': newbiquant,
+            'NodeType': 'BudgetItem',
             'OverheadList':[{'Name': 'OverheadB',
-                                'ID':2,
-                                'selected':True}],
+                            'ID':2,
+                            'selected':True}],
         })
-        # add it to id:6 the budgetitemb
-        request.matchdict = {'id': 6}
+        # add it to id:5
+        request.matchdict = {'id': 5}
         request.method = 'POST'
         response = self._callFUT(request)
 
         # assert if the response from the add view returns the new id
-        self.assertEqual(response.keys(), ['ID'])
+        self.assertEqual(response.keys(), ['node', 'ID'])
 
-        newcompiquant= 4
-        newcompquant = bibq * newcompiquant
-        newcomptot = Decimal((1.0 + overheadbperc) * float(resduplicaterate) * \
-                            newcompquant).quantize(Decimal('.01'))
-        newprojtot=projbtot + newcomptot
+        newbitot = Decimal((1.0 + overheadbperc) * float(resduplicaterate) * \
+                            newbiquant).quantize(Decimal('.01'))
+        newprojtot=projbtot + newbitot
 
         # do another test to see if the cost is correct
         request = testing.DummyRequest()
         request.matchdict = {'id': 4}
+        from optimate.app.views import node_cost
+        response = node_cost(request)
+        self.assertEqual(response['Cost'], str(newprojtot))
+
+    def test_add_budgeitem_with_unit(self):
+        _registerRoutes(self.config)
+
+        # Add a budgetitem that references a resourceunit
+        newbiquant= 30
+        request = testing.DummyRequest(json_body={
+            'ResourceID': 15,
+            'Quantity': newbiquant,
+            'NodeType': 'BudgetItem',
+            'OverheadList':[],
+        })
+        # add it to the parent
+        request.matchdict = {'id': 2}
+        request.method = 'POST'
+        response = self._callFUT(request)
+
+        # assert if the response from the add view returns the new id
+        self.assertEqual(response.keys(), ['node', 'ID'])
+        newid = response['ID']
+
+        # check that the added budgetitem has a child
+        request = testing.DummyRequest()
+        request.matchdict = {'parentid': newid}
+        from optimate.app.views import node_children
+        response = node_children(request)
+        # true if the name of the child added to the node is the resource name
+        self.assertEqual(response[0]['Name'], 'TestResourceA')
+
+        newbitot = Decimal(float(resunitrate) * newbiquant
+                            ).quantize(Decimal('.01'))
+        newprojtot= projtot + newbitot
+
+        # do another test to see if the cost is correct
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 1}
         from optimate.app.views import node_cost
         response = node_cost(request)
         self.assertEqual(response['Cost'], str(newprojtot))
@@ -1196,35 +1116,9 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         request.method = 'POST'
         response = self._callFUT(request)
         # assert if the response from the add view has data
-        self.assertEqual(response.keys(), ['ID'])
+        self.assertEqual(response.keys(), ['node', 'ID'])
         # get the id of the new node
         projectid = response['ID']
-
-        # get the resource category id
-        request = testing.DummyRequest()
-        request.matchdict = {'parentid': projectid}
-        from optimate.app.views import node_children
-        response = node_children(request)
-        rescatid = response[0]['ID']
-
-        # Add a resource
-        request = testing.DummyRequest(json_body={
-            'Name': 'AddingNewResource',
-            'Description': 'Adding Resource',
-            'Unit': 5,
-            'ResourceType': 1,
-            'Rate': 29,
-            'Code': 'ADD005',
-            'NodeType': 'Resource'
-        })
-        # add it to the resource category
-        request.matchdict = {'id': rescatid}
-        request.method = 'POST'
-        response = self._callFUT(request)
-        # assert if the response from the add view has data
-        self.assertEqual(response.keys(), ['ID'])
-        # get the id of the new node
-        resid = response['ID']
 
         # Add a budgetgroup
         request = testing.DummyRequest(json_body={
@@ -1237,33 +1131,83 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         request.method = 'POST'
         response = self._callFUT(request)
         # assert if the response from the add view is OK
-        self.assertEqual(response.keys(), ['ID'])
+        self.assertEqual(response.keys(), ['node', 'ID'])
         # get the id of the new node
         newid = response['ID']
 
-        # Add a budgetitem
-        request = testing.DummyRequest(json_body={
-            'Name': 'AddingBI',
-            'Description': 'Adding test item',
-            'NodeType': 'BudgetItem',
-            'ItemQuantity': 10.0,
-        })
-        # add it to the parent
-        request.matchdict = {'id': newid}
-        request.method = 'POST'
-        response = self._callFUT(request)
-        # assert if the response from the add view is OK
-        self.assertEqual(response.keys(), ['ID'])
-        # get the id of the new node
-        newid = response['ID']
+        # get the resource category id
+        request = testing.DummyRequest()
+        request.matchdict = {'parentid': projectid}
+        from optimate.app.views import node_children
+        response = node_children(request)
+        rescatid = response[0]['ID']
 
-        # Add a component
+        newresrate = 29
+        # Add a resource
         request = testing.DummyRequest(json_body={
             'Name': 'AddingNewResource',
-            'ResourceID': resid,
-            'Description': 'Adding test item',
-            'NodeType': 'Component',
-            'ItemQuantity': 10.0,
+            'Description': 'Adding Resource',
+            'Unit': 5,
+            'ResourceType': 1,
+            'Rate': newresrate,
+            'Code': 'ADD005',
+            'NodeType': 'Resource'
+        })
+        # add it to the resource category
+        request.matchdict = {'id': rescatid}
+        request.method = 'POST'
+        response = self._callFUT(request)
+        # assert if the response from the add view has data
+        self.assertEqual(response.keys(), ['node', 'ID'])
+        # get the id of the new node
+        resid = response['ID']
+
+        newresarate = 13
+        # Add a resource
+        request = testing.DummyRequest(json_body={
+            'Name': 'AddingNewResourceA',
+            'Description': 'Adding Resource',
+            'Unit': 2,
+            'ResourceType': 3,
+            'Rate': newresarate,
+            'Code': 'AAD005',
+            'NodeType': 'Resource'
+        })
+        # add it to the resource category
+        request.matchdict = {'id': rescatid}
+        request.method = 'POST'
+        response = self._callFUT(request)
+        # assert if the response from the add view has data
+        self.assertEqual(response.keys(), ['node', 'ID'])
+        # get the id of the new node
+        resaid = response['ID']
+
+        newresunitrate = 78
+        # Add a resource unit
+        request = testing.DummyRequest(json_body={
+            'Name': 'AddingResourceUnit',
+            'Description': 'Adding Resource Unit',
+            'Unit': 1,
+            'ResourceType': 1,
+            'Rate': newresunitrate,
+            'Code': 'ADU005',
+            'NodeType': 'ResourceUnit'
+        })
+        # add it to the resource category
+        request.matchdict = {'id': rescatid}
+        request.method = 'POST'
+        response = self._callFUT(request)
+        # assert if the response from the add view has data
+        self.assertEqual(response.keys(), ['node', 'ID'])
+        # get the id of the new node
+        resunitid = response['ID']
+
+        newubiq = 15
+        # Add a budgetitem
+        request = testing.DummyRequest(json_body={
+            'ResourceID': resunitid,
+            'NodeType': 'BudgetItem',
+            'Quantity': newubiq,
             'OverheadList': []
         })
         # add it to the parent
@@ -1271,7 +1215,48 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         request.method = 'POST'
         response = self._callFUT(request)
         # assert if the response from the add view is OK
-        self.assertEqual(response.keys(), ['ID'])
+        self.assertEqual(response.keys(), ['node', 'ID'])
+        # get the id of the new node
+        newbid = response['ID']
+
+        newrespartq = 50
+        # Add a resource part
+        request = testing.DummyRequest(json_body={
+            'ResourceID': resaid,
+            'Quantity': newrespartq,
+            'NodeType': 'ResourcePart'
+        })
+        # add it to the resource unit
+        request.matchdict = {'id': resunitid}
+        request.method = 'POST'
+        response = self._callFUT(request)
+        # assert if the response from the add view has data
+        self.assertEqual(response.keys(), ['node', 'ID'])
+        # get the id of the new node
+        respartid = response['ID']
+
+        newbiq = 10
+        # Add a budgetitem
+        request = testing.DummyRequest(json_body={
+            'ResourceID': resid,
+            'NodeType': 'BudgetItem',
+            'Quantity': newbiq,
+            'OverheadList': []
+        })
+        # add it to the parent
+        request.matchdict = {'id': newid}
+        request.method = 'POST'
+        response = self._callFUT(request)
+        # assert if the response from the add view is OK
+        self.assertEqual(response.keys(), ['node', 'ID'])
+        # get the id of the new node
+        newid = response['ID']
+
+        newparttot = Decimal(newrespartq * newresarate).quantize(Decimal('.01'))
+        newunitrate = newparttot
+        newbiunittot = Decimal(newubiq*float(newunitrate)).quantize(Decimal('.01'))
+        newbitot = Decimal(newbiq*newresrate).quantize(Decimal('.01'))
+        newprojtot = newbitot + newbiunittot
 
         # test the total  of the project
         request = testing.DummyRequest()
@@ -1279,7 +1264,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         from optimate.app.views import node_cost
         response = node_cost(request)
         # true if the cost is correct
-        self.assertEqual(response['Cost'], '2900.00')
+        self.assertEqual(response['Cost'], str(newprojtot))
 
 class TestEditItemSuccessCondition(unittest.TestCase):
     """ Test if the nodeview functions correctly when editing a node
@@ -1304,7 +1289,6 @@ class TestEditItemSuccessCondition(unittest.TestCase):
 
         # Add the default data using json in the request
         request = testing.DummyRequest(json_body={
-            'ID': 2,
             'Name': 'EditedName',
             'Description': 'Edit test item',
             'NodeType': 'BudgetGroup'
@@ -1323,21 +1307,19 @@ class TestEditItemSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
         self.assertEqual(response['Name'], 'EditedName')
 
-    def test_edit_component(self):
+    def test_edit_budgetitem(self):
         _registerRoutes(self.config)
 
         # Add the default data using json in the request
         request = testing.DummyRequest(json_body={
-            'Name': 'TestResource',
-            'ID': 7,
             'ResourceID': 16,
-            'ItemQuantity': 10,
-            'NodeType': 'Component',
+            'Quantity': 10,
+            'NodeType': 'BudgetItem',
             'OverheadList':[{'Name': 'Overhead',
                                 'ID':1,
                                 'selected':True}],
         })
-        request.matchdict = {'id': 7}
+        request.matchdict = {'id': 3}
         request.method = 'PUT'
         response = self._callFUT(request)
 
@@ -1346,7 +1328,7 @@ class TestEditItemSuccessCondition(unittest.TestCase):
 
         # check if the name has changed
         request = testing.DummyRequest()
-        request.matchdict = {'id': 7}
+        request.matchdict = {'id': 3}
         request.method = 'GET'
         response = self._callFUT(request)
         self.assertEqual(response['Name'], 'TestResourceA')
@@ -1356,7 +1338,6 @@ class TestEditItemSuccessCondition(unittest.TestCase):
 
         # Add the resource data
         request = testing.DummyRequest(json_body={
-            'ID': 25,
             'Name': 'EditResource',
             'NodeType': 'Resource',
             'Code': 'E000',
@@ -1376,6 +1357,22 @@ class TestEditItemSuccessCondition(unittest.TestCase):
         request.method = 'GET'
         response = self._callFUT(request)
         self.assertEqual(response['Name'], 'EditResource')
+
+    def test_edit_resource_part(self):
+        _registerRoutes(self.config)
+
+        # Add the resource data
+        request = testing.DummyRequest(json_body={
+            'ResourceID': 16,
+            'NodeType': 'ResourcePart',
+            'Quantity': 25,
+        })
+        request.matchdict = {'id': 7}
+        request.method = 'PUT'
+        response = self._callFUT(request)
+
+        # assert if the response returns ok
+        self.assertEqual(response.code, 200)
 
 class TestDeleteviewSuccessCondition(unittest.TestCase):
     """ Test if the delete view functions correctly and deletes the node
@@ -1665,21 +1662,21 @@ class TestCostviewSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
         self.assertEqual(response['Cost'], str(bitot))
 
-    def test_component_cost(self):
+    def test_budgetitema_cost(self):
         _registerRoutes(self.config)
-        # get the cost of comp at id 7
-        request = testing.DummyRequest()
-        request.matchdict = {'id': 7}
-        response = self._callFUT(request)
-        self.assertEqual(response['Cost'], str(comptot))
-
-    def test_componenta_cost(self):
-        _registerRoutes(self.config)
-        # get the cost of compa at id 11
+        # get the cost at id 11
         request = testing.DummyRequest()
         request.matchdict = {'id': 11}
         response = self._callFUT(request)
-        self.assertEqual(response['Cost'], str(compatot))
+        self.assertEqual(response['Cost'], str(biatot))
+
+    def test_resource_part_cost(self):
+        _registerRoutes(self.config)
+        # get the cost at id 7
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 7}
+        response = self._callFUT(request)
+        self.assertEqual(response['Cost'], str(resunitrate))
 
     def test_projectb_cost(self):
         _registerRoutes(self.config)
@@ -1706,14 +1703,6 @@ class TestCostviewSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
         self.assertEqual(response['Cost'], str(bibtot))
 
-    def test_componentb_cost(self):
-        _registerRoutes(self.config)
-        # get the cost of compb at id 8
-        request = testing.DummyRequest()
-        request.matchdict = {'id': 8}
-        response = self._callFUT(request)
-        self.assertEqual(response['Cost'], str(compbtot))
-
     def test_budgetitemc_cost(self):
         _registerRoutes(self.config)
         # get the cost of budgetitemc at id 13
@@ -1722,17 +1711,8 @@ class TestCostviewSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
         self.assertEqual(response['Cost'], str(bictot))
 
-    def test_componentc_cost(self):
-        _registerRoutes(self.config)
-        # get the cost of compc at id 14
-        request = testing.DummyRequest()
-        request.matchdict = {'id': 14}
-        response = self._callFUT(request)
-        self.assertEqual(response['Cost'], str(compctot))
-
     def test_projectc_cost(self):
         _registerRoutes(self.config)
-
         request = testing.DummyRequest()
         request.matchdict = {'id': 19}
         response = self._callFUT(request)
@@ -1762,14 +1742,6 @@ class TestCostviewSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
         self.assertEqual(response['Cost'], str(bidtot))
 
-    def test_compd_cost(self):
-        _registerRoutes(self.config)
-
-        request = testing.DummyRequest()
-        request.matchdict = {'id': 26}
-        response = self._callFUT(request)
-        self.assertEqual(response['Cost'], str(compdtot))
-
     def test_budgetiteme_cost(self):
         _registerRoutes(self.config)
 
@@ -1777,14 +1749,6 @@ class TestCostviewSuccessCondition(unittest.TestCase):
         request.matchdict = {'id': 23}
         response = self._callFUT(request)
         self.assertEqual(response['Cost'], str(bietot))
-
-    def test_compe_cost(self):
-        _registerRoutes(self.config)
-
-        request = testing.DummyRequest()
-        request.matchdict = {'id': 27}
-        response = self._callFUT(request)
-        self.assertEqual(response['Cost'], str(competot))
 
 class TestOrderedSuccessCondition(unittest.TestCase):
     """ Test the Ordered amounts on nodes
@@ -1807,12 +1771,11 @@ class TestOrderedSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.method = 'POST'
         request.matchdict['id'] = 0
-        componentslist = [{'ID': 7, 'id': 7,'quantity': 5, 'rate': 10},
-                            {'ID': 11, 'id': 11,'quantity': 4, 'rate': 7}]
+        budgetitemslist = [{'ID': 11, 'id': 11,'quantity': 5, 'rate': 10}]
         request.json_body = {'ProjectID': 1,
                             'SupplierID': 2,
                             'Total': 78,
-                            'ComponentsList': componentslist}
+                            'BudgetItemsList': budgetitemslist}
         response = self._callFUT(request)
         # get the new order id
         newid = response['ID']
@@ -1853,11 +1816,10 @@ class TestInvoicedAmountViewSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.method = 'POST'
         request.matchdict['id'] = 0
-        componentslist = [{'ID': 7, 'id': 7, 'quantity': 5, 'rate': 10},
-                            {'ID': 11, 'id': 11, 'quantity': 4, 'rate': 7}]
+        budgetitemslist = [{'ID': 11, 'id': 11, 'quantity': 4, 'rate': 7}]
         request.json_body = {'ProjectID': 1,
                             'SupplierID': 2,
-                            'ComponentsList': componentslist}
+                            'BudgetItemsList': budgetitemslist}
         from optimate.app.views import orderview
         response = orderview(request)
         # get the new order id

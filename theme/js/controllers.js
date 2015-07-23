@@ -697,10 +697,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         // set the allowed types to be dropped
         $scope.allowed = {};
         $scope.allowed['Project'] = ['BudgetGroup'];
-        $scope.allowed['BudgetGroup'] = ['BudgetGroup', 'BudgetItem',
-                                    'Component'];
-        $scope.allowed['BudgetItem'] = ['BudgetItem', 'Component'];
-        $scope.allowed['Component'] = [];
+        $scope.allowed['BudgetGroup'] = ['BudgetGroup', 'BudgetItem'];
+        $scope.allowed['BudgetItem'] = ['BudgetItem'];
         $scope.allowed['ResourceCategory'] = ['ResourceCategory', 'Resource'];
         $scope.allowed['Resource'] = [];
         $scope.allowed['Root'] = ['Project'];
@@ -876,15 +874,15 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             });
         };
 
-        // load the overheads a component can use
-        $scope.loadComponentOverheads = function(nodeid) {
+        // load the overheads a budgetitem can use
+        $scope.loadBudgetItemOverheads = function(nodeid) {
             var req = {
                 method: 'GET',
-                url: globalServerURL + 'component/' + nodeid + '/overheads/'
+                url: globalServerURL + 'budgetitem/' + nodeid + '/overheads/'
             }
             $http(req).success(function(data) {
-                $scope.componentOverheadList = data;
-                console.log("Component overhead list loaded");
+                $scope.budgetItemOverheadList = data;
+                console.log("BudgetItem overhead list loaded");
             });
         }
 
@@ -954,21 +952,21 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         }
 
         $scope.resourceSelected = function(item){
-            var $addComponent = $('#addComponent'),
-                $description = $addComponent.find('#description');
+            var $addBudgetItem = $('#addBudgetItem'),
+                $description = $addBudgetItem.find('#description');
             if (item.ID == undefined){
-                $scope.addComponentForm.has_selection = false;
+                $scope.addBudgetItemForm.has_selection = false;
                 $description.focus();
             }
             else{
-                $scope.addComponentForm.has_selection = true;
-                $addComponent.find('#inputQuantity').focus();
+                $scope.addBudgetItemForm.has_selection = true;
+                $addBudgetItem.find('#inputQuantity').focus();
             }
         };
 
-        // load the lists used in adding/editing a component
-        $scope.loadComponentRelatedList = function(nodeid){
-            $scope.loadComponentOverheads(nodeid);
+        // load the lists used in adding/editing a budgetitem
+        $scope.loadBudgetItemRelatedList = function(nodeid){
+            $scope.loadBudgetItemOverheads(nodeid);
         };
 
         // When the addNode button is clicked on the modal a new node
@@ -978,12 +976,12 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             if (!$scope.isDisabled) {
                 $scope.isDisabled = true;
                 var currentid = $scope.currentNode.ID;
-                // if the node is a component set the selected data to the form
-                if ($scope.formData.NodeType == 'Component' || $scope.formData.NodeType == 'SimpleComponent'){
-                    $scope.formData['OverheadList'] = $scope.componentOverheadList || [];
+                // if the node is a budgetitem set the selected data to the form
+                if ($scope.formData.NodeType == 'BudgetItem' || $scope.formData.NodeType == 'SimpleBudgetItem'){
+                    $scope.formData['OverheadList'] = $scope.budgetItemOverheadList || [];
                     if ($scope.formData.selected.ID === undefined){
                         $scope.formData.ItemQuantity = $scope.formData.selected.ItemQuantity;
-                        $scope.formData.NodeType = 'SimpleComponent'
+                        $scope.formData.NodeType = 'SimpleBudgetItem'
                         $scope.formData.Rate = $scope.formData.selected.Rate
                         $scope.formData.Name = $scope.formData.selected.Name
                         $scope.formData.Description = $scope.formData.selected.Description
@@ -992,7 +990,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     else{
                         $scope.formData.ResourceID = $scope.formData.selected.ID;
                         $scope.formData.ItemQuantity = $scope.formData.selected.ItemQuantity;
-                        $scope.formData.NodeType = 'Component'
+                        $scope.formData.NodeType = 'BudgetItem'
                     }
                 }
                 $http({
@@ -1041,19 +1039,19 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         $scope.saveNodeEdits = function() {
             if (!$scope.isDisabled) {
                 $scope.isDisabled = true;
-                // if the node is a component set the selected data to the form
-                if ($scope.formData.NodeType == 'Component' || $scope.formData.NodeType == 'SimpleComponent'){
+                // if the node is a budgetitem set the selected data to the form
+                if ($scope.formData.NodeType == 'BudgetItem' || $scope.formData.NodeType == 'SimpleBudgetItem'){
                     $scope.formData.ResourceID = $scope.formData.selected.ID;
                     $scope.formData.ItemQuantity = $scope.formData.selected.ItemQuantity;
                     if ($scope.formData.ResourceID == undefined){
-                        $scope.formData.NodeType == 'SimpleComponent'
+                        $scope.formData.NodeType == 'SimpleBudgetItem'
                         $scope.formData.Rate = $scope.formData.selected.Rate
                         $scope.formData.Name = $scope.formData.selected.Name
                         $scope.formData.Description = $scope.formData.selected.Description
                         $scope.formData.ResourceType = $scope.formData.selected.ResourceType
                     }
                     else{
-                        $scope.formData.NodeType == 'Component'
+                        $scope.formData.NodeType == 'BudgetItem'
                         $scope.formData.Name = $scope.formData.selected.Name
                     }
                 }
@@ -1118,31 +1116,31 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             $http(req).success(function(response) {
                 var nodetype = response.NodeType;
                 $scope.formData.ID = nodeid;
-                // special case for component types
-                if (nodetype == 'Component') {
+                // special case for budgetitem types
+                if (nodetype == 'BudgetItem') {
                     // populate the selection
                     $scope.formData.selected = response;
                     $scope.formData.selected.ID = response.ResourceID
                     $scope.formData.NodeType = nodetype;
                     // update overheadlist
-                    $http.get(globalServerURL + 'component/' + nodeid + '/overheads/')
+                    $http.get(globalServerURL + 'budgetitem/' + nodeid + '/overheads/')
                     .success(function(data) {
-                        $scope.componentOverheadList = data;
+                        $scope.budgetItemOverheadList = data;
                         var overheadlist = response['OverheadList'];
-                        var arrayLength = $scope.componentOverheadList.length;
+                        var arrayLength = $scope.budgetItemOverheadList.length;
                         for (var i = 0; i < arrayLength; i++) {
-                            if (overheadlist.indexOf($scope.componentOverheadList[i].ID) != -1) {
-                                $scope.componentOverheadList[i].selected = true;
+                            if (overheadlist.indexOf($scope.budgetItemOverheadList[i].ID) != -1) {
+                                $scope.budgetItemOverheadList[i].selected = true;
                             }
                         }
-                        $scope.formData['OverheadList'] = $scope.componentOverheadList;
+                        $scope.formData['OverheadList'] = $scope.budgetItemOverheadList;
                     });
                 }
-                else if(nodetype == 'SimpleComponent'){
+                else if(nodetype == 'SimpleBudgetItem'){
                     // populate the selection
                     $scope.formData.selected = response;
                     $scope.formData.NodeType = nodetype;
-                    nodetype = 'Component';
+                    nodetype = 'BudgetItem';
                 }
                 else{
                     $scope.formData = response;
@@ -1398,14 +1396,10 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
         $scope.budgetgroupList = [];
 
-        $scope.loadComponentTypes = function() {
-            var ctypes = [
-                { Name:"Labour", selected:true },
-                { Name:"Material", selected:true },
-                { Name:"Subcontractor", selected:true }];
-            $scope.componentTypeList = ctypes
+        $scope.loadBudgetItemTypes = function() {
+            $scope.budgetItemTypeList = $scope.restypeList;
             $scope.printSelectedBudgetGroups = false;
-            console.log("Component Type list loaded");
+            console.log("Budget Item Type list loaded");
         };
 
         $scope.loadSuppliers = function() {
@@ -1530,7 +1524,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             var target = document.getElementsByClassName('pdf_download');
             var spinner = new Spinner().spin(target[0]);
             if ( report == 'projectbudget' ) {
-                $scope.formData['ComponentTypeList'] = $scope.componentTypeList || [];
+                $scope.formData['BudgetItemTypeList'] = $scope.budgetItemTypeList || [];
                 $scope.formData['PrintSelectedBudgerGroups'] = $scope.printSelectedBudgetGroups;
                 $scope.formData['BudgetGroupList'] = $scope.budgetgroupList || [];
                 var url = globalServerURL + 'project_budget_report/' + nodeid + '/'
@@ -1811,7 +1805,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         $scope.isDisabled = false;
         $scope.isCollapsed = true;
         $scope.jsonorders = [];
-        $scope.componentsList = [];
+        $scope.budgetItemsList = [];
         $scope.invoiceList = [];
         // Pagination variables and functions
         $scope.pageSize = 100;
@@ -1913,8 +1907,8 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             // check if saving is disabled, if not disable it and save
             if (!$scope.isDisabled) {
                 $scope.isDisabled = true;
-                // set the list of checked components
-                $scope.formData['ComponentsList'] = $scope.componentsList;
+                // set the list of checked budgetitems
+                $scope.formData['BudgetItemsList'] = $scope.budgetItemsList;
                 if ($scope.modalState == 'Edit') {
                     $http({
                         method: 'PUT',
@@ -1983,7 +1977,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
             $scope.modalState = "Add";
-            $scope.componentsList = [];
+            $scope.budgetItemsList = [];
             if ($scope.selectedOrder) {
                 $('#order-'+$scope.selectedOrder.ID).removeClass('active');
                 $scope.selectedOrder = undefined;
@@ -2002,9 +1996,9 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             }).success(function(response) {
                 $scope.formData = response;
                 $scope.loadProject()
-                $scope.componentsList = $scope.formData['ComponentsList'];
+                $scope.budgetItemsList = $scope.formData.BudgetItemsList.;
                 $scope.formData['Date'] = new Date($scope.formData['Date']);
-                $scope.formData['NodeType'] = 'order';
+                $scope.formData.NodeType = 'order';
             });
             $scope.saveOrderModalForm.$setPristine();
         }
@@ -2028,76 +2022,76 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             });
         };
 
-        $scope.toggleComponents = function(comp) {
-            // set the component selected or unselected
+        $scope.toggleBudgetItems = function(comp) {
+            // set the budgetitem selected or unselected
             var flag = (comp.selected === true) ? undefined : true;
             comp.selected = flag;
-            // find the component in the component list
-            var i = $scope.componentsList.map(function(e)
+            // find the budgetitem in the budgetitem list
+            var i = $scope.budgetItemsList.map(function(e)
                 { return e.id; }).indexOf(comp.ID);
-            // if the component is already in the list
+            // if the budgetitem is already in the list
             // and the node is deselected
             if ((i>-1) &(!flag)) {
                 // remove it
-                $scope.componentsList.splice(i, 1);
+                $scope.budgetItemsList.splice(i, 1);
             }
-            // if the component is not in the list
+            // if the budgetitem is not in the list
             // and the node is being selected
             else if ((i==-1) & flag) {
                 // find the index to insert the node into
                 var index = $scope.locationOf(comp);
                 console.log("index: " +index);
-                // add the component
+                // add the budgeitem
                 if (index == -1){
-                    $scope.componentsList.push(comp);
+                    $scope.budgetItemsList.push(comp);
                 }
                 else{
-                    $scope.componentsList.splice(index, 0, comp);
+                    $scope.budgetItemsList.splice(index, 0, comp);
                 }
             }
         }
 
-        // remove a component from the component list
-        $scope.removeComponent = function(node) {
+        // remove a budgetitem from the budgetitem list
+        $scope.removeBudgetItem = function(node) {
             var deleteid = node.ID;
-            var result = $.grep($scope.componentsList, function(e) {
+            var result = $.grep($scope.budgetItemsList, function(e) {
                 return e.id == deleteid;
             });
-            var i = $scope.componentsList.indexOf(result[0]);
+            var i = $scope.budgetItemsList.indexOf(result[0]);
             if (i>-1) {
-                $scope.componentsList.splice(i, 1);
-                // loop through all the open nodes and if the checked component
-                // is in it uncheck the component
+                $scope.budgetItemsList.splice(i, 1);
+                // loop through all the open nodes and if the checked budgetItem
+                // is in it uncheck the budgetitem
                 for (var i = 0; i<$scope.openProjectsList.length; i++) {
                     var subitem = $scope.openProjectsList[i].Subitem || [];
                     if (subitem.length > 0) {
-                        $scope.uncheckComponent(deleteid, subitem);
+                        $scope.uncheckBudgetItem(deleteid, subitem);
                     }
                 }
 
             }
         };
 
-        $scope.uncheckComponent = function(componentId, subitem) {
+        $scope.uncheckBudgetItem = function(budgetitemId, subitem) {
             for (var i = 0; i<subitem.length; i++) {
-                if (subitem[i].ID == componentId) {
+                if (subitem[i].ID == budgetitemId) {
                     subitem[i].selected = false;
                     break;
                 }
                 else{
                     var subsubitem = subitem[i].Subitem || [];
                     if (subsubitem.length > 0) {
-                        $scope.uncheckComponent(componentId, subsubitem);
+                        $scope.uncheckBudgetItem(budgetitemId, subsubitem);
                     }
                 }
             }
         }
 
         $scope.toggleNode = function(node) {
-            // when a node that is not a component is selected
+            // when a node that is not a budgetitem is selected
             // flag the node, set the selection on all its children
-            // load the components in the node and toggle them in the
-            // component list
+            // load the budgetitems in the node and toggle them in the
+            // budgetitem list
             var flag = (node.selected === true) ? undefined : true;
             node.selected = flag;
             var nodeid = node.ID;
@@ -2110,36 +2104,36 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                     $scope.toggleSubitems(subsubitem, flag);
                 }
             }
-            // add the components to the list
-            $http.get(globalServerURL + 'node/' + nodeid + '/components/')
+            // add the budgetitem to the list
+            $http.get(globalServerURL + 'node/' + nodeid + '/budgetitems/')
             .success(function(response) {
-                // if the component list is empty just add all the nodes in order
-                if ($scope.componentsList.length == 0){
-                    $scope.componentsList =response;
+                // if the budgetitem list is empty just add all the nodes in order
+                if ($scope.budgetItemsList.length == 0){
+                    $scope.budgetItemsList =response;
                 }
                 else{
                     for (var v = 0; v<response.length; v++) {
                         var comp = response[v];
-                        // find the component in the component list
-                        var i = $scope.componentsList.map(function(e)
+                        // find the budgetitem in the budgetitem list
+                        var i = $scope.budgetItemsList.map(function(e)
                             { return e.id; }).indexOf(comp.ID);
-                        // if the component is already in the list
+                        // if the budgetItem is already in the list
                         // and the node is deselected
                         if ((i>-1) &(!flag)) {
                             // remove it
-                            $scope.componentsList.splice(i, 1);
+                            $scope.budgetItemsList.splice(i, 1);
                         }
-                        // if the component is not in the list
+                        // if the budgetItem is not in the list
                         // and the node is being selected
                         else if ((i==-1) & flag) {
-                            // add the component
+                            // add the budgetItem
                             var index = $scope.locationOf(comp);
-                            // add the component
+                            // add the budgetItem
                             if (index == -1){
-                                $scope.componentsList.push(comp);
+                                $scope.budgetItemsList.push(comp);
                             }
                             else{
-                                $scope.componentsList.splice(index, 0, comp);
+                                $scope.budgetItemsList.splice(index, 0, comp);
                             }
                         }
                     }
@@ -2158,7 +2152,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             }
         };
 
-        $scope.toggleComponentsGrid = function() {
+        $scope.toggleBudgetItemsGrid = function() {
             $scope.isCollapsed = !$scope.isCollapsed;
             if ($scope.isCollapsed) {
                 $scope.handleReloadOrderSlickgrid();
@@ -2178,14 +2172,14 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
 
         $scope.locationOf = function(element, start, end) {
             // return the location the object should be inserted in a sorted array
-            if ($scope.componentsList.length === 0){
+            if ($scope.budgetItemsList.length === 0){
                 return -1;
             }
 
             start = start || 0;
-            end = end || $scope.componentsList.length;
+            end = end || $scope.budgetItemsList.length;
             var pivot = (start + end) >> 1;
-            var c = $scope.nodeCompare(element, $scope.componentsList[pivot]);
+            var c = $scope.nodeCompare(element, $scope.budgetItemsList[pivot]);
             if (end - start <= 1) {
                 return c == -1 ? pivot: pivot + 1;
 
@@ -2212,12 +2206,12 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 var parentid = selectedNode.ID;
                 $http.get(globalServerURL + "orders/tree/" + parentid + '/').success(function(data) {
                     selectedNode.Subitem = data;
-                    // check if any of the components are in the components list
+                    // check if any of the budgetItems are in the budgetItems list
                     // and select then
                     for (var i = 0; i<selectedNode.Subitem.length; i++) {
-                        if (selectedNode.Subitem[i].NodeType == 'Component') {
-                            for (var b = 0; b<$scope.componentsList.length; b++) {
-                                if ($scope.componentsList[b].ID == selectedNode.Subitem[i].ID) {
+                        if (selectedNode.Subitem[i].NodeType == 'BudgetItem') {
+                            for (var b = 0; b<$scope.budgetItemsList.length; b++) {
+                                if ($scope.budgetItemsList[b].ID == selectedNode.Subitem[i].ID) {
                                     selectedNode.Subitem[i].selected = true;
                                 }
                             }

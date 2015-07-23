@@ -377,7 +377,6 @@ def additemview(request):
         newnode.Code = finalcode
 
     elif objecttype == 'ResourcePart':
-        name =  request.json_body['Name']
         uid = request.json_body['ResourceID']
         quantity = float(request.json_body.get('Quantity', 0))
         # check the resource exists
@@ -385,8 +384,7 @@ def additemview(request):
         if not resource:
             return HTTPInternalServerError("The resource does not exist")
 
-        newnode = ResourcePart(Name=name,
-                                ResourceID=uid,
+        newnode = ResourcePart(ResourceID=uid,
                                 _Quantity=quantity,
                                 ParentID=parentid)
 
@@ -466,7 +464,7 @@ def edititemview(request):
 
             # if the budgetitem references a resource unit
             # expand the budgetitem and add children
-            resource = DBSession.quey(Resource).filter_by(ID=uid).first()
+            resource = DBSession.query(Resource).filter_by(ID=uid).first()
             if resource.type == 'ResourceUnit':
                 expandBudgetItem(bi.ID, resource)
 
@@ -536,7 +534,6 @@ def edititemview(request):
 
     elif objecttype == 'ResourcePart':
         rpart = DBSession.query(ResourcePart).filter_by(ID=nodeid).first()
-        rpart.Name =  request.json_body['Name']
         rpart.Quantity = float(request.json_body.get('Quantity', 0))
         uid = request.json_body['ResourceID']
         # if the resourcepart references a different resource update
@@ -811,7 +808,7 @@ def node_grid(request):
     emptycolumns = emptyresult.count() == 0
 
     # if the query has any BudgetItems it will contain subtotal columns
-    no_sub_cost = sub_cost_result.count() == 0
+    no_sub_cost = emptyresult.count() == 0
 
     qry = qry.all()
     # Get the griddata dict from each child and add it to the list
@@ -848,12 +845,10 @@ def node_update_value(request):
     result = DBSession.query(Node).filter_by(ID=nodeid).first()
     newtotal = None
     newsubtotal = None
-    newquantity = None
-    newrate = None
     # only a resource's rate can be modified
     if result.type == 'Resource':
-        if request.json_body.get('rate') != None:
-            result.Rate = request.json_body.get('rate')
+        if request.json_body.get('rate'):
+            result.Rate = request.json_body['rate']
     # only a budgetitems quantity can be modified
     elif result.type == 'BudgetItem':
         if request.json_body.get('quantity') != None:
@@ -979,7 +974,7 @@ def node_paste(request):
         transaction.commit()
     # check the node isnt being pasted into it's parent
     elif parentid != sourceparent:
-        if source.type == 'Resource':
+        if source.type == 'Resource' or source.type == 'ResourceUnit':
             # check the resource is not being duplicated
             projectid = dest.getProjectID()
             resourcecategory = DBSession.query(
@@ -1022,8 +1017,6 @@ def node_paste(request):
 
                 # Get the budgetitems that were copied
                 sourcebudgetitems = source.getBudgetItems()
-                if source.type == 'BudgetItem':
-                    sourcebudgetitems.append(source)
                 # copy each unique resource into the new resource category
                 copiedresourceIds = {}
                 for budgetitem in sourcebudgetitems:
@@ -1082,8 +1075,6 @@ def node_paste(request):
 
                 # Get the budgetitems that were copied
                 sourcebudgetitems = source.getBudgetItems()
-                if source.type == 'BudgetItem':
-                    sourcebudgetitems.append(source)
                 # copy each unique resource into the new resource category
                 copiedresourceIds = {}
                 for budgetitem in sourcebudgetitems:
@@ -1778,9 +1769,7 @@ def valuations_tree_view(request):
     # build the list and only get the neccesary values
     if qry != None:
         for child in qry.Children:
-            if child.type == 'BudgetItem':
-                childrenlist.append(child.toOrderDict())
-            elif child.type != 'ResourceCategory':
+            if child.type != 'ResourceCategory':
                 childrenlist.append(child.toChildDict())
 
     # sort childrenlist

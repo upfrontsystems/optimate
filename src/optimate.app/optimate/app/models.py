@@ -383,12 +383,6 @@ class BudgetGroup(Node):
             child.clearCosts()
 
     @property
-    def Quantity(self):
-        """ A BudgetGroup returns a Quantity of one
-        """
-        return 1.0
-
-    @property
     def Total(self):
         """ Get the total property, reset the Total if it is None
         """
@@ -478,8 +472,6 @@ class BudgetGroup(Node):
         """
         budgetitemslist = []
         for child in self.Children:
-            if child.type == 'BudgetItem':
-                budgetitemslist.append(child)
             budgetitemslist += child.getBudgetItems()
         return budgetitemslist
 
@@ -602,7 +594,8 @@ class BudgetItemMixin(object):
         # After the rate is set the total property is updated
         if not self._Total:
             self._Total = Decimal(0.00)
-        self.Total = (1.0+self.Markup) * self.Quantity * float(rate)
+        self.Total = Decimal((1.0+self.Markup) * self.Quantity * float(rate)
+                            ).quantize(Decimal('.01'))
 
     def resetRate(self):
         """ The rate of a BudgetItem is based on the Rate of it's Resource
@@ -716,45 +709,24 @@ class BudgetItemMixin(object):
         # update the parent with the new total
         self.Parent.Invoiced = self.Parent.Invoiced + difference
 
-    def copy(self, parentid):
-        """ copy returns an exact duplicate of this BudgetItem,
-            but with the ParentID specified.
-        """
-        copied = BudgetItem(ParentID=parentid,
-                            ResourceID = self.ResourceID,
-                            _Quantity=self._Quantity,
-                            _Total=self._Total,
-                            OrderCost=self.OrderCost,
-                            ClaimedCost=self.ClaimedCost,
-                            RunningCost=self.RunningCost,
-                            IncomeReceived=self.IncomeReceived,
-                            ClientCost=self.ClientCost,
-                            ProjectedProfit=self.ProjectedProfit,
-                            ActualProfit=self.ActualProfit,
-                            _Ordered=self.Ordered,
-                            _Invoiced=self.Invoiced)
-        return copied
-
     def paste(self, source, sourcechildren):
-        """ Pasting into a BudgetItem is handled by the ResourceUnit, if any,
-            that the BudgetItem references
+        """ Paste appends a source object to the children of this node,
+            and then recursively does the same
+            with each child of the source object.
         """
-        # self.Children.append(source)
-        # for child in sourcechildren:
-        #     source.paste(child.copy(source.ID), child.Children)
-
-
-        # This is in the Mixin, as I foresee that pasting, if it is ever
-        # needed, will be rather similar for most things.
-        pass
+        self.Children.append(source)
+        for child in sourcechildren:
+            source.paste(child.copy(source.ID), child.Children)
 
     def getBudgetItems(self):
-        """ Return a list of all the BudgetItems in this BudgetItem
+        """ Return a list of the leaf BudgetItems
         """
         budgetitemslist = []
-        for child in self.Children:
-            budgetitemslist.append(child)
-            budgetitemslist += child.getBudgetItems()
+        if len(self.Children) == 0:
+            budgetitemslist = [self]
+        else:
+            for child in self.Children:
+                budgetitemslist += child.getBudgetItems()
         return budgetitemslist
 
     def toChildDict(self):
@@ -816,7 +788,6 @@ class BudgetItemMixin(object):
                 'Quantity': self.Quantity,
                 'ResourceType': self.Type,
                 'NodeType': self.type,
-                'ItemQuantity': self.ItemQuantity,
                 'Ordered': str(self.Ordered),
                 'Invoiced': str(self.Invoiced),
                 'order_cost': str(self.OrderCost),
@@ -936,6 +907,25 @@ class BudgetItem(Node, BudgetItemMixin):
 
         return overheadlist
 
+    def copy(self, parentid):
+        """ copy returns an exact duplicate of this BudgetItem,
+            but with the ParentID specified.
+        """
+        copied = BudgetItem(ParentID=parentid,
+                            ResourceID = self.ResourceID,
+                            _Quantity=self._Quantity,
+                            _Total=self._Total,
+                            OrderCost=self.OrderCost,
+                            ClaimedCost=self.ClaimedCost,
+                            RunningCost=self.RunningCost,
+                            IncomeReceived=self.IncomeReceived,
+                            ClientCost=self.ClientCost,
+                            ProjectedProfit=self.ProjectedProfit,
+                            ActualProfit=self.ActualProfit,
+                            _Ordered=self.Ordered,
+                            _Invoiced=self.Invoiced)
+        return copied
+
     def toDict(self):
         """ Return a dictionary of all the attributes of this BudgetItem
             Also returns a list of the Overhead ID's used by this BudgetItem
@@ -971,7 +961,7 @@ class BudgetItem(Node, BudgetItemMixin):
     def __repr__(self):
         """ return a representation of this BudgetItem
         """
-        return '<Co(Name="%s", Quantity="%d", ID="%s", ParentID="%s")>' % (
+        return '<BudgetItem(Name="%s", Quantity="%d", ID="%s", ParentID="%s")>' % (
             self.Name, self.Quantity, self.ID, self.ParentID)
 
 
@@ -989,7 +979,6 @@ class SimpleBudgetItem(Node, BudgetItemMixin):
     _Rate = Column('Rate', Numeric, default=Decimal(0.00))
     _Ordered = Column('Ordered', Numeric(12, 2), default=Decimal(0.00))
     _Invoiced = Column('Invoiced', Numeric(12, 2), default=Decimal(0.00))
-    _ItemQuantity = Column('Item Quantity', Float, default=1.0)
 
     __mapper_args__ = {
         'polymorphic_identity': 'SimpleBudgetItem',
@@ -1027,22 +1016,21 @@ class SimpleBudgetItem(Node, BudgetItemMixin):
             but with the ParentID specified.
         """
         return SimpleBudgetItem(ParentID=parentid,
-                Name=self.Name,
-                Description=self.Description,
-                _Quantity=self._Quantity,
-                _Total=self._Total,
-                Type=self.Type,
-                _Rate=self._Rate,
-                OrderCost=self.OrderCost,
-                ClaimedCost=self.ClaimedCost,
-                RunningCost=self.RunningCost,
-                IncomeReceived=self.IncomeReceived,
-                ClientCost=self.ClientCost,
-                ProjectedProfit=self.ProjectedProfit,
-                ActualProfit=self.ActualProfit,
-                _Ordered=self.Ordered,
-                _Invoiced=self.Invoiced,
-                _ItemQuantity=self._ItemQuantity)
+                                Name=self.Name,
+                                Description=self.Description,
+                                _Quantity=self._Quantity,
+                                _Total=self._Total,
+                                Type=self.Type,
+                                _Rate=self._Rate,
+                                OrderCost=self.OrderCost,
+                                ClaimedCost=self.ClaimedCost,
+                                RunningCost=self.RunningCost,
+                                IncomeReceived=self.IncomeReceived,
+                                ClientCost=self.ClientCost,
+                                ProjectedProfit=self.ProjectedProfit,
+                                ActualProfit=self.ActualProfit,
+                                _Ordered=self.Ordered,
+                                _Invoiced=self.Invoiced)
 
     def getGridData(self):
         """ Return a dictionary of all the data needed for the slick grid
@@ -1399,7 +1387,8 @@ class ResourceUnit(Resource):
         rate = Decimal(0.00)
         for part in self.Children:
             rate+=part.Total
-        self.Rate = rate
+
+        self.Rate = rate.quantize(Decimal('.01'))
 
     def resetTotal(self):
         """ Reset the total of each resource part
@@ -1418,10 +1407,18 @@ class ResourceUnit(Resource):
     @Rate.setter
     def Rate(self, rate):
         """ When the ResourceUnit Rate is set, update the ResourcePart total
+            and BudgetItem totals
         """
         self._Rate = rate
         for part in self.ResourceParts:
             part.resetTotal()
+        for bi in self.BudgetItems:
+            bi.resetTotal(self._Rate)
+
+    def paste(self, source, sourcechildren):
+        """ Paste a ResourcePart into this ResourceUnit
+        """
+        self.Children.append(source)
 
     def toChildDict(self):
         """ Returns a dictionary of this node used in the childview
@@ -1434,7 +1431,7 @@ class ResourceUnit(Resource):
                 'ID': self.ID,
                 'ParentID': self.ParentID,
                 'Subitem': subitem,
-                'NodeType': self.type,
+                'NodeType': 'Resource',
                 'NodeTypeAbbr' : 'R'}
 
     def __repr__(self):
@@ -1500,6 +1497,20 @@ class ResourcePart(Node):
         self._Quantity = quantity
         self.resetTotal()
 
+    def copy(self, parentid):
+        """ copy returns an exact duplicate of this ResourcePart,
+            but with the ParentID specified.
+        """
+        copied = ResourcePart(ResourceID=self.ResourceID,
+                        _Quantity=self.Quantity,
+                        ParentID=parentid)
+        return copied
+
+    def paste(self, source, sourcechildren):
+        """ Do nothing. Cant paste into a resource part
+        """
+        pass
+
     def toChildDict(self):
         """ Returns a dictionary of this node used in the childview
         """
@@ -1509,7 +1520,7 @@ class ResourcePart(Node):
                 'ParentID': self.ParentID,
                 'Subitem': subitem,
                 'NodeType': self.type,
-                'NodeTypeAbbr' : 'R'}
+                'NodeTypeAbbr' : 'P'}
 
     def toDict(self):
         """ Return a dictionary of the attributes of this Resource

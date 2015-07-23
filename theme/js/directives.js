@@ -130,7 +130,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             var rate_column = {id: "rate", name: "Rate", field: "rate",
                                     width: projects_column_width.rate,
                                     cssClass: "cell non-editable-column",
-                                    formatter: CurrencyFormatter}
+                                    formatter: CurrencyFormatter,
+                                    editor: Slick.Editors.CustomEditor}
             var budg_cost_column = {id: "budg_cost", name: "Total", field: "budg_cost",
                                     width: projects_column_width.budg_cost,
                                     cssClass: "cell non-editable-column",
@@ -346,10 +347,10 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                             }
 
                             var overheadnames = [];
-                            // Add columns for the overheads in the components
+                            // Add columns for the overheads in the budgetItems
                             for (var i=0; i < data.length; i++) {
-                                if (data[i]['node_type'] == 'Component') {
-                                    // get the list of overheads in the component
+                                if (data[i]['node_type'] == 'BudgetItem') {
+                                    // get the list of overheads in the budgetItem
                                     var overheadslist = data[i]['overheads'];
                                         // get the name of the overhead
                                         // check if it has not been used yet
@@ -359,7 +360,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                             if (overheadnames.indexOf(overheadname) < 0) {
                                                 overheadnames.push(overheadname);
                                             }
-                                            // create new entry in the component
+                                            // create new entry in the budgetItem
                                             data[i][overheadname] = overheadslist[v].percentage;
                                         }
                                 }
@@ -494,7 +495,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
     }
 }]);
 
-allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedService', '$http', '$timeout',
+allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedService', '$http', '$timeout',
     function(globalServerURL, sharedService, $http, $timeout) {
     return {
         require: '?ngModel',
@@ -573,7 +574,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             }
 
             var columns = [
-                    {id: "name", name: "Component", field: "name",
+                    {id: "name", name: "Budget Item", field: "name",
                      width: orders_column_width.name, cssClass: "cell-title non-editable-column"},
                     {id: "quantity", name: "Quantity", field: "quantity", cssClass: "cell editable-column",
                      width: orders_column_width.quantity, editor: Slick.Editors.CustomEditor},
@@ -602,7 +603,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             data = []
             dataView = new Slick.Data.DataView();
             dataView.getItemMetadata = getItemMetaData;
-            grid = new Slick.Grid("#component-data-grid", dataView, columns, options);
+            grid = new Slick.Grid("#budgetitem-data-grid", dataView, columns, options);
             grid.setSelectionModel(new Slick.CellSelectionModel());
             // resize the slickgrid when modal is shown
             $('#saveOrderModal').on('shown.bs.modal', function() {
@@ -664,11 +665,11 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                 grid.render();
             });
 
-            // observe the component list for changes and update the slickgrid
+            // observe the budgetItem list for changes and update the slickgrid
             // calculate and update the order total as well
-            $scope.$watch(attrs.components, function(componentlist) {
+            $scope.$watch(attrs.budgetitems, function(budgetItemslist) {
                 columns = [
-                    {id: "name", name: "Component", field: "name",
+                    {id: "name", name: "Budget Item", field: "name",
                      width: orders_column_width.name, cssClass: "cell-title non-editable-column"},
                     {id: "quantity", name: "Quantity", field: "quantity", cssClass: "cell editable-column",
                      width: orders_column_width.quantity, editor: Slick.Editors.CustomEditor},
@@ -682,18 +683,18 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                      width: orders_column_width.vatcost, formatter: CurrencyFormatter},
                     {id: "total", name: "Total", field: "total", cssClass: "cell non-editable-column",
                      width: orders_column_width.total, formatter: CurrencyFormatter}];
-                if (componentlist.length > 0) {
+                if (budgetItemslist.length > 0) {
                     var ordertotal = 0.0;
                     var ordersubtotal = 0.0
                     var ordervatcost = 0.0
                     var gridlist = [];
-                    for (var i=0;i<componentlist.length; i++) {
-                        ordertotal += parseFloat(componentlist[i].total);
-                        ordersubtotal += parseFloat(componentlist[i].subtotal);
-                        ordervatcost += parseFloat(componentlist[i].vatcost);
+                    for (var i=0;i<budgetItemslist.length; i++) {
+                        ordertotal += parseFloat(budgetItemslist[i].total);
+                        ordersubtotal += parseFloat(budgetItemslist[i].subtotal);
+                        ordervatcost += parseFloat(budgetItemslist[i].vatcost);
                     }
-                    gridlist = componentlist.slice(0);
-                    var totals = {'id': 'T' + componentlist[0].id,
+                    gridlist = budgetItemslist.slice(0);
+                    var totals = {'id': 'T' + budgetItemslist[0].id,
                                     'subtotal': ordersubtotal,
                                     'vatcost': ordervatcost,
                                     'total': ordertotal,

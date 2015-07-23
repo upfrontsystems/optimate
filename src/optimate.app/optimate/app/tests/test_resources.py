@@ -134,9 +134,16 @@ def _initTestingDB():
                             _Quantity=respartb_quantity,
                             ParentID=resourceunita.ID)
 
+        projecta = Project(ID=17,
+                            Name="ProjectA",
+                            ParentID=0)
+        rescata = ResourceCategory(ID=18,
+                                Name="Resource List",
+                                ParentID=projecta.ID)
+
         for ob in (root, client1, city1, unit1, project, budgetgroup, rescat,
             res, resourceunit, resourcepart, resa, resourceunita, resourceparta,
-            resourcepartb, budgetitem):
+            resourcepartb, budgetitem, projecta, rescata):
             DBSession().add(ob)
 
         transaction.commit()
@@ -249,13 +256,14 @@ class TestTree(unittest.TestCase):
         request.method = 'DELETE'
         response = self._callFUT(request)
 
-    # def test_paste(self):
-    #     # test copying and pasting a resource unit works
-    #     _registerRoutes(self.config)
-    #     request = testing.DummyRequest(json_body={
-    #         'ID': '2',
-    #         'cut': False}
-    #     )
-    #     request.matchdict = {'id': 11}
-    #     from optimate.app.views import node_paste
-    #     response = node_paste(request)
+    def test_paste(self):
+        # test copying and pasting a resource unit works
+        _registerRoutes(self.config)
+        request = testing.DummyRequest(json_body={
+            'ID': '11',
+            'cut': False}
+        )
+        request.matchdict = {'id': 18}
+        from optimate.app.views import node_paste
+        response = node_paste(request)
+        self.assertEqual(response.keys(), ['newId'])

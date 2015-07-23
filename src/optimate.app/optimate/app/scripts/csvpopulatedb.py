@@ -10,13 +10,14 @@ from optimate.app.models import (
     Project,
     BudgetGroup,
     BudgetItem,
-    Component,
     ResourceType,
     Unit,
     City,
     Overhead,
     ResourceCategory,
     Resource,
+    ResourcePart,
+    ResourceUnit,
     Client,
     Supplier,
     CompanyInformation,
@@ -180,7 +181,7 @@ if __name__ == '__main__':
 
         # add the error node
         # the children of this node will be deleted
-        # start the new code for items at 150000
+        # start the new code for items at 500000
         newcode = 5000000
         errorid = newcode - 1
         errornode = Project(Name='ErrorNode', ID=errorid, ParentID=0)
@@ -354,8 +355,8 @@ if __name__ == '__main__':
         transaction.commit()
 
         print 'Converting BudgetGroups table'
-        # # build the budgetgroups
-        # # =====================================================================
+        # build the budgetgroups
+        # =====================================================================
         book = csv.reader(open(exceldatapath + 'data.csv/BudgetGroups.DB.csv', 'rb'))
         codeindex = 0
         nameindex = 1
@@ -466,8 +467,10 @@ if __name__ == '__main__':
 
         transaction.commit()
 
-        print 'Converting Budgetitems table'
+        print 'Converting BudgetItems table'
         # build the budgetitems
+        book = csv.reader(open(exceldatapath + 'data.csv/BudgetItems.DB.csv', 'rb'))
+        length = sum(1 for row in book)
         book = csv.reader(open(exceldatapath + 'data.csv/BudgetItems.DB.csv', 'rb'))
         codeindex = 0
         nameindex = 1
@@ -513,13 +516,27 @@ if __name__ == '__main__':
                 changedbicodes[code] = newcode
 
         book = csv.reader(open(exceldatapath + 'data.csv/BudgetItems.DB.csv', 'rb'))
+        percentile = length / 100.0
+        print 'Percentage done: '
+        counter = 1
+        x = 0
         next(book)
         for row in book:
+            x +=1
+            if x == int(percentile * counter):
+                counter += 1
+                stdout.write('\r%d' % counter + '%')
+                stdout.flush()
+                sleep(1)
+            biparent = False
             code = int(row[codeindex])
             name = row[nameindex]
             name=name.decode("utf-8")
             name=name.encode("ascii","ignore")
             description = str(row[descriptionindex])
+            measureunit = row[unitindex]
+            measureunit=measureunit.decode("utf-8")
+            measureunit=measureunit.encode("ascii","ignore")
             # set the costs to 0 if theres a problem
             try:
                 budgetcost = Decimal(row[budgetcostindex]).quantize(Decimal('.01'))
@@ -536,7 +553,7 @@ if __name__ == '__main__':
             try:
                 parentcode = int(row[parentindex])
             except ValueError, e:
-                parentcode = 0
+                parentcode = errorid
             try:
                 quantity = float(row[quantityindex])
             except ValueError, e:
@@ -572,35 +589,307 @@ if __name__ == '__main__':
                     code = changedbicodes[code]
             # if the parent is negative it refers to a node in the same table
             if parentcode <= 0:
-                if parentcode == 0:
-                    parentcode = errorid
-                else:
-                    parentcode = -parentcode
-                    if parentcode in changedbicodes:
-                        parentcode = changedbicodes[parentcode]
+                biparent = True
+                parentcode = -parentcode
+                if parentcode in changedbicodes:
+                    parentcode = changedbicodes[parentcode]
             # otherwise check if the parent code has changed
             elif parentcode in changedbgcodes:
                 parentcode = changedbgcodes[parentcode]
 
-            # build the budgetitem and add it
-            bi = BudgetItem(ID=code, Name=name,
-                            Description=description,
-                            ParentID=parentcode,
-                            _ItemQuantity=quantity,
-                            _Rate=rate,
-                            OrderCost=ordercost,
-                            RunningCost=running,
-                            ClaimedCost=claimedcost,
-                            IncomeReceived=income,
-                            ClientCost=client,
-                            ProjectedProfit=projprofit,
-                            ActualProfit=actprofit)
-            DBSession.add(bi)
+            # build the resource name this budgetitem uses
+            # check if the budgetitem references a new resource
+            # format the name of the budgetitem
+            beginindex = name.find('.') + 1
+            checkname = name[beginindex:].strip()
+            # name ends in period
+            if beginindex == 0:
+                endindex = checkname.find(' ')
+                # no space
+                if endindex == -1:
+                    # check if an integer
+                    try:
+                        integer = int(checkname)
+                        checkname = ''
+                    except ValueError:
+                        pass
+                else:
+                    # check if the first word is an integer
+                    newname = checkname[:endindex].strip()
+                    try:
+                        integer = int(newname)
+                        checkname = checkname[endindex:].strip()
+                    except ValueError:
+                        pass
+
+            if len(checkname) != 0:
+                name = checkname
+                if parentcode != errorid:
+                    if biparent:
+                        # this is a nested budgetitem
+                        # get the parent resource unit
+                        parent = DBSession.query(BudgetItem
+                                                ).filter_by(ID=parentcode).first()
+                        if parent:
+                            projectid = parent.getProjectID()
+                            resourcecategory = DBSession.query(
+                                ResourceCategory).filter_by(ParentID=projectid).first()
+                            resourceunit = parent.Resource
+                            # check if there are any resources using the budgetitem label
+                            resource = DBSession.query(Resource).filter_by(Name=name).first()
+                            if not resource:
+                                # if the resource with name does not exist
+                                # query on the code being the id code
+                                resource = DBSession.query(Resource).filter_by(Code=code).first()
+                                if resource:
+                                    # add its data
+                                    # get the id of the unit the resource is using
+                                    qry = DBSession.query(Unit).filter_by(
+                                            Name=measureunit).first()
+                                    if qry:
+                                        resource.UnitID = qry.ID
+                                    resource.Code = generateResourceCode(name)
+                                    resource.Name=name,
+                                    resource._Rate=rate
+                                    resource.Description=description
+                                    resource.ParentID=resourcecategory.ID
+                            else:
+                                # check the parent id and correct it if it is the error id
+                                if resource.ParentID == errorid:
+                                    resource.ParentID = resourcecategory.ID
+                            if resource:
+                                # add a part to the resource unit that references it
+                                newcode +=1
+                                newpart = ResourcePart(ID=newcode,
+                                                        ResourceID=resource.ID,
+                                                        _Quantity=1.0,
+                                                        ParentID=resourceunit.ID)
+                                DBSession.add(newpart)
+                                bi = BudgetItem(ID=code,
+                                                ResourceID=resource.ID,
+                                                _Quantity=quantity,
+                                                OrderCost=ordercost,
+                                                RunningCost=running,
+                                                ClaimedCost=claimedcost,
+                                                IncomeReceived=income,
+                                                ClientCost=client,
+                                                ProjectedProfit=projprofit,
+                                                ActualProfit=actprofit,
+                                                ParentID=parentcode)
+                                DBSession.add(bi)
+                            else:
+                                # create a new resource unit
+                                # get the id of the unit the resource is using
+                                qry = DBSession.query(Unit).filter_by(
+                                        Name=measureunit).first()
+                                if qry:
+                                    measureunit = qry.ID
+                                else:
+                                    measureunit = None
+                                necode+=1
+                                resourcecode = generateResourceCode(name)
+                                resource = ResourceUnit(ID=newcode,
+                                                        Name=name,
+                                                        Code=resourcecode,
+                                                        UnitID=measureunit,
+                                                        _Rate=rate,
+                                                        Description=description,
+                                                        ParentID=resourcecategory.ID)
+                                DBSession.add(resource)
+                                # add a part to the resource unit that references it
+                                newcode+=1
+                                newpart = ResourcePart(ID=newcode,
+                                                        ResourceID=resource.ID,
+                                                        _Quantity=1.0,
+                                                        ParentID=resourceunit.ID)
+                                DBSession.add(newpart)
+                                bi = BudgetItem(ID=code,
+                                                ResourceID=resource.ID,
+                                                _Quantity=quantity,
+                                                OrderCost=ordercost,
+                                                RunningCost=running,
+                                                ClaimedCost=claimedcost,
+                                                IncomeReceived=income,
+                                                ClientCost=client,
+                                                ProjectedProfit=projprofit,
+                                                ActualProfit=actprofit,
+                                                ParentID=parentcode)
+                                DBSession.add(bi)
+                        else:
+                            # the parent doesnt exist yet
+                            # check if the placeholder resource unit exists yet
+                            resourceunit = DBSession.query(ResourceUnit
+                                                        ).filter_by(Code=parentcode).first()
+                            if not resourceunit:
+                                # create a new placeholder resource unit,
+                                # with the code the parentcode
+                                newcode+=1
+                                resourceunit = ResourceUnit(ID=newcode,
+                                                            Code=parentcode,
+                                                            ParentID=errorid)
+                                DBSession.add(resourceunit)
+                            # check if there are any resources using the budgetitem label
+                            resource = DBSession.query(Resource).filter_by(Name=name).first()
+                            if not resource:
+                                # if the resource with name does not exist
+                                # query on the code being the id code
+                                resource = DBSession.query(Resource
+                                                ).filter_by(Code=code).first()
+                                if resource:
+                                    # add its data
+                                    # get the id of the unit the resource is using
+                                    qry = DBSession.query(Unit).filter_by(
+                                            Name=measureunit).first()
+                                    if qry:
+                                        resource.UnitID = qry.ID
+                                    resource.Code = generateResourceCode(name)
+                                    resource.Name=name,
+                                    resource._Rate=rate
+                                    resource.Description=description
+                            if resource:
+                                # add a part to the resource unit that references it
+                                newcode+=1
+                                newpart = ResourcePart(ID=newcode,
+                                                        ResourceID=resource.ID,
+                                                        _Quantity=1.0,
+                                                        ParentID=resourceunit.ID)
+                                DBSession.add(newpart)
+                                bi = BudgetItem(ID=code,
+                                                ResourceID=resource.ID,
+                                                _Quantity=quantity,
+                                                OrderCost=ordercost,
+                                                RunningCost=running,
+                                                ClaimedCost=claimedcost,
+                                                IncomeReceived=income,
+                                                ClientCost=client,
+                                                ProjectedProfit=projprofit,
+                                                ActualProfit=actprofit,
+                                                ParentID=parentcode)
+                                DBSession.add(bi)
+                            else:
+                                # create a new resource unit
+                                # get the id of the unit the resource is using
+                                qry = DBSession.query(Unit).filter_by(
+                                        Name=measureunit).first()
+                                if qry:
+                                    measureunit = qry.ID
+                                else:
+                                    measureunit = None
+                                newcode+=1
+                                resourcecode = generateResourceCode(name)
+                                resource = ResourceUnit(ID=newcode,
+                                                        Code=resourcecode,
+                                                        Name=name,
+                                                        UnitID=measureunit,
+                                                        _Rate=rate,
+                                                        Description=description,
+                                                        ParentID=errorid)
+                                DBSession.add(resource)
+                                # add a part to the resource unit that references it
+                                newcode+=1
+                                newpart = ResourcePart(ID=newcode,
+                                                        ResourceID=resource.ID,
+                                                        _Quantity=1.0,
+                                                        ParentID=resourceunit.ID)
+                                DBSession.add(newpart)
+                                bi = BudgetItem(ID=code,
+                                                _Quantity=quantity,
+                                                ResourceID=resource.ID,
+                                                OrderCost=ordercost,
+                                                RunningCost=running,
+                                                ClaimedCost=claimedcost,
+                                                IncomeReceived=income,
+                                                ClientCost=client,
+                                                ProjectedProfit=projprofit,
+                                                ActualProfit=actprofit,
+                                                ParentID=parentcode)
+                                DBSession.add(bi)
+                        DBSession.flush()
+                    else:
+                        # the budgetitem is not nested
+                        # get the parent resource category
+                        parent = DBSession.query(Node
+                                        ).filter_by(ID=parentcode).first()
+                        if parent:
+                            projectid = parent.getProjectID()
+                            resourcecategory = DBSession.query(ResourceCategory
+                                            ).filter_by(ParentID=projectid).first()
+                            # check if the resource unit exists by label
+                            resource = DBSession.query(Resource
+                                                    ).filter_by(Name=name).first()
+                            if not resource:
+                                # if the resource with name does not exist
+                                # query on the code being the id code
+                                resource = DBSession.query(Resource
+                                                ).filter_by(Code=code).first()
+                                if resource:
+                                    # add its data
+                                    # get the id of the unit the resource is using
+                                    qry = DBSession.query(Unit).filter_by(
+                                            Name=measureunit).first()
+                                    if qry:
+                                        resource.UnitID = qry.ID
+                                    resource.Code = generateResourceCode(name)
+                                    resource.Name=name,
+                                    resource._Rate=rate
+                                    resource.Description=description
+                                    resource.ParentID=resourcecategory.ID
+                            else:
+                                # check the parent id and correct it if it is the error id
+                                if resource.ParentID == errorid:
+                                    resource.ParentID = resourcecategory.ID
+                            if resource:
+                                # the resource exists
+                                # build the budgetitem and add it
+                                bi = BudgetItem(ID=code,
+                                                ResourceID=resource.ID,
+                                                ParentID=parentcode,
+                                                _Quantity=quantity,
+                                                OrderCost=ordercost,
+                                                RunningCost=running,
+                                                ClaimedCost=claimedcost,
+                                                IncomeReceived=income,
+                                                ClientCost=client,
+                                                ProjectedProfit=projprofit,
+                                                ActualProfit=actprofit)
+                                DBSession.add(bi)
+                            else:
+                                # the resource does not exist
+                                # get the id of the unit the resource is using
+                                qry = DBSession.query(Unit).filter_by(
+                                        Name=measureunit).first()
+                                if qry:
+                                    measureunit = qry.ID
+                                else:
+                                    measureunit = None
+                                newcode+=1
+                                resourcecode = generateResourceCode(name)
+                                resource = ResourceUnit(ID=newcode,
+                                                        Code=resourcecode,
+                                                        Name=name,
+                                                        UnitID=measureunit,
+                                                        _Rate=rate,
+                                                        Description=description,
+                                                        ParentID=resourcecategory.ID)
+                                DBSession.add(resource)
+                                bi = BudgetItem(ID=code,
+                                                _Quantity=quantity,
+                                                ResourceID=resource.ID,
+                                                OrderCost=ordercost,
+                                                RunningCost=running,
+                                                ClaimedCost=claimedcost,
+                                                IncomeReceived=income,
+                                                ClientCost=client,
+                                                ProjectedProfit=projprofit,
+                                                ActualProfit=actprofit,
+                                                ParentID=parentcode)
+                                DBSession.add(bi)
+                            DBSession.flush()
 
         transaction.commit()
 
         # build the components
-        print 'Converting Components table'
+        print '\nConverting Components table to BudgetItems'
         book = csv.reader(open(exceldatapath + 'data.csv/Components.DB.csv', 'rb'))
         length = sum(1 for row in book)
         book = csv.reader(open(exceldatapath + 'data.csv/Components.DB.csv', 'rb'))
@@ -624,8 +913,8 @@ if __name__ == '__main__':
         changedcocodes = {}
         changedcoparentcodes = {}
 
-        # # correct negative codes and circular dependancies
-        # # negative codes refer to a parent that is a budgetitem
+        # correct negative codes and circular dependancies
+        # negative codes refer to a parent that is a budgetitem
         next(book)
         for row in book:
             code = int(row[codeindex])
@@ -650,7 +939,7 @@ if __name__ == '__main__':
                 newcode += 1
                 changedcocodes[code] = newcode
 
-        # build the components
+        # build the components/budgetitems
         book = csv.reader(open(exceldatapath + 'data.csv/Components.DB.csv', 'rb'))
         percentile = length / 100.0
         print 'Percentage done: '
@@ -733,9 +1022,7 @@ if __name__ == '__main__':
             elif parentcode<0:
                 parentcode = -parentcode
 
-            # build the resource this component uses
-            # check if the component references a new resource
-            # format the name of the component
+            # format the label
             beginindex = name.find('.') + 1
             checkname = name[beginindex:].strip()
             # name ends in period
@@ -758,88 +1045,79 @@ if __name__ == '__main__':
                     except ValueError:
                         pass
 
-            if len(checkname) != 0:
-                if parentcode != errorid:
-                    # get the parent and resourcecategory
-                    parent = DBSession.query(
-                                    Node).filter_by(ID=parentcode).first()
-                    if parent:
-                        projectid = parent.getProjectID()
-                        resourcecategory = DBSession.query(
-                            ResourceCategory).filter_by(ParentID=projectid).first()
-                        if resourcecategory:
-                            rescatid = resourcecategory.ID
+            if (len(checkname) != 0) and (parentcode != errorid):
+                # get the parent and resourcecategory
+                parent = DBSession.query(
+                                Node).filter_by(ID=parentcode).first()
+                if parent:
+                    projectid = parent.getProjectID()
+                    if projectid != errorid and projectid !=0:
+                        resourcecategory = DBSession.query(ResourceCategory
+                                            ).filter_by(ParentID=projectid).first()
+                        rescatid = resourcecategory.ID
+                        resource = DBSession.query(
+                                    Resource).filter_by(
+                                    ParentID=rescatid, Name=checkname).first()
+                        # check if the resource is already in the resourcecategory
+                        # if not get it from the database
+                        if not resource:
                             resource = DBSession.query(
-                                        Resource).filter_by(
-                                        ParentID=rescatid, Name=checkname).first()
-                            # check if the resource is already in the resourcecategory
-                            # if not get it from the database
-                            if resource == None:
-                                resource = DBSession.query(
-                                    Resource).filter_by(Name=checkname).first()
+                                Resource).filter_by(Name=checkname).first()
 
-                                # if it already exists in the database create a new one
-                                # and add it to the resourcecategory
-                                if resource != None:
-                                    newcode += 1
-                                    resourceid = newcode
-                                    # get the id of the unit the resource is using
-                                    qry = DBSession.query(Unit).filter_by(
-                                            Name=measureunit).first()
-                                    if qry:
-                                        measureunit = qry.ID
-                                    else:
-                                        measureunit = None
-                                    newresource = Resource(ID=resourceid,
-                                                    Type=rtype,
-                                                    Name=resource.Name,
-                                                    Code=resource.Code,
-                                                    UnitID=measureunit,
-                                                    _Rate=resource._Rate,
-                                                    Description=resource.Description)
-
-                                    resourcecategory.Children.append(newresource)
-                                    DBSession.flush()
-                                    resource = newresource
-                            if resource == None:
-                                # resource does not exist yet
-                                # build the resource
+                            # if it already exists in the database create a new one
+                            # and add it to the resourcecategory
+                            if resource:
                                 newcode += 1
                                 resourceid = newcode
-                                resourcecode = generateResourceCode(checkname)
-                                # get the unit id
+                                # get the id of the unit the resource is using
                                 qry = DBSession.query(Unit).filter_by(
-                                            Name=measureunit).first()
+                                        Name=measureunit).first()
                                 if qry:
                                     measureunit = qry.ID
                                 else:
                                     measureunit = None
                                 resource = Resource(ID=resourceid,
-                                                Type=rtype,
-                                                Code=resourcecode,
-                                                Name=checkname,
-                                                Description=description,
-                                                UnitID=measureunit,
-                                                _Rate = rate,
-                                                ParentID=resourcecategory.ID)
-                                DBSession.add(resource)
-                                co = Component(ID=code,
-                                                ResourceID=resourceid,
-                                                _ItemQuantity = quantity,
-                                                ParentID=parentcode,
-                                                OrderCost=ordercost,
-                                                RunningCost=running,
-                                                ClaimedCost=claimedcost,
-                                                IncomeReceived=income,
-                                                ClientCost=client,
-                                                ProjectedProfit=projprofit,
-                                                ActualProfit=actprofit)
-                                DBSession.add(co)
+                                            Type=rtype,
+                                            Name=resource.Name,
+                                            Code=resource.Code,
+                                            UnitID=measureunit,
+                                            _Rate=resource._Rate,
+                                            Description=resource.Description,
+                                            ParentID=resourcecategory.ID)
+                        if not resource:
+                            # resource does not exist yet
+                            # build the resource
+                            newcode += 1
+                            resourceid = newcode
+                            resourcecode = generateResourceCode(checkname)
+                            # get the unit id
+                            qry = DBSession.query(Unit).filter_by(
+                                        Name=measureunit).first()
+                            if qry:
+                                measureunit = qry.ID
                             else:
-                                # the resource exists, create the component
-                                co = Component(ID=code,
+                                measureunit = None
+                            resource = Resource(ID=resourceid,
+                                            Type=rtype,
+                                            Code=resourcecode,
+                                            Name=checkname,
+                                            Description=description,
+                                            UnitID=measureunit,
+                                            _Rate = rate,
+                                            ParentID=resourcecategory.ID)
+                            DBSession.add(resource)
+                            # if the parent is a budgetitem
+                            if parent.type == 'BudgetItem':
+                                # add a resource part to the parent resource
+                                parentresourceid = parent.Resource.ID
+                                newcode+=1
+                                newpart = ResourcePart(ID=newcode,
+                                                        ResourceID=resource.ID,
+                                                        _Quantity=1.0,
+                                                        ParentID=parentresourceid)
+                            bi = BudgetItem(ID=code,
                                             ResourceID=resource.ID,
-                                            _ItemQuantity = quantity,
+                                            _Quantity = quantity,
                                             ParentID=parentcode,
                                             OrderCost=ordercost,
                                             RunningCost=running,
@@ -848,16 +1126,36 @@ if __name__ == '__main__':
                                             ClientCost=client,
                                             ProjectedProfit=projprofit,
                                             ActualProfit=actprofit)
-                                DBSession.add(co)
-                            DBSession.flush()
+                            DBSession.add(bi)
+                        else:
+                            # the resource exists, create the budgetitem
+                            bi = BudgetItem(ID=code,
+                                        ResourceID=resource.ID,
+                                        _Quantity = quantity,
+                                        ParentID=parentcode,
+                                        OrderCost=ordercost,
+                                        RunningCost=running,
+                                        ClaimedCost=claimedcost,
+                                        IncomeReceived=income,
+                                        ClientCost=client,
+                                        ProjectedProfit=projprofit,
+                                        ActualProfit=actprofit)
+                            DBSession.add(bi)
+                        DBSession.flush()
 
         transaction.commit()
-
         print '\nDeleting error node'
         deletethis = DBSession.query(Node).filter_by(ID=errorid).first()
         DBSession.delete(deletethis)
         transaction.commit()
 
+        print "Fixing BudgetItems"
+        # all budgetitems that dont reference a resourceunit are deleted
+        budgetitems = DBSession.query(BudgetItem).all()
+        for budgetitem in budgetitems:
+            if not budgetitem.Resource:
+                DBSession.delete(budgetitem)
+        transaction.commit()
         print 'Recalculating the totals of the projects'
         projectlist = DBSession.query(Project).all()
         for project in projectlist:
@@ -1115,8 +1413,8 @@ if __name__ == '__main__':
                     compid = changedcocodes[compid]
 
                 if compid != errorid:
-                    # make sure the component exists
-                    comp = DBSession.query(Component).filter_by(ID=compid).first()
+                    # make sure the component/budgetitem exists
+                    comp = DBSession.query(BudgetItem).filter_by(ID=compid).first()
                     if comp:
                         comp.Ordered = Decimal(quantity * float(rate)
                             ).quantize(Decimal('.01'))
@@ -1130,7 +1428,7 @@ if __name__ == '__main__':
                             tax = 0.0
                         orderitem = OrderItem(ID=code,
                                         OrderID=orderid,
-                                        ComponentID=compid,
+                                        BudgetItemID=compid,
                                         _Quantity=quantity,
                                         _Rate=rate,
                                         VAT=tax)
@@ -1151,9 +1449,9 @@ if __name__ == '__main__':
         print "Setting Resource SupplierID"
         resources = DBSession.query(Resource).all()
         for resource in resources:
-            component = resource.Components[0]
-            if len(component.OrderItems) > 0:
-                orderitem = component.OrderItems[0]
+            budgetitem = resource.BudgetItems[0]
+            if len(budgetitem.OrderItems) > 0:
+                orderitem = budgetitem.OrderItems[0]
                 if orderitem.Order:
                     resource.SupplierID = orderitem.Order.SupplierID
 

@@ -145,12 +145,12 @@ a.budget-item-button {
     color: #b75eea;
 }
 
-.circle.Component {
-    background: #4dd0e2;
+.circle.ResourcePart {
+    background: #FFFF00;
 }
 
-a.component-button {
-    color: #4dd0e2;
+a.resource-part-button {
+    color: #FFFF00;
 }
 
 .circle.Resource {

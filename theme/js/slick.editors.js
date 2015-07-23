@@ -23,13 +23,13 @@
   });
 
   function CustomEditor(args) {
-    // A custom editor used in the Markup and Quantity columns
-    // Since only BudgetItem and Component have Markup and Quantity attributes
+    // A custom editor used in the editable columns
+    // Only BudgetItem, SimpleBudgetItem, and Resource have editable attributes
     // If the node type is anything else it will pass to empty functions and
     // the cell will be non-editable
 
     var node_type = args.item["node_type"]
-    if (node_type == "BudgetItem" || node_type == "Component" || node_type == "SimpleComponent"){
+    if (node_type == "Resource" || node_type == "BudgetItem" || node_type == "SimpleBudgetItem"){
       var $input;
       var defaultValue;
       var scope = this;
