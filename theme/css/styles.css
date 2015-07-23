@@ -359,12 +359,10 @@ span.fa-asterisk{
 
 /* Status messages */
 #status_message {
-    display: none;
     position: fixed;
-    top: 20px;
+    top: 40px;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 100%; 
     text-align: center;
     z-index: 1050;
 }

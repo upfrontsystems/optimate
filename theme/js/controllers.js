@@ -1170,7 +1170,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 method: 'DELETE',
                 url:globalServerURL + 'node/' + nodeid + '/'
             }).success(function (response) {
-                $scope.statusMessage("Deleted " + $scope.currentNode.Name, 1000, 'alert-info');
+                $scope.statusMessage("Deleted " + $scope.currentNode.Name, 2000, 'alert-info');
                 if (response['parentid'] == 0) {
                     $scope.closeProject(nodeid);
                 }
@@ -1179,13 +1179,13 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 }
             }).error(function(){
                 console.log("Server error");
-                $scope.statusMessage("Server error.", 1000, 'alert-warning');
+                $scope.statusMessage("Server error.", 2000, 'alert-warning');
             });
         };
 
         // Function to copy a node
         $scope.copyThisNode = function(node) {
-            $scope.statusMessage(node.Name + " copied.", 1000, 'alert-info');
+            $scope.statusMessage(node.Name + " copied.", 2000, 'alert-info');
             $scope.copiedNode = node;
             $scope.cut = false;
             console.log("Node id copied: " + node.ID);
@@ -1194,7 +1194,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         // Function to cut a node
         // the node is removed from the tree (but not deleted)
         $scope.cutThisNode = function(node) {
-            $scope.statusMessage(node.Name + " cut.", 1000, 'alert-info');
+            $scope.statusMessage(node.Name + " cut.", 2000, 'alert-info');
             $scope.copiedNode = node;
             console.log("Node id cut: " + node.ID);
             $scope.cut = true;
@@ -1222,18 +1222,18 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         // and add it to the open projects
                         $scope.projectAdded(data);
                     });
-                    $scope.statusMessage("New project pasted.", 1000, 'alert-info');
+                    $scope.statusMessage("New project pasted.", 2000, 'alert-info');
                 }
                 else if (index !== undefined){
                     // if we pasted the last node of the copied records
                     if (index == $scope.copiedRecords.length-1){
-                        $scope.statusMessage("Records pasted.", 1000, 'alert-info');
+                        $scope.statusMessage("Records pasted.", 2000, 'alert-info');
                         $scope.handleReloadSlickgrid(node.ID);
                         $scope.loadNodeChildren(node.ID);
                     }
                 }
                 else {
-                    $scope.statusMessage($scope.copiedNode.Name + " pasted.", 1000, 'alert-info');
+                    $scope.statusMessage($scope.copiedNode.Name + " pasted.", 2000, 'alert-info');
                     $scope.handleReloadSlickgrid(node.ID);
                     // insert the copied/cut node in the correct destination without reloading 
                     // all the children of the parent
@@ -1252,7 +1252,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 }
             }).error(function() {
                 console.log("Server error");
-                $scope.statusMessage("Server error.", 1000, 'alert-warning');
+                $scope.statusMessage("Server error.", 2000, 'alert-warning');
             }).then(function(){
                 if (index !== undefined){
                     index+=1;
@@ -1331,13 +1331,13 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             if (flag && (cnode.ID == node.ID)) {
                 flag = false;
                 console.log("You can't paste a node into itself");
-                $scope.statusMessage("You can't paste a node into itself", 1000, 'alert-warning');
+                $scope.statusMessage("You can't paste a node into itself", 2000, 'alert-warning');
             }
             // check the allowed array for the types
             if (flag && ($scope.allowed[node.NodeType].indexOf(cnode.NodeType) == -1)){
                 flag = false;
                 console.log("You can't paste a " + cnode.NodeType + " into a " + node.NodeType);
-                $scope.statusMessage("You can't paste a " + cnode.NodeType + " into a " + node.NodeType, 1000, 'alert-warning');
+                $scope.statusMessage("You can't paste a " + cnode.NodeType + " into a " + node.NodeType, 2000, 'alert-warning');
                 // if the index is set, paste the next record
                 if (index !== undefined){
                     index+=1;
@@ -1354,7 +1354,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 flag = false;
                 if (cnode.ParentID == node.ID) {
                     console.log("You can't paste a Resource Category into the same list");
-                    $scope.statusMessage("You can't paste a Resource Category into the same list", 1000, 'alert-warning');
+                    $scope.statusMessage("You can't paste a Resource Category into the same list", 2000, 'alert-warning');
                     if (index !== undefined){
                         index+=1;
                         $scope.resolvePastePromise(node, index);
@@ -1447,7 +1447,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 $scope.toggleCopiedRecords($scope.getSelectedNodes(), false);
                 $scope.copiedNode = {'NodeType': 'Records'};
                 console.log("Records copied");
-                $scope.statusMessage("Records copied.", 1000, 'alert-info');
+                $scope.statusMessage("Records copied.", 2000, 'alert-info');
             }
         };
 
@@ -1475,7 +1475,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     }
                 }
                 console.log("Records cut");
-                $scope.statusMessage("Records cut.", 1000, 'alert-info');
+                $scope.statusMessage("Records cut.", 2000, 'alert-info');
             }
         };
 
@@ -1515,7 +1515,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                                 $scope.loadNodeChildren(nodeid);
                                 $scope.handleReloadSlickgrid(nodeid);
                             }3
-                            $scope.statusMessage("Deleted records", 1000, 'alert-info');
+                            $scope.statusMessage("Deleted records", 2000, 'alert-info');
                             $scope.toggleRowsSelected(false);
                         }
                     });
