@@ -1066,11 +1066,11 @@ def node_paste(request):
                 if nodecopy.Name in existing_sibling_names:
                     while nodecopy.Name in existing_sibling_names:
                         nodecopy.Name = node_name_base + ' copy ' + str(count)
-                        print "the endless"
                         count += 1
 
                 nodechildren = source.Children
                 dest.paste(nodecopy, nodechildren)
+                DBSession.flush()
                 pasted_id = nodecopy.ID
 
     # reset the total
