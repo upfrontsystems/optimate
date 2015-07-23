@@ -753,7 +753,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                             $scope.dragOver(destNodesScope.$nodeScope.$modelValue);
                         }
                         return true;
-                    }else{
+                    }
+                    else {
                         return false;
                     }
                 }
@@ -805,6 +806,9 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         $scope.cutThisNode(src);
                         $scope.currentNode = dest;
                         $scope.pasteThisNode(dest);
+                        // set the flag to indicate that this pasting operation
+                        // originated from a drag operation
+                        $scope.pastingFromDnd = true;
                     }
                     // otherwise paste
                     else{
@@ -813,6 +817,9 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         // set the flag to indicate the source needs to be added
                         // back to the parent when the node drops
                         $scope.addNodeBack = true;
+                        // set the flag to indicate that this pasting operation
+                        // originated from a drag operation
+                        $scope.pastingFromDnd = true;
                     }
                 }
                 // clear the drag over value
@@ -829,6 +836,9 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     var sourceobject = event.source.nodeScope.$modelValue;
                     var parent = event.source.nodeScope.$parentNodeScope.$modelValue;
                     parent.Subitem.push(sourceobject);
+                    parent.Subitem.sort(function(a, b) {
+                        return a.Name.localeCompare(b.Name)
+                    });
                     $scope.addNodeBack = false;
                 }
             },
@@ -1220,12 +1230,23 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         $scope.statusMessage("Records pasted.", 1000, 'alert-info');
                         $scope.handleReloadSlickgrid(node.ID);
                         $scope.loadNodeChildren(node.ID);
+                        console.log("what it tooknever bothered to look");
                     }
                 }
                 else {
                     $scope.statusMessage($scope.copiedNode.Name + " pasted.", 1000, 'alert-info');
                     $scope.handleReloadSlickgrid(node.ID);
-                    $scope.loadNodeChildren(node.ID);
+                    // insert the copied/cut node in the correct destination without reloading 
+                    // all the children of the parent
+                    console.log("Ama zing");
+                    console.log($scope.currentNode);
+                    if (!$scope.pastingFromDnd) {
+                        $scope.currentNode.Subitem.push(response['node']);
+                        $scope.currentNode.Subitem.sort(function(a, b) {
+                            return a.Name.localeCompare(b.Name)
+                        });
+                    }
+                    $scope.pastingFromDnd = false;
                 }
                 // expand the node if this is its first child
                 if ($scope.currentNode.Subitem.length == 0) {
@@ -1298,7 +1319,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 }
             })();
         };
-
 
         // function to paste copied node into another node
         // the id is sent to the server and the node pasted there
@@ -1392,7 +1412,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 $http.get(globalServerURL + 'node/' + parentid + '/children/')
                 .success(function(data) {
                     $scope.currentNode.Subitem = data;
-                    console.log("Children loaded");
+                    console.log("Children loaded !!");
                 });
             }
         }

@@ -992,11 +992,14 @@ def node_paste(request):
 
             # set the source parent to the destination parent
             source.ParentID = destinationid
+            pasted_id = source.ID
             transaction.commit()
         else:
             # Paste the source into the destination
-            dest.paste(source.copy(dest.ID), source.Children)
+            copy_of_source = source.copy(dest.ID)
+            dest.paste(copy_of_source, source.Children)
             DBSession.flush()
+            pasted_id = copy_of_source.ID
             # check if the node was pasted into a different project
             # Get the ID of the projects
             destprojectid = dest.getProjectID()
@@ -1056,9 +1059,19 @@ def node_paste(request):
             if not request.json_body["cut"]:
                 # Paste the source into the destination
                 nodecopy = source.copy(dest.ID)
-                nodecopy.Name = 'Copy of ' + nodecopy.Name
+                existing_sibling_names = [x.Name for x in dest.Children]
+                node_name_base = nodecopy.Name
+                nodecopy.Name = node_name_base + ' copy'
+                count = 2
+                if nodecopy.Name in existing_sibling_names:
+                    while nodecopy.Name in existing_sibling_names:
+                        nodecopy.Name = node_name_base + ' copy ' + str(count)
+                        print "the endless"
+                        count += 1
+
                 nodechildren = source.Children
                 dest.paste(nodecopy, nodechildren)
+                pasted_id = nodecopy.ID
 
     # reset the total
     if parentid != 0:
@@ -1066,7 +1079,8 @@ def node_paste(request):
         reset.resetTotal()
     transaction.commit()
     # return the new id
-    return{'newId': projectid}
+    node = DBSession.query(Node).filter_by(ID=pasted_id).first()
+    return {'newId': projectid, 'node': node.toChildDict()}
 
 
 @view_config(route_name="node_cost", renderer='json')
