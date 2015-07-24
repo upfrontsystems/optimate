@@ -170,7 +170,7 @@ def node_children(request):
 
     qry = DBSession.query(Node).filter_by(ID=parentid).first()
     # build the list and only get the neccesary values
-    if qry != None:
+    if qry:
         for child in qry.Children:
             if child.type == 'ResourceCategory':
                 resourcecategories.append(child.dict())
@@ -279,6 +279,7 @@ def additemview(request):
                             Overhead).filter_by(ID=overheadid).first()
                 newnode.Overheads.append(overhead)
         DBSession.add(newnode)
+        DBSession.flush()
         # if the budgetitem references a resource unit
         # expand the budgetitem and add children
         if resource.type == 'ResourceUnit':
@@ -286,7 +287,10 @@ def additemview(request):
         # add it to the parent's total
         parent = DBSession.query(Node).filter_by(ID=parentid).first()
         if parent.type != 'BudgetItem':
-            parent.Total = parent.Total + newnode.Total
+            if parent._Total:
+                parent.Total = parent.Total + newnode.Total
+            else:
+                parent.Total
 
     elif objecttype == 'SimpleBudgetItem':
         rate = request.json_body.get('Rate', 0)
@@ -304,7 +308,10 @@ def additemview(request):
         # add it to the parent's total
         parent = DBSession.query(Node).filter_by(ID=parentid).first()
         if parent.type != 'BudgetItem':
-            parent.Total = parent.Total + newnode.Total
+            if parent._Total:
+                parent.Total = parent.Total + newnode.Total
+            else:
+                parent.Total
 
     elif objecttype == 'ResourceCategory':
         newnode = ResourceCategory(Name=request.json_body['Name'],
@@ -536,7 +543,10 @@ def deleteitemview(request):
     parent = deletethis.Parent
     parentid = parent.ID
     # update the total of the parent node
-    parent.Total = parent.Total - deletethis.Total
+    if parent._Total:
+        parent.Total = parent.Total - deletethis.Total
+    else:
+        parent.Total
 
     qry = DBSession.delete(deletethis)
     transaction.commit()
@@ -547,14 +557,15 @@ def deleteitemview(request):
 @view_config(route_name="node_budgetitems", renderer='json')
 def node_budgetitems(request):
     """ Retrieves and returns all the budgetitems in a node
+        that can be ordered
     """
     nodeid = request.matchdict['id']
     qry = DBSession.query(Node).filter_by(ID=nodeid).first()
     budgetitemslist = qry.getBudgetItems()
     itemlist = []
     for bi in budgetitemslist:
-        itemlist.append(bi.dict())
-    return sorted(itemlist, key=lambda k: k['name'].upper())
+        itemlist.append(bi.order())
+    return sorted(itemlist, key=lambda k: k['Name'].upper())
 
 
 @view_config(route_name="node_budgetgroups", renderer='json')
@@ -615,7 +626,7 @@ def project_resources(request):
     else:
         resources = resourcecategory.getResources()
     return [
-            item.dict()()
+            item.dict()
          for item in sorted(resources, key=lambda o: o.Name.upper())]
 
 
@@ -1021,7 +1032,10 @@ def node_paste(request):
 
             # update parent total
             sourceparent = source.Parent
-            sourceparent.Total = sourceparent.Total - source.Total
+            if sourceparent._Total:
+                sourceparent.Total = sourceparent.Total - source.Total
+            else:
+                sourceparent.Total
             # set the source parent to the destination parent
             source.ParentID = destinationid
             # update parent total
@@ -1459,7 +1473,7 @@ def orders_tree_view(request):
     if qry != None:
         for child in qry.Children:
             if child.type == 'BudgetItem':
-                childrenlist.append(child.dict())
+                childrenlist.append(child.order())
             elif child.type != 'ResourceCategory':
                 childrenlist.append(child.dict())
 
@@ -1709,7 +1723,7 @@ def orderview(request):
         if orderitem.BudgetItem:
             budgetitemslist.append(orderitem.dict())
 
-    budgetitemslist = sorted(budgetitemslist, key=lambda k: k['name'].upper())
+    budgetitemslist = sorted(budgetitemslist, key=lambda k: k['Name'].upper())
     # get the date in json format
     jsondate = None
     if order.Date:
@@ -1883,7 +1897,7 @@ def valuationview(request):
         if valuationitem.BudgetGroup:
             budgetgrouplist.append(valuationitem.dict())
 
-    budgetgrouplist = sorted(budgetgrouplist, key=lambda k: k['name'].upper())
+    budgetgrouplist = sorted(budgetgrouplist, key=lambda k: k['Name'].upper())
     # get the date in json format
     jsondate = None
     if valuation.Date:

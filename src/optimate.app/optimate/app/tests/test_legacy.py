@@ -824,9 +824,9 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         request.matchdict = {'parentid': 0}
         response = self._callFUT(request)
         # assert returns true if the projects are returned correctly
-        self.assertEqual(response['list'][0]['name'], 'TestBPName')
-        self.assertEqual(response['list'][1]['name'], 'TestCPName')
-        self.assertEqual(response['list'][2]['name'], 'TestPName')
+        self.assertEqual(response['list'][0]['Name'], 'TestBPName')
+        self.assertEqual(response['list'][1]['Name'], 'TestCPName')
+        self.assertEqual(response['list'][2]['Name'], 'TestPName')
         self.assertEqual(response['emptycolumns'], True)
 
     def test_budgetgroup_gridview(self):
@@ -836,8 +836,8 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
 
         # assert returns true if the projects are returned correctly
-        self.assertEqual(response['list'][0]['name'], 'Resource List')
-        self.assertEqual(response['list'][1]['name'], 'TestBGName')
+        self.assertEqual(response['list'][0]['Name'], 'Resource List')
+        self.assertEqual(response['list'][1]['Name'], 'TestBGName')
         self.assertEqual(response['emptycolumns'], True)
 
     def test_resource_category_gridview(self):
@@ -847,8 +847,8 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
 
         # assert returns true if the projects are returned correctly
-        self.assertEqual(response['list'][0]['name'], 'TestResource')
-        self.assertEqual(response['list'][1]['name'], 'TestResourceB')
+        self.assertEqual(response['list'][0]['Name'], 'TestResource')
+        self.assertEqual(response['list'][1]['Name'], 'TestResourceB')
         self.assertEqual(response['emptycolumns'], True)
 
     def test_mixed_gridview(self):
@@ -860,9 +860,9 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         # the children are a mix of budgetgroup and budgetitem
         # the first row should the the parent
         # emptycolumns should return false
-        self.assertEqual(response['list'][0]['name'], 'TestCBGName')
-        self.assertEqual(response['list'][1]['name'], 'TestDBGName')
-        self.assertEqual(response['list'][2]['name'], 'TestResourceB')
+        self.assertEqual(response['list'][0]['Name'], 'TestCBGName')
+        self.assertEqual(response['list'][1]['Name'], 'TestDBGName')
+        self.assertEqual(response['list'][2]['Name'], 'TestResourceB')
         self.assertEqual(response['emptycolumns'], False)
 
     def test_budgetitem_gridview(self):
@@ -873,9 +873,9 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
 
         # assert returns true if the projects are returned correctly
         # first row is the parent
-        self.assertEqual(response['list'][0]['name'], 'TestBBGName')
-        self.assertEqual(response['list'][1]['name'], 'TestResource')
-        self.assertEqual(response['list'][2]['name'], 'TestResourceB')
+        self.assertEqual(response['list'][0]['Name'], 'TestBBGName')
+        self.assertEqual(response['list'][1]['Name'], 'TestResource')
+        self.assertEqual(response['list'][2]['Name'], 'TestResourceB')
         self.assertEqual(response['emptycolumns'], False)
 
 
@@ -1031,7 +1031,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         # true if the name of the child added to the node is 'AddingName'
         self.assertEqual(response[1]['Name'], 'AddingName')
 
-    def test_add_budgeitem(self):
+    def test_add_budgetitem(self):
         _registerRoutes(self.config)
 
         # Add the default data using json in the request

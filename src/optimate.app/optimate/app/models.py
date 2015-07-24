@@ -4,11 +4,15 @@
 import os
 import hashlib
 from zope.sqlalchemy import ZopeTransactionExtension
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
 from decimal import *
 from datetime import datetime
 import sqlalchemy.types as types
+
+from sqlalchemy.ext.declarative import (
+    declarative_base,
+    declared_attr
+)
 
 from sqlalchemy import (
     Table,
@@ -475,6 +479,12 @@ class BudgetItemMixin(object):
         mixed into those respective classes using (potentially multiple)
         inheritance. """
 
+    # TODO: add a relationship between OrderItem, and BudgetItem and SimpleBudgetItem
+    # @declared_attr
+    # def OrderItems(cls):
+    #     return relationship('OrderItem',
+    #                           backref=backref('BudgetItem'))
+
     def clearCosts(self):
         """ Set the Total and Quantity costs to zero
         """
@@ -589,20 +599,6 @@ class BudgetItemMixin(object):
         if len(self.Children) > 0:
             subitem = [{'Name': '...', 'NodeType': 'Default'}]
 
-        # data used for ordering a budgetitem
-        # the default order quantity is the BudgetItem quantity minus
-        # the quantity of all its orders
-        orderitemsquantity = 0.0
-        for orderitem in self.OrderItems:
-            orderitemsquantity+=orderitem.Quantity
-        quantity = self.Quantity - orderitemsquantity
-        subtotal = Decimal(quantity*float(self.Rate)).quantize(Decimal('.01'))
-        # if not DefaultTaxRate:
-        companyinfo = DBSession.query(CompanyInformation
-                            ).first()
-        DefaultTaxRate = companyinfo.DefaultTaxrate
-        total = Decimal(float(subtotal)*(1+DefaultTaxRate/100.0)).quantize(Decimal('.01'))
-        vatcost = Decimal(float(subtotal)*DefaultTaxRate/100.0).quantize(Decimal('.01'))
         return {'Name': self.Name,
                 'Description': self.Description,
                 'ID': self.ID,
@@ -613,9 +609,6 @@ class BudgetItemMixin(object):
                 'Quantity': self.Quantity,
                 'Ordered': str(self.Ordered),
                 'Invoiced': str(self.Invoiced),
-                'VAT': DefaultTaxRate,
-                'VATCost': str(vatcost),
-                'Subtotal': str(subtotal),
                 'NodeTypeAbbr' : 'I'}
 
     def updateOrdered(self, ordered):
@@ -626,7 +619,7 @@ class BudgetItemMixin(object):
             child.updateOrdered(ordered)
 
 
-class BudgetItem(Node, BudgetItemMixin):
+class BudgetItem(BudgetItemMixin, Node):
     """ A BudgetItem represents a unique cost item in the project.
         It can be the child of another BudgetItem or a BudgetGroup
         It has a many-to-one relationship with Resource, which
@@ -729,6 +722,34 @@ class BudgetItem(Node, BudgetItemMixin):
                             _Invoiced=self.Invoiced)
         return copied
 
+    def order(self):
+        """ The data returned when ordering a BudgetItem
+        """
+        orderitemsquantity = 0.0
+        for orderitem in self.OrderItems:
+            orderitemsquantity+=orderitem.Quantity
+        quantity = self.Quantity - orderitemsquantity
+        subtotal = Decimal(quantity*float(self.Rate)).quantize(Decimal('.01'))
+        vat = 14
+        companyinfo = DBSession.query(CompanyInformation
+                                ).filter_by(ID=0).first()
+        if companyinfo:
+            vat = companyinfo.DefaultTaxrate
+        total = Decimal(float(subtotal)*(1+vat/100.0)).quantize(Decimal('.01'))
+        vatcost = Decimal(float(subtotal)*vat/100.0).quantize(Decimal('.01'))
+        return {'Name': self.Name,
+                'ID': self.ID,
+                'ParentID': self.ParentID,
+                'id': self.ID,
+                'Quantity': quantity,
+                'Rate': str(self.Rate),
+                'Total': str(total),
+                'VAT': vat,
+                'VATCost': str(vatcost),
+                'Subtotal': str(subtotal),
+                'NodeType': 'BudgetItem',
+                'NodeTypeAbbr' : 'I'}
+
     def dict(self):
         """ Return a dictionary of all the attributes of this BudgetItem
             Also returns a list of the Overhead ID's used by this BudgetItem
@@ -750,7 +771,7 @@ class BudgetItem(Node, BudgetItemMixin):
             self.Name, self.Quantity, self.ID, self.ParentID)
 
 
-class SimpleBudgetItem(Node, BudgetItemMixin):
+class SimpleBudgetItem(BudgetItemMixin, Node):
     """ Similar to BudgetItem, but does not reference a resource. For adding
         simple cost items in ad hoc fashion. """
     __tablename__ = 'SimpleBudgetItem'
@@ -818,10 +839,38 @@ class SimpleBudgetItem(Node, BudgetItemMixin):
                                 _Ordered=self.Ordered,
                                 _Invoiced=self.Invoiced)
 
+    def order(self):
+        """ The data returned when ordering a BudgetItem
+        """
+        orderitemsquantity = 0.0
+        # for orderitem in self.OrderItems:
+        #     orderitemsquantity+=orderitem.Quantity
+        quantity = self.Quantity - orderitemsquantity
+        subtotal = Decimal(quantity*float(self.Rate)).quantize(Decimal('.01'))
+        vat = 14
+        companyinfo = DBSession.query(CompanyInformation
+                                ).filter_by(ID=0).first()
+        if companyinfo:
+            vat = companyinfo.DefaultTaxrate
+        total = Decimal(float(subtotal)*(1+vat/100.0)).quantize(Decimal('.01'))
+        vatcost = Decimal(float(subtotal)*vat/100.0).quantize(Decimal('.01'))
+        return {'Name': self.Name,
+                'ID': self.ID,
+                'ParentID': self.ParentID,
+                'id': self.ID,
+                'Quantity': quantity,
+                'Rate': str(self.Rate),
+                'Total': str(total),
+                'VAT': vat,
+                'VATCost': str(vatcost),
+                'Subtotal': str(subtotal),
+                'NodeType': 'BudgetItem',
+                'NodeTypeAbbr' : 'I'}
+
     def dict(self):
         """ Return a dictionary of all the data needed for the slick grid
         """
-        di = super(SimpleBudgetItem, self).getGridData()
+        di = super(SimpleBudgetItem, self).dict()
         di.update({
             'Unit': self.Unit,
             'Ordered': str(self.Ordered),
@@ -896,11 +945,7 @@ class ResourceCategory(Node):
         """
         rlist = []
         for child in self.Children:
-            if child.type == 'ResourceCategory':
-                rlist += child.getResources()
-            else:
-                rlist.append(child)
-
+            rlist += child.getResources()
         return rlist
 
     def getResourcesDetail(self):
@@ -1047,11 +1092,9 @@ class Resource(Node):
         """
         oldrate = self.Rate
         for bi in self.BudgetItems:
-            bi.Total = float(bi.Total) - bi.Quantity * \
-                            (float(oldrate) - float(rate))
+            bi.Total = bi.Quantity * float(rate)
         for part in self.ResourceParts:
-            part.Total = float(part.Total) - part.Quantity * \
-                            (float(oldrate) - float(rate))
+            part.Total = part.Quantity * float(rate)
         self._Rate = Decimal(rate).quantize(Decimal('.01'))
 
     def unitName(self):
@@ -1154,14 +1197,18 @@ class ResourceUnit(Resource):
             rate = Decimal(0.00)
             for part in self.Children:
                 rate+=part.Total
-            self.Rate = rate.quantize(Decimal('.01'))
+            self._Rate = rate.quantize(Decimal('.01'))
         return self._Rate.quantize(Decimal('.01'))
 
     @Rate.setter
     def Rate(self, rate):
         """ Can't set a ResourceUnit rate
         """
-        pass
+        for bi in self.BudgetItems:
+            bi.Total = bi.Quantity * float(rate)
+        for part in self.ResourceParts:
+            part.Total = part.Quantity * float(rate)
+        self._Rate = Decimal(rate).quantize(Decimal('.01'))
 
     def paste(self, source, sourcechildren):
         """ Paste a ResourcePart into this ResourceUnit
@@ -1233,6 +1280,18 @@ class ResourcePart(Node):
         """ Return the Rate of the Resource
         """
         return self.Resource.Rate
+
+    @property
+    def Name(self):
+        """ Return the Name of the Resource
+        """
+        return self.Resource.Name
+
+    @property
+    def Description(self):
+        """ Return the Description of the Resource
+        """
+        return self.Resource.Description
 
 
     @property
@@ -1453,7 +1512,7 @@ class Order(Base):
 
         return {'ID': self.ID,
                 'Date': date,
-                'Project': projectname,
+                'Project': self.Project.Name,
                 'ProjectID': self.ProjectID,
                 'Supplier': suppname,
                 'SupplierID': self.SupplierID,
@@ -1482,9 +1541,10 @@ class OrderItem(Base):
     _Total = Column('Total', Numeric(12, 2))
 
     Order = relationship('Order',
-                              backref=backref('OrderItems'))
+                            backref=backref('OrderItems'))
+
     BudgetItem = relationship('BudgetItem',
-                              backref=backref('OrderItems'))
+                                backref=backref('OrderItems'))
 
     @hybrid_property
     def Total(self):
@@ -1677,7 +1737,7 @@ class Invoice(Base):
                 'OrderID': self.OrderID,
                 'Project': self.Order.Project.Name,
                 'Supplier': self.Order.Supplier.Name,
-                'Amount': str(self.Total),
+                'Amount': str(self.Amount),
                 'Paymentdate': jsonpaydate,
                 'Invoicedate': jsonindate,
                 'Ordertotal': str(self.Order.Total),

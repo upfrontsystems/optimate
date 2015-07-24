@@ -360,9 +360,9 @@ def _initTestingDB():
                 |
                 budgetgroup - id:2
                             |
-                            budgetitem - resunit - id:3
+                            budgetitem - id:3 - resunit
                                        |
-                                       budgetitema - resa id:13
+                                       budgetitema - id:13 - resa
                 |
                 rescat - id:9
                         |
@@ -726,4 +726,4 @@ class TestInvoiceViewSuccessCondition(unittest.TestCase):
         request.matchdict['id'] = 1
         response = self._callFUT(request)
         # the edited amount should be returned
-        self.assertEqual(response['amount'], '20.00')
+        self.assertEqual(response['Amount'], '20.00')

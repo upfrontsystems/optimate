@@ -110,8 +110,7 @@ class TestSimpleComponent(unittest.TestCase):
         sc = DBSession().query(SimpleBudgetItem).get(4)
         # Test extended functionality to pick up mistakes when code that does
         # not apply to SimpleBudgetItem is incorrectly added to the Mixin.
-        sc.toDict()
-        sc.getGridData()
+        sc.dict()
         # test cost
         self.assertEqual(str(project.Total), str(project_total))
 
