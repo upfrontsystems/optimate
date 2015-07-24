@@ -38,6 +38,8 @@ from sqlalchemy.orm import (
 DBSession = scoped_session(
     sessionmaker(extension=ZopeTransactionExtension('changed')))
 Base = declarative_base()
+global DefaultTaxRate
+DefaultTaxRate = None
 
 class SqliteNumeric(types.TypeDecorator):
     impl = types.String
@@ -86,6 +88,14 @@ class Node(Base):
         'polymorphic_identity': 'Node',
         'polymorphic_on': type
     }
+
+    @property
+    def Total(self):
+        return Decimal(0.00)
+
+    @Total.setter
+    def Total(self, total):
+        pass
 
     def getProjectID(self):
         """ Recursively calls the parent of this node until it finds the project
@@ -160,23 +170,6 @@ class Project(Node):
         'inherit_condition': (ID == Node.ID),
     }
 
-    def recalculateTotal(self):
-        """ Recalculate the total of all the node's children
-        """
-        total = Decimal(0.00)
-        for child in self.Children:
-            total += child.recalculateTotal()
-        self._Total = total.quantize(Decimal('.01'))
-        return self._Total
-
-    def resetTotal(self):
-        """ Return the sum of the totals of this node's children
-        """
-        total = Decimal(0.00)
-        for child in self.Children:
-            total += child.Total
-        self.Total = total
-
     def clearCosts(self):
         """ Set the Total and Quantity costs to zero and do the same for all
             children
@@ -192,7 +185,10 @@ class Project(Node):
             zero and recalculated
         """
         if self._Total == None:
-            self.resetTotal()
+            total = Decimal(0.00)
+            for child in self.Children:
+                total += child.Total
+            self.Total = total
         return self._Total.quantize(Decimal('.01'))
 
     @Total.setter
@@ -225,9 +221,9 @@ class Project(Node):
         return copied
 
     def paste(self, source, sourcechildren):
-        """paste appends a source object to the children of this node,
-           and then recursively does the same
-           with each child of the source object.
+        """ paste appends a source object to the children of this node,
+            and then recursively does the same
+            with each child of the source object.
         """
         self.Children.append(source)
         for child in sourcechildren:
@@ -257,59 +253,26 @@ class Project(Node):
                 budgetgrouplist += child.getBudgetGroups()
         return budgetgrouplist
 
-    def toDict(self):
-        """ Return a dictionary of the attributes of this Project
+    def dict(self):
+        """ Override the dict function
         """
+        subitem = []
+        if len(self.Children) > 0:
+            subitem = [{'Name': '...', 'NodeType': 'Default'}]
         return {'Name': self.Name,
                 'Description': self.Description,
                 'ID': self.ID,
-                'Subitem': [{'Name': '...'}],
+                'id': self.ID,
+                'ParentID': self.ParentID,
+                'Subitem': subitem,
                 'Client' : self.ClientID,
                 'City' : self.CityID,
                 'SiteAddress' : self.SiteAddress,
                 'FileNumber' : self.FileNumber,
                 'Ordered': str(self.Ordered),
                 'Invoiced': str(self.Invoiced),
-                'budg_cost': str(self.Total),
-                'order_cost': str(self.OrderCost),
-                'run_cost': str(self.RunningCost),
-                'claim_cost': str(self.ClaimedCost),
-                'income_rec': str(self.IncomeReceived),
-                'client_cost': str(self.ClientCost),
-                'proj_profit': str(self.ProjectedProfit),
-                'act_profit': str(self.ActualProfit),
                 'NodeType': self.type,
                 'NodeTypeAbbr' : 'P'}
-
-    def toChildDict(self):
-        """ Returns a dictionary of the project used in the childview
-        """
-        subitem = []
-        if len(self.Children) > 0:
-            subitem = [{'Name': '...', 'NodeType': 'Default'}]
-
-        return {'Name': self.Name,
-                'Description': self.Description,
-                'ID': self.ID,
-                'ParentID': self.ParentID,
-                'Subitem': subitem,
-                'NodeType': self.type,
-                'NodeTypeAbbr' : 'P'}
-
-    def getGridData(self):
-        return {'name': self.Name,
-            'id': self.ID,
-            'node_type': self.type,
-            'budg_cost': str(self.Total),
-            'order_cost': str(self.OrderCost.quantize(Decimal('.01'))),
-            'run_cost': str(self.RunningCost.quantize(Decimal('.01'))),
-            'claim_cost': str(self.ClaimedCost.quantize(Decimal('.01'))),
-            'income_rec': str(self.IncomeReceived.quantize(Decimal('.01'))),
-            'client_cost': str(self.ClientCost.quantize(Decimal('.01'))),
-            'proj_profit': str(self.ProjectedProfit.quantize(Decimal('.01'))),
-            'act_profit': str(self.ActualProfit.quantize(Decimal('.01'))),
-            'ordered': str(self.Ordered),
-            'invoiced': str(self.Invoiced)}
 
     def __repr__(self):
         """ Return a representation of this project
@@ -357,23 +320,6 @@ class BudgetGroup(Node):
         'inherit_condition': (ID == Node.ID),
     }
 
-    def recalculateTotal(self):
-        """ Recursively recalculate the total of all the node in the hierarchy
-        """
-        total = Decimal(0.00)
-        for child in self.Children:
-            total += child.recalculateTotal()
-        self._Total = total
-        return self._Total
-
-    def resetTotal(self):
-        """ Return the sum of the totals of this node's children
-        """
-        total = Decimal(0.00)
-        for child in self.Children:
-            total += child.Total
-        self.Total = total
-
     def clearCosts(self):
         """ Set the Total and Quantity costs to zero and do the same for all
             children
@@ -384,10 +330,13 @@ class BudgetGroup(Node):
 
     @property
     def Total(self):
-        """ Get the total property, reset the Total if it is None
+        """ Get the total property, recalculate the Total if it is None
         """
         if self._Total == None:
-            self.resetTotal()
+            total = Decimal(0.00)
+            for child in self.Children:
+                total += child.Total
+            self._Total = total
         return self._Total.quantize(Decimal('.01'))
 
     @Total.setter
@@ -395,17 +344,12 @@ class BudgetGroup(Node):
         """ When the total is changed the parent's total is updated.
             If the total is none it is completely recalculated.
         """
-        if self._Total == None:
-            self.recalculateTotal()
         oldtotal = self.Total
         self._Total = Decimal(total).quantize(Decimal('.01'))
         difference = self._Total - oldtotal
         # update the parent with the new total
         parent = self.Parent
-        if parent._Total == None:
-            parent.resetTotal()
-        else:
-            parent.Total = parent.Total + difference
+        parent.Total = parent.Total + difference
 
     @hybrid_property
     def Ordered(self):
@@ -489,65 +433,22 @@ class BudgetGroup(Node):
                 budgetgrouplist += child.getBudgetGroups()
         return budgetgrouplist
 
-    def toValuationDict(self):
-        """ Returns a dictionary of this node used both in the valuation tree
-            view and slickgrid
-        """
-        return {'Name': self.Name,
-                'name': self.Name,
-                'ID': self.ID,
-                'ParentID': self.ParentID,
-                'id': self.ID,
-                'NodeType': 'BudgetGroup',
-                'node_type': 'BudgetGroup',
-                'NodeTypeAbbr': 'G'}
-
-    def toChildDict(self):
-        """ Returns a dictionary of the budgetgroup node used in the childview
+    def dict(self):
+        """ Override the dict function
         """
         subitem = []
         if len(self.Children) > 0:
             subitem = [{'Name': '...', 'NodeType': 'Default'}]
-
         return {'Name': self.Name,
                 'Description': self.Description,
                 'ID': self.ID,
+                'id': self.ID,
                 'ParentID': self.ParentID,
                 'Subitem': subitem,
-                'NodeType': self.type,
-                'NodeTypeAbbr' : 'G'}
-
-    def toDict(self):
-        """ Return a dictionary of the attributes of this BudgetGroup
-        """
-        return {'Name': self.Name,
-                'Description' : self.Description,
                 'Ordered': str(self.Ordered),
                 'Invoiced': str(self.Invoiced),
                 'NodeType': self.type,
-                'budg_cost': str(self.Total),
-                'order_cost': str(self.OrderCost),
-                'run_cost': str(self.RunningCost),
-                'claim_cost': str(self.ClaimedCost),
-                'income_rec': str(self.IncomeReceived),
-                'client_cost': str(self.ClientCost),
-                'proj_profit': str(self.ProjectedProfit),
-                'act_profit': str(self.ActualProfit)}
-
-    def getGridData(self):
-        return {'name': self.Name,
-            'id': self.ID,
-            'node_type': self.type,
-            'budg_cost': str(self.Total),
-            'order_cost': str(self.OrderCost.quantize(Decimal('.01'))),
-            'run_cost': str(self.RunningCost.quantize(Decimal('.01'))),
-            'claim_cost': str(self.ClaimedCost.quantize(Decimal('.01'))),
-            'income_rec': str(self.IncomeReceived.quantize(Decimal('.01'))),
-            'client_cost': str(self.ClientCost.quantize(Decimal('.01'))),
-            'proj_profit': str(self.ProjectedProfit.quantize(Decimal('.01'))),
-            'act_profit': str(self.ActualProfit.quantize(Decimal('.01'))),
-            'ordered': str(self.Ordered),
-            'invoiced': str(self.Invoiced)}
+                'NodeTypeAbbr' : 'G'}
 
     def updateOrdered(self, ordered):
         """ Updates the Ordered amount for all the children of this node
@@ -574,35 +475,6 @@ class BudgetItemMixin(object):
         mixed into those respective classes using (potentially multiple)
         inheritance. """
 
-    def recalculateTotal(self):
-        """ Recalculate the total of this BudgetItem and of
-            it's children
-        """
-        self._Total = Decimal((1.0+self.Markup) *
-            self.Quantity * float(self.Rate)).quantize(Decimal('.01'))
-        for child in self.Children:
-            child.recalculateTotal()
-        return self._Total
-
-    def resetTotal(self, rate=None):
-        """ The total of a BudgetItem is based on its rate and quantity.
-            Optional rate parameter is there to avoid repeated lookups of
-            self.Rate, which involves looking up the referenced Resource.
-        """
-        if rate is None:
-            rate = self.Rate
-        # After the rate is set the total property is updated
-        if not self._Total:
-            self._Total = Decimal(0.00)
-        self.Total = Decimal((1.0+self.Markup) * self.Quantity * float(rate)
-                            ).quantize(Decimal('.01'))
-
-    def resetRate(self):
-        """ The rate of a BudgetItem is based on the Rate of it's Resource
-            The Resource Rate is reset.
-        """
-        self._Rate = self.Resource.resetRate()
-
     def clearCosts(self):
         """ Set the Total and Quantity costs to zero
         """
@@ -611,10 +483,11 @@ class BudgetItemMixin(object):
 
     @property
     def Total(self):
-        """ Get the Total, if it is None reset it
+        """ Get the Total, if it is None recalculate it
         """
         if self._Total == None:
-            self.resetTotal()
+            self._Total = Decimal((1.0+self.Markup) * self.Quantity * \
+                                float(self.Rate)).quantize(Decimal('.01'))
         return self._Total.quantize(Decimal('.01'))
 
     @Total.setter
@@ -622,18 +495,12 @@ class BudgetItemMixin(object):
         """ Set the Total, update the parent's Total with the difference
             between the old total and the new total
         """
-        if self._Total == None:
-            self.resetTotal()
         oldtotal = self.Total
         self._Total = Decimal(total).quantize(Decimal('.01'))
         difference = self._Total - oldtotal
         # since the total has changed, change the total of the parent
-        parent = self.Parent
         if difference != 0:
-            if parent._Total == None:
-                parent.resetTotal()
-            else:
-                parent.Total = parent.Total + difference
+            self.Parent.Total = self.Parent.Total + difference
 
     @property
     def Subtotal(self):
@@ -641,20 +508,6 @@ class BudgetItemMixin(object):
             costs removed
         """
         return (self.Total/Decimal(1+self.Markup)).quantize(Decimal('.01'))
-
-    @hybrid_property
-    def Rate(self):
-        """ Get the Rate. If it is None reset it
-        """
-        if self._Rate == None:
-            self.resetRate()
-        return self._Rate.quantize(Decimal('.01'))
-
-    @Rate.setter
-    def Rate(self, rate):
-        """ Set the Rate.
-        """
-        self._Rate = Decimal(rate).quantize(Decimal('.01'))
 
     @hybrid_property
     def Quantity(self):
@@ -666,13 +519,13 @@ class BudgetItemMixin(object):
     def Quantity(self, quantity):
         """ Set the Quantity and change the total
         """
-        self._Quantity = quantity
         # change the total when the quantity changes
         self.Total = (1.0+self.Markup) * quantity * float(self.Rate)
+        self._Quantity = quantity
 
     @property
     def Unit(self):
-        """ Get the BudgetItem's Unit, the Unit of this resource is returned
+        """ Get the BudgetItem's Unit name, the Unit of this resource is returned
         """
         if self.Resource:
             return self.Resource.unitName()
@@ -729,25 +582,14 @@ class BudgetItemMixin(object):
                 budgetitemslist += child.getBudgetItems()
         return budgetitemslist
 
-    def toChildDict(self):
-        """ Returns a dictionary of the BudgetItem used in the childview
+    def dict(self):
+        """ Override the dict function
         """
         subitem = []
         if len(self.Children) > 0:
             subitem = [{'Name': '...', 'NodeType': 'Default'}]
 
-        return {'Name': self.Name,
-                'Description': self.Description,
-                'ID': self.ID,
-                'ParentID': self.ParentID,
-                'Subitem': subitem,
-                'NodeType': self.type,
-                'NodeTypeAbbr' : 'I'}
-
-    def toOrderDict(self):
-        """ Returns a dictionary of the BudgetItem used both in the
-            order tree view and order slickgrid
-        """
+        # data used for ordering a budgetitem
         # the default order quantity is the BudgetItem quantity minus
         # the quantity of all its orders
         orderitemsquantity = 0.0
@@ -755,70 +597,26 @@ class BudgetItemMixin(object):
             orderitemsquantity+=orderitem.Quantity
         quantity = self.Quantity - orderitemsquantity
         subtotal = Decimal(quantity*float(self.Rate)).quantize(Decimal('.01'))
-        vat = 14
+        # if not DefaultTaxRate:
         companyinfo = DBSession.query(CompanyInformation
-                                ).first()
-        if companyinfo:
-            vat = companyinfo.DefaultTaxrate
-        total = Decimal(float(subtotal)*(1+vat/100.0)).quantize(Decimal('.01'))
-        vatcost = Decimal(float(subtotal)*vat/100.0).quantize(Decimal('.01'))
-        return {'Name': self.Name,
-                'name': self.Name,
-                'ID': self.ID,
-                'ParentID': self.ParentID,
-                'id': self.ID,
-                'quantity': quantity,
-                'rate': str(self.Rate),
-                'total': str(total),
-                'vat': vat,
-                'vatcost': str(vatcost),
-                'subtotal': str(subtotal),
-                'NodeType': 'BudgetItem',
-                'node_type': 'BudgetItem',
-                'NodeTypeAbbr' : 'C'}
-
-    def toDict(self):
-        """ Return a dictionary of all the attributes of this BudgetItem. This
-            is extended by the inheriting class.
-        """
-
+                            ).first()
+        DefaultTaxRate = companyinfo.DefaultTaxrate
+        total = Decimal(float(subtotal)*(1+DefaultTaxRate/100.0)).quantize(Decimal('.01'))
+        vatcost = Decimal(float(subtotal)*DefaultTaxRate/100.0).quantize(Decimal('.01'))
         return {'Name': self.Name,
                 'Description': self.Description,
+                'ID': self.ID,
+                'id': self.ID,
+                'ParentID': self.ParentID,
+                'Subitem': subitem,
                 'Rate': str(self.Rate),
                 'Quantity': self.Quantity,
-                'ResourceType': self.Type,
-                'NodeType': self.type,
                 'Ordered': str(self.Ordered),
                 'Invoiced': str(self.Invoiced),
-                'order_cost': str(self.OrderCost),
-                'run_cost': str(self.RunningCost),
-                'claim_cost': str(self.ClaimedCost),
-                'income_rec': str(self.IncomeReceived),
-                'client_cost': str(self.ClientCost),
-                'proj_profit': str(self.ProjectedProfit),
-                'act_profit': str(self.ActualProfit)}
-
-    def getGridData(self):
-        """ Return a dictionary of all the data needed for the slick grid.
-            This is extended by inheriting classes.
-        """
-        return {
-            'name': self.Name,
-            'id': self.ID,
-            'node_type': self.type,
-            'quantity': self.Quantity,
-            'rate': str(self.Rate),
-            'budg_cost': str(self.Total),
-            'sub_cost':str(self.Subtotal),
-            'order_cost': str(self.OrderCost.quantize(Decimal('.01'))),
-            'run_cost': str(self.RunningCost.quantize(Decimal('.01'))),
-            'claim_cost': str(self.ClaimedCost.quantize(Decimal('.01'))),
-            'income_rec': str(self.IncomeReceived.quantize(Decimal('.01'))),
-            'client_cost': str(self.ClientCost.quantize(Decimal('.01'))),
-            'proj_profit': str(self.ProjectedProfit.quantize(Decimal('.01'))),
-            'act_profit': str(self.ActualProfit.quantize(Decimal('.01'))),
-            'ordered': str(self.Ordered),
-            'invoiced': str(self.Invoiced)}
+                'VAT': DefaultTaxRate,
+                'VATCost': str(vatcost),
+                'Subtotal': str(subtotal),
+                'NodeTypeAbbr' : 'I'}
 
     def updateOrdered(self, ordered):
         """ Updates the Ordered amount for all the children of this node
@@ -869,11 +667,17 @@ class BudgetItem(Node, BudgetItemMixin):
         """
         return self.Resource.Description
 
-    @property
+    @hybrid_property
     def Rate(self):
-        """ Get the BudgetItem's Rate, the Rate of the Resource is returned
+        """ Get the Rate, return the Resource Rate
         """
         return self.Resource.Rate
+
+    @Rate.setter
+    def Rate(self, rate):
+        """ Can't set a BudgetItem's Rate
+        """
+        pass
 
     @property
     def Unit(self):
@@ -902,8 +706,7 @@ class BudgetItem(Node, BudgetItemMixin):
         """
         overheadlist = []
         for overhead in self.Overheads:
-            overheadlist.append({'overhead_name': overhead.Name,
-                                'percentage': str(overhead.Percentage)})
+            overheadlist.append(overhead.dict())
 
         return overheadlist
 
@@ -926,35 +729,17 @@ class BudgetItem(Node, BudgetItemMixin):
                             _Invoiced=self.Invoiced)
         return copied
 
-    def toDict(self):
+    def dict(self):
         """ Return a dictionary of all the attributes of this BudgetItem
             Also returns a list of the Overhead ID's used by this BudgetItem
         """
-        # overheadlist is needed client side to compare
-        # the overheads actually used
-        # vs the overheads available to use
-        overheadlist = []
-        for overhead in self.Overheads:
-            overheadlist.append(overhead.ID)
-        di = super(BudgetItem, self).toDict()
+        di = super(BudgetItem, self).dict()
         di.update({
             'ResourceID': self.ResourceID,
             'ResourceName': self.Name,
-            'OverheadList': overheadlist,
+            'OverheadList': self.overheadsList(),
+            'Unit': self.Unit,
             'NodeType': self.type
-        })
-        return di
-
-    def getGridData(self):
-        """ Return a dictionary of all the data needed for the slick grid
-
-        """
-        di = super(BudgetItem, self).getGridData()
-        di.update({
-            'overheads': self.overheadsList(),
-            'unit': self.Unit,
-            'ordered': str(self.Ordered),
-            'invoiced': str(self.Invoiced)
         })
         return di
 
@@ -998,18 +783,19 @@ class SimpleBudgetItem(Node, BudgetItemMixin):
 
     @hybrid_property
     def Rate(self):
-        """ Get the BudgetItem's Rate, the Rate of the
-            simple budgetitem is returned
+        """ Get the Rate. If it is None return 0
         """
-        return self._Rate
+        if self._Rate == None:
+            self._Rate = Decimal(0.00)
+        return self._Rate.quantize(Decimal('.01'))
 
     @Rate.setter
     def Rate(self, rate):
-        """ On a simple budgetitem, we can set the rate, and the total must
-            be updated.
+        """ Set the Rate and update the Total
         """
+        # change the total when the rate changes
+        self.Total = (1.0+self.Markup) * self.Quantity * float(rate)
         self._Rate = Decimal(rate).quantize(Decimal('.01'))
-        self.resetTotal(self._Rate)
 
     def copy(self, parentid):
         """ copy returns an exact duplicate of this SimpleBudgetItem,
@@ -1032,15 +818,14 @@ class SimpleBudgetItem(Node, BudgetItemMixin):
                                 _Ordered=self.Ordered,
                                 _Invoiced=self.Invoiced)
 
-    def getGridData(self):
+    def dict(self):
         """ Return a dictionary of all the data needed for the slick grid
-
         """
         di = super(SimpleBudgetItem, self).getGridData()
         di.update({
-            'unit': self.Unit,
-            'ordered': str(self.Ordered),
-            'invoiced': str(self.Invoiced)
+            'Unit': self.Unit,
+            'Ordered': str(self.Ordered),
+            'Invoiced': str(self.Invoiced)
         })
         return di
 
@@ -1066,6 +851,13 @@ class Overhead(Base):
         return Overhead(Name=self.Name,
                         Percentage=self.Percentage,
                         ProjectID=projectid)
+
+    def dict(self):
+        """ Override the dict function
+        """
+        return {'ID': self.ID,
+                'Name': self.Name,
+                'Percentage': str(self.Percentage)}
 
     def __eq__(self, other):
         """ Test ifthis Overheadis equal to another Overhead by Name and
@@ -1097,16 +889,6 @@ class ResourceCategory(Node):
         'polymorphic_identity': 'ResourceCategory',
         'inherit_condition': (ID == Node.ID),
     }
-
-    def resetTotal(self):
-        return Decimal(0.00)
-
-    def recalculateTotal(self):
-        return Decimal(0.00)
-
-    @property
-    def Total(self):
-        return Decimal(0.00)
 
     def getResources(self):
         """ Returns a list of all the resources in this category
@@ -1175,34 +957,20 @@ class ResourceCategory(Node):
         for child in sourcechildren:
             source.paste(child.copy(source.ID), child.Children)
 
-    def toChildDict(self):
-        """ Returns a dictionary of the resource category used in the childview
+    def dict(self):
+        """ Override the dict function
         """
         subitem = []
         if len(self.Children) > 0:
             subitem = [{'Name': '...', 'NodeType': 'Default'}]
-
         return {'Name': self.Name,
                 'Description': self.Description,
                 'ID': self.ID,
+                'id': self.ID,
                 'ParentID': self.ParentID,
                 'Subitem': subitem,
                 'NodeType': self.type,
                 'NodeTypeAbbr' : 'C'}
-
-    def toDict(self):
-        """ Returns a dictionary of this ResourceCategory
-        """
-        return {'Name': self.Name,
-                'Description' : self.Description,
-                'NodeType': self.type}
-
-    def getGridData(self):
-        """ Returns a dictionary with the data needed for the slick grid
-        """
-        return {'name': self.Name,
-                'id': self.ID,
-                'node_type': self.type}
 
     # functions to make the resource list iterable
     def __getitem__(self, index):
@@ -1274,14 +1042,17 @@ class Resource(Node):
 
     @Rate.setter
     def Rate(self, rate):
-        """ Set the Resource's rate and reset the Total of all the
+        """ Set the Resource's rate and update the Total of all the
             BudgetItems and ResourceParts that reference it
         """
-        self._Rate = Decimal(rate).quantize(Decimal('.01'))
+        oldrate = self.Rate
         for bi in self.BudgetItems:
-            bi.resetTotal(self._Rate)
+            bi.Total = float(bi.Total) - bi.Quantity * \
+                            (float(oldrate) - float(rate))
         for part in self.ResourceParts:
-            part.resetTotal()
+            part.Total = float(part.Total) - part.Quantity * \
+                            (float(oldrate) - float(rate))
+        self._Rate = Decimal(rate).quantize(Decimal('.01'))
 
     def unitName(self):
         if self.Unit:
@@ -1317,38 +1088,32 @@ class Resource(Node):
         self.Rate = other.Rate
         self.SupplierID = other.SupplierID
 
-    def toChildDict(self):
-        """ Returns a dictionary of this node used in the childview
+    def getResources(self):
+        """ Return self as the only Resource
+        """
+        return [self]
+
+    def dict(self):
+        """ Override the dict function
         """
         subitem = []
+        if len(self.Children) > 0:
+            subitem = [{'Name': '...', 'NodeType': 'Default'}]
         return {'Name': self.Name,
                 'Description': self.Description,
                 'ID': self.ID,
+                'id': self.ID,
                 'ParentID': self.ParentID,
                 'Subitem': subitem,
-                'NodeType': self.type,
-                'NodeTypeAbbr' : 'R'}
-
-    def toDict(self):
-        """ Return a dictionary of the attributes of this Resource
-        """
-        return {'ID': self.ID,
-                'Name': self.Name,
-                'Description': self.Description,
                 'Code': self.Code,
                 'Rate': str(self._Rate),
-                'ResourceType': self.Type,
-                'Unit': self.UnitID,
+                'ResourceTypeID': self.Type,
+                'ResourceType': self.ResourceType.Name,
+                'UnitID': self.UnitID,
+                'Unit': self.unitName(),
                 'Supplier': self.SupplierID,
-                'NodeType': self.type}
-
-    def getGridData(self):
-        return {'name': self.Name,
-                'id': self.ID,
-                'unit': self.unitName(),
-                'node_type': self.type,
-                'rate': str(self.Rate),
-                'resource_type': self.ResourceType.Name}
+                'NodeType': self.type,
+                'NodeTypeAbbr' : 'R'}
 
     def __eq__(self, other):
         """ Test for equality on the Resource product Code
@@ -1381,39 +1146,22 @@ class ResourceUnit(Resource):
         'inherit_condition': (ID == Resource.ID),
     }
 
-    def resetRate(self):
-        """ Recalculates the rate from the total of it's parts
-        """
-        rate = Decimal(0.00)
-        for part in self.Children:
-            rate+=part.Total
-
-        self.Rate = rate.quantize(Decimal('.01'))
-
-    def resetTotal(self):
-        """ Reset the total of each resource part
-        """
-        for part in self.Children:
-            part.resetTotal()
-
     @property
     def Rate(self):
-        """ Get the Rate of the ResourceUnit
+        """ Get the Rate of the ResourceUnit, calculate it if it is None
         """
         if not self._Rate:
-            self.resetRate()
+            rate = Decimal(0.00)
+            for part in self.Children:
+                rate+=part.Total
+            self.Rate = rate.quantize(Decimal('.01'))
         return self._Rate.quantize(Decimal('.01'))
 
     @Rate.setter
     def Rate(self, rate):
-        """ When the ResourceUnit Rate is set, update the ResourcePart total
-            and BudgetItem totals
+        """ Can't set a ResourceUnit rate
         """
-        self._Rate = rate
-        for part in self.ResourceParts:
-            part.resetTotal()
-        for bi in self.BudgetItems:
-            bi.resetTotal(self._Rate)
+        pass
 
     def paste(self, source, sourcechildren):
         """ Paste a ResourcePart into this ResourceUnit
@@ -1461,19 +1209,13 @@ class ResourcePart(Node):
         'inherit_condition': (ID == Node.ID),
     }
 
-    def resetTotal(self):
-        """ Reset the Total of the ResourcePart
-            Total = Quantity * Resource.Rate
-        """
-        self.Total = Decimal(self.Quantity * float(self.Resource.Rate)
-                            ).quantize(Decimal('.01'))
-
     @property
     def Total(self):
         """ Get the Total of the ResourcePart
         """
         if not self._Total:
-            self.resetTotal()
+            self._Total = Decimal(self.Quantity * float(self.Rate)
+                            ).quantize(Decimal('.01'))
         return self._Total.quantize(Decimal('.01'))
 
     @Total.setter
@@ -1481,8 +1223,17 @@ class ResourcePart(Node):
         """ When the ResourcePart Total is set, update the
             parent ResourceUnit rate
         """
-        self._Total = total
-        self.Parent.resetRate()
+        oldtotal = self.Total
+        self._Total = Decimal(total).quantize(Decimal('.01'))
+        self.Parent.Rate = float(self.Parent.Rate) + \
+                            (float(total) - float(oldtotal))
+
+    @property
+    def Rate(self):
+        """ Return the Rate of the Resource
+        """
+        return self.Resource.Rate
+
 
     @property
     def Quantity(self):
@@ -1494,8 +1245,10 @@ class ResourcePart(Node):
     def Quantity(self, quantity):
         """ When the ResourcePart Quantity is set, update the Total
         """
+        oldquantity = self.Quantity
+        self.Total = float(self.Total) - float(self.Rate) * \
+                                            (oldquantity - quantity)
         self._Quantity = quantity
-        self.resetTotal()
 
     def copy(self, parentid):
         """ copy returns an exact duplicate of this ResourcePart,
@@ -1511,30 +1264,20 @@ class ResourcePart(Node):
         """
         pass
 
-    def toChildDict(self):
-        """ Returns a dictionary of this node used in the childview
+    def dict(self):
+        """ Override the dict function
         """
         subitem = []
-        return {'Name': self.Resource.Name,
+        return {'Name': self.Name,
+                'Description': self.Description,
                 'ID': self.ID,
+                'id': self.ID,
                 'ParentID': self.ParentID,
                 'Subitem': subitem,
+                'Quantity': self.Quantity,
+                'Rate': str(self.Rate),
                 'NodeType': self.type,
                 'NodeTypeAbbr' : 'P'}
-
-    def toDict(self):
-        """ Return a dictionary of the attributes of this Resource
-        """
-        return {'ID': self.ID,
-                'Name': self.Resource.Name,
-                'Quantity': self.Quantity,
-                'NodeType': self.type}
-
-    def getGridData(self):
-        return {'name': self.Resource.Name,
-                'id': self.ID,
-                'node_type': self.type,
-                'quantity': self.Quantity}
 
     def __repr__(self):
         """ Return a representation of this ResourcePart
@@ -1576,7 +1319,7 @@ class Client(Base):
     VAT = Column(Text(50))
     RegNo = Column(Text(50))
 
-    def toDict(self):
+    def dict(self):
         """ Return a dictionary of this Client
         """
         return {'Name': self.Name,
@@ -1616,7 +1359,7 @@ class Supplier(Base):
     Cellular = Column(Text(50))
     Contact = Column(Text(50))
 
-    def toDict(self):
+    def dict(self):
         """ Return a dictionary of this Supplier
         """
         return {'Name': self.Name,
@@ -1692,35 +1435,30 @@ class Order(Base):
 
         self.Total = Decimal(total).quantize(Decimal('.01'))
 
-    def toDict(self):
-        """ Returns a JSON dict of the order
+    def dict(self):
+        """ Override the dict function
         """
-        if self.Project:
-            projectname = self.Project.Name
-        else:
-            projectname = ""
+        suppname = ""
         if self.Supplier:
             suppname = self.Supplier.Name
-        else:
-            suppname = ""
+        clientname = ""
         if self.Client:
             clientname = self.Client.Name
-        else:
-            clientname = ""
+        total = '{:20,.2f}'.format(0).strip()
         if self.Total:
             total = '{:20,.2f}'.format(self.Total).strip()
-        else:
-            total = '{:20,.2f}'.format(0).strip()
+        date = ''
         if self.Date:
             date = self.Date.strftime("%d %B %Y")
-        else:
-            date = ''
 
         return {'ID': self.ID,
                 'Date': date,
                 'Project': projectname,
+                'ProjectID': self.ProjectID,
                 'Supplier': suppname,
+                'SupplierID': self.SupplierID,
                 'Client': clientname,
+                'ClientID': self.ClientID,
                 'Total': total,
                 'Status': self.Status}
 
@@ -1803,36 +1541,22 @@ class OrderItem(Base):
         self._Quantity = quantity
         self.Total = quantity * float(self._Rate)
 
-    def toDict(self):
-        """ Returns a dictionary of this OrderItem
+    def dict(self):
+        """ Override the dict function
         """
         vatcost = Decimal(float(self.Subtotal)*(self.VAT/100.0)
                             ).quantize(Decimal('.01'))
-        return {'name': self.BudgetItem.Name,
+        return {'Name': self.BudgetItem.Name,
                 'ID': self.BudgetItemID,
                 'id': self.BudgetItemID,
-                'quantity': self.Quantity,
-                'unit': self.BudgetItem.Unit,
-                'rate': str(self.Rate),
-                'vat': self.VAT,
-                'subtotal': str(self.Subtotal),
-                'total': str(self.Total),
-                'vatcost': str(vatcost),
-                'node_type': 'BudgetItem'}
-
-    def getGridData(self):
-        """ Returns a dictionary of this OrderItem for the slickgrid
-        """
-        vatcost = Decimal(float(self.Subtotal)*(self.VAT/100.0)
-                            ).quantize(Decimal('.01'))
-        return {'id': self.BudgetItem.ID,
-                'name': self.BudgetItem.Name,
-                'quantity': self.Quantity,
-                'rate': str(self.Rate),
-                'total': str(self.Total),
-                'subtotal': str(self.Subtotal),
-                'vat': self.VAT,
-                'vatcost': str(vatcost)}
+                'Quantity': self.Quantity,
+                'Unit': self.BudgetItem.Unit,
+                'Rate': str(self.Rate),
+                'VAT': self.VAT,
+                'Subtotal': str(self.Subtotal),
+                'Total': str(self.Total),
+                'VATCost': str(vatcost),
+                'NodeType': 'BudgetItem'}
 
     def __repr__(self):
         """Return a representation of this order item
@@ -1938,9 +1662,8 @@ class Invoice(Base):
     def Total(self):
         return Decimal(self.Amount + self.VAT).quantize(Decimal('.01'))
 
-    def tableData(self):
-        """ Return a dictionary with the values used in displaying the
-            invoice in a table
+    def dict(self):
+        """ Override the dict function
         """
         # get the date in json format
         jsonindate = None
@@ -1949,37 +1672,16 @@ class Invoice(Base):
         jsonpaydate = None
         if self.PaymentDate:
             jsonpaydate = self.PaymentDate.strftime("%d %B %Y")
-        return {'id':self.ID,
-                'orderid': self.OrderID,
-                'project': self.Order.Project.Name,
-                'supplier': self.Order.Supplier.Name,
-                'amount': str(self.Total),
-                'paymentdate': jsonpaydate,
-                'status': self.Status}
-
-    def toDict(self):
-        """ Returns a dictionary of this Invoice
-        """
-        # get the date in json format
-        jsonpaydate = None
-        if self.PaymentDate:
-            jsonpaydate = self.PaymentDate.isoformat()
-        else:
-            jsonpaydate = datetime.now().isoformat()
-        jsonindate = None
-        if self.InvoiceDate:
-            jsonindate = self.InvoiceDate.isoformat()
-        else:
-            jsonindate = datetime.now().isoformat()
-        return {'id': self.ID,
-                'orderid': self.OrderID,
-                'invoicedate': jsonindate,
-                'paymentdate': jsonpaydate,
-                'amount' : str(self.Amount),
-                'vat': str(self.VAT),
-                'total': str(self.Total),
-                'ordertotal': str(self.Order.Total),
-                'status': self.Status}
+        return {'ID':self.ID,
+                'id':self.ID,
+                'OrderID': self.OrderID,
+                'Project': self.Order.Project.Name,
+                'Supplier': self.Order.Supplier.Name,
+                'Amount': str(self.Total),
+                'Paymentdate': jsonpaydate,
+                'Invoicedate': jsonindate,
+                'Ordertotal': str(self.Order.Total),
+                'Status': self.Status}
 
     def __repr__(self):
         """ Return a representation of this invoice
@@ -1998,14 +1700,15 @@ class Valuation(Base):
     Project = relationship('Project',
                               backref=backref('Valuations'))
 
-    def toDict(self):
-        """ Returns a dictionary of this Valuation
+    def dict(self):
+        """ Override the dict function
         """
         if self.Date:
             date = self.Date.strftime("%d %B %Y")
         else:
             date = ''
         return {'ID': self.ID,
+                'id': self.ID,
                 'Project': self.Project.Name,
                 'Date': date,
                 'PercentageClaimed': str(self.TotalPercentage),
@@ -2013,6 +1716,8 @@ class Valuation(Base):
 
     @property
     def TotalPercentage(self):
+        if self.Project.Total == 0:
+            return Decimal(0.00)
         totalp = (self.Total/self.Project.Total)*100
         return Decimal(totalp).quantize(Decimal('.01'))
 
@@ -2045,17 +1750,16 @@ class ValuationItem(Base):
     Valuation = relationship('Valuation',
                               backref=backref('ValuationItems'))
 
-    def toDict(self):
+    def dict(self):
         """ Returns a dictionary of this ValuationItem
         """
         return {'ID': self.ID,
                 'id': self.ID,
                 'BudgetGroup': self.BudgetGroupID,
-                'name': self.BudgetGroup.Name,
+                'Name': self.BudgetGroup.Name,
                 'PercentageComplete': str(self.PercentageComplete),
-                'percentage_complete': str(self.PercentageComplete),
-                'amount_complete': str(self.Total),
-                'total_budget': str(self.BudgetGroup.Total)}
+                'AmountComplete': str(self.Total),
+                'TotalBudget': str(self.BudgetGroup.Total)}
 
     @property
     def Total(self):

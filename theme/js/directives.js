@@ -81,86 +81,68 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
 
             // load the columns widths (if any) from local storage
             $scope.preloadWidths = function () {
+                projects_column_width= {'Name': 150,
+                                    'Quantity': 75,
+                                    'Rate': 75,
+                                    'Total': 100};
                 if (hasStorage) {
                     try {
                         projects_column_width = JSON.parse(localStorage["projects_column_width"])
                     }
                     catch (exception) {
                         console.log("No columns widths found in storage. Setting to default.");
-                        projects_column_width= {'name': 300,
-                                'quantity': 75,
-                                'item_quantity': 75,
-                                'rate': 50,
-                                'budg_cost': 75,
-                                'sub_cost': 75,
-                                'unit': 75,
-                                'ordered': 75,
-                                'invoiced': 75,
-                                'resource_type': 75};
                         localStorage["projects_column_width"] = JSON.stringify(projects_column_width);
 
                     }
                     if ( projects_column_width.length == 0 ) {
-                        projects_column_width= {'name': 150,
-                                    'quantity': 75,
-                                    'rate': 75,
-                                    'total': 100};
                         localStorage["projects_column_width"] = JSON.stringify(projects_column_width);
                     }
                 }
                 else {
                     console.log("LOCAL STORAGE NOT SUPPORTED")
-                    projects_column_width= {'name': 150,
-                                'quantity': 75,
-                                'rate': 75,
-                                'total': 100};
                 }
             };
             $scope.preloadWidths();
-            var name_column = {id: "name", name: "Name", field: "name",
-                                    width: projects_column_width.name,
+            var name_column = {id: "Name", name: "Name", field: "Name",
+                                    width: projects_column_width.Name,
                                     cssClass: "cell-title non-editable-column"}
-            var quantity_column = {id: "quantity", name: "Quantity", field: "quantity",
-                                    width: projects_column_width.quantity,
-                                    cssClass: "cell non-editable-column"}
-            var item_quantity_column = {id: "item_quantity", name: "Item Quantity", field: "item_quantity",
-                                    width: projects_column_width.item_quantity,
+            var quantity_column = {id: "Quantity", name: "Quantity", field: "Quantity",
+                                    width: projects_column_width.Quantity,
                                     cssClass: "cell editable-column",
                                     editor: Slick.Editors.CustomEditor}
-            var rate_column = {id: "rate", name: "Rate", field: "rate",
-                                    width: projects_column_width.rate,
-                                    cssClass: "cell non-editable-column",
+            var rate_column = {id: "Rate", name: "Rate", field: "Rate",
+                                    width: projects_column_width.Rate,
+                                    cssClass: "cell editable-column",
                                     formatter: CurrencyFormatter,
                                     editor: Slick.Editors.CustomEditor}
-            var budg_cost_column = {id: "budg_cost", name: "Total", field: "budg_cost",
-                                    width: projects_column_width.budg_cost,
+            var total_column = {id: "Total", name: "Total", field: "Total",
+                                    width: projects_column_width.Total,
                                     cssClass: "cell non-editable-column",
                                     formatter: CurrencyFormatter}
-            var sub_cost_column = {id: "sub_cost", name: "Subtotal", field: "sub_cost",
-                                    width: projects_column_width.sub_cost,
+            var subtotal_column = {id: "Subtotal", name: "Subtotal", field: "Subtotal",
+                                    width: projects_column_width.Subtotal,
                                     cssClass: "cell non-editable-column",
                                     formatter: CurrencyFormatter}
-            var unit_column = {id: "unit", name: "Unit", field: "unit",
-                                    width: projects_column_width.unit,
+            var unit_column = {id: "Unit", name: "Unit", field: "Unit",
+                                    width: projects_column_width.Unit,
                                     cssClass: "cell non-editable-column"}
-            var ordered_column = {id: "ordered", name: "Ordered", field: "ordered",
-                                    width: projects_column_width.ordered,
+            var ordered_column = {id: "Ordered", name: "Ordered", field: "Ordered",
+                                    width: projects_column_width.Ordered,
                                     cssClass: "cell non-editable-column",
                                     formatter: CurrencyFormatter}
-            var invoiced_column = {id: "invoiced", name: "Invoiced", field: "invoiced",
-                                    width: projects_column_width.invoiced,
+            var invoiced_column = {id: "Invoiced", name: "Invoiced", field: "Invoiced",
+                                    width: projects_column_width.Invoiced,
                                     cssClass: "cell non-editable-column",
                                     formatter: CurrencyFormatter}
-            var resource_type_column =  {id: "resource_type", name: "Resource Type", field: "resource_type",
-                                    width: projects_column_width.resource_type,
+            var resource_type_column =  {id: "ResourceType", name: "Resource Type", field: "ResourceType",
+                                    width: projects_column_width.ResourceType,
                                     cssClass: "cell non-editable-column"}
             var columns = [
                     name_column,
                     quantity_column,
-                    item_quantity_column,
                     rate_column,
-                    budg_cost_column,
-                    sub_cost_column,
+                    total_column,
+                    subtotal_column,
                     unit_column,
                     ordered_column,
                     invoiced_column
@@ -225,7 +207,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     return value + " %";
                 }
                 else{
-                    return "0";
+                    return "";
                 }
               }
 
@@ -261,10 +243,10 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 var type = response['type'];
                 if (data.length > 0) {
                     // If the grid is only showing resources or resourcecategories
-                    var secondtype = data[0]['node_type']
+                    var secondtype = data[0]['NodeType']
                     if ((secondtype == 'Resource') || (secondtype == 'ResourceCategory')) {
                         if (data.length>1) {
-                            secondtype = data[1]['node_type']
+                            secondtype = data[1]['NodeType']
                         }
                     }
                     if ((secondtype == 'Resource') || (secondtype == 'ResourceCategory')) {
@@ -288,15 +270,15 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                         if (emptycolumns) {
                             newcolumns = [
                                 name_column,
-                                budg_cost_column,
-                                sub_cost_column,
+                                total_column,
+                                subtotal_column,
                                 ordered_column,
                                 invoiced_column
                             ];
                             if (no_subtotal_column) {
                                 // remove subtotal column
                                 var index = newcolumns.map(function(e)
-                                    { return e.id; }).indexOf("sub_cost");
+                                    { return e.id; }).indexOf("Subtotal");
                                 if (index > -1) {
                                     newcolumns.splice(index, 1);
                                 }
@@ -309,10 +291,9 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                             emptycolumns = [
                                 name_column,
                                 quantity_column,
-                                item_quantity_column,
                                 rate_column,
-                                budg_cost_column,
-                                sub_cost_column,
+                                total_column,
+                                subtotal_column,
                                 unit_column,
                                 ordered_column,
                                 invoiced_column
@@ -321,28 +302,9 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                             if (no_subtotal_column) {
                                 // remove subtotal column
                                 var index = emptycolumns.map(function(e)
-                                    { return e.id; }).indexOf("sub_cost");
+                                    { return e.id; }).indexOf("Subtotal");
                                 if (index > -1) {
                                     emptycolumns.splice(index, 1);
-                                }
-                            }
-                            if (no_quantity_column) {
-                                // remove quantity column
-                                var index = emptycolumns.map(function(e)
-                                    { return e.id; }).indexOf("quantity");
-                                if (index > -1) {
-                                    emptycolumns.splice(index, 1);
-                                }
-                            }
-                            // make quantity column non-editable for certain node types
-                            hidden_iq_types = ['BudgetItem'];
-                            var itemquantity_type_found = $.inArray(type, hidden_iq_types) > -1;
-                            if (!itemquantity_type_found) {
-                                var index = emptycolumns.map(function(e)
-                                    { return e.id; }).indexOf("quantity");
-                                if (index > -1) {
-                                    emptycolumns[index].cssClass = "cell non-editable-column";
-                                    delete emptycolumns[index].editor;
                                 }
                             }
 
@@ -351,17 +313,17 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                             for (var i=0; i < data.length; i++) {
                                 if (data[i]['node_type'] == 'BudgetItem') {
                                     // get the list of overheads in the budgetItem
-                                    var overheadslist = data[i]['overheads'];
+                                    var overheadslist = data[i]['OverheadList'];
                                         // get the name of the overhead
                                         // check if it has not been used yet
                                         // and add it to the columns list
                                         for (var v=0; v < overheadslist.length; v++) {
-                                            var overheadname = overheadslist[v].overhead_name;
+                                            var overheadname = overheadslist[v].Name;
                                             if (overheadnames.indexOf(overheadname) < 0) {
                                                 overheadnames.push(overheadname);
                                             }
                                             // create new entry in the budgetItem
-                                            data[i][overheadname] = overheadslist[v].percentage;
+                                            data[i][overheadname] = overheadslist[v].Percentage;
                                         }
                                 }
                             }
@@ -385,10 +347,9 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     emptycolumns = [
                         name_column,
                         quantity_column,
-                        item_quantity_column,
                         rate_column,
-                        budg_cost_column,
-                        sub_cost_column,
+                        total_column,
+                        subtotal_column,
                         unit_column,
                         ordered_column,
                         invoiced_column
@@ -431,10 +392,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 }
                 $http(req).success(function(data) {
                     if (data){
-                        item.quantity = data.quantity;
-                        item.budg_cost = data.total;
-                        item.sub_cost = data.subtotal;
-                        item.rate = data.rate;
+                        item.Total = data.total;
+                        item.Subtotal = data.subtotal;
                         //store the active cell and editor
                         var activeCell = grid.getActiveCell();
                         var activeEditor = grid.getCellEditor();
@@ -474,9 +433,6 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 var selectedNodes = [];
                 for (var i in ids){
                     var node = dataView.getItemById(ids[i]);
-                    node.NodeType = node.node_type;
-                    node.ID = node.id;
-                    node.Name = node.name;
                     if (!node.isparent){
                         selectedNodes.push(node);
                     }
@@ -522,41 +478,27 @@ allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedSer
 
             // load the columns widths (if any) from local storage
             $scope.preloadWidths = function () {
+                orders_column_width= {'Name': 350,
+                                    'Quantity': 75,
+                                    'Rate': 75,
+                                    'Subtotal': 75,
+                                    'VAT': 75,
+                                    'VATCost': 75,
+                                    'Total': 100};
                 if (hasStorage) {
                     try {
                         orders_column_width = JSON.parse(localStorage["orders_column_width"])
                     }
                     catch (exception) {
                         console.log("No columns widths found in storage. Setting to default.");
-                        orders_column_width= {'name': 350,
-                                    'quantity': 75,
-                                    'rate': 75,
-                                    'subtotal': 75,
-                                    'vat': 75,
-                                    'vatcost': 75,
-                                    'total': 100};
                         localStorage["orders_column_width"] = JSON.stringify(orders_column_width);
                     }
                     if ( orders_column_width.length == 0 ) {
-                        orders_column_width= {'name': 350,
-                                    'quantity': 75,
-                                    'rate': 75,
-                                    'subtotal': 75,
-                                    'vat': 75,
-                                    'vatcost': 75,
-                                    'total': 100};
                         localStorage["orders_column_width"] = JSON.stringify(orders_column_width);
                     }
                 }
                 else {
                     console.log("LOCAL STORAGE NOT SUPPORTED")
-                    orders_column_width= {'name': 350,
-                                'quantity': 75,
-                                'rate': 75,
-                                'subtotal': 75,
-                                'vat': 75,
-                                'vatcost': 75,
-                                'total': 100};
                 }
             };
             $scope.preloadWidths();
@@ -573,21 +515,44 @@ allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedSer
                 return {};
             }
 
+            var name_column = {id: "Name", name: "Budget Item", field: "Name",
+                                    width: projects_column_width.Name,
+                                    cssClass: "cell-title non-editable-column"}
+            var quantity_column = {id: "Quantity", name: "Quantity", field: "Quantity",
+                                    width: projects_column_width.Quantity,
+                                    cssClass: "cell editable-column",
+                                    editor: Slick.Editors.CustomEditor}
+            var rate_column = {id: "Rate", name: "Rate", field: "Rate",
+                                    width: projects_column_width.Rate,
+                                    cssClass: "cell editable-column",
+                                    formatter: CurrencyFormatter,
+                                    editor: Slick.Editors.CustomEditor}
+            var subtotal_column = {id: "Subtotal", name: "Subtotal", field: "Subtotal",
+                                    width: projects_column_width.Subtotal,
+                                    cssClass: "cell non-editable-column",
+                                    formatter: CurrencyFormatter}
+            var vat_column = {id: "VAT", name: "VAT %", field: "VAT",
+                                    width: orders_column_width.VAT,
+                                    cssClass: "cell editable-column",
+                                    formatter: VATFormatter,
+                                    editor: Slick.Editors.CustomEditor}
+            var vatcost_column = {id: "VATCost", name: "VAT", field: "VATCost",
+                                    width: orders_column_width.VATCost,
+                                    cssClass: "cell non-editable-column",
+                                    formatter: CurrencyFormatter}
+            var total_column = {id: "Total", name: "Total", field: "Total",
+                                    width: projects_column_width.Total,
+                                    cssClass: "cell non-editable-column",
+                                    formatter: CurrencyFormatter}
             var columns = [
-                    {id: "name", name: "Budget Item", field: "name",
-                     width: orders_column_width.name, cssClass: "cell-title non-editable-column"},
-                    {id: "quantity", name: "Quantity", field: "quantity", cssClass: "cell editable-column",
-                     width: orders_column_width.quantity, editor: Slick.Editors.CustomEditor},
-                    {id: "rate", name: "Rate", field: "rate", cssClass: "cell editable-column",
-                     width: orders_column_width.rate, formatter: CurrencyFormatter, editor: Slick.Editors.CustomEditor},
-                    {id: "subtotal", name: "Subtotal", field: "subtotal", cssClass: "cell non-editable-column",
-                     width: orders_column_width.subtotal, formatter: CurrencyFormatter},
-                     {id: "vat", name: "VAT %", field: "vat", cssClass: "cell editable-column",
-                     width: orders_column_width.vat, formatter: VATFormatter, editor: Slick.Editors.CustomEditor},
-                    {id: "vatcost", name: "VAT", field: "vatcost", cssClass: "cell non-editable-column",
-                     width: orders_column_width.vatcost, formatter: CurrencyFormatter},
-                    {id: "total", name: "Total", field: "total", cssClass: "cell non-editable-column",
-                     width: orders_column_width.total, formatter: CurrencyFormatter}];
+                    name_column,
+                    quantity_column,
+                    rate_column,
+                    subtotal_column,
+                    vat_column,
+                    vatcost_column,
+                    total_column,
+                ];
 
             var options = {
                     editable: true,
@@ -668,36 +633,21 @@ allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedSer
             // observe the budgetItem list for changes and update the slickgrid
             // calculate and update the order total as well
             $scope.$watch(attrs.budgetitems, function(budgetItemslist) {
-                columns = [
-                    {id: "name", name: "Budget Item", field: "name",
-                     width: orders_column_width.name, cssClass: "cell-title non-editable-column"},
-                    {id: "quantity", name: "Quantity", field: "quantity", cssClass: "cell editable-column",
-                     width: orders_column_width.quantity, editor: Slick.Editors.CustomEditor},
-                    {id: "rate", name: "Rate", field: "rate", cssClass: "cell editable-column",
-                     width: orders_column_width.rate, formatter: CurrencyFormatter, editor: Slick.Editors.CustomEditor},
-                    {id: "subtotal", name: "Subtotal", field: "subtotal", cssClass: "cell non-editable-column",
-                     width: orders_column_width.subtotal, formatter: CurrencyFormatter},
-                     {id: "vat", name: "VAT %", field: "vat", cssClass: "cell editable-column",
-                     width: orders_column_width.vat, formatter: VATFormatter, editor: Slick.Editors.CustomEditor},
-                     {id: "vatcost", name: "VAT", field: "vatcost", cssClass: "cell non-editable-column",
-                     width: orders_column_width.vatcost, formatter: CurrencyFormatter},
-                    {id: "total", name: "Total", field: "total", cssClass: "cell non-editable-column",
-                     width: orders_column_width.total, formatter: CurrencyFormatter}];
                 if (budgetItemslist.length > 0) {
                     var ordertotal = 0.0;
                     var ordersubtotal = 0.0
                     var ordervatcost = 0.0
                     var gridlist = [];
                     for (var i=0;i<budgetItemslist.length; i++) {
-                        ordertotal += parseFloat(budgetItemslist[i].total);
-                        ordersubtotal += parseFloat(budgetItemslist[i].subtotal);
-                        ordervatcost += parseFloat(budgetItemslist[i].vatcost);
+                        ordertotal += parseFloat(budgetItemslist[i].Total);
+                        ordersubtotal += parseFloat(budgetItemslist[i].Subtotal);
+                        ordervatcost += parseFloat(budgetItemslist[i].VATCost);
                     }
                     gridlist = budgetItemslist.slice(0);
                     var totals = {'id': 'T' + budgetItemslist[0].id,
-                                    'subtotal': ordersubtotal,
-                                    'vatcost': ordervatcost,
-                                    'total': ordertotal,
+                                    'Subtotal': ordersubtotal,
+                                    'VATCost': ordervatcost,
+                                    'Total': ordertotal,
                                     'cssClasses': 'cell-title non-editable-column'};
 
                     gridlist.push(totals);
@@ -710,9 +660,9 @@ allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedSer
                 else {
                     var gridlist = [];
                     var totals = {'id': 'T1',
-                                'subtotal': "0.00",
-                                'vatcost': "0.00",
-                                'total': "0.00"};
+                                'Subtotal': "",
+                                'VATCost': "",
+                                'Total': ""};
                     gridlist.push(totals);
                     grid.setColumns(columns);
                     dataView.beginUpdate();
@@ -725,20 +675,20 @@ allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedSer
             // on cell change update the totals
             grid.onCellChange.subscribe(function (e, ctx) {
                 var item = ctx.item
-                var oldtotal = item.total;
-                var oldsubtotal = item.subtotal;
-                var oldvatcost = item.vatcost;
+                var oldtotal = item.Total;
+                var oldsubtotal = item.Subtotal;
+                var oldvatcost = item.VATCost;
 
-                item.subtotal = item.quantity*item.rate;
-                item.vatcost = item.subtotal * (parseFloat(item.vat)/100.0);
-                item.total = item.subtotal *(1.0 + parseFloat(item.vat)/100.0);
+                item.Subtotal = item.Quantity*item.Rate;
+                item.VATCost = item.Subtotal * (parseFloat(item.VAT)/100.0);
+                item.Total = item.Subtotal *(1.0 + parseFloat(item.VAT)/100.0);
                 dataView.updateItem(item.id, item);
                 // get the last row and update the values
                 var datalength = dataView.getLength();
                 var lastrow = dataView.getItem(datalength-1);
-                lastrow.total = lastrow.total + (item.total - oldtotal);
-                lastrow.subtotal = lastrow.subtotal + (item.subtotal - oldsubtotal);;
-                lastrow.vatcost = lastrow.vatcost + (item.vatcost - oldvatcost);;
+                lastrow.Total = lastrow.Total + (item.Total - oldtotal);
+                lastrow.Subtotal = lastrow.Subtotal + (item.Subtotal - oldsubtotal);;
+                lastrow.VATCost = lastrow.VATCost + (item.VATCost - oldvatcost);;
                 dataView.updateItem(lastrow.id, lastrow);
             });
 
@@ -782,35 +732,33 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
             // load the columns widths (if any) from local storage
             $scope.preloadWidths = function () {
                 if (hasStorage) {
+                    valuations_column_width = {'Name': 300,
+                                               'PercentageComplete': 65};
                     try {
                         valuations_column_width = JSON.parse(localStorage["valuations_column_width"])
                     }
                     catch (exception) {
                         console.log("No columns widths found in storage. Setting to default.");
-                        valuations_column_width = {'name': 300,
-                                                   'percentage_complete': 65};
                         localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
                     }
                     if ( valuations_column_width.length == 0 ) {
-                        valuations_column_width = {'name': 300,
-                                                   'percentage_complete': 65};
                         localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
                     }
                 }
                 else {
                     console.log("LOCAL STORAGE NOT SUPPORTED")
-                    valuations_column_width = {'name': 300,
-                                               'percentage_complete': 65};
                 }
             };
             $scope.preloadWidths();
 
             var columns = [
-                    {id: "name", name: "Budget Group", field: "name",
-                     width: valuations_column_width.name, cssClass: "cell-title non-editable-column"},
-                    {id: "percentage_complete", name: "Percentage Complete", field: "percentage_complete",
+                    {id: "Name", name: "Budget Group", field: "Name",
+                     width: valuations_column_width.Name,
+                     cssClass: "cell-title non-editable-column"},
+                    {id: "PercentageComplete", name: "Percentage Complete", field: "PercentageComplete",
                      cssClass: "cell editable-column", formatter: PercentageFormatter,
-                     width: valuations_column_width.percentage_complete, editor: Slick.Editors.CustomEditor}];
+                     width: valuations_column_width.PercentageComplete,
+                     editor: Slick.Editors.CustomEditor}];
 
             var options = {
                     editable: true,
@@ -874,12 +822,6 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
 
             // observe the budgetgroup list for changes and update the slickgrid
             $scope.$watch(attrs.budgetgroups, function(budgetgrouplist) {
-                columns = [
-                    {id: "name", name: "Budget Group", field: "name",
-                     width: valuations_column_width.name, cssClass: "cell-title non-editable-column"},
-                    {id: "percentage_complete", name: "% Complete", field: "percentage_complete",
-                     cssClass: "cell editable-column", formatter: PercentageFormatter,
-                     width: valuations_column_width.percentage_complete, editor: Slick.Editors.Float}];
                 if (budgetgrouplist.length > 0) {
                     grid.setColumns(columns);
                     dataView.beginUpdate();

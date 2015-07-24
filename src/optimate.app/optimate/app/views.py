@@ -99,7 +99,7 @@ def sortResource(rcat, resourcename):
 
 def expandBudgetItem(nodeid, resource):
     """ Add a budgetitem to the existing budgetitem for each
-        ResourceUnit in the resource
+        ResourceUnit in the referenced ResourceUnit
     """
     for part in resource.Children:
         childresource = part.Resource
@@ -173,9 +173,9 @@ def node_children(request):
     if qry != None:
         for child in qry.Children:
             if child.type == 'ResourceCategory':
-                resourcecategories.append(child.toChildDict())
+                resourcecategories.append(child.dict())
             else:
-                childrenlist.append(child.toChildDict())
+                childrenlist.append(child.dict())
     else:
         return HTTPInternalServerError("Node does not exist")
 
@@ -210,7 +210,7 @@ def nodeview(request):
     nodeid = request.matchdict['id']
     qry = DBSession.query(Node).filter_by(ID=nodeid).first()
     if qry:
-        return qry.toDict()
+        return qry.dict()
     else:
         return HTTPNotFound()
 
@@ -233,8 +233,7 @@ def additemview(request):
     siteaddress = request.json_body.get('SiteAddress', '')
     filenumber = request.json_body.get('FileNumber', '')
     supplier = request.json_body.get('Supplier', '')
-    newid = 0
-    newnode = None
+
     # Determine the type of object to be added and build it
     if objecttype == 'Project':
         newnode = Project(Name=request.json_body['Name'],
@@ -252,14 +251,12 @@ def additemview(request):
                                         Description='List of Resources',
                                         ParentID=newid)
         DBSession.add(newresourcecat)
-        DBSession.flush()
 
     elif objecttype == 'BudgetGroup':
         newnode = BudgetGroup(Name=request.json_body['Name'],
                         Description=desc,
                         ParentID=parentid)
         DBSession.add(newnode)
-        DBSession.flush()
 
     # it's already determined by the ui whether a budgetitem
     # or simple budgetitem is being added
@@ -269,33 +266,27 @@ def additemview(request):
         # check the resource exists
         resource = DBSession.query(Resource).filter_by(ID=uid).first()
         if not resource:
-            newnode = SimpleBudgetItem(
-                        ParentID=parentid,
-                        Name=request.json_body['Name'],
-                        Description=request.json_body.get('Description', None),
+            return HTTPInternalServerError("No Resource for the Budget Item")
+        newnode = BudgetItem(ResourceID=resource.ID,
                         _Quantity=quantity,
-                        _Rate=rate,
-                        Type=request.json_body['ResourceType'])
-            DBSession.add(newnode)
-            DBSession.flush()
-        else:
-            newnode = BudgetItem(ResourceID=resource.ID,
-                            _Quantity=quantity,
-                            ParentID=parentid)
-            # get the list of overheads used in the checkboxes
-            checklist = request.json_body['OverheadList']
-            for record in checklist:
-                if record['selected']:
-                    overheadid = record['ID']
-                    overhead = DBSession.query(
-                                Overhead).filter_by(ID=overheadid).first()
-                    newnode.Overheads.append(overhead)
-            DBSession.add(newnode)
-            DBSession.flush()
-            # if the budgetitem references a resource unit
-            # expand the budgetitem and add children
-            if resource.type == 'ResourceUnit':
-                expandBudgetItem(newnode.ID, resource)
+                        ParentID=parentid)
+        # get the list of overheads used in the checkboxes
+        checklist = request.json_body['OverheadList']
+        for record in checklist:
+            if record['selected']:
+                overheadid = record['ID']
+                overhead = DBSession.query(
+                            Overhead).filter_by(ID=overheadid).first()
+                newnode.Overheads.append(overhead)
+        DBSession.add(newnode)
+        # if the budgetitem references a resource unit
+        # expand the budgetitem and add children
+        if resource.type == 'ResourceUnit':
+            expandBudgetItem(newnode.ID, resource)
+        # add it to the parent's total
+        parent = DBSession.query(Node).filter_by(ID=parentid).first()
+        if parent.type != 'BudgetItem':
+            parent.Total = parent.Total + newnode.Total
 
     elif objecttype == 'SimpleBudgetItem':
         rate = request.json_body.get('Rate', 0)
@@ -310,30 +301,39 @@ def additemview(request):
             _Rate=rate,
             Type=request.json_body['ResourceType'])
         DBSession.add(newnode)
-        DBSession.flush()
+        # add it to the parent's total
+        parent = DBSession.query(Node).filter_by(ID=parentid).first()
+        if parent.type != 'BudgetItem':
+            parent.Total = parent.Total + newnode.Total
 
     elif objecttype == 'ResourceCategory':
         newnode = ResourceCategory(Name=request.json_body['Name'],
                         Description=desc,
                         ParentID=parentid)
-
         DBSession.add(newnode)
-        DBSession.flush()
 
-    elif objecttype == 'Resource':
+    elif objecttype == 'Resource' or objecttype == 'ResourceUnit':
         resourcetype = request.json_body['ResourceType']
         name =  request.json_body['Name']
         # check if the resource is not in the resource category
         resourcecategory = DBSession.query(
                 ResourceCategory).filter_by(ID=parentid).first()
-
         parentid = sortResource(resourcecategory, name)
-        newnode = Resource(Name=name,
+
+        if objecttype == 'Resource':
+            newnode = Resource(Name=name,
                             Description = desc,
                             UnitID=unit,
                             Type=resourcetype,
                             SupplierID=supplier,
                             _Rate= rate,
+                            ParentID=parentid)
+        else:
+            newnode = ResourceUnit(Name=name,
+                            Description = desc,
+                            UnitID=unit,
+                            Type=resourcetype,
+                            SupplierID=supplier,
                             ParentID=parentid)
 
         DBSession.add(newnode)
@@ -345,36 +345,7 @@ def additemview(request):
         else:
             name = name[:3].upper()
         numerseq = '0'*(4-len(str(newid))) + str(newid)
-        finalcode = name+numerseq
-        newnode.Code = finalcode
-
-    elif objecttype == 'ResourceUnit':
-        resourcetype = request.json_body['ResourceType']
-        name =  request.json_body['Name']
-        # check if the resource is not in the resource category
-        resourcecategory = DBSession.query(
-                ResourceCategory).filter_by(ID=parentid).first()
-
-        parentid = sortResource(resourcecategory, name)
-        newnode = ResourceUnit(Name=name,
-                            Description = desc,
-                            UnitID=unit,
-                            Type=resourcetype,
-                            SupplierID=supplier,
-                            _Rate= rate,
-                            ParentID=parentid)
-
-        DBSession.add(newnode)
-        DBSession.flush()
-        newid = newnode.ID
-        # generate a code for the resource
-        if len(name) < 3:
-            name = name.upper() + (3-len(name))*'X'
-        else:
-            name = name[:3].upper()
-        numerseq = '0'*(4-len(str(newid))) + str(newid)
-        finalcode = name+numerseq
-        newnode.Code = finalcode
+        newnode.Code = name+numerseq
 
     elif objecttype == 'ResourcePart':
         uid = request.json_body['ResourceID']
@@ -387,7 +358,7 @@ def additemview(request):
         newnode = ResourcePart(ResourceID=uid,
                                 _Quantity=quantity,
                                 ParentID=parentid)
-
+        DBSession.add(newnode)
         # add a new budgetitem to the budgetitem that references the
         # parent of this resourcePart
         parentresource = DBSession.query(ResourceUnit
@@ -399,26 +370,18 @@ def additemview(request):
             DBSession.flush()
             if resource.type == 'ResourceUnit':
                 expandBudgetItem(newbudgetitem.ID, resource)
-
+        # update the parent ResourceUnit total
+        parent = DBSession.query(ResourceUnit).filter_by(ID=parentid).first()
+        parent.Rate = parent.Rate + newnode.Total
 
     else:
         return HTTPInternalServerError()
 
-    if newnode:
-        DBSession.add(newnode)
-        DBSession.flush()
-        newid = newnode.ID
-
-    # reset the total of the parent
-    if parentid != 0:
-        reset = DBSession.query(Node).filter_by(ID=parentid).first()
-        reset.resetTotal()
-
-    # commit the transaction and return ok,
-    # along with the id of the new node, and the node object itself
-    transaction.commit()
-    node = DBSession.query(Node).filter_by(ID=newid).first()
-    return {'ID': newid, 'node': node.toChildDict()}
+    DBSession.flush()
+    newid = newnode.ID
+    newdata = newnode.dict()
+    # return the id and the new data
+    return {'ID': newid, 'node': newdata}
 
 
 def edititemview(request):
@@ -566,20 +529,18 @@ def deleteitemview(request):
     """
     # Get the id of the node to be deleted from the path
     deleteid = request.matchdict['id']
-    # Deleting it from the node table deleted the object
+    # Delete it from the table
     deletethis = DBSession.query(Node).filter_by(ID=deleteid).first()
     if not deletethis:
         return HTTPInternalServerError("Node not found")
-    parentid = deletethis.ParentID
+    parent = deletethis.Parent
+    parentid = parent.ID
+    # update the total of the parent node
+    parent.Total = parent.Total - deletethis.Total
+
     qry = DBSession.delete(deletethis)
     transaction.commit()
 
-    # reset the total of the parent node
-    if parentid != 0:
-        reset = DBSession.query(Node).filter_by(ID=parentid).first()
-        reset.resetTotal()
-
-    transaction.commit()
     return {"parentid": parentid}
 
 
@@ -592,7 +553,7 @@ def node_budgetitems(request):
     budgetitemslist = qry.getBudgetItems()
     itemlist = []
     for bi in budgetitemslist:
-        itemlist.append(bi.toOrderDict())
+        itemlist.append(bi.dict())
     return sorted(itemlist, key=lambda k: k['name'].upper())
 
 
@@ -605,7 +566,7 @@ def node_budgetgroups(request):
     budgetgrouplist = qry.getBudgetGroups()
     itemlist = []
     for bg in budgetgrouplist:
-        itemlist.append(bg.toValuationDict())
+        itemlist.append(bg.dict())
     return itemlist
 
 
@@ -654,7 +615,7 @@ def project_resources(request):
     else:
         resources = resourcecategory.getResources()
     return [
-            item.toDict()
+            item.dict()()
          for item in sorted(resources, key=lambda o: o.Name.upper())]
 
 
@@ -686,7 +647,7 @@ def resourcecategory_resources(request):
         if resource not in uniqueresources:
             uniqueresources.append(resource)
     for resource in uniqueresources:
-        resourcelist.append(resource.toDict())
+        resourcelist.append(resource.dict())
 
     return resourcelist
 
@@ -796,7 +757,7 @@ def node_grid(request):
         # otherwise, if the parent is a budgetgroup/item, add it to the list
         parent = DBSession.query(Node).filter_by(ID=parentid).first()
         if parent.type == 'BudgetGroup' or parent.type == 'BudgetItem':
-            parentlist = [parent.getGridData()]
+            parentlist = [parent.dict()]
             parentlist[0]['isparent'] = True
 
     node_type = DBSession.query(Node).filter_by(ID=parentid).first().type
@@ -811,15 +772,15 @@ def node_grid(request):
     no_sub_cost = emptyresult.count() == 0
 
     qry = qry.all()
-    # Get the griddata dict from each child and add it to the list
+    # Get the data from each child and add it to the list
     for child in qry:
         if child.type == 'ResourceCategory':
-            rescatlist.append(child.getGridData())
+            rescatlist.append(child.dict())
         else:
-            childrenlist.append(child.getGridData())
+            childrenlist.append(child.dict())
 
-    sorted_childrenlist = sorted(childrenlist, key=lambda k: k['name'].upper())
-    sorted_rescatlist = sorted(rescatlist, key=lambda k: k['name'].upper())
+    sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'].upper())
+    sorted_rescatlist = sorted(rescatlist, key=lambda k: k['Name'].upper())
     sorted_childrenlist = sorted_rescatlist+sorted_childrenlist
     if parentlist:
         sorted_childrenlist = parentlist + sorted_childrenlist
@@ -936,6 +897,12 @@ def node_paste(request):
         duplicates = request.json_body.get('duplicates', {})
         resourcecodes = duplicates.keys()
         sourceresources = source.getResources()
+        # if we are cutting the source, and the resources are being used,
+        # return an error
+        if request.json_body["cut"]:
+            for resource in sourceresources:
+                if len(resource.BudgetItems) > 0:
+                    return HTTPInternalServerError("Can't cut resources that are used")
         projectid = dest.getProjectID()
         resourcecategory = DBSession.query(
                 ResourceCategory).filter_by(ParentID=projectid).first()
@@ -963,14 +930,9 @@ def node_paste(request):
 
         # if the source is cut, delete it
         if request.json_body["cut"]:
-            deleteid = sourceid
-            # Deleting it from the node table deleted the object
             deletethis = DBSession.query(
-                            ResourceCategory).filter_by(ID=deleteid).first()
+                            ResourceCategory).filter_by(ID=sourceid).first()
             qry = DBSession.delete(deletethis)
-
-            if qry == 0:
-                return HTTPNotFound()
         transaction.commit()
     # check the node isnt being pasted into it's parent
     elif parentid != sourceparent:
@@ -982,6 +944,10 @@ def node_paste(request):
             destresources = resourcecategory.getResources()
             if source not in destresources:
                 if request.json_body["cut"]:
+                    sourceresources = source.getResources()
+                    for resource in sourceresources:
+                        if len(resource.BudgetItems) > 0:
+                            return HTTPInternalServerError("Can't cut resources that are used")
                     newparentid = sortResource(resourcecategory, source.Name)
                     source.ParentID = newparentid
                 else:
@@ -1053,8 +1019,13 @@ def node_paste(request):
                     budgetitem.Overheads[:] = []
                     budgetitem.Overheads = newoverheads
 
+            # update parent total
+            sourceparent = source.Parent
+            sourceparent.Total = sourceparent.Total - source.Total
             # set the source parent to the destination parent
             source.ParentID = destinationid
+            # update parent total
+            dest.Total = dest.Total + source.Total
             transaction.commit()
         else:
             # Paste the source into the destination
@@ -1109,6 +1080,9 @@ def node_paste(request):
                 #     for overhead in budgetitem.Overheads:
                 #         if overhead.ID in overheadids.keys():
                 #             # replace the overhead with the copied one
+
+            # update parent total
+            dest.Total = dest.Total + source.Total
     # when a node is pasted in the same level
     else:
         # can't do this for resources or resource categories
@@ -1120,11 +1094,9 @@ def node_paste(request):
                 nodecopy.Name = 'Copy of ' + nodecopy.Name
                 nodechildren = source.Children
                 dest.paste(nodecopy, nodechildren)
+                # update parent total
+                dest.Total = dest.Total + source.Total
 
-    # reset the total
-    if parentid != 0:
-        reset = DBSession.query(Node).filter_by(ID=parentid).first()
-        reset.resetTotal()
     transaction.commit()
     # return the new id
     return{'newId': projectid}
@@ -1159,7 +1131,7 @@ def clientsview(request):
     clientlist = []
 
     for client in qry:
-        clientlist.append(client.toDict())
+        clientlist.append(client.dict())
     return sorted(clientlist, key=lambda k: k['Name'].upper())
 
 
@@ -1221,7 +1193,7 @@ def clientview(request):
     # otherwise return the selected client
     clientid = request.matchdict['id']
     client = DBSession.query(Client).filter_by(ID=clientid).first()
-    return client.toDict()
+    return client.dict()
 
 
 @view_config(route_name='suppliersview', renderer='json')
@@ -1233,7 +1205,7 @@ def suppliersview(request):
     supplierlist = []
 
     for supplier in qry:
-        supplierlist.append(supplier.toDict())
+        supplierlist.append(supplier.dict())
     return sorted(supplierlist, key=lambda k: k['Name'].upper())
 
 
@@ -1295,7 +1267,7 @@ def supplierview(request):
     # otherwise return the selected supplier
     supplierid = request.matchdict['id']
     supplier = DBSession.query(Supplier).filter_by(ID=supplierid).first()
-    return supplier.toDict()
+    return supplier.dict()
 
 
 @view_config(route_name="company_information", renderer='json')
@@ -1487,9 +1459,9 @@ def orders_tree_view(request):
     if qry != None:
         for child in qry.Children:
             if child.type == 'BudgetItem':
-                childrenlist.append(child.toOrderDict())
+                childrenlist.append(child.dict())
             elif child.type != 'ResourceCategory':
-                childrenlist.append(child.toChildDict())
+                childrenlist.append(child.dict())
 
     # sort childrenlist
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'].upper())
@@ -1529,7 +1501,7 @@ def ordersview(request):
     section = qry.slice(start,end).all()
     orderlist = []
     for order in section:
-        orderlist.append(order.toDict())
+        orderlist.append(order.dict())
     # check if the length needs to change
     length = None
     if setLength:
@@ -1646,7 +1618,7 @@ def orderview(request):
         # update the budgetitem ordered amounts
         for orderitem in neworder.OrderItems:
             orderitem.BudgetItem.Ordered = orderitem.Total
-        return neworder.toDict()
+        return neworder.dict()
 
     # if the method is put, edit an existing order
     if request.method == 'PUT':
@@ -1724,7 +1696,7 @@ def orderview(request):
         # update the budgetitem ordered amounts
         for orderitem in order.OrderItems:
             orderitem.BudgetItem.Ordered = orderitem.Total
-        return order.toDict()
+        return order.dict()
 
     # otherwise return the selected order
     orderid = request.matchdict['id']
@@ -1735,7 +1707,7 @@ def orderview(request):
     budgetitemslist = []
     for orderitem in order.OrderItems:
         if orderitem.BudgetItem:
-            budgetitemslist.append(orderitem.toDict())
+            budgetitemslist.append(orderitem.dict())
 
     budgetitemslist = sorted(budgetitemslist, key=lambda k: k['name'].upper())
     # get the date in json format
@@ -1770,7 +1742,7 @@ def valuations_tree_view(request):
     if qry != None:
         for child in qry.Children:
             if child.type != 'ResourceCategory':
-                childrenlist.append(child.toChildDict())
+                childrenlist.append(child.dict())
 
     # sort childrenlist
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'].upper())
@@ -1796,7 +1768,7 @@ def valuationsview(request):
     section = qry.slice(start,end).all()
     valuationlist = []
     for valuation in section:
-        valuationlist.append(valuation.toDict())
+        valuationlist.append(valuation.dict())
     return valuationlist
 
 
@@ -1848,7 +1820,7 @@ def valuationview(request):
         transaction.commit()
         # return the new valuation
         newvaluation = DBSession.query(Valuation).filter_by(ID=newid).first()
-        return newvaluation.toDict()
+        return newvaluation.dict()
 
     # if the method is put, edit an existing valuation
     if request.method == 'PUT':
@@ -1899,7 +1871,7 @@ def valuationview(request):
         # return the edited valuation
         valuation = DBSession.query(
                       Valuation).filter_by(ID=request.matchdict['id']).first()
-        return valuation.toDict()
+        return valuation.dict()
 
     # otherwise return the selected valuation
     valuationid = request.matchdict['id']
@@ -1909,7 +1881,7 @@ def valuationview(request):
     budgetgrouplist = []
     for valuationitem in valuation.ValuationItems:
         if valuationitem.BudgetGroup:
-            budgetgrouplist.append(valuationitem.toDict())
+            budgetgrouplist.append(valuationitem.dict())
 
     budgetgrouplist = sorted(budgetgrouplist, key=lambda k: k['name'].upper())
     # get the date in json format
@@ -2015,7 +1987,7 @@ def invoicesview(request):
         qry = qry.filter_by(Status=paramsdict['Status'][0])
 
     for invoice in qry:
-        invoicelist.append(invoice.tableData())
+        invoicelist.append(invoice.dict())
     return invoicelist
 
 
@@ -2123,7 +2095,7 @@ def invoiceview(request):
         transaction.commit()
         # return the new invoice
         newinvoice = DBSession.query(Invoice).filter_by(ID=newid).first()
-        return newinvoice.tableData()
+        return newinvoice.dict()
 
     # if the method is put, edit an existing invoice
     if request.method == 'PUT':
@@ -2160,10 +2132,10 @@ def invoiceview(request):
         # return the edited invoice
         invoice = DBSession.query(Invoice).filter_by(
                                             ID=request.matchdict['id']).first()
-        return invoice.tableData()
+        return invoice.dict()
 
     # otherwise return the selected invoice
     invoiceid = request.matchdict['id']
     invoice = DBSession.query(Invoice).filter_by(ID=invoiceid).first()
 
-    return invoice.toDict()
+    return invoice.dict()

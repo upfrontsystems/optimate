@@ -186,6 +186,19 @@ if __name__ == '__main__':
         errorid = newcode - 1
         errornode = Project(Name='ErrorNode', ID=errorid, ParentID=0)
         DBSession.add(errornode)
+        # add a project for nodes whos parent code is 0
+        newcode+=1
+        rootprojectid = newcode
+        rootproject = Project(ID=rootprojectid,
+                            Name="Root Project",
+                            ParentID=0)
+        DBSession.add(rootproject)
+        newcode += 1
+        rootresourcecategory = ResourceCategory(ID=newcode,
+                                        Name='Resource List',
+                                        Description='List of Resources',
+                                        ParentID=rootprojectid)
+        DBSession.add(rootresourcecategory)
 
         print "Adding admin user"
         user = User()
@@ -290,38 +303,38 @@ if __name__ == '__main__':
                 clientid = None
 
             # convert the costs to Decimal and if there are issues set it to 0
-            try:
-                budgetcost = Decimal(row[budgetcostindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                budgetcost = Decimal(0.00)
-            try:
-                ordercost = Decimal(row[ordercostindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                ordercost = Decimal(0.00)
-            try:
-                claimedcost = Decimal(row[claimedcostindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                claimedcost = Decimal(0.00)
-            try:
-                running = Decimal(row[runningindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                running = Decimal(0.00)
-            try:
-                income = Decimal(row[incomeindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                income = Decimal(0.00)
-            try:
-                clientcost = Decimal(row[clientcostindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                clientcost = Decimal(0.00)
-            try:
-                projprofit = Decimal(row[projprofitindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                projprofit = Decimal(0.00)
-            try:
-                actprofit = Decimal(row[actprofitindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                actprofit = Decimal(0.00)
+            # try:
+            #     budgetcost = Decimal(row[budgetcostindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     budgetcost = Decimal(0.00)
+            # try:
+            #     ordercost = Decimal(row[ordercostindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     ordercost = Decimal(0.00)
+            # try:
+            #     claimedcost = Decimal(row[claimedcostindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     claimedcost = Decimal(0.00)
+            # try:
+            #     running = Decimal(row[runningindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     running = Decimal(0.00)
+            # try:
+            #     income = Decimal(row[incomeindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     income = Decimal(0.00)
+            # try:
+            #     clientcost = Decimal(row[clientcostindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     clientcost = Decimal(0.00)
+            # try:
+            #     projprofit = Decimal(row[projprofitindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     projprofit = Decimal(0.00)
+            # try:
+            #     actprofit = Decimal(row[actprofitindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     actprofit = Decimal(0.00)
 
             cityid = None
             if len(city) > 0:
@@ -333,14 +346,15 @@ if __name__ == '__main__':
                               ParentID=0,
                               ClientID=clientid,
                               CityID=cityid,
-                              _Total = budgetcost,
-                              OrderCost=ordercost,
-                              RunningCost=running,
-                              ClaimedCost=claimedcost,
-                              IncomeReceived=income,
-                              ClientCost=clientcost,
-                              ProjectedProfit=projprofit,
-                              ActualProfit=actprofit)
+                              # _Total = budgetcost,
+                              # OrderCost=ordercost,
+                              # RunningCost=running,
+                              # ClaimedCost=claimedcost,
+                              # IncomeReceived=income,
+                              # ClientCost=clientcost,
+                              # ProjectedProfit=projprofit,
+                              # ActualProfit=actprofit
+                              )
             DBSession.add(project)
             DBSession.flush()
 
@@ -397,44 +411,44 @@ if __name__ == '__main__':
             try:
                 parentcode = int(row[parentindex])
             except ValueError, e:
-                parentcode = errorid
+                parentcode = rootprojectid
             name = row[nameindex]
             name=name.decode("utf-8")
             name=name.encode("ascii","ignore")
             description = str(row[descriptionindex])
             # set the costs to 0 if theres a problem
-            try:
-                budgetcost = Decimal(row[budgetcostindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                budgetcost = Decimal(0.00)
-            try:
-                ordercost = Decimal(row[ordercostindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                ordercost = Decimal(0.00)
-            try:
-                claimedcost = Decimal(row[claimedcostindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                claimedcost = Decimal(0.00)
-            try:
-                running = Decimal(row[runningindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                running = Decimal(0.00)
-            try:
-                income = Decimal(row[incomeindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                income = Decimal(0.00)
-            try:
-                clientcost = Decimal(row[clientcostindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                clientcost = Decimal(0.00)
-            try:
-                projprofit = Decimal(row[projprofitindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                projprofit = Decimal(0.00)
-            try:
-                actprofit = Decimal(row[actprofitindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                actprofit = Decimal(0.00)
+            # try:
+            #     budgetcost = Decimal(row[budgetcostindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     budgetcost = Decimal(0.00)
+            # try:
+            #     ordercost = Decimal(row[ordercostindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     ordercost = Decimal(0.00)
+            # try:
+            #     claimedcost = Decimal(row[claimedcostindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     claimedcost = Decimal(0.00)
+            # try:
+            #     running = Decimal(row[runningindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     running = Decimal(0.00)
+            # try:
+            #     income = Decimal(row[incomeindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     income = Decimal(0.00)
+            # try:
+            #     clientcost = Decimal(row[clientcostindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     clientcost = Decimal(0.00)
+            # try:
+            #     projprofit = Decimal(row[projprofitindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     projprofit = Decimal(0.00)
+            # try:
+            #     actprofit = Decimal(row[actprofitindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     actprofit = Decimal(0.00)
 
             # if the code has been changed assign it here
             if code in changedbgcodes:
@@ -444,7 +458,7 @@ if __name__ == '__main__':
             # budgetgroups should not refer to the root
             if parentcode <= 0:
                 if parentcode == 0:
-                    parentcode = errorid
+                    parentcode = rootprojectid
                 else:
                     parentcode = -parentcode
                     if parentcode in changedbgcodes:
@@ -455,14 +469,15 @@ if __name__ == '__main__':
                             Name=name,
                             Description=description,
                             ParentID=parentcode,
-                            _Total=budgetcost,
-                            OrderCost=ordercost,
-                            RunningCost=running,
-                            ClaimedCost=claimedcost,
-                            IncomeReceived=income,
-                            ClientCost=clientcost,
-                            ProjectedProfit=projprofit,
-                            ActualProfit=actprofit)
+                            # _Total=budgetcost,
+                            # OrderCost=ordercost,
+                            # RunningCost=running,
+                            # ClaimedCost=claimedcost,
+                            # IncomeReceived=income,
+                            # ClientCost=clientcost,
+                            # ProjectedProfit=projprofit,
+                            # ActualProfit=actprofit
+                            )
             DBSession.add(bg)
 
         transaction.commit()
@@ -537,23 +552,7 @@ if __name__ == '__main__':
             measureunit = row[unitindex]
             measureunit=measureunit.decode("utf-8")
             measureunit=measureunit.encode("ascii","ignore")
-            # set the costs to 0 if theres a problem
-            try:
-                budgetcost = Decimal(row[budgetcostindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                budgetcost = Decimal(0.00)
-            try:
-                ordercost = Decimal(row[ordercostindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                ordercost = Decimal(0.00)
-            try:
-                claimedcost = Decimal(row[claimedcostindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                claimedcost = Decimal(0.00)
-            try:
-                parentcode = int(row[parentindex])
-            except ValueError, e:
-                parentcode = errorid
+            parentcode = int(row[parentindex])
             try:
                 quantity = float(row[quantityindex])
             except ValueError, e:
@@ -562,26 +561,39 @@ if __name__ == '__main__':
                 rate = Decimal(row[rateindex]).quantize(Decimal('.01'))
             except InvalidOperation, e:
                 rate = Decimal(0.00)
-            try:
-                running = Decimal(row[runningindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                running = Decimal(0.00)
-            try:
-                income = Decimal(row[incomeindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                income = Decimal(0.00)
-            try:
-                client = Decimal(row[clientindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                client = Decimal(0.00)
-            try:
-                projprofit = Decimal(row[projprofitindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                projprofit = Decimal(0.00)
-            try:
-                actprofit = Decimal(row[actprofitindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                actprofit = Decimal(0.00)
+            # set the costs to 0 if theres a problem
+            # try:
+            #     budgetcost = Decimal(row[budgetcostindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     budgetcost = Decimal(0.00)
+            # try:
+            #     ordercost = Decimal(row[ordercostindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     ordercost = Decimal(0.00)
+            # try:
+            #     claimedcost = Decimal(row[claimedcostindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     claimedcost = Decimal(0.00)
+            # try:
+            #     running = Decimal(row[runningindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     running = Decimal(0.00)
+            # try:
+            #     income = Decimal(row[incomeindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     income = Decimal(0.00)
+            # try:
+            #     client = Decimal(row[clientindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     client = Decimal(0.00)
+            # try:
+            #     projprofit = Decimal(row[projprofitindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     projprofit = Decimal(0.00)
+            # try:
+            #     actprofit = Decimal(row[actprofitindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     actprofit = Decimal(0.00)
 
             # if the code has been changed assign it here
             if code in changedbicodes:
@@ -589,10 +601,13 @@ if __name__ == '__main__':
                     code = changedbicodes[code]
             # if the parent is negative it refers to a node in the same table
             if parentcode <= 0:
-                biparent = True
-                parentcode = -parentcode
-                if parentcode in changedbicodes:
-                    parentcode = changedbicodes[parentcode]
+                if parentcode == 0:
+                    parentcode=rootprojectid
+                else:
+                    biparent = True
+                    parentcode = -parentcode
+                    if parentcode in changedbicodes:
+                        parentcode = changedbicodes[parentcode]
             # otherwise check if the parent code has changed
             elif parentcode in changedbgcodes:
                 parentcode = changedbgcodes[parentcode]
@@ -668,14 +683,15 @@ if __name__ == '__main__':
                                 bi = BudgetItem(ID=code,
                                                 ResourceID=resource.ID,
                                                 _Quantity=quantity,
-                                                OrderCost=ordercost,
-                                                RunningCost=running,
-                                                ClaimedCost=claimedcost,
-                                                IncomeReceived=income,
-                                                ClientCost=client,
-                                                ProjectedProfit=projprofit,
-                                                ActualProfit=actprofit,
-                                                ParentID=parentcode)
+                                                ParentID=parentcode,
+                                                # OrderCost=ordercost,
+                                                # RunningCost=running,
+                                                # ClaimedCost=claimedcost,
+                                                # IncomeReceived=income,
+                                                # ClientCost=client,
+                                                # ProjectedProfit=projprofit,
+                                                # ActualProfit=actprofit
+                                                )
                                 DBSession.add(bi)
                             else:
                                 # create a new resource unit
@@ -706,14 +722,15 @@ if __name__ == '__main__':
                                 bi = BudgetItem(ID=code,
                                                 ResourceID=resource.ID,
                                                 _Quantity=quantity,
-                                                OrderCost=ordercost,
-                                                RunningCost=running,
-                                                ClaimedCost=claimedcost,
-                                                IncomeReceived=income,
-                                                ClientCost=client,
-                                                ProjectedProfit=projprofit,
-                                                ActualProfit=actprofit,
-                                                ParentID=parentcode)
+                                                ParentID=parentcode,
+                                                # OrderCost=ordercost,
+                                                # RunningCost=running,
+                                                # ClaimedCost=claimedcost,
+                                                # IncomeReceived=income,
+                                                # ClientCost=client,
+                                                # ProjectedProfit=projprofit,
+                                                # ActualProfit=actprofit
+                                                )
                                 DBSession.add(bi)
                         else:
                             # the parent doesnt exist yet
@@ -757,14 +774,15 @@ if __name__ == '__main__':
                                 bi = BudgetItem(ID=code,
                                                 ResourceID=resource.ID,
                                                 _Quantity=quantity,
-                                                OrderCost=ordercost,
-                                                RunningCost=running,
-                                                ClaimedCost=claimedcost,
-                                                IncomeReceived=income,
-                                                ClientCost=client,
-                                                ProjectedProfit=projprofit,
-                                                ActualProfit=actprofit,
-                                                ParentID=parentcode)
+                                                ParentID=parentcode,
+                                                # OrderCost=ordercost,
+                                                # RunningCost=running,
+                                                # ClaimedCost=claimedcost,
+                                                # IncomeReceived=income,
+                                                # ClientCost=client,
+                                                # ProjectedProfit=projprofit,
+                                                # ActualProfit=actprofit,
+                                                )
                                 DBSession.add(bi)
                             else:
                                 # create a new resource unit
@@ -795,14 +813,15 @@ if __name__ == '__main__':
                                 bi = BudgetItem(ID=code,
                                                 _Quantity=quantity,
                                                 ResourceID=resource.ID,
-                                                OrderCost=ordercost,
-                                                RunningCost=running,
-                                                ClaimedCost=claimedcost,
-                                                IncomeReceived=income,
-                                                ClientCost=client,
-                                                ProjectedProfit=projprofit,
-                                                ActualProfit=actprofit,
-                                                ParentID=parentcode)
+                                                ParentID=parentcode,
+                                                # OrderCost=ordercost,
+                                                # RunningCost=running,
+                                                # ClaimedCost=claimedcost,
+                                                # IncomeReceived=income,
+                                                # ClientCost=client,
+                                                # ProjectedProfit=projprofit,
+                                                # ActualProfit=actprofit,
+                                                )
                                 DBSession.add(bi)
                         DBSession.flush()
                     else:
@@ -845,13 +864,14 @@ if __name__ == '__main__':
                                                 ResourceID=resource.ID,
                                                 ParentID=parentcode,
                                                 _Quantity=quantity,
-                                                OrderCost=ordercost,
-                                                RunningCost=running,
-                                                ClaimedCost=claimedcost,
-                                                IncomeReceived=income,
-                                                ClientCost=client,
-                                                ProjectedProfit=projprofit,
-                                                ActualProfit=actprofit)
+                                                # OrderCost=ordercost,
+                                                # RunningCost=running,
+                                                # ClaimedCost=claimedcost,
+                                                # IncomeReceived=income,
+                                                # ClientCost=client,
+                                                # ProjectedProfit=projprofit,
+                                                # ActualProfit=actprofit
+                                                )
                                 DBSession.add(bi)
                             else:
                                 # the resource does not exist
@@ -875,14 +895,15 @@ if __name__ == '__main__':
                                 bi = BudgetItem(ID=code,
                                                 _Quantity=quantity,
                                                 ResourceID=resource.ID,
-                                                OrderCost=ordercost,
-                                                RunningCost=running,
-                                                ClaimedCost=claimedcost,
-                                                IncomeReceived=income,
-                                                ClientCost=client,
-                                                ProjectedProfit=projprofit,
-                                                ActualProfit=actprofit,
-                                                ParentID=parentcode)
+                                                ParentID=parentcode,
+                                                # OrderCost=ordercost,
+                                                # RunningCost=running,
+                                                # ClaimedCost=claimedcost,
+                                                # IncomeReceived=income,
+                                                # ClientCost=client,
+                                                # ProjectedProfit=projprofit,
+                                                # ActualProfit=actprofit,
+                                                )
                                 DBSession.add(bi)
                             DBSession.flush()
 
@@ -962,18 +983,6 @@ if __name__ == '__main__':
             name=name.encode("ascii","ignore")
             description = str(row[descriptionindex])
             try:
-                budgetcost = Decimal(row[budgetcostindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                budgetcost = Decimal(0.00)
-            try:
-                ordercost = Decimal(row[ordercostindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                ordercost = Decimal(0.00)
-            try:
-                claimedcost = Decimal(row[claimedcostindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                claimedcost = Decimal(0.00)
-            try:
                 parentcode = int(row[parentindex])
             except ValueError, e:
                 parentcode = errorid
@@ -986,31 +995,43 @@ if __name__ == '__main__':
             except InvalidOperation, e:
                 rate = Decimal(0.00)
             try:
-                running = Decimal(row[runningindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                running = Decimal(0.00)
-            try:
-                income = Decimal(row[incomeindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                income = Decimal(0.00)
-            try:
-                client = Decimal(row[clientindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                client = Decimal(0.00)
-            try:
-                projprofit = Decimal(row[projprofitindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                projprofit = Decimal(0.00)
-            try:
-                actprofit = Decimal(row[actprofitindex]).quantize(Decimal('.01'))
-            except InvalidOperation, e:
-                actprofit = Decimal(0.00)
-            try:
                 rtype = int(row[typeindex])
                 if rtype == 0:
                     rtype = None
             except:
                 rtype = None
+            # try:
+            #     budgetcost = Decimal(row[budgetcostindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     budgetcost = Decimal(0.00)
+            # try:
+            #     ordercost = Decimal(row[ordercostindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     ordercost = Decimal(0.00)
+            # try:
+            #     claimedcost = Decimal(row[claimedcostindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     claimedcost = Decimal(0.00)
+            # try:
+            #     running = Decimal(row[runningindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     running = Decimal(0.00)
+            # try:
+            #     income = Decimal(row[incomeindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     income = Decimal(0.00)
+            # try:
+            #     client = Decimal(row[clientindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     client = Decimal(0.00)
+            # try:
+            #     projprofit = Decimal(row[projprofitindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     projprofit = Decimal(0.00)
+            # try:
+            #     actprofit = Decimal(row[actprofitindex]).quantize(Decimal('.01'))
+            # except InvalidOperation, e:
+            #     actprofit = Decimal(0.00)
 
             # if the code has been changed assign it here
             if code in changedcocodes:
@@ -1061,14 +1082,13 @@ if __name__ == '__main__':
                         # check if the resource is already in the resourcecategory
                         # if not get it from the database
                         if not resource:
-                            resource = DBSession.query(
+                            existingresource = DBSession.query(
                                 Resource).filter_by(Name=checkname).first()
 
                             # if it already exists in the database create a new one
                             # and add it to the resourcecategory
-                            if resource:
+                            if existingresource:
                                 newcode += 1
-                                resourceid = newcode
                                 # get the id of the unit the resource is using
                                 qry = DBSession.query(Unit).filter_by(
                                         Name=measureunit).first()
@@ -1076,14 +1096,15 @@ if __name__ == '__main__':
                                     measureunit = qry.ID
                                 else:
                                     measureunit = None
-                                resource = Resource(ID=resourceid,
-                                            Type=rtype,
-                                            Name=resource.Name,
-                                            Code=resource.Code,
-                                            UnitID=measureunit,
-                                            _Rate=resource._Rate,
-                                            Description=resource.Description,
-                                            ParentID=resourcecategory.ID)
+                                resource = Resource(ID=newcode,
+                                                Type=rtype,
+                                                Name=existingresource.Name,
+                                                Code=existingresource.Code,
+                                                UnitID=measureunit,
+                                                _Rate=existingresource._Rate,
+                                                Description=existingresource.Description,
+                                                ParentID=resourcecategory.ID)
+                                DBSession.add(resource)
                         if not resource:
                             # resource does not exist yet
                             # build the resource
@@ -1119,13 +1140,14 @@ if __name__ == '__main__':
                                             ResourceID=resource.ID,
                                             _Quantity = quantity,
                                             ParentID=parentcode,
-                                            OrderCost=ordercost,
-                                            RunningCost=running,
-                                            ClaimedCost=claimedcost,
-                                            IncomeReceived=income,
-                                            ClientCost=client,
-                                            ProjectedProfit=projprofit,
-                                            ActualProfit=actprofit)
+                                            # OrderCost=ordercost,
+                                            # RunningCost=running,
+                                            # ClaimedCost=claimedcost,
+                                            # IncomeReceived=income,
+                                            # ClientCost=client,
+                                            # ProjectedProfit=projprofit,
+                                            # ActualProfit=actprofit
+                                            )
                             DBSession.add(bi)
                         else:
                             # the resource exists, create the budgetitem
@@ -1133,13 +1155,14 @@ if __name__ == '__main__':
                                         ResourceID=resource.ID,
                                         _Quantity = quantity,
                                         ParentID=parentcode,
-                                        OrderCost=ordercost,
-                                        RunningCost=running,
-                                        ClaimedCost=claimedcost,
-                                        IncomeReceived=income,
-                                        ClientCost=client,
-                                        ProjectedProfit=projprofit,
-                                        ActualProfit=actprofit)
+                                        # OrderCost=ordercost,
+                                        # RunningCost=running,
+                                        # ClaimedCost=claimedcost,
+                                        # IncomeReceived=income,
+                                        # ClientCost=client,
+                                        # ProjectedProfit=projprofit,
+                                        # ActualProfit=actprofit
+                                        )
                             DBSession.add(bi)
                         DBSession.flush()
 
@@ -1149,17 +1172,20 @@ if __name__ == '__main__':
         DBSession.delete(deletethis)
         transaction.commit()
 
-        print "Fixing BudgetItems"
-        # all budgetitems that dont reference a resourceunit are deleted
-        budgetitems = DBSession.query(BudgetItem).all()
-        for budgetitem in budgetitems:
-            if not budgetitem.Resource:
-                DBSession.delete(budgetitem)
-        transaction.commit()
         print 'Recalculating the totals of the projects'
         projectlist = DBSession.query(Project).all()
+        percentile = len(projectlist) / 100.0
+        print 'Percentage done: '
+        counter = 1
+        x = 0
         for project in projectlist:
-            project.recalculateTotal()
+            x +=1
+            if x == int(percentile * counter):
+                counter += 1
+                stdout.write('\r%d' % counter + '%')
+                stdout.flush()
+                sleep(1)
+            project.Total
 
         transaction.commit()
 
@@ -1438,8 +1464,18 @@ if __name__ == '__main__':
 
         print "Recalculating Order totals"
         orders = DBSession.query(Order).all()
+        percentile = len(orders) / 100.0
+        print 'Percentage done: '
+        counter = 1
+        x = 0
         # if the order has no order items delete it
         for order in orders:
+            x +=1
+            if x == int(percentile * counter):
+                counter += 1
+                stdout.write('\r%d' % counter + '%')
+                stdout.flush()
+                sleep(1)
             if len(order.OrderItems) == 0:
                 DBSession.delete(order)
             else:
@@ -1448,7 +1484,18 @@ if __name__ == '__main__':
 
         print "Setting Resource SupplierID"
         resources = DBSession.query(Resource).all()
+        percentile = len(resources) / 100.0
+        print 'Percentage done: '
+        counter = 1
+        x = 0
+        # if the order has no order items delete it
         for resource in resources:
+            x +=1
+            if x == int(percentile * counter):
+                counter += 1
+                stdout.write('\r%d' % counter + '%')
+                stdout.flush()
+                sleep(1)
             budgetitem = resource.BudgetItems[0]
             if len(budgetitem.OrderItems) > 0:
                 orderitem = budgetitem.OrderItems[0]
