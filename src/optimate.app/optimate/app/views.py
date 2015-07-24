@@ -866,6 +866,7 @@ def node_paste(request):
                                                 component.ResourceID]
             # set the costs to zero
             projectcopy.clearCosts()
+            pasted_id = projectcopy.ID
     # if we're dealing with resource categories
     elif source.type == 'ResourceCategory' and dest.type == 'ResourceCategory':
         duplicates = request.json_body.get('duplicates', {})
