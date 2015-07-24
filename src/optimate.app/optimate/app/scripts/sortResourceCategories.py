@@ -10,10 +10,10 @@ from optimate.app.models import (
     Project,
     BudgetGroup,
     BudgetItem,
-    Component,
     ResourceType,
     ResourceCategory,
     Resource,
+    ResourceUnit,
     Client,
     Supplier
 )

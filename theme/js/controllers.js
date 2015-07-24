@@ -1996,7 +1996,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             }).success(function(response) {
                 $scope.formData = response;
                 $scope.loadProject()
-                $scope.budgetItemsList = $scope.formData.BudgetItemsList.;
+                $scope.budgetItemsList = $scope.formData.BudgetItemsList;
                 $scope.formData['Date'] = new Date($scope.formData['Date']);
                 $scope.formData.NodeType = 'order';
             });
