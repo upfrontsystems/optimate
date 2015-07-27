@@ -754,7 +754,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                             $scope.dragOver(destNodesScope.$nodeScope.$modelValue);
                         }
                         return true;
-                    }else{
+                    }
+                    else {
                         return false;
                     }
                 }
@@ -806,6 +807,9 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         $scope.cutThisNode(src);
                         $scope.currentNode = dest;
                         $scope.pasteThisNode(dest);
+                        // set the flag to indicate that this pasting operation
+                        // originated from a drag operation
+                        $scope.pastingFromDnd = true;
                     }
                     // otherwise paste
                     else{
@@ -814,6 +818,9 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         // set the flag to indicate the source needs to be added
                         // back to the parent when the node drops
                         $scope.addNodeBack = true;
+                        // set the flag to indicate that this pasting operation
+                        // originated from a drag operation
+                        $scope.pastingFromDnd = true;
                     }
                 }
                 // clear the drag over value
@@ -830,6 +837,9 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     var sourceobject = event.source.nodeScope.$modelValue;
                     var parent = event.source.nodeScope.$parentNodeScope.$modelValue;
                     parent.Subitem.push(sourceobject);
+                    parent.Subitem.sort(function(a, b) {
+                        return a.Name.localeCompare(b.Name)
+                    });
                     $scope.addNodeBack = false;
                 }
             },
@@ -1163,7 +1173,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 method: 'DELETE',
                 url:globalServerURL + 'node/' + nodeid + '/'
             }).success(function (response) {
-                $scope.statusMessage("Deleted " + $scope.currentNode.Name, 1000, 'alert-info');
+                $scope.statusMessage("Deleted " + $scope.currentNode.Name, 2000, 'alert-info');
                 if (response['parentid'] == 0) {
                     $scope.closeProject(nodeid);
                 }
@@ -1172,13 +1182,13 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 }
             }).error(function(){
                 console.log("Server error");
-                $scope.statusMessage("Server error.", 1000, 'alert-warning');
+                $scope.statusMessage("Server error.", 2000, 'alert-warning');
             });
         };
 
         // Function to copy a node
         $scope.copyThisNode = function(node) {
-            $scope.statusMessage(node.Name + " copied.", 1000, 'alert-info');
+            $scope.statusMessage(node.Name + " copied.", 2000, 'alert-info');
             $scope.copiedNode = node;
             $scope.cut = false;
             console.log("Node id copied: " + node.ID);
@@ -1187,7 +1197,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         // Function to cut a node
         // the node is removed from the tree (but not deleted)
         $scope.cutThisNode = function(node) {
-            $scope.statusMessage(node.Name + " cut.", 1000, 'alert-info');
+            $scope.statusMessage(node.Name + " cut.", 2000, 'alert-info');
             $scope.copiedNode = node;
             console.log("Node id cut: " + node.ID);
             $scope.cut = true;
@@ -1214,19 +1224,29 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         // and add it to the open projects
                         $scope.projectAdded(data);
                     });
+                    $scope.statusMessage("New project pasted.", 2000, 'alert-info');
                 }
                 else if (index !== undefined){
                     // if we pasted the last node of the copied records
                     if (index == $scope.copiedRecords.length-1){
-                        $scope.statusMessage("Records pasted.", 1000, 'alert-info');
+                        $scope.statusMessage("Records pasted.", 2000, 'alert-info');
                         $scope.handleReloadSlickgrid(node.ID);
                         $scope.loadNodeChildren(node.ID);
                     }
                 }
                 else {
-                    $scope.statusMessage($scope.copiedNode.Name + " pasted.", 1000, 'alert-info');
+                    $scope.statusMessage($scope.copiedNode.Name + " pasted.", 2000, 'alert-info');
                     $scope.handleReloadSlickgrid(node.ID);
-                    $scope.loadNodeChildren(node.ID);
+                    // insert the copied/cut node in the correct destination without reloading
+                    // all the children of the parent
+                    console.log($scope.currentNode);
+                    if (!$scope.pastingFromDnd) {
+                        $scope.currentNode.Subitem.push(response['node']);
+                        $scope.currentNode.Subitem.sort(function(a, b) {
+                            return a.Name.localeCompare(b.Name)
+                        });
+                    }
+                    $scope.pastingFromDnd = false;
                 }
                 // expand the node if this is its first child
                 if ($scope.currentNode.Subitem.length == 0) {
@@ -1234,7 +1254,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 }
             }).error(function() {
                 console.log("Server error");
-                $scope.statusMessage("Server error.", 1000, 'alert-warning');
+                $scope.statusMessage("Server error.", 2000, 'alert-warning');
             }).then(function(){
                 if (index !== undefined){
                     index+=1;
@@ -1300,7 +1320,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             })();
         };
 
-
         // function to paste copied node into another node
         // the id is sent to the server and the node pasted there
         // the user can't paste into the same node
@@ -1314,13 +1333,13 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             if (flag && (cnode.ID == node.ID)) {
                 flag = false;
                 console.log("You can't paste a node into itself");
-                $scope.statusMessage("You can't paste a node into itself", 1000, 'alert-warning');
+                $scope.statusMessage("You can't paste a node into itself", 2000, 'alert-warning');
             }
             // check the allowed array for the types
             if (flag && ($scope.allowed[node.NodeType].indexOf(cnode.NodeType) == -1)){
                 flag = false;
                 console.log("You can't paste a " + cnode.NodeType + " into a " + node.NodeType);
-                $scope.statusMessage("You can't paste a " + cnode.NodeType + " into a " + node.NodeType, 1000, 'alert-warning');
+                $scope.statusMessage("You can't paste a " + cnode.NodeType + " into a " + node.NodeType, 2000, 'alert-warning');
                 // if the index is set, paste the next record
                 if (index !== undefined){
                     index+=1;
@@ -1337,7 +1356,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 flag = false;
                 if (cnode.ParentID == node.ID) {
                     console.log("You can't paste a Resource Category into the same list");
-                    $scope.statusMessage("You can't paste a Resource Category into the same list", 1000, 'alert-warning');
+                    $scope.statusMessage("You can't paste a Resource Category into the same list", 2000, 'alert-warning');
                     if (index !== undefined){
                         index+=1;
                         $scope.resolvePastePromise(node, index);
@@ -1393,7 +1412,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 $http.get(globalServerURL + 'node/' + parentid + '/children/')
                 .success(function(data) {
                     $scope.currentNode.Subitem = data;
-                    console.log("Children loaded");
+                    console.log("Children loaded !!");
                 });
             }
         }
@@ -1430,7 +1449,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 $scope.toggleCopiedRecords($scope.getSelectedNodes(), false);
                 $scope.copiedNode = {'NodeType': 'Records'};
                 console.log("Records copied");
-                $scope.statusMessage("Records copied.", 1000, 'alert-info');
+                $scope.statusMessage("Records copied.", 2000, 'alert-info');
             }
         };
 
@@ -1458,7 +1477,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     }
                 }
                 console.log("Records cut");
-                $scope.statusMessage("Records cut.", 1000, 'alert-info');
+                $scope.statusMessage("Records cut.", 2000, 'alert-info');
             }
         };
 
@@ -1498,7 +1517,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                                 $scope.loadNodeChildren(nodeid);
                                 $scope.handleReloadSlickgrid(nodeid);
                             }3
-                            $scope.statusMessage("Deleted records", 1000, 'alert-info');
+                            $scope.statusMessage("Deleted records", 2000, 'alert-info');
                             $scope.toggleRowsSelected(false);
                         }
                     });
@@ -2248,7 +2267,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                     spinner.stop(); // stop the spinner - ajax call complete
                     var file = new Blob([response], {type: 'application/pdf'});
                     var fileURL = URL.createObjectURL(file);
-                    var result = document.getElementsByClassName("pdf_download");
+                    var result = document.getElementsByClassName("pdf_hidden_download");
                     var anchor = angular.element(result);
                     var filename_header = headers('Content-Disposition');
                     var filename = filename_header.split('filename=')[1];
@@ -2305,6 +2324,15 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
         $scope.clientsList = [];
         $scope.clearFilters();
 
+        $scope.invoicesLengthCheck = function() {
+            if ($scope.jsoninvoices.length == 0) {
+               $scope.invoicesReportEnabled = false;
+            }
+            else {
+               $scope.invoicesReportEnabled = true;
+            }
+        }
+
         $scope.loadInvoiceSection = function() {
             var req = {
                 method: 'GET',
@@ -2319,6 +2347,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             };
             $http(req).success(function(response) {
                 $scope.jsoninvoices = response;
+                $scope.invoicesLengthCheck();
                 console.log("Invoices loaded");
             });
         }
@@ -2400,6 +2429,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
                 var idB = b.id;
                 return (idA > idB) ? -1 : (idA < idB) ? 1 : 0;
             });
+            $scope.invoicesLengthCheck();
             console.log ("Invoice added");
         }
 
@@ -2476,19 +2506,20 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
                 var i = $scope.jsoninvoices.indexOf(result[0]);
                 if (i>-1) {
                     $scope.jsoninvoices.splice(i, 1);
+                    $scope.invoicesLengthCheck();
                     console.log("Deleted invoice");
                 }
             });
         };
 
-        $scope.checkOrderNumber = function(){
+        $scope.checkOrderNumber = function() {
             // check if the order exists and set the form valid or invalid
             $http.get(globalServerURL + 'order/' + $scope.formData.OrderID + '/')
             .success(function(response){
                 $scope.saveInvoiceModalForm.inputOrderNumber.$setValidity('default1', true);
                 $scope.calculatedAmounts[3].Amount = response.Total
             })
-            .error(function(response){
+            .error(function(response) {
                 $scope.saveInvoiceModalForm.inputOrderNumber.$setValidity('default1', false);
             });
         };
@@ -2499,29 +2530,29 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             var total = subtotal + vatcost;
 
             var parts = subtotal.toString().split(".");
-            if (parts.length > 1){
+            if (parts.length > 1) {
                 parts[1] = parts[1].slice(0,2);
                 subtotal = parts.join('.');
             }
-            else{
+            else {
                 subtotal = subtotal.toString() + '.00'
             }
 
             parts = vatcost.toString().split(".");
-            if (parts.length > 1){
+            if (parts.length > 1) {
                 parts[1] = parts[1].slice(0,2);
                 vatcost = parts.join('.');
             }
-            else{
+            else {
                 vatcost = vatcost.toString() + '.00'
             }
 
             parts = total.toString().split(".");
-            if (parts.length > 1){
+            if (parts.length > 1) {
                 parts[1] = parts[1].slice(0,2);
                 total = parts.join('.');
             }
-            else{
+            else {
                 total = total.toString() + '.00'
             }
 
@@ -2530,19 +2561,44 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             $scope.calculatedAmounts[2].amount = total;
         }
 
+        // fetch the report filter options
+        $scope.filterReportBy = function() {
+            $scope.filterByProject = false;
+            $scope.filterBySupplier = false;
+            $scope.filterByPaymentDate = false;
+            $scope.filterByStatus = false;
+            var req = {
+                method: 'GET',
+                url: globalServerURL + 'invoices_report_filter'
+            };
+            $http(req).success(function(response) {
+                $scope.invoiceReportProjectsList = response['projects'];
+                $scope.invoiceReportSuppliersList = response['suppliers'];
+                $scope.invoiceReportPaymentDateList = response['paymentdates'];
+                $scope.paymentDatesExist = response['paymentdates_exist'];
+                $scope.invoiceReportStatusList = response['statuses'];
+                console.log("Invoice report filter options loaded")
+            })
+        };
+
         $scope.getReport = function (report) {
-            if ( report == 'invoice' ) {
+            if ( report == 'invoices' ) {
                 var target = document.getElementsByClassName('pdf_download');
                 var spinner = new Spinner().spin(target[0]);
+                $scope.formData['FilterByProject'] = $scope.filterByProject;
+                $scope.formData['FilterBySupplier'] = $scope.filterBySupplier;
+                $scope.formData['FilterByPaymentDate'] = $scope.filterByPaymentDate;
+                $scope.formData['FilterByStatus'] = $scope.filterByStatus;
                 $http({
                     method: 'POST',
-                    url: globalServerURL + 'invoice_report/' + $scope.selectedInvoice.id + '/'},
+                    url: globalServerURL + 'invoices_report',
+                    data: $scope.formData},
                     {responseType: 'arraybuffer'})
                 .success(function (response, status, headers, config) {
                     spinner.stop(); // stop the spinner - ajax call complete
                     var file = new Blob([response], {type: 'application/pdf'});
                     var fileURL = URL.createObjectURL(file);
-                    var result = document.getElementsByClassName("pdf_download");
+                    var result = document.getElementsByClassName("pdf_hidden_download");
                     var anchor = angular.element(result);
                     var filename_header = headers('Content-Disposition');
                     var filename = filename_header.split('filename=')[1];
@@ -2917,7 +2973,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                     spinner.stop(); // stop the spinner - ajax call complete
                     var file = new Blob([response], {type: 'application/pdf'});
                     var fileURL = URL.createObjectURL(file);
-                    var result = document.getElementsByClassName("pdf_download");
+                    var result = document.getElementsByClassName("pdf_hidden_download");
                     var anchor = angular.element(result);
                     var filename_header = headers('Content-Disposition');
                     var filename = filename_header.split('filename=')[1];

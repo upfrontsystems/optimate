@@ -1731,11 +1731,29 @@ class Invoice(Base):
                 'Ordertotal': str(self.Order.Total),
                 'Status': self.Status}
 
+    def toReportDict(self):
+        """ Returns a dictionary of this Invoice for the invoice report
+        """
+        paydate = None
+        if self.PaymentDate:
+            paydate = self.PaymentDate.strftime("%d %B %Y")
+        invoicedate = None
+        if self.InvoiceDate:
+            invoicedate = self.InvoiceDate.strftime("%d %B %Y")
+        return {'id': self.ID,
+                'orderid': self.OrderID,
+                'project': self.Order.Project.Name,
+                'supplier': self.Order.Supplier.Name,
+                'invoicedate': invoicedate,
+                'paymentdate': paydate,
+                'total': str(self.Total),
+                'status': self.Status}
+
     def __repr__(self):
         """ Return a representation of this invoice
         """
-        return '<Invoice(ID="%s", OrderID="%s", InvoiceNumber="%s")>' % (
-            self.ID, self.OrderID, self.InvoiceNumber)
+        return '<Invoice(ID="%s", OrderID="%s", InvoiceID="%s")>' % (
+            self.ID, self.OrderID, self.ID)
 
 
 class Valuation(Base):
