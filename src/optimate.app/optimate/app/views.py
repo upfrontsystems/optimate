@@ -233,6 +233,9 @@ def additemview(request):
     siteaddress = request.json_body.get('SiteAddress', '')
     filenumber = request.json_body.get('FileNumber', '')
     supplier = request.json_body.get('Supplier', '')
+    # make sure the parent total is set
+    parent = DBSession.query(Node).filter_by(ID=parentid).first()
+    parent.Total
 
     # Determine the type of object to be added and build it
     if objecttype == 'Project':
@@ -285,12 +288,8 @@ def additemview(request):
         if resource.type == 'ResourceUnit':
             expandBudgetItem(newnode.ID, resource)
         # add it to the parent's total
-        parent = DBSession.query(Node).filter_by(ID=parentid).first()
         if parent.type != 'BudgetItem':
-            if parent._Total:
-                parent.Total = parent.Total + newnode.Total
-            else:
-                parent.Total
+            parent.Total += newnode.Total
 
     elif objecttype == 'SimpleBudgetItem':
         rate = request.json_body.get('Rate', 0)
@@ -306,12 +305,8 @@ def additemview(request):
             Type=request.json_body['ResourceType'])
         DBSession.add(newnode)
         # add it to the parent's total
-        parent = DBSession.query(Node).filter_by(ID=parentid).first()
         if parent.type != 'BudgetItem':
-            if parent._Total:
-                parent.Total = parent.Total + newnode.Total
-            else:
-                parent.Total
+            parent.Total += newnode.Total
 
     elif objecttype == 'ResourceCategory':
         newnode = ResourceCategory(Name=request.json_body['Name'],
@@ -361,7 +356,8 @@ def additemview(request):
         resource = DBSession.query(Resource).filter_by(ID=uid).first()
         if not resource:
             return HTTPInternalServerError("The resource does not exist")
-
+        # make sure the parent rate is set
+        parent.Rate
         newnode = ResourcePart(ResourceID=uid,
                                 _Quantity=quantity,
                                 ParentID=parentid)
@@ -378,8 +374,7 @@ def additemview(request):
             if resource.type == 'ResourceUnit':
                 expandBudgetItem(newbudgetitem.ID, resource)
         # update the parent ResourceUnit total
-        parent = DBSession.query(ResourceUnit).filter_by(ID=parentid).first()
-        parent.Rate = parent.Rate + newnode.Total
+        parent.Rate += newnode.Total
 
     else:
         return HTTPInternalServerError()
@@ -543,10 +538,7 @@ def deleteitemview(request):
     parent = deletethis.Parent
     parentid = parent.ID
     # update the total of the parent node
-    if parent._Total:
-        parent.Total = parent.Total - deletethis.Total
-    else:
-        parent.Total
+    parent.Total = parent.Total - deletethis.Total
 
     qry = DBSession.delete(deletethis)
     transaction.commit()
@@ -857,6 +849,8 @@ def node_paste(request):
     projectid = 0
     source = DBSession.query(Node).filter_by(ID=sourceid).first()
     dest = DBSession.query(Node).filter_by(ID=destinationid).first()
+    # make sure the destination total is set
+    dest.Total
     parentid = dest.ID
     sourceparent = source.ParentID
     # if a project is being pasted into the root
@@ -1126,7 +1120,6 @@ def node_cost(request):
     # Get the id of the node to be costed
     costid = request.matchdict['id']
     qry = DBSession.query(Node).filter_by(ID=costid).first()
-
     if qry == None:
         return HTTPNotFound()
     totalcost = str(qry.Total)

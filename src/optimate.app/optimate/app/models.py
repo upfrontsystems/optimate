@@ -175,7 +175,7 @@ class Project(Node):
     }
 
     def clearCosts(self):
-        """ Set the Total and Quantity costs to zero and do the same for all
+        """ Set the Total to zero and do the same for all
             children
         """
         self._Total = Decimal(0)
@@ -185,14 +185,14 @@ class Project(Node):
 
     @property
     def Total(self):
-        """ Get property total. If the Total has not been set yet, it is set to
+        """ Get the total. If the Total has not been set yet, it is set to
             zero and recalculated
         """
-        if self._Total == None:
+        if not self._Total:
             total = Decimal(0.00)
             for child in self.Children:
                 total += child.Total
-            self.Total = total
+            self._Total = total
         return self._Total.quantize(Decimal('.01'))
 
     @Total.setter
@@ -201,9 +201,9 @@ class Project(Node):
         """
         self._Total = Decimal(total).quantize(Decimal('.01'))
 
-    def copy(self, parentid):
-        """copy returns an exact duplicate of this object,
-        but with the ParentID specified.
+    def copy(self, parentid=0):
+        """ copy returns an exact duplicate of the project,
+            but with the ParentID specified.
         """
         copied = Project(Name=self.Name,
                         Description=self.Description,
@@ -325,7 +325,7 @@ class BudgetGroup(Node):
     }
 
     def clearCosts(self):
-        """ Set the Total and Quantity costs to zero and do the same for all
+        """ Set the Total to zero and do the same for all
             children
         """
         self._Total = Decimal(0)
@@ -346,14 +346,12 @@ class BudgetGroup(Node):
     @Total.setter
     def Total(self, total):
         """ When the total is changed the parent's total is updated.
-            If the total is none it is completely recalculated.
         """
-        oldtotal = self.Total
-        self._Total = Decimal(total).quantize(Decimal('.01'))
-        difference = self._Total - oldtotal
+        difference = Decimal(total).quantize(Decimal('.01')) - self.Total
         # update the parent with the new total
-        parent = self.Parent
-        parent.Total = parent.Total + difference
+        self.Parent.Total = self.Parent.Total + difference
+        self._Total = Decimal(total).quantize(Decimal('.01'))
+
 
     @hybrid_property
     def Ordered(self):
@@ -505,12 +503,12 @@ class BudgetItemMixin(object):
         """ Set the Total, update the parent's Total with the difference
             between the old total and the new total
         """
-        oldtotal = self.Total
-        self._Total = Decimal(total).quantize(Decimal('.01'))
-        difference = self._Total - oldtotal
+        difference = Decimal(total).quantize(Decimal('.01')) - self.Total
         # since the total has changed, change the total of the parent
-        if difference != 0:
+        # if it is not a budgetitem
+        if self.Parent.type != 'BudgetItem':
             self.Parent.Total = self.Parent.Total + difference
+        self._Total = Decimal(total).quantize(Decimal('.01'))
 
     @property
     def Subtotal(self):
@@ -656,7 +654,7 @@ class BudgetItem(BudgetItemMixin, Node):
 
     @property
     def Description(self):
-        """ Get the BudgetItem's Description, which is the Resource's Description
+        """ Get the BudgetItem's Description, return Resource's Description
         """
         return self.Resource.Description
 
@@ -668,9 +666,10 @@ class BudgetItem(BudgetItemMixin, Node):
 
     @Rate.setter
     def Rate(self, rate):
-        """ Can't set a BudgetItem's Rate
+        """ Update the Total from changes to the Resource Rate
         """
-        pass
+        self.Total = Decimal((1.0+self.Markup) * self.Quantity * float(rate)
+                                ).quantize(Decimal('.01'))
 
     @property
     def Unit(self):
@@ -1068,7 +1067,7 @@ class Resource(Node):
     Description = Column(Text(100))
     UnitID = Column(Integer, ForeignKey('Unit.ID'))
     Type = Column(Integer, ForeignKey('ResourceType.ID'))
-    _Rate = Column('Rate', Numeric, default=Decimal(0.00))
+    _Rate = Column('Rate', Numeric)
     SupplierID = Column(Integer, ForeignKey('Supplier.ID'))
 
     Suppliers = relationship('Supplier',
@@ -1081,8 +1080,13 @@ class Resource(Node):
 
     @property
     def Rate(self):
-        """ Get the Rate of the Resource
+        """ Get the Rate, calculate it if it is None
         """
+        if not self._Rate:
+            rate = Decimal(0.00)
+            for part in self.Children:
+                rate+=part.Total
+            self._Rate = rate.quantize(Decimal('.01'))
         return self._Rate.quantize(Decimal('.01'))
 
     @Rate.setter
@@ -1090,11 +1094,10 @@ class Resource(Node):
         """ Set the Resource's rate and update the Total of all the
             BudgetItems and ResourceParts that reference it
         """
-        oldrate = self.Rate
         for bi in self.BudgetItems:
-            bi.Total = bi.Quantity * float(rate)
+            bi.Rate = rate
         for part in self.ResourceParts:
-            part.Total = part.Quantity * float(rate)
+            part.Rate = rate
         self._Rate = Decimal(rate).quantize(Decimal('.01'))
 
     def unitName(self):
@@ -1189,27 +1192,6 @@ class ResourceUnit(Resource):
         'inherit_condition': (ID == Resource.ID),
     }
 
-    @property
-    def Rate(self):
-        """ Get the Rate of the ResourceUnit, calculate it if it is None
-        """
-        if not self._Rate:
-            rate = Decimal(0.00)
-            for part in self.Children:
-                rate+=part.Total
-            self._Rate = rate.quantize(Decimal('.01'))
-        return self._Rate.quantize(Decimal('.01'))
-
-    @Rate.setter
-    def Rate(self, rate):
-        """ Can't set a ResourceUnit rate
-        """
-        for bi in self.BudgetItems:
-            bi.Total = bi.Quantity * float(rate)
-        for part in self.ResourceParts:
-            part.Total = part.Quantity * float(rate)
-        self._Rate = Decimal(rate).quantize(Decimal('.01'))
-
     def paste(self, source, sourcechildren):
         """ Paste a ResourcePart into this ResourceUnit
         """
@@ -1270,16 +1252,22 @@ class ResourcePart(Node):
         """ When the ResourcePart Total is set, update the
             parent ResourceUnit rate
         """
-        oldtotal = self.Total
+        difference = Decimal(total).quantize(Decimal('.01')) - self.Total
+        self.Parent.Rate = self.Parent.Rate + difference
         self._Total = Decimal(total).quantize(Decimal('.01'))
-        self.Parent.Rate = float(self.Parent.Rate) + \
-                            (float(total) - float(oldtotal))
+
 
     @property
     def Rate(self):
         """ Return the Rate of the Resource
         """
         return self.Resource.Rate
+
+    @Rate.setter
+    def Rate(self, rate):
+        """ Update the Total from changes to the Resource Rate
+        """
+        self.Total = Decimal(self.Quantity * float(rate)).quantize(Decimal('.01'))
 
     @property
     def Name(self):
@@ -1293,7 +1281,6 @@ class ResourcePart(Node):
         """
         return self.Resource.Description
 
-
     @property
     def Quantity(self):
         """ Get the Quantity of the ResourcePart
@@ -1304,10 +1291,9 @@ class ResourcePart(Node):
     def Quantity(self, quantity):
         """ When the ResourcePart Quantity is set, update the Total
         """
-        oldquantity = self.Quantity
-        self.Total = float(self.Total) - float(self.Rate) * \
-                                            (oldquantity - quantity)
-        self._Quantity = quantity
+        self.Total = Decimal(float(self.Rate) * float(quantity)
+                                ).quantize(Decimal('.01'))
+        self._Quantity = float(quantity)
 
     def copy(self, parentid):
         """ copy returns an exact duplicate of this ResourcePart,

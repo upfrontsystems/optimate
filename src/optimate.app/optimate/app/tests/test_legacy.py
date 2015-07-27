@@ -381,13 +381,13 @@ def _initTestingDB():
                             |
                             budgetitem - id:3 - resunit id:15
                                        |
-                                       budgetitema - id:11 - resa id:11
+                                       budgetitema - id:11 - resa id:16
                 |
                 rescat - id:9
                         |
                         resunit - id:15
                                 |
-                                respart - id:7
+                                respart - id:7 - resa id:16
                         |
                         resa id:16
         projectb -(885) id:4 overheadb: 0.5
@@ -898,33 +898,30 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         return node_update_value(request)
 
     def test_update_resource_rate(self):
+        # check cost beforehand
         from optimate.app.views import node_cost
         _registerRoutes(self.config)
         request = testing.DummyRequest()
-
-        # check cost beforehand
         request.matchdict = {'id': 1}
         self.assertEqual(node_cost(request)['Cost'], str(projtot))
+
+        # update the rate of the resource
         newresarate = 150
         request.matchdict = {'id': 16}
         request.json_body = {'rate': newresarate}
         response = self._callFUT(request)
-
-        # now the project cost should have changed
-        request = testing.DummyRequest()
-        request.matchdict = {'id': 1}
 
         newresparttot = Decimal(newresarate * respartq).quantize(Decimal('.01'))
         newresunitrate = newresparttot
         newbitot = Decimal((1.0+overheadperc)*float(newresunitrate) * biq
                             ).quantize(Decimal('.01'))
         newprojtot = newbitot
-        from optimate.app.views import node_cost
-        response = node_cost(request)
-        self.assertEqual(response['Cost'], str(newprojtot))
 
+        # now the costs should have changed
         request.matchdict = {'id': 7}
         self.assertEqual(node_cost(request)['Cost'], str(newresparttot))
+        request.matchdict = {'id': 1}
+        self.assertEqual(node_cost(request)['Cost'], str(newprojtot))
 
     def test_update_duplicate_resource_rate(self):
         _registerRoutes(self.config)
@@ -1133,7 +1130,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         # assert if the response from the add view is OK
         self.assertEqual(response.keys(), ['node', 'ID'])
         # get the id of the new node
-        newid = response['ID']
+        newbgid = response['ID']
 
         # get the resource category id
         request = testing.DummyRequest()
@@ -1211,13 +1208,13 @@ class TestAddItemSuccessCondition(unittest.TestCase):
             'OverheadList': []
         })
         # add it to the parent
-        request.matchdict = {'id': newid}
+        request.matchdict = {'id': newbgid}
         request.method = 'POST'
         response = self._callFUT(request)
         # assert if the response from the add view is OK
         self.assertEqual(response.keys(), ['node', 'ID'])
         # get the id of the new node
-        newbid = response['ID']
+        newubid = response['ID']
 
         newrespartq = 50
         # Add a resource part
@@ -1244,13 +1241,13 @@ class TestAddItemSuccessCondition(unittest.TestCase):
             'OverheadList': []
         })
         # add it to the parent
-        request.matchdict = {'id': newid}
+        request.matchdict = {'id': newbgid}
         request.method = 'POST'
         response = self._callFUT(request)
         # assert if the response from the add view is OK
         self.assertEqual(response.keys(), ['node', 'ID'])
         # get the id of the new node
-        newid = response['ID']
+        newbid = response['ID']
 
         newparttot = Decimal(newrespartq * newresarate).quantize(Decimal('.01'))
         newunitrate = newparttot
@@ -1258,7 +1255,23 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         newbitot = Decimal(newbiq*newresrate).quantize(Decimal('.01'))
         newprojtot = newbitot + newbiunittot
 
-        # test the total  of the project
+        # test the total of the budgetitem
+        request = testing.DummyRequest()
+        request.matchdict = {'id': newubid}
+        from optimate.app.views import node_cost
+        response = node_cost(request)
+        # true if the cost is correct
+        self.assertEqual(response['Cost'], str(newbiunittot))
+
+        # test the total of the budgetitem
+        request = testing.DummyRequest()
+        request.matchdict = {'id': newbid}
+        from optimate.app.views import node_cost
+        response = node_cost(request)
+        # true if the cost is correct
+        self.assertEqual(response['Cost'], str(newbitot))
+
+        # test the total of the project
         request = testing.DummyRequest()
         request.matchdict = {'id': projectid}
         from optimate.app.views import node_cost

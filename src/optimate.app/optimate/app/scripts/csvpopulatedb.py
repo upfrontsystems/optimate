@@ -186,19 +186,6 @@ if __name__ == '__main__':
         errorid = newcode - 1
         errornode = Project(Name='ErrorNode', ID=errorid, ParentID=0)
         DBSession.add(errornode)
-        # add a project for nodes whos parent code is 0
-        newcode+=1
-        rootprojectid = newcode
-        rootproject = Project(ID=rootprojectid,
-                            Name="Root Project",
-                            ParentID=0)
-        DBSession.add(rootproject)
-        newcode += 1
-        rootresourcecategory = ResourceCategory(ID=newcode,
-                                        Name='Resource List',
-                                        Description='List of Resources',
-                                        ParentID=rootprojectid)
-        DBSession.add(rootresourcecategory)
 
         print "Adding admin user"
         user = User()
@@ -411,7 +398,7 @@ if __name__ == '__main__':
             try:
                 parentcode = int(row[parentindex])
             except ValueError, e:
-                parentcode = rootprojectid
+                parentcode = errorid
             name = row[nameindex]
             name=name.decode("utf-8")
             name=name.encode("ascii","ignore")
@@ -458,7 +445,7 @@ if __name__ == '__main__':
             # budgetgroups should not refer to the root
             if parentcode <= 0:
                 if parentcode == 0:
-                    parentcode = rootprojectid
+                    parentcode = errorid
                 else:
                     parentcode = -parentcode
                     if parentcode in changedbgcodes:
@@ -602,7 +589,7 @@ if __name__ == '__main__':
             # if the parent is negative it refers to a node in the same table
             if parentcode <= 0:
                 if parentcode == 0:
-                    parentcode=rootprojectid
+                    parentcode=errorid
                 else:
                     biparent = True
                     parentcode = -parentcode
@@ -1466,7 +1453,7 @@ if __name__ == '__main__':
         orders = DBSession.query(Order).all()
         percentile = len(orders) / 100.0
         print 'Percentage done: '
-        counter = 1
+        counter = 0
         x = 0
         # if the order has no order items delete it
         for order in orders:
@@ -1482,11 +1469,11 @@ if __name__ == '__main__':
                 order.resetTotal()
         transaction.commit()
 
-        print "Setting Resource SupplierID"
+        print "\nSetting Resource SupplierID"
         resources = DBSession.query(Resource).all()
         percentile = len(resources) / 100.0
         print 'Percentage done: '
-        counter = 1
+        counter = 0
         x = 0
         # if the order has no order items delete it
         for resource in resources:
