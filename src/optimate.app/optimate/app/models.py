@@ -596,7 +596,6 @@ class BudgetItemMixin(object):
         subitem = []
         if len(self.Children) > 0:
             subitem = [{'Name': '...', 'NodeType': 'Default'}]
-
         return {'Name': self.Name,
                 'Description': self.Description,
                 'ID': self.ID,
@@ -607,7 +606,7 @@ class BudgetItemMixin(object):
                 'Quantity': self.Quantity,
                 'Ordered': str(self.Ordered),
                 'Invoiced': str(self.Invoiced),
-                'NodeTypeAbbr' : 'I'}
+                }
 
     def updateOrdered(self, ordered):
         """ Updates the Ordered amount for all the children of this node
@@ -650,7 +649,10 @@ class BudgetItem(BudgetItemMixin, Node):
     def Name(self):
         """ Get this BudgetItem's Name, which returns the Resource's Name
         """
-        return self.Resource.Name
+        if self.Resource:
+            return self.Resource.Name
+        else:
+            return "no resource"
 
     @property
     def Description(self):
@@ -746,7 +748,7 @@ class BudgetItem(BudgetItemMixin, Node):
                 'VAT': vat,
                 'VATCost': str(vatcost),
                 'Subtotal': str(subtotal),
-                'NodeType': 'BudgetItem',
+                'NodeType': 'OrderItem',
                 'NodeTypeAbbr' : 'I'}
 
     def dict(self):
@@ -841,10 +843,7 @@ class SimpleBudgetItem(BudgetItemMixin, Node):
     def order(self):
         """ The data returned when ordering a BudgetItem
         """
-        orderitemsquantity = 0.0
-        # for orderitem in self.OrderItems:
-        #     orderitemsquantity+=orderitem.Quantity
-        quantity = self.Quantity - orderitemsquantity
+        quantity = self.Quantity
         subtotal = Decimal(quantity*float(self.Rate)).quantize(Decimal('.01'))
         vat = 14
         companyinfo = DBSession.query(CompanyInformation
@@ -863,7 +862,7 @@ class SimpleBudgetItem(BudgetItemMixin, Node):
                 'VAT': vat,
                 'VATCost': str(vatcost),
                 'Subtotal': str(subtotal),
-                'NodeType': 'BudgetItem',
+                'NodeType': 'OrderItem',
                 'NodeTypeAbbr' : 'I'}
 
     def dict(self):
@@ -873,7 +872,8 @@ class SimpleBudgetItem(BudgetItemMixin, Node):
         di.update({
             'Unit': self.Unit,
             'Ordered': str(self.Ordered),
-            'Invoiced': str(self.Invoiced)
+            'Invoiced': str(self.Invoiced),
+            'NodeType': self.type
         })
         return di
 
@@ -1602,7 +1602,8 @@ class OrderItem(Base):
                 'Subtotal': str(self.Subtotal),
                 'Total': str(self.Total),
                 'VATCost': str(vatcost),
-                'NodeType': 'BudgetItem'}
+                'NodeTypeAbbr' : 'I',
+                'NodeType': 'OrderItem'}
 
     def __repr__(self):
         """Return a representation of this order item
@@ -1724,6 +1725,7 @@ class Invoice(Base):
                 'Project': self.Order.Project.Name,
                 'Supplier': self.Order.Supplier.Name,
                 'Amount': str(self.Amount),
+                'VAT': str(self.VAT),
                 'Paymentdate': jsonpaydate,
                 'Invoicedate': jsonindate,
                 'Ordertotal': str(self.Order.Total),

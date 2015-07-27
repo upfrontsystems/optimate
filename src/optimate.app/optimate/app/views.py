@@ -104,7 +104,8 @@ def expandBudgetItem(nodeid, resource):
     for part in resource.Children:
         childresource = part.Resource
         node = BudgetItem(ParentID=nodeid,
-                        ResourceID=childresource.ID)
+                        ResourceID=childresource.ID,
+                        _Quantity=part.Quantity)
         DBSession.add(node)
         DBSession.flush()
         if childresource.type == 'ResourceUnit':
@@ -453,7 +454,7 @@ def edititemview(request):
         simbi = DBSession.query(SimpleBudgetItem).filter_by(
                                                         ID=nodeid).first()
         simbi.Name = request.json_body['Name']
-        simbi.Description = request.json_body['Description']
+        simbi.Description = request.json_body.get('Description','')
         simbi.Rate=rate
         simbi.Type=request.json_body['ResourceType']
         simbi.Quantity=float(request.json_body.get('Quantity', 0))
@@ -538,7 +539,8 @@ def deleteitemview(request):
     parent = deletethis.Parent
     parentid = parent.ID
     # update the total of the parent node
-    parent.Total = parent.Total - deletethis.Total
+    if parentid != 0:
+        parent.Total = parent.Total - deletethis.Total
 
     qry = DBSession.delete(deletethis)
     transaction.commit()
@@ -880,13 +882,17 @@ def node_paste(request):
             copiedresourceIds = {}
             for budgetitem in sourcebudgetitems:
                 if budgetitem.ResourceID not in copiedresourceIds:
-                    newparentid = sortResource(resourcecategory,
-                                                budgetitem.Name)
-                    copiedresource = budgetitem.Resource.copy(newparentid)
-                    DBSession.add(copiedresource)
-                    DBSession.flush()
-                    copiedresourceIds[
-                            budgetitem.Resource.ID] = copiedresource.ID
+                    try:
+                        newparentid = sortResource(resourcecategory,
+                                                    budgetitem.Name)
+                        copiedresource = budgetitem.Resource.copy(newparentid)
+                        DBSession.add(copiedresource)
+                        DBSession.flush()
+                        copiedresourceIds[
+                                budgetitem.Resource.ID] = copiedresource.ID
+                    except:
+                        print "budgetitem error"
+                        print budgetitem
 
             # get the budgetitems that were pasted
             destbudgetitems = projectcopy.getBudgetItems()
@@ -1465,7 +1471,9 @@ def orders_tree_view(request):
     # build the list and only get the neccesary values
     if qry != None:
         for child in qry.Children:
-            if child.type == 'BudgetItem':
+            # if the child is a leaf budgetitem, add it as an orderitem
+            if child.type in ('BudgetItem', 'SimpleBudgetItem') \
+            and len(child.Children) == 0:
                 childrenlist.append(child.order())
             elif child.type != 'ResourceCategory':
                 childrenlist.append(child.dict())
@@ -1608,10 +1616,10 @@ def orderview(request):
         newid = neworder.ID
         budgetitemslist = request.json_body.get('BudgetItemsList', [])
         for budgetitem in budgetitemslist:
-            quantity = float(budgetitem.get('quantity', 0))
-            rate = budgetitem.get('rate', 0)
+            quantity = float(budgetitem.get('Quantity', 0))
+            rate = budgetitem.get('Rate', 0)
             rate = Decimal(rate).quantize(Decimal('.01'))
-            vat = budgetitem.get('vat', 0)
+            vat = budgetitem.get('VAT', 0)
             neworderitem = OrderItem(OrderID=newid,
                                     BudgetItemID=budgetitem['ID'],
                                     _Quantity=quantity,
@@ -1665,10 +1673,10 @@ def orderview(request):
         for budgetitem in budgetitemslist:
             if budgetitem['ID'] not in iddict.keys():
                 # add the new order item
-                quantity = float(budgetitem.get('quantity', 0))
-                rate = budgetitem.get('rate', 0)
+                quantity = float(budgetitem.get('Quantity', 0))
+                rate = budgetitem.get('Rate', 0)
                 rate = Decimal(rate).quantize(Decimal('.01'))
-                vat = budgetitem.get('vat', 0)
+                vat = budgetitem.get('VAT', 0)
 
                 neworderitem = OrderItem(OrderID=order.ID,
                                         BudgetItemID=budgetitem['ID'],
@@ -1682,10 +1690,10 @@ def orderview(request):
                 orderitemid = iddict[budgetitem['ID']]
                 orderitem = DBSession.query(OrderItem).filter_by(
                                     ID=orderitemid).first()
-                orderitem.Quantity = float(budgetitem['quantity'])
-                rate = budgetitem['rate']
+                orderitem.Quantity = float(budgetitem['Quantity'])
+                rate = budgetitem['Rate']
                 orderitem.Rate = Decimal(rate).quantize(Decimal('.01'))
-                vat = budgetitem.get('vat', 0)
+                vat = budgetitem.get('VAT', 0)
                 orderitem.VAT = vat
                 del iddict[budgetitem['ID']]
         # delete the leftover id's and update the ordered total
@@ -2069,17 +2077,17 @@ def invoiceview(request):
 
     # if the method is post, add a new invoice
     if request.method == 'POST':
-        orderid = request.json_body['orderid']
+        orderid = request.json_body['OrderID']
         # convert to date from json format
-        indate = request.json_body.get('invoicedate', None)
+        indate = request.json_body.get('Invoicedate', None)
         if indate:
             indate = datetime.strptime(indate, '%Y-%m-%dT%H:%M:%S.%fZ')
-        paydate = request.json_body.get('paymentdate', None)
+        paydate = request.json_body.get('Paymentdate', None)
         if paydate:
             paydate = datetime.strptime(paydate, '%Y-%m-%dT%H:%M:%S.%fZ')
-        amount = request.json_body.get('amount', 0)
+        amount = request.json_body.get('Amount', 0)
         amount = Decimal(amount).quantize(Decimal('.01'))
-        vat = request.json_body.get('vat', 0)
+        vat = request.json_body.get('VAT', 0)
         vat = Decimal(vat).quantize(Decimal('.01'))
 
         newinvoice = Invoice(OrderID=orderid,
@@ -2106,22 +2114,23 @@ def invoiceview(request):
 
     # if the method is put, edit an existing invoice
     if request.method == 'PUT':
+        print request.json_body
         invoice = DBSession.query(Invoice).filter_by(
                                             ID=request.matchdict['id']).first()
         oldtotal = invoice.Total
-        indate = request.json_body.get('invoicedate', None)
+        indate = request.json_body.get('Invoicedate', None)
         if indate:
             indate = datetime.strptime(indate, '%Y-%m-%dT%H:%M:%S.%fZ')
             invoice.InvoiceDate = indate
-        paydate = request.json_body.get('paymentdate', None)
+        paydate = request.json_body.get('Paymentdate', None)
         if paydate:
             paydate = datetime.strptime(paydate, '%Y-%m-%dT%H:%M:%S.%fZ')
             invoice.PaymentDate = paydate
-        amount = request.json_body.get('amount', None)
+        amount = request.json_body.get('Amount', None)
         if amount:
             amount = Decimal(amount).quantize(Decimal('.01'))
             invoice.Amount = amount
-        vat = request.json_body.get('vat', None)
+        vat = request.json_body.get('VAT', None)
         if vat:
             vat = Decimal(vat).quantize(Decimal('.01'))
             invoice.VAT = vat

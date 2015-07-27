@@ -141,8 +141,20 @@ a.budget-group-button {
     background: #b75eea;
 }
 
+a.simple-budget-item-button {
+    color: #b75eea;
+}
+
+.circle.SimpleBudgetItem {
+    background: #b75eea;
+}
+
 a.budget-item-button {
     color: #b75eea;
+}
+
+.circle.OrderItem {
+    background: #b75eea;
 }
 
 .circle.ResourcePart {

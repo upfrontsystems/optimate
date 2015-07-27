@@ -219,7 +219,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     return parts.join(".");
                 }
                 else {
-                    return "";
+                    return "0.00";
                 }
               }
 
@@ -512,23 +512,22 @@ allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedSer
                                 'cssClasses': "sum-row non-editable-row"};
                     }
                 }
-                return {};
             }
 
             var name_column = {id: "Name", name: "Budget Item", field: "Name",
-                                    width: projects_column_width.Name,
+                                    width: orders_column_width.Name,
                                     cssClass: "cell-title non-editable-column"}
             var quantity_column = {id: "Quantity", name: "Quantity", field: "Quantity",
-                                    width: projects_column_width.Quantity,
+                                    width: orders_column_width.Quantity,
                                     cssClass: "cell editable-column",
                                     editor: Slick.Editors.CustomEditor}
             var rate_column = {id: "Rate", name: "Rate", field: "Rate",
-                                    width: projects_column_width.Rate,
+                                    width: orders_column_width.Rate,
                                     cssClass: "cell editable-column",
                                     formatter: CurrencyFormatter,
                                     editor: Slick.Editors.CustomEditor}
             var subtotal_column = {id: "Subtotal", name: "Subtotal", field: "Subtotal",
-                                    width: projects_column_width.Subtotal,
+                                    width: orders_column_width.Subtotal,
                                     cssClass: "cell non-editable-column",
                                     formatter: CurrencyFormatter}
             var vat_column = {id: "VAT", name: "VAT %", field: "VAT",
@@ -541,7 +540,7 @@ allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedSer
                                     cssClass: "cell non-editable-column",
                                     formatter: CurrencyFormatter}
             var total_column = {id: "Total", name: "Total", field: "Total",
-                                    width: projects_column_width.Total,
+                                    width: orders_column_width.Total,
                                     cssClass: "cell non-editable-column",
                                     formatter: CurrencyFormatter}
             var columns = [
@@ -622,6 +621,7 @@ allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedSer
                     return "";
                 }
             }
+
             grid.onAddNewRow.subscribe(function (e, args) {
                 var item = args.item;
                 grid.invalidateRow(dataView.length);

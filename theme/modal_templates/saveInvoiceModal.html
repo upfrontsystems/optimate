@@ -13,7 +13,7 @@
                                 class="col-sm-7"
                                 id="inputOrderNumber"
                                 name="inputOrderNumber"
-                                data-ng-model="formData.orderid"
+                                data-ng-model="formData.OrderID"
                                 data-ng-change="checkOrderNumber()"
                                 data-ng-model-options="{ debounce: 500 }"
                                 required>
@@ -37,14 +37,14 @@
                                     <input type="text"
                                             date-parser="DD/MM/YYYY"
                                             class="col-sm-7 form-control custom-datepicker"
-                                            data-ng-model="formData.invoicedate">
+                                            data-ng-model="formData.Invoicedate">
                                     <span class="input-group-addon">
                                         <i class="fa fa-calendar"></i>
                                     </span>
                                 </div>
                             </a>
                             <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-                                <datetimepicker data-ng-model="formData.invoicedate"
+                                <datetimepicker data-ng-model="formData.Invoicedate"
                                     data-datetimepicker-config="{ dropdownSelector: '#dateInvoiceDropdown' ,
                                                                     minView:'day'}"/>
                             </ul>
@@ -62,14 +62,14 @@
                                     <input type="text"
                                             date-parser="DD/MM/YYYY"
                                             class="col-sm-7 form-control custom-datepicker"
-                                            data-ng-model="formData.paymentdate">
+                                            data-ng-model="formData.Paymentdate">
                                     <span class="input-group-addon">
                                         <i class="fa fa-calendar"></i>
                                     </span>
                                 </div>
                             </a>
                             <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-                                <datetimepicker data-ng-model="formData.paymentdate"
+                                <datetimepicker data-ng-model="formData.Paymentdate"
                                     data-datetimepicker-config="{ dropdownSelector: '#datePaymentDropdown' ,
                                                                     minView:'day'}"/>
                             </ul>
@@ -81,7 +81,7 @@
                                class="col-sm-7"
                                id="inputAmount"
                                name="inputAmount"
-                               data-ng-model="formData.amount"
+                               data-ng-model="formData.Amount"
                                data-ng-change="updateAmounts()"
                                data-ng-model-options="{ debounce: 200 }"
                                smart-float>
@@ -92,7 +92,7 @@
                                class="col-sm-7"
                                id="inputVAT"
                                name="inputVAT"
-                               ng-model="formData.vat"
+                               ng-model="formData.VAT"
                                data-ng-change="updateAmounts()"
                                data-ng-model-options="{ debounce: 200 }"
                                smart-float>
