@@ -761,7 +761,8 @@ class BudgetItem(BudgetItemMixin, Node):
             'ResourceName': self.Name,
             'OverheadList': self.overheadsList(),
             'Unit': self.Unit,
-            'NodeType': self.type
+            'NodeType': self.type,
+            'NodeTypeAbbr' : 'I'
         })
         return di
 
@@ -873,7 +874,8 @@ class SimpleBudgetItem(BudgetItemMixin, Node):
             'Unit': self.Unit,
             'Ordered': str(self.Ordered),
             'Invoiced': str(self.Invoiced),
-            'NodeType': self.type
+            'NodeType': self.type,
+            'NodeTypeAbbr' : 'I'
         })
         return di
 
@@ -1142,6 +1144,9 @@ class Resource(Node):
     def dict(self):
         """ Override the dict function
         """
+        typename = ""
+        if self.Type:
+            typename = self.ResourceType.Name
         subitem = []
         if len(self.Children) > 0:
             subitem = [{'Name': '...', 'NodeType': 'Default'}]
@@ -1154,7 +1159,7 @@ class Resource(Node):
                 'Code': self.Code,
                 'Rate': str(self._Rate),
                 'ResourceTypeID': self.Type,
-                'ResourceType': self.ResourceType.Name,
+                'ResourceType': typename,
                 'UnitID': self.UnitID,
                 'Unit': self.unitName(),
                 'Supplier': self.SupplierID,

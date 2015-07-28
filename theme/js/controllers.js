@@ -1006,6 +1006,10 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         $scope.formData.NodeType = 'BudgetItem';
                     }
                 }
+                else if ($scope.formData.NodeType == 'ResourcePart'){
+                    $scope.formData.ResourceID = $scope.formData.selected.ID;
+                    $scope.formData.Quantity = $scope.formData.selected.Quantity;
+                }
                 $http({
                     method: 'POST',
                     url: globalServerURL + 'node/' + currentid + '/',
@@ -1068,6 +1072,10 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         $scope.formData.Name = $scope.formData.selected.Name
                         $scope.formData['OverheadList'] = $scope.budgetItemOverheadList || [];
                     }
+                }
+                else if ($scope.formData.NodeType == 'ResourcePart'){
+                    $scope.formData.ResourceID = $scope.formData.selected.ID;
+                    $scope.formData.Quantity = $scope.formData.selected.Quantity;
                 }
                 var req = {
                     method: 'PUT',
