@@ -607,6 +607,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             // resize the slickgrid when modal is shown
             $('#saveOrderModal').on('shown.bs.modal', function() {
                  grid.init();
+                 grid.resizeCanvas();
             });
 
             // when a column is resized change the default size of that column
