@@ -115,6 +115,10 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                     cssClass: "cell editable-column",
                                     formatter: CurrencyFormatter,
                                     editor: Slick.Editors.CustomEditor}
+            var read_only_rate_column = {id: "Rate", name: "Rate", field: "Rate",
+                                    width: projects_column_width.Rate,
+                                    cssClass: "cell non-editable-column",
+                                    formatter: CurrencyFormatter}
             var total_column = {id: "Total", name: "Total", field: "Total",
                                     width: projects_column_width.Total,
                                     cssClass: "cell non-editable-column",
@@ -243,20 +247,28 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 var type = response['type'];
                 if (data.length > 0) {
                     // If the grid is only showing resource types
-                    if (type == 'Resources') {
+                    if (data[0].NodeType == 'ResourcePart'){
+                        // for resource parts show a non-editable rate column
+                        newcolumns = [
+                            name_column,
+                            quantity_column,
+                            read_only_rate_column,
+                            unit_column,
+                            resource_type_column,
+                        ];
+                    }
+                    else if (type == 'Resources') {
                         newcolumns = [
                             name_column,
                             rate_column,
                             unit_column,
                             resource_type_column,
                         ];
-                        renderGrid(newcolumns, data)
                     }
                     else if (type == 'ResourceCategories'){
                         newcolumns = [
                             name_column
                         ];
-                        renderGrid(newcolumns, data)
                     }
                     else {
                         // if there will be empty columns remove them
@@ -276,10 +288,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                     newcolumns.splice(index, 1);
                                 }
                             }
-                            renderGrid(newcolumns, data)
                         }
-                        // otherwise loop through the data and grey out
-                        // uneditable columns
                         else {
                             emptycolumns = [
                                 name_column,
@@ -307,17 +316,17 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                 if (data[i]['node_type'] == 'BudgetItem') {
                                     // get the list of overheads in the budgetItem
                                     var overheadslist = data[i]['OverheadList'];
-                                        // get the name of the overhead
-                                        // check if it has not been used yet
-                                        // and add it to the columns list
-                                        for (var v=0; v < overheadslist.length; v++) {
-                                            var overheadname = overheadslist[v].Name;
-                                            if (overheadnames.indexOf(overheadname) < 0) {
-                                                overheadnames.push(overheadname);
-                                            }
-                                            // create new entry in the budgetItem
-                                            data[i][overheadname] = overheadslist[v].Percentage;
+                                    // get the name of the overhead
+                                    // check if it has not been used yet
+                                    // and add it to the columns list
+                                    for (var v=0; v < overheadslist.length; v++) {
+                                        var overheadname = overheadslist[v].Name;
+                                        if (overheadnames.indexOf(overheadname) < 0) {
+                                            overheadnames.push(overheadname);
                                         }
+                                        // create new entry in the budgetItem
+                                        data[i][overheadname] = overheadslist[v].Percentage;
+                                    }
                                 }
                             }
                             // build the overhead columns
@@ -325,19 +334,18 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                             for (var i = 0; i<overheadnames.length; i++) {
                                 projects_column_width[overheadnames[i]] = 75;
                                 overheadcolumns.push({id: overheadnames[i],
-                                                    name: overheadnames[i],
-                                                    field: overheadnames[i],
-                                                    width: projects_column_width[overheadnames[i]],
-                                                    formatter: MarkupFormatter,
-                                                    cssClass: "cell non-editable-column"})
+                                                name: overheadnames[i],
+                                                field: overheadnames[i],
+                                                width: projects_column_width[overheadnames[i]],
+                                                formatter: MarkupFormatter,
+                                                cssClass: "cell non-editable-column"})
                             }
                             newcolumns = emptycolumns.concat(overheadcolumns);
-                            renderGrid(newcolumns, data)
                         }
                     }
                 }
                 else {
-                    emptycolumns = [
+                    newcolumns = [
                         name_column,
                         quantity_column,
                         rate_column,
@@ -347,8 +355,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                         ordered_column,
                         invoiced_column
                     ];
-                    renderGrid(emptycolumns, data)
                 }
+                renderGrid(newcolumns, data)
                 console.log("Slickgrid data loaded");
             }
 
@@ -385,8 +393,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 }
                 $http(req).success(function(data) {
                     if (data){
-                        item.Total = data.total;
-                        item.Subtotal = data.subtotal;
+                        item.Total = data.Total;
+                        item.Subtotal = data.Subtotal;
                         //store the active cell and editor
                         var activeCell = grid.getActiveCell();
                         var activeEditor = grid.getCellEditor();

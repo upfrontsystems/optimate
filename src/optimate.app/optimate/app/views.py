@@ -823,29 +823,29 @@ def node_update_value(request):
     newsubtotal = None
     # only a resource's rate can be modified
     if result.type == 'Resource':
-        if request.json_body.get('rate'):
-            result.Rate = request.json_body['rate']
+        if request.json_body.get('Rate'):
+            result.Rate = request.json_body['Rate']
     # only a budgetitems quantity can be modified
     elif result.type == 'BudgetItem':
-        if request.json_body.get('quantity') != None:
-            result.Quantity = float(request.json_body.get('quantity'))
+        if request.json_body.get('Quantity') != None:
+            result.Quantity = float(request.json_body.get('Quantity'))
             newtotal = str(result.Total)
             newsubtotal = str(result.Subtotal)
     # only a resourcepart's quantity can be modified
     elif result.type == 'ResourcePart':
-        if request.json_body.get('quantity') != None:
-            result.Quantity = float(request.json_body.get('quantity'))
+        if request.json_body.get('Quantity') != None:
+            result.Quantity = float(request.json_body.get('Quantity'))
             newtotal = str(result.Total)
     # a simplebudgetitem's quantity or rate can be modified
     elif result.type == 'SimpleBudgetItem':
-        if request.json_body.get('quantity') != None:
-            result.Quantity = float(request.json_body['quantity'])
-        if request.json_body.get('rate') != None:
-            result.Rate = request.json_body['rate']
+        if request.json_body.get('Quantity') != None:
+            result.Quantity = float(request.json_body['Quantity'])
+        if request.json_body.get('Rate') != None:
+            result.Rate = request.json_body['Rate']
         newtotal = str(result.Total)
         newsubtotal = str(result.Subtotal)
-    return {'total': newtotal,
-            'subtotal': newsubtotal}
+    return {'Total': newtotal,
+            'Subtotal': newsubtotal}
 
 
 @view_config(route_name="node_paste", renderer='json')

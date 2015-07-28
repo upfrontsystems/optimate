@@ -28,8 +28,9 @@
     // If the node type is anything else it will pass to empty functions and
     // the cell will be non-editable
 
-    var node_type = args.item["NodeType"]
-    if (node_type == "Resource" || node_type == "BudgetItem" || node_type == "SimpleBudgetItem" || node_type == "OrderItem"){
+    var node_type = args.item["NodeType"];
+    var editableTypes = ["Resource", "ResourceUnit", "ResourcePart", "BudgetItem", "SimpleBudgetItem", "OrderItem"];
+    if (editableTypes.indexOf(node_type) > -1){
       var $input;
       var defaultValue;
       var scope = this;
