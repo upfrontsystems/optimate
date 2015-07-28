@@ -1797,8 +1797,10 @@ def valuationview(request):
         budgetgrouplist = request.json_body.get('BudgetGroupList', [])
         for budgetgroup in budgetgrouplist:
             p_complete = float(budgetgroup.get('percentage_complete', 0))
+            bg = DBSession.query(Node).filter_by(ID=budgetgroup['ID']).first()
             newvaluationitem = ValuationItem(ValuationID=newid,
                                          BudgetGroupID=budgetgroup['ID'],
+                                         BudgetGroupTotal=bg.Total,
                                          PercentageComplete=p_complete)
             DBSession.add(newvaluationitem)
         transaction.commit()
@@ -1831,17 +1833,22 @@ def valuationview(request):
             if budgetgroup['ID'] not in iddict.values():
                 # add the new valuation item
                 p_complete = float(budgetgroup.get('percentage_complete', 0))
-
+                bg = DBSession.query(Node).filter_by(ID=budgetgroup['ID']).first()
                 newvaluationitem = ValuationItem(ValuationID=valuation.ID,
                                                BudgetGroupID=budgetgroup['ID'],
+                                               BudgetGroupTotal=bg.Total,
                                                PercentageComplete=p_complete)
                 DBSession.add(newvaluationitem)
             else:
                 # otherwise remove the id from the list and update the
-                # percentage complete
+                # percentage complete & total
                 valuationitemid = iddict[budgetgroup['BudgetGroup']]
                 valuationitem = DBSession.query(ValuationItem).filter_by(
                                     ID=valuationitemid).first()
+                bg_id = valuationitem.BudgetGroupID
+                # get the budgetgroup total from the referenced budgetgroup
+                bg = DBSession.query(Node).filter_by(ID=bg_id).first()
+                valuationitem.BudgetGroupTotal=bg.Total
                 valuationitem.PercentageComplete = \
                     float(budgetgroup['percentage_complete'])
                 del iddict[budgetgroup['BudgetGroup']]

@@ -786,20 +786,23 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                     }
                     catch (exception) {
                         console.log("No columns widths found in storage. Setting to default.");
-                        valuations_column_width = {'name': 300,
-                                                   'percentage_complete': 65};
+                        valuations_column_width = {'name': 270,
+                                                   'percentage_complete': 80,
+                                                   'total': 65,};
                         localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
                     }
                     if ( valuations_column_width.length == 0 ) {
-                        valuations_column_width = {'name': 300,
-                                                   'percentage_complete': 65};
+                        valuations_column_width = {'name': 270,
+                                                   'percentage_complete': 80,
+                                                   'total': 65};
                         localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
                     }
                 }
                 else {
                     console.log("LOCAL STORAGE NOT SUPPORTED")
-                    valuations_column_width = {'name': 300,
-                                               'percentage_complete': 65};
+                    valuations_column_width = {'name': 270,
+                                               'percentage_complete': 80,
+                                               'total': 65,};
                 }
             };
             $scope.preloadWidths();
@@ -809,7 +812,9 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                      width: valuations_column_width.name, cssClass: "cell-title non-editable-column"},
                     {id: "percentage_complete", name: "Percentage Complete", field: "percentage_complete",
                      cssClass: "cell editable-column", formatter: PercentageFormatter,
-                     width: valuations_column_width.percentage_complete, editor: Slick.Editors.CustomEditor}];
+                     width: valuations_column_width.percentage_complete, editor: Slick.Editors.CustomEditor},
+                    {id: "total", name: "Total", field: "total", cssClass: "cell non-editable-column",
+                      formatter: CurrencyFormatter, width: valuations_column_width.total}];
 
             var options = {
                     editable: true,
@@ -863,6 +868,18 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                 }
             }
 
+            // Formatter for displaying currencies
+            function CurrencyFormatter(row, cell, value, columnDef, dataContext) {
+                if (value != undefined){
+                    var parts = value.toString().split(".");
+                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    return parts.join(".");
+                }
+                else {
+                    return "";
+                }
+              }
+
             grid.onAddNewRow.subscribe(function (e, args) {
                 var item = args.item;
                 grid.invalidateRow(dataView.length);
@@ -878,7 +895,9 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                      width: valuations_column_width.name, cssClass: "cell-title non-editable-column"},
                     {id: "percentage_complete", name: "% Complete", field: "percentage_complete",
                      cssClass: "cell editable-column", formatter: PercentageFormatter,
-                     width: valuations_column_width.percentage_complete, editor: Slick.Editors.Float}];
+                     width: valuations_column_width.percentage_complete, editor: Slick.Editors.Float},
+                    {id: "total", name: "Total", field: "total", cssClass: "cell non-editable-column",
+                      formatter: CurrencyFormatter, width: valuations_column_width.total}];
                 if (budgetgrouplist.length > 0) {
                     grid.setColumns(columns);
                     dataView.beginUpdate();

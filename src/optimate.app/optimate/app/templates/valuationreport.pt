@@ -31,16 +31,16 @@
         <table class="order-font">
             <tr></tr>
             <tr>
-                <td style="width: 150px">To:</td>
-                <td class="bold" style="width: 200px; text-align:left" tal:content="client.Name|nothing"></td>
+                <td style="width: 60px">To:</td>
+                <td class="bold" style="width: 400px; text-align:left" tal:content="client.Name|nothing"></td>
             </tr>
             <tr>
-                <td style="width: 150px">Date</td>
-                <td class="bold" style="width: 200px; text-align:left">${valuation_date}</td>
+                <td style="width: 60px">Date</td>
+                <td class="bold" style="width: 400px; text-align:left">${valuation_date}</td>
             </tr>
             <tr>
-                <td style="width: 150px">Project</td>
-                <td class="bold" style="width: 200px; text-align:left">${valuation.Project.Name}</td>
+                <td style="width: 60px">Project</td>
+                <td class="bold" style="width: 400px; text-align:left">${valuation.Project.Name}</td>
             </tr>
         </table>
         <div>&nbsp;</div>
