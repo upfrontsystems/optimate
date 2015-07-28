@@ -908,7 +908,7 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         # update the rate of the resource
         newresarate = 150
         request.matchdict = {'id': 16}
-        request.json_body = {'rate': newresarate}
+        request.json_body = {'Rate': newresarate}
         response = self._callFUT(request)
 
         newresparttot = Decimal(newresarate * respartq).quantize(Decimal('.01'))
@@ -928,7 +928,7 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.matchdict = {'id': 25}
         newresbduplicaterate = 100
-        request.json_body = {'rate': newresbduplicaterate}
+        request.json_body = {'Rate': newresbduplicaterate}
         response = self._callFUT(request)
 
         newbietot = Decimal((1.0 + overheadcperc) * \
@@ -950,7 +950,7 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.matchdict = {'id': 3}
         newbiq = 50.0
-        request.json_body = {'quantity': newbiq}
+        request.json_body = {'Quantity': newbiq}
         response = self._callFUT(request)
 
         newbitot = Decimal((1.0+overheadperc)*newbiq * float(resunitrate)
@@ -969,7 +969,7 @@ class TestUpdateValueSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         newpartq = 50.0
         request.matchdict = {'id': 7}
-        request.json_body = {'quantity': newpartq}
+        request.json_body = {'Quantity': newpartq}
         response = self._callFUT(request)
 
         newresunitrate = Decimal(float(resarate)*newpartq

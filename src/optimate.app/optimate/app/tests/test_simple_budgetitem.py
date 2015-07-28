@@ -121,8 +121,8 @@ class TestSimpleComponent(unittest.TestCase):
         newrate = 1000000
         newquantity = 2.0
         request.json_body = {
-            'quantity': newquantity,
-            'rate': newrate
+            'Quantity': newquantity,
+            'Rate': newrate
         }
         response = node_update_value(request)
         newsibi_total = Decimal(newrate*newquantity).quantize(Decimal('.01'))
