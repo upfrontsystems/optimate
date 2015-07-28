@@ -699,9 +699,9 @@ class TestInvoiceViewSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.method = 'POST'
         request.matchdict['id'] = 0
-        request.json_body = {'orderid':1,
-                                'amount': 124,
-                                'vat': 0}
+        request.json_body = {'OrderID':1,
+                                'Amount': 124,
+                                'VAT': 0}
         response = self._callFUT(request)
         # get the new order id
         newid = response['id']
@@ -718,7 +718,7 @@ class TestInvoiceViewSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.method = 'PUT'
         request.matchdict['id'] = 1
-        request.json_body= {'amount':20}
+        request.json_body= {'Amount':20}
         response = self._callFUT(request)
 
         request = testing.DummyRequest()

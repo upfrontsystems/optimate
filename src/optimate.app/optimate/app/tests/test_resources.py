@@ -266,4 +266,4 @@ class TestTree(unittest.TestCase):
         request.matchdict = {'id': 18}
         from optimate.app.views import node_paste
         response = node_paste(request)
-        self.assertEqual(response.keys(), ['newId'])
+        self.assertEqual(response.keys(), ['node', 'newId'])

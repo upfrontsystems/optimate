@@ -273,8 +273,8 @@ class Project(Node):
                 'City' : self.CityID,
                 'SiteAddress' : self.SiteAddress,
                 'FileNumber' : self.FileNumber,
-                'Ordered': str(self.Ordered),
-                'Invoiced': str(self.Invoiced),
+                'Ordered': str(self.Ordered.quantize(Decimal('.01'))),
+                'Invoiced': str(self.Invoiced.quantize(Decimal('.01'))),
                 'NodeType': self.type,
                 'NodeTypeAbbr' : 'P'}
 
@@ -1078,7 +1078,7 @@ class Resource(Node):
         """ Override the dict function
         """
         typename = ""
-        if self.Type:
+        if self.ResourceType:
             typename = self.ResourceType.Name
         subitem = []
         return {'Name': self.Name,
@@ -1137,7 +1137,7 @@ class ResourceUnit(Resource):
         """ Override the dict function
         """
         typename = ""
-        if self.Type:
+        if self.ResourceType:
             typename = self.ResourceType.Name
         subitem = []
         if len(self.Children) > 0:

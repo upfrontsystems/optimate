@@ -1137,7 +1137,7 @@ def node_paste(request):
     transaction.commit()
     # return the new id
     node = DBSession.query(Node).filter_by(ID=pasted_id).first()
-    return {'newId': projectid, 'node': node.dict()}
+    return {'newId': pasted_id, 'node': node.dict()}
 
 
 @view_config(route_name="node_cost", renderer='json')
@@ -1753,7 +1753,7 @@ def orderview(request):
     jsondate = None
     if order.Date:
         jsondate = order.Date.isoformat()
-    total = Decimal(0.00)
+    total = '0.00'
     if order.Total:
         total = order.Total
 
