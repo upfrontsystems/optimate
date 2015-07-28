@@ -788,13 +788,13 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                         console.log("No columns widths found in storage. Setting to default.");
                         valuations_column_width = {'name': 270,
                                                    'percentage_complete': 80,
-                                                   'total': 65,};
+                                                   'amount_complete': 65,};
                         localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
                     }
                     if ( valuations_column_width.length == 0 ) {
                         valuations_column_width = {'name': 270,
                                                    'percentage_complete': 80,
-                                                   'total': 65};
+                                                   'amount_complete': 65};
                         localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
                     }
                 }
@@ -802,7 +802,7 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                     console.log("LOCAL STORAGE NOT SUPPORTED")
                     valuations_column_width = {'name': 270,
                                                'percentage_complete': 80,
-                                               'total': 65,};
+                                               'amount_complete': 65,};
                 }
             };
             $scope.preloadWidths();
@@ -813,7 +813,7 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                     {id: "percentage_complete", name: "Percentage Complete", field: "percentage_complete",
                      cssClass: "cell editable-column", formatter: PercentageFormatter,
                      width: valuations_column_width.percentage_complete, editor: Slick.Editors.CustomEditor},
-                    {id: "total", name: "Total", field: "total", cssClass: "cell non-editable-column",
+                    {id: "amount_complete", name: "Total", field: "amount_complete", cssClass: "cell non-editable-column",
                       formatter: CurrencyFormatter, width: valuations_column_width.total}];
 
             var options = {
@@ -896,7 +896,7 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                     {id: "percentage_complete", name: "% Complete", field: "percentage_complete",
                      cssClass: "cell editable-column", formatter: PercentageFormatter,
                      width: valuations_column_width.percentage_complete, editor: Slick.Editors.Float},
-                    {id: "total", name: "Total", field: "total", cssClass: "cell non-editable-column",
+                    {id: "amount_complete", name: "Total", field: "amount_complete", cssClass: "cell non-editable-column",
                       formatter: CurrencyFormatter, width: valuations_column_width.total}];
                 if (budgetgrouplist.length > 0) {
                     grid.setColumns(columns);

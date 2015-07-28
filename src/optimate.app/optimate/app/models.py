@@ -2251,11 +2251,11 @@ class ValuationItem(Base):
                 'PercentageComplete': str(self.PercentageComplete),
                 'percentage_complete': str(self.PercentageComplete),
                 'amount_complete': str(self.Total),
-                'total_budget': str(self.BudgetGroup.Total)}
+                'total_budget': str(self.BudgetGroupTotal)}
 
     @property
     def Total(self):
-        total = (self.BudgetGroup.Total / 100) * self.PercentageComplete
+        total = (self.BudgetGroupTotal / 100) * self.PercentageComplete
         return Decimal(total).quantize(Decimal('.01'))
 
     def __repr__(self):

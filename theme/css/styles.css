@@ -269,7 +269,8 @@ input.custom-datepicker{
     width: 95%;
     height: 100%;
 }
-#addComponentsButton {
+#addComponentsButton,
+#addBudgetgroupButton {
     float: left;
 }
 
