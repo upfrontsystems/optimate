@@ -472,22 +472,90 @@ association_table = Table('BudgetItemOverheadAssociation', Base.metadata,
     Column('OverheadID', Integer, ForeignKey('Overhead.ID'))
 )
 
-class BudgetItemMixin(object):
-    """ Contains common functionality between BudgetItem and SimpleBudgetItem,
-        mixed into those respective classes using (potentially multiple)
-        inheritance. """
+class BudgetItem(Node):
+    """ A BudgetItem represents a unique cost item in the project.
+        It can be the child of another BudgetItem or a BudgetGroup
+        It has a many-to-one relationship with Resource, which
+        defines its Name, Description, and Rate.
+    """
+    __tablename__ = 'BudgetItem'
+    ID = Column(Integer,
+                ForeignKey('Node.ID', ondelete='CASCADE'),
+                primary_key=True)
+    ResourceID = Column(Integer, ForeignKey('Resource.ID'))
+    _Quantity = Column('Quantity', Float, default=0.0)
+    _Total = Column('Total', Numeric)
+    _Ordered = Column('Ordered', Numeric(12, 2), default=Decimal(0.00))
+    _Invoiced = Column('Invoiced', Numeric(12, 2), default=Decimal(0.00))
 
-    # TODO: add a relationship between OrderItem, and BudgetItem and SimpleBudgetItem
-    # @declared_attr
-    # def OrderItems(cls):
-    #     return relationship('OrderItem',
-    #                           backref=backref('BudgetItem'))
+    Resource = relationship('Resource',
+                            foreign_keys='BudgetItem.ResourceID',
+                            backref='BudgetItems')
+
+    Overheads = relationship('Overhead',
+                    secondary=association_table,
+                    backref='BudgetItems')
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'BudgetItem',
+        'inherit_condition': (ID == Node.ID),
+    }
 
     def clearCosts(self):
         """ Set the Total and Quantity costs to zero
         """
         self._Total = Decimal(0)
         self._Quantity = 0.0
+
+    @property
+    def Name(self):
+        """ Get this BudgetItem's Name, which returns the Resource's Name
+        """
+        if self.Resource:
+            return self.Resource.Name
+        else:
+            return "no resource"
+
+    @property
+    def Description(self):
+        """ Get the BudgetItem's Description, return Resource's Description
+        """
+        return self.Resource.Description
+
+    @hybrid_property
+    def Rate(self):
+        """ Get the Rate, return the Resource Rate
+        """
+        return self.Resource.Rate
+
+    @Rate.setter
+    def Rate(self, rate):
+        """ Update the Total from changes to the Resource Rate
+        """
+        self.Total = Decimal((1.0+self.Markup) * self.Quantity * float(rate)
+                                ).quantize(Decimal('.01'))
+
+    @property
+    def Unit(self):
+        """ Get the BudgetItem's Unit, the Unit of the Resource is returned
+        """
+        return self.Resource.unitName()
+
+    @property
+    def Type(self):
+        """ Get the BudgetItem's Type, the Type of the Resource is returned
+        """
+        return self.Resource.Type
+
+    @property
+    def Markup(self):
+        """ Get the markup of this BudgetItem.
+            It is a composite of all the Overhead percentages
+        """
+        composite = 1.0
+        for overhead in self.Overheads:
+            composite = composite*(overhead.Percentage/100.0+1.0)
+        return composite-1
 
     @property
     def Total(self):
@@ -530,13 +598,6 @@ class BudgetItemMixin(object):
         # change the total when the quantity changes
         self.Total = (1.0+self.Markup) * quantity * float(self.Rate)
         self._Quantity = quantity
-
-    @property
-    def Unit(self):
-        """ Get the BudgetItem's Unit name, the Unit of this resource is returned
-        """
-        if self.Resource:
-            return self.Resource.unitName()
 
     @hybrid_property
     def Ordered(self):
@@ -604,9 +665,16 @@ class BudgetItemMixin(object):
                 'Subitem': subitem,
                 'Rate': str(self.Rate),
                 'Quantity': self.Quantity,
+                'Total': str(self.Total),
                 'Ordered': str(self.Ordered),
                 'Invoiced': str(self.Invoiced),
-                }
+                'ResourceID': self.ResourceID,
+                'ResourceName': self.Name,
+                'OverheadList': self.overheadsList(),
+                'Unit': self.Unit,
+                'NodeType': self.type,
+                'NodeTypeAbbr' : 'I'
+        }
 
     def updateOrdered(self, ordered):
         """ Updates the Ordered amount for all the children of this node
@@ -614,86 +682,6 @@ class BudgetItemMixin(object):
         self.Ordered = ordered
         for child in self.Children:
             child.updateOrdered(ordered)
-
-
-class BudgetItem(BudgetItemMixin, Node):
-    """ A BudgetItem represents a unique cost item in the project.
-        It can be the child of another BudgetItem or a BudgetGroup
-        It has a many-to-one relationship with Resource, which
-        defines its Name, Description, and Rate.
-    """
-    __tablename__ = 'BudgetItem'
-    ID = Column(Integer,
-                ForeignKey('Node.ID', ondelete='CASCADE'),
-                primary_key=True)
-    ResourceID = Column(Integer, ForeignKey('Resource.ID'))
-    _Quantity = Column('Quantity', Float, default=0.0)
-    _Total = Column('Total', Numeric)
-    _Ordered = Column('Ordered', Numeric(12, 2), default=Decimal(0.00))
-    _Invoiced = Column('Invoiced', Numeric(12, 2), default=Decimal(0.00))
-
-    Resource = relationship('Resource',
-                            foreign_keys='BudgetItem.ResourceID',
-                            backref='BudgetItems')
-
-    Overheads = relationship('Overhead',
-                    secondary=association_table,
-                    backref='BudgetItems')
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'BudgetItem',
-        'inherit_condition': (ID == Node.ID),
-    }
-
-    @property
-    def Name(self):
-        """ Get this BudgetItem's Name, which returns the Resource's Name
-        """
-        if self.Resource:
-            return self.Resource.Name
-        else:
-            return "no resource"
-
-    @property
-    def Description(self):
-        """ Get the BudgetItem's Description, return Resource's Description
-        """
-        return self.Resource.Description
-
-    @hybrid_property
-    def Rate(self):
-        """ Get the Rate, return the Resource Rate
-        """
-        return self.Resource.Rate
-
-    @Rate.setter
-    def Rate(self, rate):
-        """ Update the Total from changes to the Resource Rate
-        """
-        self.Total = Decimal((1.0+self.Markup) * self.Quantity * float(rate)
-                                ).quantize(Decimal('.01'))
-
-    @property
-    def Unit(self):
-        """ Get the BudgetItem's Unit, the Unit of the Resource is returned
-        """
-        return self.Resource.unitName()
-
-    @property
-    def Type(self):
-        """ Get the BudgetItem's Type, the Type of the Resource is returned
-        """
-        return self.Resource.Type
-
-    @property
-    def Markup(self):
-        """ Get the markup of this BudgetItem.
-            It is a composite of all the Overhead percentages
-        """
-        composite = 1.0
-        for overhead in self.Overheads:
-            composite = composite*(overhead.Percentage/100.0+1.0)
-        return composite-1
 
     def overheadsList(self):
         """ Return a list of all the overheads used for this BudgetItem
@@ -751,21 +739,6 @@ class BudgetItem(BudgetItemMixin, Node):
                 'NodeType': 'OrderItem',
                 'NodeTypeAbbr' : 'I'}
 
-    def dict(self):
-        """ Return a dictionary of all the attributes of this BudgetItem
-            Also returns a list of the Overhead ID's used by this BudgetItem
-        """
-        di = super(BudgetItem, self).dict()
-        di.update({
-            'ResourceID': self.ResourceID,
-            'ResourceName': self.Name,
-            'OverheadList': self.overheadsList(),
-            'Unit': self.Unit,
-            'NodeType': self.type,
-            'NodeTypeAbbr' : 'I'
-        })
-        return di
-
     def __repr__(self):
         """ return a representation of this BudgetItem
         """
@@ -773,24 +746,22 @@ class BudgetItem(BudgetItemMixin, Node):
             self.Name, self.Quantity, self.ID, self.ParentID)
 
 
-class SimpleBudgetItem(BudgetItemMixin, Node):
+class SimpleBudgetItem(BudgetItem):
     """ Similar to BudgetItem, but does not reference a resource. For adding
-        simple cost items in ad hoc fashion. """
+        simple cost items in ad hoc fashion.
+    """
     __tablename__ = 'SimpleBudgetItem'
-    ID = Column(Integer, ForeignKey('Node.ID', ondelete='CASCADE'),
-        primary_key=True)
+    ID = Column(Integer,
+                ForeignKey('BudgetItem.ID', ondelete='CASCADE'),
+                primary_key=True)
     Name = Column(Unicode(50))
     Description = Column(Text(100))
-    _Quantity = Column('Quantity', Float, default=0.0)
-    _Total = Column('Total', Numeric)
     Type = Column(Integer, ForeignKey('ResourceType.ID'))
     _Rate = Column('Rate', Numeric, default=Decimal(0.00))
-    _Ordered = Column('Ordered', Numeric(12, 2), default=Decimal(0.00))
-    _Invoiced = Column('Invoiced', Numeric(12, 2), default=Decimal(0.00))
 
     __mapper_args__ = {
         'polymorphic_identity': 'SimpleBudgetItem',
-        'inherit_condition': (ID == Node.ID),
+        'inherit_condition': (ID == BudgetItem.ID),
     }
 
     @property
@@ -841,48 +812,10 @@ class SimpleBudgetItem(BudgetItemMixin, Node):
                                 _Ordered=self.Ordered,
                                 _Invoiced=self.Invoiced)
 
-    def order(self):
-        """ The data returned when ordering a BudgetItem
-        """
-        quantity = self.Quantity
-        subtotal = Decimal(quantity*float(self.Rate)).quantize(Decimal('.01'))
-        vat = 14
-        companyinfo = DBSession.query(CompanyInformation
-                                ).filter_by(ID=0).first()
-        if companyinfo:
-            vat = companyinfo.DefaultTaxrate
-        total = Decimal(float(subtotal)*(1+vat/100.0)).quantize(Decimal('.01'))
-        vatcost = Decimal(float(subtotal)*vat/100.0).quantize(Decimal('.01'))
-        return {'Name': self.Name,
-                'ID': self.ID,
-                'ParentID': self.ParentID,
-                'id': self.ID,
-                'Quantity': quantity,
-                'Rate': str(self.Rate),
-                'Total': str(total),
-                'VAT': vat,
-                'VATCost': str(vatcost),
-                'Subtotal': str(subtotal),
-                'NodeType': 'OrderItem',
-                'NodeTypeAbbr' : 'I'}
-
-    def dict(self):
-        """ Return a dictionary of all the data needed for the slick grid
-        """
-        di = super(SimpleBudgetItem, self).dict()
-        di.update({
-            'Unit': self.Unit,
-            'Ordered': str(self.Ordered),
-            'Invoiced': str(self.Invoiced),
-            'NodeType': self.type,
-            'NodeTypeAbbr' : 'I'
-        })
-        return di
-
     def __repr__(self):
-        """ return a representation of this budgetitem
+        """ return a representation of this simplebudgetitem
         """
-        return '<SCo(Name="%s", Quantity="%d", ID="%s", ParentID="%s")>' % (
+        return '<SimpleBudgetItem(Name="%s", Quantity="%d", ID="%s", ParentID="%s")>' % (
             self.Name, self.Quantity, self.ID, self.ParentID)
 
 
@@ -1148,8 +1081,6 @@ class Resource(Node):
         if self.Type:
             typename = self.ResourceType.Name
         subitem = []
-        if len(self.Children) > 0:
-            subitem = [{'Name': '...', 'NodeType': 'Default'}]
         return {'Name': self.Name,
                 'Description': self.Description,
                 'ID': self.ID,
@@ -1202,18 +1133,29 @@ class ResourceUnit(Resource):
         """
         self.Children.append(source)
 
-    def toChildDict(self):
-        """ Returns a dictionary of this node used in the childview
+    def dict(self):
+        """ Override the dict function
         """
+        typename = ""
+        if self.Type:
+            typename = self.ResourceType.Name
         subitem = []
-        if len(self.Children)>0:
-            subitem = {'Name': '...', 'NodeType': 'Default'}
+        if len(self.Children) > 0:
+            subitem = [{'Name': '...', 'NodeType': 'Default'}]
         return {'Name': self.Name,
                 'Description': self.Description,
                 'ID': self.ID,
+                'id': self.ID,
                 'ParentID': self.ParentID,
                 'Subitem': subitem,
-                'NodeType': 'Resource',
+                'Code': self.Code,
+                'Rate': str(self._Rate),
+                'ResourceTypeID': self.Type,
+                'ResourceType': typename,
+                'UnitID': self.UnitID,
+                'Unit': self.unitName(),
+                'Supplier': self.SupplierID,
+                'NodeType': self.type,
                 'NodeTypeAbbr' : 'R'}
 
     def __repr__(self):
@@ -1614,7 +1556,7 @@ class OrderItem(Base):
         """Return a representation of this order item
         """
         return '<OrderItem(ID="%s", OrderID="%s", BudgetItemID="%s")>' % (
-            self.ID, self.OrderID, self.BudID)
+            self.ID, self.OrderID, self.BudgetItemID)
 
 
 class User(Base):

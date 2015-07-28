@@ -1460,7 +1460,7 @@ class TestCopySuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
 
         # true if the response from paste view returns the new id
-        self.assertEqual(response.keys(), ['newId'])
+        self.assertEqual(response.keys(), ['node', 'newId'])
 
         # do another test to see if the children of the parent is now three
         # (two budgetgroups and the resourcecategory)
@@ -1494,7 +1494,7 @@ class TestCopySuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
 
         # true if the response from paste view returns the new id
-        self.assertEqual(response.keys(), ['newId'])
+        self.assertEqual(response.keys(), ['node', 'newId'])
         newid = response['newId']
 
         # do another test to see if the children of the parent is now four
@@ -1531,7 +1531,7 @@ class TestCopySuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
 
         # true if the response from paste view returns the new id
-        self.assertEqual(response.keys(), ['newId'])
+        self.assertEqual(response.keys(), ['node', 'newId'])
         newid = response['newId']
 
         # do another test to see if the children of the parent is now three
@@ -1554,7 +1554,7 @@ class TestCopySuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
 
         # true if the response from paste view returns the new id
-        self.assertEqual(response.keys(), ['newId'])
+        self.assertEqual(response.keys(), ['node', 'newId'])
         newid = response['newId']
 
         # do another test to see if the children of the parent is now three
@@ -1576,7 +1576,7 @@ class TestCopySuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
 
         # true if the response from paste view returns the new id
-        self.assertEqual(response.keys(), ['newId'])
+        self.assertEqual(response.keys(), ['node', 'newId'])
         newid = response['newId']
 
         # do another test to see if the children of the parent is two
@@ -1617,7 +1617,7 @@ class TestCutAndPasteSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
 
         # true if the response from paste view returns the new id
-        self.assertEqual(response.keys(), ['newId'])
+        self.assertEqual(response.keys(), ['node', 'newId'])
 
         # do another test to see if the children of the parent is now three
         # (two budgetgroups and the resourcecategory)
@@ -1829,7 +1829,7 @@ class TestInvoicedAmountViewSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.method = 'POST'
         request.matchdict['id'] = 0
-        budgetitemslist = [{'ID': 11, 'id': 11, 'quantity': 4, 'rate': 7}]
+        budgetitemslist = [{'ID': 11, 'id': 11, 'Quantity': 4, 'Rate': 7}]
         request.json_body = {'ProjectID': 1,
                             'SupplierID': 2,
                             'BudgetItemsList': budgetitemslist}
@@ -1841,8 +1841,8 @@ class TestInvoicedAmountViewSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.method = 'POST'
         request.matchdict['id'] = 0
-        request.json_body = {'orderid':newid,
-                                'amount': 56}
+        request.json_body = {'OrderID':newid,
+                                'Amount': 56}
         response = self._callFUT(request)
         request = testing.DummyRequest()
         request.method = 'GET'

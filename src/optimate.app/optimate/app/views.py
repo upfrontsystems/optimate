@@ -295,7 +295,7 @@ def additemview(request):
     elif objecttype == 'SimpleBudgetItem':
         rate = request.json_body.get('Rate', 0)
         rate = Decimal(rate).quantize(Decimal('.01'))
-        quantity = float(request.json_body.get('quantity', 0))
+        quantity = float(request.json_body.get('Quantity', 0))
 
         newnode = SimpleBudgetItem(
             ParentID=parentid,
@@ -860,6 +860,7 @@ def node_paste(request):
     if (parentid == 0) and (source.type == 'Project'):
         if request.json_body["cut"]:
             projectid = sourceid
+            pasted_id = sourceid
         else:
             # Paste the source into the destination
             projectcopy = source.copy(dest.ID)
@@ -933,13 +934,16 @@ def node_paste(request):
                     for destresource in destresources:
                         if destresource.Code == resource.Code:
                             destresource.overwrite(resource)
+                            pasted_id = destresource.ID
             # otherwise paste the resource into the new category
             else:
                 # add the source resource category to the destination category
                 newparentid = sortResource(resourcecategory, source.Name)
                 newresource = resource.copy(newparentid)
+
                 DBSession.add(newresource)
                 DBSession.flush()
+                pasted_id = newresource.ID
 
         # if the source is cut, delete it
         if request.json_body["cut"]:
@@ -963,11 +967,14 @@ def node_paste(request):
                             return HTTPInternalServerError("Can't cut resources that are used")
                     newparentid = sortResource(resourcecategory, source.Name)
                     source.ParentID = newparentid
+                    pasted_id = source.ID
                 else:
                     # Paste the source into the destination
                     newparentid = sortResource(resourcecategory, source.Name)
                     newresource = source.copy(newparentid)
                     DBSession.add(newresource)
+                    DBSession.flush()
+                    pasted_id = newresource.ID
             else:
                 if request.json_body["cut"]:
                     destprojectid = dest.getProjectID()
@@ -975,6 +982,7 @@ def node_paste(request):
                     # if we cut and paste in the same resource category its fine
                     if destprojectid == sourceprojectid:
                         source.ParentID = destinationid
+                        pasted_id = source.ID
                     else:
                         return HTTPConflict()
                 else:
@@ -1129,7 +1137,7 @@ def node_paste(request):
     transaction.commit()
     # return the new id
     node = DBSession.query(Node).filter_by(ID=pasted_id).first()
-    return {'newId': projectid, 'node': node.toChildDict()}
+    return {'newId': projectid, 'node': node.dict()}
 
 
 @view_config(route_name="node_cost", renderer='json')
@@ -2130,7 +2138,6 @@ def invoiceview(request):
 
     # if the method is put, edit an existing invoice
     if request.method == 'PUT':
-        print request.json_body
         invoice = DBSession.query(Invoice).filter_by(
                                             ID=request.matchdict['id']).first()
         oldtotal = invoice.Total
