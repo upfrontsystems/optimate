@@ -242,27 +242,20 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 var no_quantity_column = response['no_quantity'];
                 var type = response['type'];
                 if (data.length > 0) {
-                    // If the grid is only showing resources or resourcecategories
-                    var secondtype = data[0]['NodeType']
-                    if ((secondtype == 'Resource') || (secondtype == 'ResourceCategory')) {
-                        if (data.length>1) {
-                            secondtype = data[1]['NodeType']
-                        }
+                    // If the grid is only showing resource types
+                    if (type == 'Resources') {
+                        newcolumns = [
+                            name_column,
+                            rate_column,
+                            unit_column,
+                            resource_type_column,
+                        ];
+                        renderGrid(newcolumns, data)
                     }
-                    if ((secondtype == 'Resource') || (secondtype == 'ResourceCategory')) {
-                        if (secondtype == 'Resource') {
-                            newcolumns = [
-                                name_column,
-                                rate_column,
-                                unit_column,
-                                resource_type_column,
-                            ];
-                        }
-                        else if (secondtype == 'ResourceCategory') {
-                            newcolumns = [
-                                name_column
-                            ];
-                        }
+                    else if (type == 'ResourceCategories'){
+                        newcolumns = [
+                            name_column
+                        ];
                         renderGrid(newcolumns, data)
                     }
                     else {

@@ -5,6 +5,7 @@ and send responses with appropriate data
 
 import json
 import transaction
+import re
 from datetime import datetime
 from pyramid.view import view_config
 from decimal import Decimal
@@ -784,6 +785,14 @@ def node_grid(request):
             rescatlist.append(child.dict())
         else:
             childrenlist.append(child.dict())
+
+    # check if the parent is any of the resource types
+    regex = re.compile('Resource*')
+    if regex.match(node_type):
+        if len(childrenlist) == 0:
+            node_type = "ResourceCategories"
+        else:
+            node_type = 'Resources'
 
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'].upper())
     sorted_rescatlist = sorted(rescatlist, key=lambda k: k['Name'].upper())
