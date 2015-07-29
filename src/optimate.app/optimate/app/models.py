@@ -516,7 +516,8 @@ class BudgetGroup(Node):
                 'id': self.ID,
                 'NodeType': 'BudgetGroup',
                 'node_type': 'BudgetGroup',
-                'NodeTypeAbbr': 'G'}
+                'NodeTypeAbbr': 'G',
+                'total_budget': str(self.Total)}
 
     def toChildDict(self):
         """ Returns a dictionary of the budgetgroup node used in the childview
