@@ -608,6 +608,9 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             $('#saveOrderModal').on('shown.bs.modal', function() {
                  grid.init();
                  grid.resizeCanvas();
+                 $('#order_components .active').removeClass('active')
+                 $('#order_components .editable').removeClass('editable')
+                 $('#order_components .selected').removeClass('selected')
             });
 
             // when a column is resized change the default size of that column
