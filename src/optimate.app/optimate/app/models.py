@@ -542,6 +542,12 @@ class BudgetItem(Node):
         return self.Resource.unitName()
 
     @property
+    def UnitID(self):
+        """ Get the BudgetItem's Unit ID, the Unit of the Resource is returned
+        """
+        return self.Resource.UnitID
+
+    @property
     def Type(self):
         """ Get the BudgetItem's Type, the Type of the Resource is returned
         """
@@ -672,6 +678,8 @@ class BudgetItem(Node):
                 'ResourceName': self.Name,
                 'OverheadList': self.overheadsList(),
                 'Unit': self.Unit,
+                'UnitID': self.UnitID,
+                'ResourceTypeID': self.Type,
                 'NodeType': self.type,
                 'NodeTypeAbbr' : 'I'
         }
@@ -773,6 +781,12 @@ class SimpleBudgetItem(BudgetItem):
     @property
     def Unit(self):
         """ Has no unit. """
+        return None
+
+    @property
+    def UnitID(self):
+        """ Has no unit
+        """
         return None
 
     @hybrid_property
@@ -1088,7 +1102,7 @@ class Resource(Node):
                 'ParentID': self.ParentID,
                 'Subitem': subitem,
                 'Code': self.Code,
-                'Rate': str(self._Rate),
+                'Rate': str(self.Rate),
                 'ResourceTypeID': self.Type,
                 'ResourceType': typename,
                 'UnitID': self.UnitID,
@@ -1149,7 +1163,7 @@ class ResourceUnit(Resource):
                 'ParentID': self.ParentID,
                 'Subitem': subitem,
                 'Code': self.Code,
-                'Rate': str(self._Rate),
+                'Rate': str(self.Rate),
                 'ResourceTypeID': self.Type,
                 'ResourceType': typename,
                 'UnitID': self.UnitID,

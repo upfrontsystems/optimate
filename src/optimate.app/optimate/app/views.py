@@ -319,7 +319,7 @@ def additemview(request):
     elif objecttype == 'Resource' or objecttype == 'ResourceUnit':
         resourcetype = request.json_body['ResourceType']
         name =  request.json_body['Name']
-        # check if the resource is not in the resource category
+        # get the sorted parent id
         resourcecategory = DBSession.query(
                 ResourceCategory).filter_by(ID=parentid).first()
         parentid = sortResource(resourcecategory, name)
