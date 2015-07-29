@@ -929,6 +929,7 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                     item.percentage_complete = 100;
                 }
                 item.amount_complete = (item.total_budget/100) * item.percentage_complete;
+                item.amount_complete = item.amount_complete.toFixed(2);
                 dataView.updateItem(item.id, item);
             });
 
