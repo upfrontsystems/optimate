@@ -657,6 +657,22 @@ class BudgetItem(Node):
                 budgetitemslist += child.getBudgetItems()
         return budgetitemslist
 
+    def updateOrdered(self, ordered):
+        """ Updates the Ordered amount for all the children of this node
+        """
+        self.Ordered = ordered
+        for child in self.Children:
+            child.updateOrdered(ordered)
+
+    def overheadsList(self):
+        """ Return a list of all the overheads used for this BudgetItem
+        """
+        overheadlist = []
+        for overhead in self.Overheads:
+            overheadlist.append(overhead.dict())
+
+        return overheadlist
+
     def dict(self):
         """ Override the dict function
         """
@@ -673,6 +689,7 @@ class BudgetItem(Node):
                 'Rate': str(self.Rate),
                 'Quantity': self.Quantity,
                 'Total': str(self.Total),
+                'Subtotal': str(self.Subtotal),
                 'Ordered': str(self.Ordered),
                 'Invoiced': str(self.Invoiced),
                 'ResourceID': self.ResourceID,
@@ -684,22 +701,6 @@ class BudgetItem(Node):
                 'NodeType': self.type,
                 'NodeTypeAbbr' : 'I'
         }
-
-    def updateOrdered(self, ordered):
-        """ Updates the Ordered amount for all the children of this node
-        """
-        self.Ordered = ordered
-        for child in self.Children:
-            child.updateOrdered(ordered)
-
-    def overheadsList(self):
-        """ Return a list of all the overheads used for this BudgetItem
-        """
-        overheadlist = []
-        for overhead in self.Overheads:
-            overheadlist.append(overhead.dict())
-
-        return overheadlist
 
     def copy(self, parentid):
         """ copy returns an exact duplicate of this BudgetItem,

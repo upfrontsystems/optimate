@@ -996,7 +996,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         $scope.formData.Rate = $scope.formData.selected.Rate;
                         $scope.formData.Name = $scope.formData.selected.Name;
                         $scope.formData.Description = $scope.formData.selected.Description;
-                        $scope.formData.ResourceType = $scope.formData.selected.ResourceType;
+                        $scope.formData.ResourceTypeID = $scope.formData.selected.ResourceTypeID;
                         $scope.formData.NodeType = 'SimpleBudgetItem';
                     }
                     else{
@@ -1061,15 +1061,15 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     $scope.formData.ResourceID = $scope.formData.selected.ID;
                     $scope.formData.Quantity = $scope.formData.selected.Quantity;
                     if ($scope.formData.ResourceID == undefined){
-                        $scope.formData.NodeType == 'SimpleBudgetItem'
-                        $scope.formData.Rate = $scope.formData.selected.Rate
-                        $scope.formData.Name = $scope.formData.selected.Name
-                        $scope.formData.Description = $scope.formData.selected.Description
-                        $scope.formData.ResourceType = $scope.formData.selected.ResourceType
+                        $scope.formData.NodeType == 'SimpleBudgetItem';
+                        $scope.formData.Rate = $scope.formData.selected.Rate;
+                        $scope.formData.Name = $scope.formData.selected.Name;
+                        $scope.formData.Description = $scope.formData.selected.Description;
+                        $scope.formData.ResourceTypeID = $scope.formData.selected.ResourceTypeID;
                     }
                     else{
-                        $scope.formData.NodeType == 'BudgetItem'
-                        $scope.formData.Name = $scope.formData.selected.Name
+                        $scope.formData.NodeType == 'BudgetItem';
+                        $scope.formData.Name = $scope.formData.selected.Name;
                         $scope.formData['OverheadList'] = $scope.budgetItemOverheadList || [];
                     }
                 }
