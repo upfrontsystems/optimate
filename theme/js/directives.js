@@ -11,7 +11,7 @@ allControllers.directive('customModals', function ($http, $compile, globalServer
             // observe the modal type for changes and set the formdata
             // this is used for adding nodes in the treeview by their type
             attrs.$observe('modalType', function(addingtype) {
-                if (addingtype){
+                if (addingtype) {
                     scope.formData = {'NodeType': attrs.modalType};
                 }
             })
@@ -55,12 +55,12 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             }());
 
             // override the getitemmetadata method
-            function getItemMetaData(row){
+            function getItemMetaData(row) {
                 // on the first row, if it is the parent
                 // set selectable false and non-editable
-                if (row == 0 && grid){
-                    if (grid.getDataItem(row)){
-                        if (grid.getDataItem(row).isparent){
+                if (row == 0 && grid) {
+                    if (grid.getDataItem(row)) {
+                        if (grid.getDataItem(row).isparent) {
                             return {selectable: false,
                                     'cssClasses': "non-editable-row"
                                 };
@@ -68,10 +68,10 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     }
                 }
                 // set the whole row non-editable for budgetgroups and resource categories
-                if (grid){
+                if (grid) {
                     var rowData = grid.getDataItem(row);
-                    if(rowData){
-                        if(rowData.node_type == 'BudgetGroup' || rowData.node_type == 'ResourceCategory'){
+                    if(rowData) {
+                        if(rowData.node_type == 'BudgetGroup' || rowData.node_type == 'ResourceCategory') {
                             return {'cssClasses': "non-editable-row"};
                         }
                     }
@@ -183,7 +183,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             grid.setSelectionModel(new Slick.CustomSelectionModel());
 
             // render the grid with the given columns and data
-            var renderGrid = function(columns, data){
+            var renderGrid = function(columns, data) {
                 grid.setColumns(columns);
                 dataView.beginUpdate();
                 dataView.setItems(data);
@@ -213,14 +213,14 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     if (gridcolumns[i].previousWidth != gridcolumns[i].width)
                         projects_column_width[gridcolumns[i].field] = gridcolumns[i].width;
                 }
-                if(hasStorage){
+                if(hasStorage) {
                     localStorage["projects_column_width"] = JSON.stringify(projects_column_width);
                 }
             });
 
             // Formatter for displaying markup
             function MarkupFormatter(row, cell, value, columnDef, dataContext) {
-                if (value != undefined){
+                if (value != undefined) {
                     return value + " %";
                 }
                 else{
@@ -230,7 +230,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
 
             // Formatter for displaying currencies
             function CurrencyFormatter(row, cell, value, columnDef, dataContext) {
-                if (value != undefined){
+                if (value != undefined) {
                     var parts = value.toString().split(".");
                     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                     return parts.join(".");
@@ -429,7 +429,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     data: item
                 }
                 $http(req).success(function(data) {
-                    if (data){
+                    if (data) {
                         item.quantity = data.quantity;
                         item.budg_cost = data.total;
                         item.sub_cost = data.subtotal;
@@ -453,9 +453,9 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             var rowsSelected = false;
             grid.onSelectedRowsChanged.subscribe(function(e, args) {
                 var selectedrows = grid.getSelectedRows();
-                if (selectedrows.length > 0){
+                if (selectedrows.length > 0) {
                     var selectedRowIds = dataView.mapRowsToIds(selectedrows);
-                    if((selectedRowIds.length > 0) && grid.getSelectionModel().ctrlClicked()){
+                    if((selectedRowIds.length > 0) && grid.getSelectionModel().ctrlClicked()) {
                         rowsSelected = true;
                     }
                     else{
@@ -468,23 +468,23 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 $scope.toggleRowsSelected(rowsSelected);
             });
 
-            $scope.getSelectedNodes = function(){
+            $scope.getSelectedNodes = function() {
                 var ids = dataView.mapRowsToIds(grid.getSelectedRows());
                 var selectedNodes = [];
-                for (var i in ids){
+                for (var i in ids) {
                     var node = dataView.getItemById(ids[i]);
                     node.NodeType = node.node_type;
                     node.ID = node.id;
                     node.Name = node.name;
-                    if (!node.isparent){
+                    if (!node.isparent) {
                         selectedNodes.push(node);
                     }
                 }
                 return selectedNodes;
             }
 
-            $scope.cutSelectedNodes = function(nodearray){
-                for (var i in nodearray){
+            $scope.cutSelectedNodes = function(nodearray) {
+                for (var i in nodearray) {
                     dataView.deleteItem(nodearray[i].ID);
                 }
                 grid.invalidate();
@@ -561,10 +561,10 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             $scope.preloadWidths();
 
             // override the getitemmetadata method
-            function getItemMetaData(row){
+            function getItemMetaData(row) {
                 // set the css for the last row with the totals
-                if (grid){
-                    if(row == grid.getDataLength()-1){
+                if (grid) {
+                    if(row == grid.getDataLength()-1) {
                         return {selectable: false,
                                 'cssClasses': "sum-row non-editable-row"};
                     }
@@ -608,9 +608,9 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             $('#saveOrderModal').on('shown.bs.modal', function() {
                  grid.init();
                  grid.resizeCanvas();
-                 $('#order_components .active').removeClass('active')
-                 $('#order_components .editable').removeClass('editable')
-                 $('#order_components .selected').removeClass('selected')
+                 $('#order_components .active').removeClass('active');
+                 $('#order_components .editable').removeClass('editable');
+                 $('#order_components .selected').removeClass('selected');
             });
 
             // when a column is resized change the default size of that column
@@ -620,7 +620,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                     if (gridcolumns[i].previousWidth != gridcolumns[i].width)
                         orders_column_width[gridcolumns[i].field] = gridcolumns[i].width;
                 }
-                if(hasStorage){
+                if(hasStorage) {
                     localStorage["orders_column_width"] = JSON.stringify(orders_column_width);
                 }
             });
@@ -640,7 +640,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
                 if (value != undefined) {
                     var parts = value.toString().split(".");
                     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                    if (parts.length > 1){
+                    if (parts.length > 1) {
                         parts[parts.length-1] = parts[parts.length-1].slice(0,2);
                     }
                     return parts.join(".");
@@ -748,7 +748,7 @@ allControllers.directive('componentslickgridjs', ['globalServerURL', 'sharedServ
             // reload the order slickgrid
             // timeout to wait until the modal has finished rendering
             $scope.handleReloadOrderSlickgrid = function() {
-                $timeout(function(){
+                $timeout(function() {
                     grid.resizeCanvas();
                 });
             };
@@ -838,6 +838,10 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
             // resize the slickgrid when modal is shown
             $('#saveValuationModal').on('shown.bs.modal', function() {
                  grid.init();
+                 grid.resizeCanvas();
+                 $('#valuation_budgetgroups .active').removeClass('active');
+                 $('#valuation_budgetgroups .editable').removeClass('editable');
+                 $('#valuation_budgetgroups .selected').removeClass('selected');
             });
 
             // when a column is resized change the default size of that column
@@ -847,7 +851,7 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                     if (gridcolumns[i].previousWidth != gridcolumns[i].width)
                         valuations_column_width[gridcolumns[i].field] = gridcolumns[i].width;
                 }
-                if(hasStorage){
+                if(hasStorage) {
                     localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
                 }
             });
@@ -874,7 +878,7 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
 
             // Formatter for displaying currencies
             function CurrencyFormatter(row, cell, value, columnDef, dataContext) {
-                if (value != undefined){
+                if (value != undefined) {
                     var parts = value.toString().split(".");
                     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                     return parts.join(".");
@@ -882,7 +886,7 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                 else {
                     return "";
                 }
-              }
+            }
 
             grid.onAddNewRow.subscribe(function (e, args) {
                 var item = args.item;
@@ -918,10 +922,20 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                 }
             }, true);
 
+            // on cell change update the totals
+            grid.onCellChange.subscribe(function (e, ctx) {
+                var item = ctx.item
+                if (item.percentage_complete > 100) {
+                    item.percentage_complete = 100;
+                }
+                item.amount_complete = (item.total_budget/100) * item.percentage_complete;
+                dataView.updateItem(item.id, item);
+            });
+
             // reload the valuation slickgrid
             // timeout to wait until the modal has finished rendering
             $scope.handleReloadValuationSlickgrid = function() {
-                $timeout(function(){
+                $timeout(function() {
                     grid.resizeCanvas();
                 });
             };
