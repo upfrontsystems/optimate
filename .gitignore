@@ -21,6 +21,7 @@ local
 theme/bower_components
 theme/node_modules
 server.sqlite
+*.sqlite-journal
 
 # Excel data files
 exceldata
