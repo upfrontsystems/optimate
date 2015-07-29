@@ -199,33 +199,26 @@
                     <span role="button" class="separator">|
                     </span>
                 </li>
-                <li>
-                    <a role="button" data-toggle="modal" data-target="#addBudgetItem"
-                        data-ng-click="changeAddingType('BudgetItem'); loadBudgetItemRelatedList(currentNode.ID)"
-                       title="Add Budget Item" class="budget-item-button">
-                        <i class="fa fa-plus-square"></i> I
-                    </a>
-                </li>
-                <li>
+                <li data-ng-show="currentNode.ParentType != 'BudgetItem'">
                     <a role="button" data-toggle="modal" data-target="#addBudgetItem"
                         data-ng-click="editNode(currentNode.ID); loadBudgetItemRelatedList(currentNode.ID)"
                        title="Edit Budget Item">
                         <i class="fa fa-pencil"></i>
                     </a>
                 </li>
-                <li>
+                <li data-ng-show="currentNode.ParentType != 'BudgetItem'">
                     <a role="button" data-ng-click="copyThisNode(currentNode)"
                        title="Copy Budget Item">
                         <i class="fa fa-files-o"></i>
                     </a>
                 </li>
-                <li>
+                <li data-ng-show="currentNode.ParentType != 'BudgetItem'">
                     <a role="button" data-ng-click="cutThisNode(currentNode)"
                        title="Cut Budget Item">
                         <i class="fa fa-cut"></i>
                     </a>
                 </li>
-                <li data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
+                <li data-ng-show="currentNode.ParentType != 'BudgetItem'" data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
                     <a data-ng-switch-when="Records"
                         role="button"
                         data-ng-click="pasteSelectedRecords(currentNode)"
@@ -238,19 +231,13 @@
                         title="Paste Project">
                         <i class="fa fa-clipboard"></i>
                     </a>
-                    <a data-ng-switch-when="BudgetItem"
-                        role="button"
-                        data-ng-click="pasteThisNode(currentNode)"
-                        title="Paste BudgetItem">
-                        <i class="fa fa-clipboard"></i>
-                    </a>
                     <a data-ng-switch-default
                         role="button"
                         style="color: gray;">
                         <i class="fa fa-clipboard"></i>
                     </a>
                 </li>
-                <li>
+                <li data-ng-show="currentNode.ParentType != 'BudgetItem'">
                     <a role="button" data-target="#deleteConfirmation" data-toggle="modal"
                        title="Delete Budget Item">
                         <i class="fa fa-trash"></i>
@@ -299,12 +286,6 @@
                         role="button"
                         data-ng-click="pasteThisNode(projectsRoot)"
                         title="Paste Project">
-                        <i class="fa fa-clipboard"></i>
-                    </a>
-                    <a data-ng-switch-when="BudgetItem"
-                        role="button"
-                        data-ng-click="pasteThisNode(currentNode)"
-                        title="Paste BudgetItem">
                         <i class="fa fa-clipboard"></i>
                     </a>
                     <a data-ng-switch-default

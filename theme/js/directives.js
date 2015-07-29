@@ -56,24 +56,28 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
 
             // override the getitemmetadata method
             function getItemMetaData(row){
-                // on the first row, if it is the parent
-                // set selectable false and non-editable
-                if (row == 0 && grid){
-                    if (grid.getDataItem(row)){
-                        if (grid.getDataItem(row).isparent){
+                if (grid){
+                    var rowData = grid.getDataItem(row);
+                    if(rowData){
+                        // on the first row, if it is the parent
+                        // set selectable false and non-editable
+                        if (row == 0  && grid.getDataItem(row).isparent){
                             return {selectable: false,
                                     'cssClasses': "non-editable-row"
                                 };
                         }
-                    }
-                }
-                // set the whole row non-editable for budgetgroups and resource categories
-                if (grid){
-                    var rowData = grid.getDataItem(row);
-                    if(rowData){
+                        // set the whole row non-editable for budgetgroups,resource categories and resource units
                         if(rowData.NodeType == 'BudgetGroup' || rowData.NodeType == 'ResourceCategory' || rowData.NodeType == 'ResourceUnit'){
                             return {'cssClasses': "non-editable-row"};
                         }
+                        // otherwise if the parent is a budgetitem
+                        // set it non-editable and unselectable
+                        else if (rowData.NodeType == 'BudgetItem' && rowData.ParentType == 'BudgetItem'){
+                            return {selectable: false,
+                                    'cssClasses': "non-editable-row"
+                                };
+                        }
+
                     }
                 }
                 return {};
@@ -223,7 +227,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     return parts.join(".");
                 }
                 else {
-                    return "0.00";
+                    return "";
                 }
               }
 
@@ -253,8 +257,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                             name_column,
                             quantity_column,
                             read_only_rate_column,
-                            unit_column,
-                            resource_type_column,
+                            total_column
                         ];
                     }
                     else if (type == 'Resources') {
@@ -293,7 +296,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                             emptycolumns = [
                                 name_column,
                                 quantity_column,
-                                rate_column,
+                                read_only_rate_column,
                                 total_column,
                                 subtotal_column,
                                 unit_column,

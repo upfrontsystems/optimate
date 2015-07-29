@@ -617,7 +617,7 @@ class BudgetItem(Node):
         """
         oldamount = self.Ordered
         self._Ordered = Decimal(ordered).quantize(Decimal('.01'))
-        difference = self._Ordered - oldamount
+        difference = self._Ordered - oldamounts
         # update the parent with the new total
         self.Parent.Ordered = self.Parent.Ordered + difference
 
@@ -668,6 +668,7 @@ class BudgetItem(Node):
                 'ID': self.ID,
                 'id': self.ID,
                 'ParentID': self.ParentID,
+                'ParentType': self.Parent.type,
                 'Subitem': subitem,
                 'Rate': str(self.Rate),
                 'Quantity': self.Quantity,
@@ -1282,6 +1283,7 @@ class ResourcePart(Node):
                 'Subitem': subitem,
                 'Quantity': self.Quantity,
                 'Rate': str(self.Rate),
+                'Total': str(self.Total),
                 'NodeType': self.type,
                 'NodeTypeAbbr' : 'P'}
 
