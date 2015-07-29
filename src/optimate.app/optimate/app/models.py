@@ -1156,7 +1156,7 @@ class ResourceUnit(Resource):
                 'Unit': self.unitName(),
                 'Supplier': self.SupplierID,
                 'NodeType': self.type,
-                'NodeTypeAbbr' : 'R'}
+                'NodeTypeAbbr' : 'U'}
 
     def __repr__(self):
         """ Return a representation of this ResourceUnit
