@@ -71,7 +71,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 if (grid){
                     var rowData = grid.getDataItem(row);
                     if(rowData){
-                        if(rowData.node_type == 'BudgetGroup' || rowData.node_type == 'ResourceCategory'){
+                        if(rowData.NodeType == 'BudgetGroup' || rowData.NodeType == 'ResourceCategory' || rowData.NodeType == 'ResourceUnit'){
                             return {'cssClasses': "non-editable-row"};
                         }
                     }
