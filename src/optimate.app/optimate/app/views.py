@@ -228,7 +228,7 @@ def additemview(request):
     desc = request.json_body.get('Description', '')
     rate = request.json_body.get('Rate', 0)
     rate = Decimal(rate).quantize(Decimal('.01'))
-    unit = request.json_body.get('Unit', '')
+    unit = request.json_body.get('UnitID', '')
     objecttype = request.json_body['NodeType']
     city = request.json_body.get('City', '')
     client = request.json_body.get('Client', '')
@@ -304,7 +304,7 @@ def additemview(request):
             Description=request.json_body.get('Description', None),
             _Quantity=quantity,
             _Rate=rate,
-            Type=request.json_body['ResourceType'])
+            Type=request.json_body['ResourceTypeID'])
         DBSession.add(newnode)
         # add it to the parent's total
         if parent.type != 'BudgetItem':
@@ -317,7 +317,7 @@ def additemview(request):
         DBSession.add(newnode)
 
     elif objecttype == 'Resource' or objecttype == 'ResourceUnit':
-        resourcetype = request.json_body['ResourceType']
+        resourcetype = request.json_body['ResourceTypeID']
         name =  request.json_body['Name']
         # get the sorted parent id
         resourcecategory = DBSession.query(
