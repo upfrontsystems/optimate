@@ -105,8 +105,7 @@ def expandBudgetItem(nodeid, resource):
     for part in resource.Children:
         childresource = part.Resource
         node = BudgetItem(ParentID=nodeid,
-                        ResourceID=childresource.ID,
-                        _Quantity=part.Quantity)
+                        ResourceID=childresource.ID)
         DBSession.add(node)
         DBSession.flush()
         if childresource.type == 'ResourceUnit':
@@ -273,7 +272,6 @@ def additemview(request):
         if not resource:
             return HTTPInternalServerError("No Resource for the Budget Item")
         newnode = BudgetItem(ResourceID=resource.ID,
-                        _Quantity=quantity,
                         ParentID=parentid)
         # get the list of overheads used in the checkboxes
         checklist = request.json_body['OverheadList']
@@ -289,9 +287,9 @@ def additemview(request):
         # expand the budgetitem and add children
         if resource.type == 'ResourceUnit':
             expandBudgetItem(newnode.ID, resource)
-        # add it to the parent's total
-        if parent.type != 'BudgetItem':
-            parent.Total += newnode.Total
+        # set the node's quantity
+        # this will set it's total and the quantity of any children it may have
+        newnode.Quantity=quantity
 
     elif objecttype == 'SimpleBudgetItem':
         rate = request.json_body.get('Rate', 0)
@@ -375,6 +373,7 @@ def additemview(request):
             DBSession.flush()
             if resource.type == 'ResourceUnit':
                 expandBudgetItem(newbudgetitem.ID, resource)
+            newbudgetitem.Quantity = budgetitem.Quantity * quantity
         # update the parent ResourceUnit total
         parent.Rate += newnode.Total
 
@@ -516,7 +515,7 @@ def edititemview(request):
                 DBSession.flush()
                 if parentresource.type == 'ResourceUnit':
                     expandBudgetItem(newbudgetitem.ID, parentresource)
-
+                newbudgetitem.Quantity = budgetitem.Quantity * quantity
             rpart.ResourceID = uid
 
     else:

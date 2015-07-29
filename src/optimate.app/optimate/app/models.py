@@ -600,10 +600,13 @@ class BudgetItem(Node):
     @Quantity.setter
     def Quantity(self, quantity):
         """ Set the Quantity and change the total
+            When the Quantity changes update the children Quantities
         """
         # change the total when the quantity changes
         self.Total = (1.0+self.Markup) * quantity * float(self.Rate)
         self._Quantity = quantity
+        for child in self.Children:
+            child.updateQuantity()
 
     @hybrid_property
     def Ordered(self):
@@ -617,7 +620,7 @@ class BudgetItem(Node):
         """
         oldamount = self.Ordered
         self._Ordered = Decimal(ordered).quantize(Decimal('.01'))
-        difference = self._Ordered - oldamounts
+        difference = self._Ordered - oldamount
         # update the parent with the new total
         self.Parent.Ordered = self.Parent.Ordered + difference
 
@@ -636,6 +639,26 @@ class BudgetItem(Node):
         difference = self._Invoiced - oldamount
         # update the parent with the new total
         self.Parent.Invoiced = self.Parent.Invoiced + difference
+
+    @property
+    def ResourcePart(self):
+        """ Return the ResourcePart related to this BudgetItem
+        """
+        if self.Parent.type == 'BudgetItem':
+            resourceunit = self.Parent.Resource
+            for part in resourceunit.Children:
+                if part.ResourceID == self.ResourceID:
+                    return part
+        return None
+
+    def updateQuantity(self):
+        """ Used only for BudgetItems that have a BudgetItem as a parent
+            The Quantity is set Parent.Quantity * ResourcePart.Quantity
+        """
+        if self.Parent.type == 'BudgetItem':
+            rp = self.ResourcePart
+            if rp:
+                self.Quantity = self.Parent.Quantity * self.ResourcePart.Quantity
 
     def paste(self, source, sourcechildren):
         """ Paste appends a source object to the children of this node,
@@ -1218,7 +1241,6 @@ class ResourcePart(Node):
         difference = Decimal(total).quantize(Decimal('.01')) - self.Total
         self.Parent.Rate = self.Parent.Rate + difference
         self._Total = Decimal(total).quantize(Decimal('.01'))
-
 
     @property
     def Rate(self):

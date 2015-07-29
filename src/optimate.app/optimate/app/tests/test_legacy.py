@@ -1145,7 +1145,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
             'Name': 'AddingNewResource',
             'Description': 'Adding Resource',
             'Unit': 5,
-            'ResourceType': 1,
+            'ResourceTypeID': 1,
             'Rate': newresrate,
             'Code': 'ADD005',
             'NodeType': 'Resource'
@@ -1165,7 +1165,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
             'Name': 'AddingNewResourceA',
             'Description': 'Adding Resource',
             'Unit': 2,
-            'ResourceType': 3,
+            'ResourceTypeID': 3,
             'Rate': newresarate,
             'Code': 'AAD005',
             'NodeType': 'Resource'
@@ -1185,7 +1185,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
             'Name': 'AddingResourceUnit',
             'Description': 'Adding Resource Unit',
             'Unit': 1,
-            'ResourceType': 1,
+            'ResourceTypeID': 1,
             'Rate': newresunitrate,
             'Code': 'ADU005',
             'NodeType': 'ResourceUnit'
@@ -1355,7 +1355,7 @@ class TestEditItemSuccessCondition(unittest.TestCase):
             'NodeType': 'Resource',
             'Code': 'E000',
             'Rate': 50,
-            'ResourceType': 1
+            'ResourceTypeID': 1
         })
         request.matchdict = {'id': 25}
         request.method = 'PUT'

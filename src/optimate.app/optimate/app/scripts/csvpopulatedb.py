@@ -775,12 +775,13 @@ if __name__ == '__main__':
                         newcode +=1
                         newpart = ResourcePart(ID=newcode,
                                                 ResourceID=resource.ID,
-                                                _Quantity=1.0,
+                                                _Quantity=quantity,
                                                 ParentID=resourceunit.ID)
                         DBSession.add(newpart)
+                        biquantity = parent.Quantity * quantity
                         bi = BudgetItem(ID=code,
                                         ResourceID=resource.ID,
-                                        _Quantity=quantity,
+                                        _Quantity=biquantity,
                                         ParentID=parentcode,
                                         # OrderCost=ordercost,
                                         # RunningCost=running,
@@ -815,12 +816,13 @@ if __name__ == '__main__':
                         newcode+=1
                         newpart = ResourcePart(ID=newcode,
                                                 ResourceID=resource.ID,
-                                                _Quantity=1.0,
+                                                _Quantity=quantity,
                                                 ParentID=resourceunit.ID)
                         DBSession.add(newpart)
+                        biquantity = parent.Quantity * quantity
                         bi = BudgetItem(ID=code,
                                         ResourceID=resource.ID,
-                                        _Quantity=quantity,
+                                        _Quantity=biquantity,
                                         ParentID=parentcode,
                                         # OrderCost=ordercost,
                                         # RunningCost=running,
@@ -1006,6 +1008,7 @@ if __name__ == '__main__':
                                     ParentID=rescatid, Name=checkname).first()
                         # check if the resource is already in the resourcecategory
                         # if not get it from the database
+                        biquantity = quantity
                         if not resource:
                             existingresource = DBSession.query(
                                 Resource).filter_by(Name=checkname).first()
@@ -1037,9 +1040,10 @@ if __name__ == '__main__':
                                     newcode+=1
                                     newpart = ResourcePart(ID=newcode,
                                                             ResourceID=resource.ID,
-                                                            _Quantity=1.0,
+                                                            _Quantity=quantity,
                                                             ParentID=parentresourceid)
                                     DBSession.add(newpart)
+                                    biquantity = parent.Quantity * quantity
                         if not resource:
                             # resource does not exist yet
                             # build the resource
@@ -1072,9 +1076,10 @@ if __name__ == '__main__':
                                                         _Quantity=1.0,
                                                         ParentID=parentresourceid)
                                 DBSession.add(newpart)
+                                biquantity = parent.Quantity * quantity
                             bi = BudgetItem(ID=code,
                                             ResourceID=resource.ID,
-                                            _Quantity = quantity,
+                                            _Quantity = biquantity,
                                             ParentID=parentcode,
                                             # OrderCost=ordercost,
                                             # RunningCost=running,
@@ -1089,7 +1094,7 @@ if __name__ == '__main__':
                             # the resource exists, create the budgetitem
                             bi = BudgetItem(ID=code,
                                         ResourceID=resource.ID,
-                                        _Quantity = quantity,
+                                        _Quantity = biquantity,
                                         ParentID=parentcode,
                                         # OrderCost=ordercost,
                                         # RunningCost=running,

@@ -1247,7 +1247,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     $scope.handleReloadSlickgrid(node.ID);
                     // insert the copied/cut node in the correct destination without reloading
                     // all the children of the parent
-                    console.log($scope.currentNode);
                     if (!$scope.pastingFromDnd) {
                         $scope.currentNode.Subitem.push(response['node']);
                         $scope.currentNode.Subitem.sort(function(a, b) {
