@@ -38,7 +38,7 @@
                         id="projectFilter"
                         data-ng-model="filters.Project"
                         data-ng-options="project.ID as project.Name for project in projectsList"
-                        data-ng-change="loadClaimsSection()">
+                        data-ng-change="loadClaimSection()">
                     <option value="">Project</option>
                 </select>
                 <div class="filter-datepicker">
@@ -58,13 +58,13 @@
                     </a>
                     <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                         <datetimepicker data-ng-model="filters.Date"
-                            data-on-set-time="loadClaimsSection()"
+                            data-on-set-time="loadClaimSection()"
                             data-datetimepicker-config="{ dropdownSelector: '#filterDateDropdown' ,
                                                             minView:'day'}"/>
                     </ul>
                 </div>
                 <a href=""
-                        data-ng-click="clearFilters(); loadClaimsSection()">
+                        data-ng-click="clearFilters(); loadClaimSection()">
                     Clear
                 </a>
             <li>

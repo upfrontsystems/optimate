@@ -2208,6 +2208,7 @@ def claimsview(request):
     qry = DBSession.query(Claim).order_by(Claim.ID.desc())
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
+
     if 'Project' in paramkeys:
         qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
     if 'Date' in paramkeys:
