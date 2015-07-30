@@ -145,14 +145,14 @@
             </thead>
             <tbody>
                 <tr ng-repeat="obj in jsoninvoices"
-                    ng-click="showActionsFor(obj)" id="invoice-{{obj.id}}">
-                    <td>{{obj.id}}</td>
-                    <td>{{obj.orderid}}</td>
-                    <td>{{obj.project}}</td>
-                    <td>{{obj.supplier}}</td>
-                    <td class="currency">{{obj.amount}}</td>
-                    <td>{{obj.paymentdate}}</td>
-                    <td>{{obj.status}}</td>
+                    ng-click="showActionsFor(obj)" id="invoice-{{obj.ID}}">
+                    <td>{{obj.ID}}</td>
+                    <td>{{obj.OrderID}}</td>
+                    <td>{{obj.Project}}</td>
+                    <td>{{obj.Supplier}}</td>
+                    <td class="currency">{{obj.Amount}}</td>
+                    <td>{{obj.Paymentdate}}</td>
+                    <td>{{obj.Status}}</td>
                 </tr>
             </tbody>
         </table>

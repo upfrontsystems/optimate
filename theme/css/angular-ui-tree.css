@@ -141,16 +141,28 @@ a.budget-group-button {
     background: #b75eea;
 }
 
+a.simple-budget-item-button {
+    color: #b75eea;
+}
+
+.circle.SimpleBudgetItem {
+    background: #b75eea;
+}
+
 a.budget-item-button {
     color: #b75eea;
 }
 
-.circle.Component {
-    background: #4dd0e2;
+.circle.OrderItem {
+    background: #b75eea;
 }
 
-a.component-button {
-    color: #4dd0e2;
+.circle.ResourcePart {
+    background: #663300;
+}
+
+a.resource-part-button {
+    color: #663300;
 }
 
 .circle.Resource {
@@ -159,6 +171,14 @@ a.component-button {
 
 a.resource-button {
     color: #f06292;
+}
+
+.circle.ResourceUnit {
+    background: #FF9966;
+}
+
+a.resource-unit-button {
+    color: #FF9966;
 }
 
 .circle.ResourceCategory {

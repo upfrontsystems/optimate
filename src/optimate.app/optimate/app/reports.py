@@ -25,12 +25,14 @@ def projectbudget_nodes(node, data, level, level_limit, component_filter):
     for child in node.Children:
         if child.type != 'ResourceCategory':
             nodelist.append(child)
-    sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())    
+    sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())
     for child in sorted_nodelist:
+        # leaf nodes with no children act as components
+        leaf = len(child.Children) == 0
         if child.type != 'ResourceCategory':
             if child.type == 'BudgetGroup':
                 data.append((child, 'level' + str(level), 'bold'))
-            elif child.type == 'Component':
+            elif leaf:
                 # no filtering selected
                 if len(component_filter) == 3:
                     data.append((child, 'level' + str(level), 'normal'))
@@ -39,10 +41,10 @@ def projectbudget_nodes(node, data, level, level_limit, component_filter):
                     data.append((child, 'level' + str(level), 'normal'))
             else:
                 data.append((child, 'level' + str(level), 'normal'))
-            if child.type != 'Component':
+            if not leaf:
                 # restrict level as specified
                 if level != level_limit:
-                    data += projectbudget_nodes(child, [], level, level_limit, 
+                    data += projectbudget_nodes(child, [], level, level_limit,
                         component_filter)
     return data
 
@@ -50,8 +52,8 @@ def projectbudget_nodes(node, data, level, level_limit, component_filter):
 @view_config(route_name="reports_tree_view", renderer='json')
 def reports_tree_view(request):
     """ This view is for when the user requests the children of a node
-        in the budget group selection tree. 
-        The nodes used by the orders use a different format than the projects 
+        in the budget group selection tree.
+        The nodes used by the orders use a different format than the projects
         tree view
     """
 
@@ -62,10 +64,8 @@ def reports_tree_view(request):
     # build the list and only get the neccesary values
     if qry != None:
         for child in qry.Children:
-            if child.type == 'Component':
-                childrenlist.append(child.toOrderDict())
-            elif child.type != 'ResourceCategory':
-                childrenlist.append(child.toChildDict())
+            if child.type != 'ResourceCategory':
+                childrenlist.append(child.dict())
 
     # sort childrenlist
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'].upper())
@@ -77,7 +77,7 @@ def projectbudget(request):
     print "Generating Project Budget Report"
     nodeid = request.matchdict['id']
     level_limit = request.json_body['LevelLimit']
-    ctypelist = request.json_body['ComponentTypeList']
+    ctypelist = request.json_body['BudgetItemTypeList']
     print_bgroups = request.json_body['PrintSelectedBudgerGroups']
     bgroup_list = request.json_body['BudgetGroupList']
 
@@ -97,7 +97,7 @@ def projectbudget(request):
             qry = DBSession.query(Node).filter_by(ID=bg_id).first()
             bg_parent_id = qry.ParentID
             bg_parent = DBSession.query(Node).filter_by(ID=bg_parent_id).first()
-            
+
             # start at the parent so we can display the context
             nodes.append((qry, 'level1', 'bold'))
             # group data
@@ -106,19 +106,16 @@ def projectbudget(request):
             # add blank line seperator between groups
             nodes.append(None)
     else:
-        nodes = projectbudget_nodes(project, [], 0, level_limit, 
+        nodes = projectbudget_nodes(project, [], 0, level_limit,
             component_filter)
 
-    # this needs explaining. The 1st component or budgetitem of a budget group 
-    # needs a a special class so that extra spacing can be added above it for 
+    # this needs explaining. The 1st component or budgetitem of a budget group
+    # needs a a special class so that extra spacing can be added above it for
     # report readability & clarity
     count = 0
     for node in nodes:
         if node != None:
-            if node[0].type == 'Component' and count != 0:
-                if nodes[count-1][0].type != 'Component':
-                    nodes[count] = (node[0], node[1], 'normal-space')
-            elif node[0].type == 'BudgetItem' and count != 0:
+            if node[0].type == 'BudgetItem' and count != 0:
                 if nodes[count-1][0].type != 'BudgetItem':
                     nodes[count] = (node[0], node[1], 'normal-space')
         count+= 1
@@ -165,12 +162,14 @@ def costcomparison_nodes(node, data, level, level_limit):
     for child in node.Children:
         if child.type != 'ResourceCategory':
             nodelist.append(child)
-    sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())    
+    sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())
     for child in sorted_nodelist:
         if child.type != 'ResourceCategory':
             if child.type == 'BudgetGroup':
                 data.append((child, 'level' + str(level), 'normal'))
-            if child.type != 'Component':
+            # leaf nodes with no children act as components
+            leaf = len(child.Children) == 0
+            if not leaf:
                 # restrict level as specified
                 if level != level_limit:
                     data += costcomparison_nodes(child, [], level, level_limit)
@@ -196,10 +195,10 @@ def costcomparison(request):
             qry = DBSession.query(Node).filter_by(ID=bg_id).first()
             bg_parent_id = qry.ParentID
             bg_parent = DBSession.query(Node).filter_by(ID=bg_parent_id).first()
-            
+
             # start at the parent so we can display the context
             nodes.append((qry, 'level1', 'bold'))
-            # group data 
+            # group data
             nodes += costcomparison_nodes(qry, [], 1, level_limit+1)
             # add blank line seperator between groups
             nodes.append(None)
@@ -212,9 +211,9 @@ def costcomparison(request):
         tc = 'black';
         oc = 'black';
         ic = 'black';
-        if node[0].Ordered > node[0].Total: 
+        if node[0].Ordered > node[0].Total:
             oc = 'red';
-        if node[0].Invoiced > node[0].Total: 
+        if node[0].Invoiced > node[0].Total:
             ic = 'red';
         nodes_colour.append((node[0], node[1], node[2], tc, oc, ic))
 
@@ -259,20 +258,20 @@ def all_resources(node, data, level, supplier_filter):
     nodelist = []
     for child in node.Children:
         nodelist.append(child)
-    sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())    
+    sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())
     for child in sorted_nodelist:
         if child.type == 'Resource':
             if supplier_filter:
                 if supplier_filter == child.SupplierID:
                     quantity = 0
-                    for component in child.Components:
-                        quantity += component.Quantity
-                    data.append((child, 'level' + str(level), 'normal', 
+                    for budgetitem in child.BudgetItems:
+                        quantity += budgetitem.Quantity
+                    data.append((child, 'level' + str(level), 'normal',
                         quantity))
             else:
                 quantity = 0
-                for component in child.Components:
-                    quantity += component.Quantity
+                for budgetitem in child.BudgetItems:
+                    quantity += budgetitem.Quantity
                 data.append((child, 'level' + str(level), 'normal', quantity))
         else: # ResourceCategory
             data.append((child, 'level' + str(level), 'bold', None))
@@ -336,7 +335,7 @@ def order(request):
     order = DBSession.query(Order).filter_by(ID=orderid).first()
     orderitems = []
     for orderitem in order.OrderItems:
-        orderitems.append(orderitem.toDict())
+        orderitems.append(orderitem.dict())
     sorted_orderitems = sorted(orderitems, key=lambda k: k['name'].upper())
 
     Vat = 14.0
@@ -386,7 +385,7 @@ def valuation(request):
     vitems = []
     budget_total = 0
     for valuationitem in valuation.ValuationItems:
-        vitems.append(valuationitem.toDict())
+        vitems.append(valuationitem.dict())
         budget_total += valuationitem.BudgetGroup.Total
     sorted_vitems = sorted(vitems, key=lambda k: k['name'].upper())
 
@@ -394,7 +393,7 @@ def valuation(request):
     now = datetime.now()
     vdate = valuation.Date.strftime("%d %B %Y")
     clientid = valuation.Project.ClientID
-    client = DBSession.query(Client).filter_by(ID=clientid).first()    
+    client = DBSession.query(Client).filter_by(ID=clientid).first()
     template_data = render('templates/valuationreport.pt',
                            {'valuation': valuation,
                             'valuation_items': sorted_vitems,

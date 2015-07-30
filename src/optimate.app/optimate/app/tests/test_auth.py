@@ -25,6 +25,7 @@ class TestAuth(unittest.TestCase):
         self.request.registry.settings['optimate.app.secret'] = 'mydogspot'
 
     def tearDown(self):
+        DBSession.remove()
         testing.tearDown()
 
     def test_tokens(self):

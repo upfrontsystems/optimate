@@ -18,8 +18,7 @@ from optimate.app.models import (
     Client,
     City,
     Unit,
-    Component,
-    SimpleComponent,
+    SimpleBudgetItem,
     Valuation,
     ValuationItem
 )
@@ -29,133 +28,84 @@ def initdb():
     Base.metadata.create_all(engine)
     DBSession.configure(bind=engine)
     with transaction.manager:
-        existingproj = DBSession.query(Project).first()
-        existingbg = DBSession.query(BudgetGroup).first()
+        global budgetitem_quantity
+        budgetitem_quantity = 5.0
+        global resource_rate
+        resource_rate = Decimal(5.00)
 
-        if existingproj:
-            existingval = DBSession.query(Valuation).first()
-            if not existingval:
-                valuation = Valuation(ID=1, ProjectID=existingproj.ID,
-                                        Date=datetime.date(2000, 1, 1))
-                DBSession().add(valuation)
-                existingvalitem = DBSession.query(ValuationItem).first()
-                if not existingvalitem:
-                    vitem1 = ValuationItem(ID=1,
-                                            ValuationID=valuation.ID,
-                                            BudgetGroupID=existingbg.ID,
-                                            PercentageComplete=80)
-                    vitem2 = ValuationItem(ID=2,
-                                            ValuationID=valuation.ID,
-                                            BudgetGroupID=existingbg.ID,
-                                            PercentageComplete=80)
+        global sibi_quantity
+        sibi_quantity = 1.0
+        global sibi_rate
+        sibi_rate = Decimal(1200000.0)
+        global sibi_total
+        sibi_total = Decimal(float(sibi_rate)* \
+            sibi_quantity).quantize(Decimal('.01'))
 
-                    for ob in (vitem1, vitem2):
-                        DBSession().add(ob)
-            elif len(existingval.ValuationItems) == 0:
-                vitem1 = ValuationItem(ValuationID=existingval.ID,
-                                        BudgetGroupID=existingbg.ID,
-                                        PercentageComplete=80)
-                vitem2 = ValuationItem(ValuationID=existingval.ID,
-                                        BudgetGroupID=existingbg.ID,
-                                        PercentageComplete=80)
+        global budgetitem_total
+        budgetitem_total = Decimal(budgetitem_quantity * float(resource_rate))
+        global project_total
+        project_total = (budgetitem_total + sibi_total).quantize(Decimal('.01'))
 
-                for ob in (vitem1, vitem2):
-                    DBSession().add(ob)
-        else:
-            # project global variables
-            global budgetitem_itemquantity
-            budgetitem_itemquantity = 5.0
-            global resource_rate
-            resource_rate = Decimal(5.00)
+        client1 = Client (Name='TestClientOne', ID=10)
+        city1 = City(Name='Cape Town', ID=10)
+        unit1 = Unit(Name='mm', ID=10)
+        mattype = ResourceType(ID=10, Name='Material')
 
-            global component_itemquantity
-            component_itemquantity = 5.0
-            global component_quantity
-            component_quantity = budgetitem_itemquantity * component_itemquantity
-            global component_total
-            component_total = Decimal(float(resource_rate)* \
-                component_quantity).quantize(Decimal('.01'))
+        root = Node(ID=0)
+        project = Project(Name='Project 1', ID=1,
+                        ClientID=client1.ID,
+                        CityID=city1.ID,
+                        Description='Zuma',
+                        SiteAddress='Nkandla',
+                        FileNumber='0000',
+                        ParentID=0)
+        budgetgroup = BudgetGroup(Name='TestBGName',
+                        ID=2,
+                        Description='TestBGDesc',
+                        ParentID=project.ID)
+        budgetgroup2 = BudgetGroup(Name='TestBGName2',
+                        ID=4,
+                        Description='TestBGDesc',
+                        ParentID=project.ID)
+        rescat = ResourceCategory(Name='Resource List',
+                        ID=9,
+                        Description='Test Category',
+                        ParentID=project.ID)
+        res = Resource(ID=15,
+                       Code='A000',
+                       Name='Pump',
+                       Description='Pump',
+                       UnitID=unit1.ID,
+                       Type=mattype.ID,
+                       _Rate=resource_rate,
+                       ParentID=rescat.ID)
+        budgetitem = BudgetItem(ID=3,
+                        _Quantity=budgetitem_quantity,
+                        ResourceID=res.ID,
+                        ParentID=budgetgroup.ID)
+        sibi = SimpleBudgetItem(ID=8,
+                        Name='Fire pool',
+                        Description='Security feature',
+                        _Quantity=sibi_quantity,
+                        Type=mattype.ID,
+                        _Rate=sibi_rate,
+                        ParentID=budgetgroup2.ID)
 
-            global sicomp_itemquantity
-            sicomp_itemquantity = 1.0
-            global sicomp_rate
-            sicomp_rate = Decimal(1200000.0)
-            global sicomp_quantity
-            sicomp_quantity = budgetitem_itemquantity * sicomp_itemquantity
-            global sicomp_total
-            sicomp_total = Decimal(float(sicomp_rate)* \
-                sicomp_quantity).quantize(Decimal('.01'))
+        valuation = Valuation(ID=1, ProjectID=project.ID,
+                                    Date=datetime.date(2000, 1, 1))
+        vitem1 = ValuationItem(ID=1,
+                                ValuationID=valuation.ID,
+                                BudgetGroupID=budgetgroup.ID,
+                                PercentageComplete=80)
+        vitem2 = ValuationItem(ID=2,
+                                ValuationID=valuation.ID,
+                                BudgetGroupID=budgetgroup2.ID,
+                                PercentageComplete=80)
 
-            global bitot
-            budgetitem_total = component_total + sicomp_total
-            global project_total
-            project_total = budgetitem_total
-
-            client1 = Client (Name='TestClientOne', ID=10)
-            city1 = City(Name='Cape Town', ID=10)
-            unit1 = Unit(Name='mm', ID=10)
-            mattype = ResourceType(ID=10, Name='Material')
-
-            root = Node(ID=0)
-            project = Project(Name='Project 1', ID=1,
-                            ClientID=client1.ID,
-                            CityID=city1.ID,
-                            Description='Zuma',
-                            SiteAddress='Nkandla',
-                            FileNumber='0000',
-                            ParentID=0)
-            budgetgroup = BudgetGroup(Name='TestBGName',
-                            ID=2,
-                            Description='TestBGDesc',
-                            ParentID=project.ID)
-            budgetgroup2 = BudgetGroup(Name='TestBGName2',
-                            ID=4,
-                            Description='TestBGDesc',
-                            ParentID=project.ID)
-            budgetitem = BudgetItem(Name='TestBIName',
-                            ID=3,
-                            Description='TestBIDesc',
-                            _ItemQuantity=budgetitem_itemquantity,
-                            ParentID=budgetgroup.ID)
-            rescat = ResourceCategory(Name='Resource List',
-                            ID=9,
-                            Description='Test Category',
-                            ParentID=project.ID)
-            res = Resource(ID=15,
-                           Code='A000',
-                           Name='Pump',
-                           Description='Pump',
-                           UnitID=unit1.ID,
-                           Type=mattype.ID,
-                           _Rate=resource_rate,
-                           ParentID=rescat.ID)
-            comp = Component(ID=7,
-                            ResourceID = res.ID,
-                            _ItemQuantity=component_itemquantity,
-                            ParentID=budgetitem.ID)
-            sicomp = SimpleComponent(ID=8,
-                Name='Fire pool',
-                Description='Security feature',
-                _ItemQuantity=sicomp_itemquantity,
-                Type=mattype.ID,
-                _Rate=sicomp_rate,
-                ParentID=budgetgroup2.ID)
-
-            valuation = Valuation(ID=1, ProjectID=project.ID,
-                                        Date=datetime.date(2000, 1, 1))
-            vitem1 = ValuationItem(ID=1,
-                                    ValuationID=valuation.ID,
-                                    BudgetGroupID=budgetgroup.ID,
-                                    PercentageComplete=80)
-            vitem2 = ValuationItem(ID=2,
-                                    ValuationID=valuation.ID,
-                                    BudgetGroupID=budgetgroup2.ID,
-                                    PercentageComplete=80)
-
-            for ob in (root, client1, city1, unit1, project, budgetgroup,
-                budgetgroup2, budgetitem, rescat, res, comp, sicomp, valuation,
-                vitem1, vitem2):
-                DBSession().add(ob)
+        for ob in (root, client1, city1, unit1, project, budgetgroup,
+            budgetgroup2, budgetitem, rescat, res, sibi, valuation,
+            vitem1, vitem2):
+            DBSession().add(ob)
 
 
         transaction.commit()
@@ -177,9 +127,10 @@ class TestValuationsTree(unittest.TestCase):
     def setUp(self):
         self.config = testing.setUp()
         self.request = testing.DummyRequest()
-        initdb();
+        self.session = initdb();
 
     def tearDown(self):
+        DBSession.remove()
         testing.tearDown()
 
     def _callFUT(self, request):
@@ -192,7 +143,7 @@ class TestValuationsTree(unittest.TestCase):
         request.matchdict = {'id': 1}
         response = self._callFUT(request)
         # test if the correct number of children are returned
-        self.assertEqual(len(response), 1)
+        self.assertEqual(len(response), 2)
 
 class TestValuationsView(unittest.TestCase):
     """ Test the valuations view responds correctly
@@ -200,9 +151,10 @@ class TestValuationsView(unittest.TestCase):
     def setUp(self):
         self.config = testing.setUp()
         self.request = testing.DummyRequest()
-        initdb();
+        self.session = initdb();
 
     def tearDown(self):
+        DBSession.remove()
         testing.tearDown()
 
     def _callFUT(self, request):
@@ -225,9 +177,10 @@ class TestValuationsLength(unittest.TestCase):
     def setUp(self):
         self.config = testing.setUp()
         self.request = testing.DummyRequest()
-        initdb();
+        self.session = initdb();
 
     def tearDown(self):
+        DBSession.remove()
         testing.tearDown()
 
     def _callFUT(self, request):
@@ -247,9 +200,10 @@ class TestValuationView(unittest.TestCase):
     def setUp(self):
         self.config = testing.setUp()
         self.request = testing.DummyRequest()
-        initdb();
+        self.session = initdb();
 
     def tearDown(self):
+        DBSession.remove()
         testing.tearDown()
 
     def _callFUT(self, request):

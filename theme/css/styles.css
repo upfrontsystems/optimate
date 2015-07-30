@@ -177,7 +177,7 @@ div.order-tree-content{
     cursor: pointer;
 }
 
-#order_components {
+#order_budgetitems {
     margin-top: 1em;
     margin-left: 1.5em;
 }
@@ -259,17 +259,18 @@ input.custom-datepicker{
     padding: 20px 20px 0 20px;
 }
 
-#component-data-grid-outer {
+#budgetitem-data-grid-outer {
     height: 300px;
 /*    height: -moz-calc(100vh / 2);
     height: -webkit-calc(100vh / 2);
     height: calc(100vh / 2);*/
 }
-#component-data-grid {
+#budgetitem-data-grid {
     width: 95%;
     height: 100%;
 }
-#addComponentsButton,
+
+#addBudgetItemsButton,
 #addBudgetgroupButton {
     float: left;
 }
@@ -327,7 +328,6 @@ p#orderNumber {
     text-align: center;
 }
 
-<<<<<<< HEAD
 /* makes the anchor tag look disabled*/
 a.disabled {
     color: #AAAAAA;
@@ -364,7 +364,7 @@ span.fa-asterisk{
     position: fixed;
     top: 40px;
     left: 0;
-    width: 100%; 
+    width: 100%;
     text-align: center;
     z-index: 1050;
 }
