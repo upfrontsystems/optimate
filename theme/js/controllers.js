@@ -1016,16 +1016,20 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     data: $scope.formData
                 }).success(function(response) {
                     $scope.formData = {'NodeType':$scope.formData.NodeType};
-                    $scope.handleReloadSlickgrid(currentid)
-                    // insert the newly created node in the correct place
-                    // in the childlist
-                    $scope.currentNode.Subitem.push(response['node']);
-                    $scope.currentNode.Subitem.sort(function(a, b) {
-                        return a.Name.localeCompare(b.Name)
-                    });
-                    // expand the node if this is its first child
-                    if ($scope.currentNode.Subitem.length == 0) {
-                        $scope.currentNode.collapsed = true;
+                    // if the node parent is the current node
+                    var node = response.node;
+                    if (node.ParentID == $scope.currentNode.ID){
+                        $scope.handleReloadSlickgrid(currentid)
+                        // expand the node if this is its first child
+                        if ($scope.currentNode.Subitem.length == 0) {
+                            $scope.currentNode.collapsed = true;
+                        }
+                        // insert the newly created node in the correct place
+                        // in the childlist
+                        $scope.currentNode.Subitem.push(node);
+                        $scope.currentNode.Subitem.sort(function(a, b) {
+                            return a.Name.localeCompare(b.Name)
+                        });
                     }
                     console.log("Node added");
                 });
@@ -2395,6 +2399,27 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
                     $scope.suppliersList = response['suppliers'];
                 }
             })
+        };
+
+        // search for the orders that match the search term
+        $scope.refreshOrders = function(searchterm){
+            if ($scope.modalState){
+                var req = {
+                    method: 'GET',
+                    url: globalServerURL + 'orders',
+                    params: {'OrderNumber': searchterm}
+                };
+                $http(req).success(function(response) {
+                    response.pop();
+                    console.log(response);
+                    $scope.ordersList = response;
+                });
+            }
+        };
+
+        $scope.orderSelected = function(item){
+            console.log(item);
+            $scope.formData.OrderID = item.ID;
         };
 
         // Adding or editing an invoice

@@ -1843,11 +1843,13 @@ class Claim(Base):
 
     @property
     def Total(self):
-        """ Total equals Valuation minus Payment
+        """ Total equals Valuation minus Payments
         """
-        # total = self.Valuation.Total - self.PaymentTotal
+        payments = Decimal(0.00)
+        for payment in self.Project.Payments:
+            payments+=payment.Amount
         total = self.Valuation.Total
-        return Decimal(total).quantize(Decimal('.01'))
+        return Decimal(total - payments).quantize(Decimal('.01'))
 
     def dict(self):
         """ Returns a dictionary of this Claim
@@ -1865,13 +1867,43 @@ class Claim(Base):
                 'Total': str(self.Total)}
 
     def __repr__(self):
-        """Return a representation of this Claim
+        """ Return a representation of this Claim
         """
         return '<Claim(ID="%s", ProjectID="%s", ValuationID="%s")>' % (
             self.ID, self.ProjectID, self.ValuationID)
 
+class Payment(Base):
+    """ A table for payments """
+    __tablename__ = 'Payment'
+    ID = Column(Integer, primary_key=True)
+    ProjectID = Column(Integer, ForeignKey('Project.ID'))
+    Date = Column(DateTime)
+    ReferenceNumber = Column(Text(50))
+    Amount = Column(Numeric)
 
+    Project = relationship('Project',
+                            backref=backref('Payments'))
 
+    def dict(self):
+        """ Returns a dictionary of this Payment
+        """
+        if self.Date:
+            date = self.Date.strftime("%d %B %Y")
+        else:
+            date = ''
+        return {'ID': self.ID,
+                'id': self.ID,
+                'ProjectID': self.ProjectID,
+                'Project': self.Project.Name,
+                'ReferenceNumber': self.ReferenceNumber,
+                'Date': date,
+                'Amount': str(self.Amount)}
+
+    def __repr__(self):
+        """ Return a representation of this Payment
+        """
+        return '<Payment(ID="%s", ProjectID="%s", Amount="%s")>' % (
+            self.ID, self.ProjectID, str(self.Amount))
 
 
 

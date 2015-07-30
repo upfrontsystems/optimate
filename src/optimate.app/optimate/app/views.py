@@ -50,7 +50,8 @@ from optimate.app.models import (
     Invoice,
     Valuation,
     ValuationItem,
-    Claim
+    Claim,
+    Payment
 )
 
 # the categories the resources fall into
@@ -2279,3 +2280,91 @@ def claimview(request):
     claim = DBSession.query(Claim).filter_by(ID=claimid).first()
 
     return claim.dict()
+
+@view_config(route_name='paymentsview', renderer='json')
+def paymentsview(request):
+    """ The paymentsview returns a list in json format of all the payments
+    """
+    paymentslist = []
+    qry = DBSession.query(Payment).order_by(Payment.ID.desc())
+    paramsdict = request.params.dict_of_lists()
+    paramkeys = paramsdict.keys()
+
+    if 'Project' in paramkeys:
+        qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
+    if 'Date' in paramkeys:
+        date = ''.join(paramsdict['Date'])
+        date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
+        qry = qry.filter_by(Date=date)
+
+    for payment in qry:
+        paymentslist.append(payment.dict())
+    return paymentslist
+
+
+@view_config(route_name='paymentview', renderer='json')
+def paymentview(request):
+    """ The paymentview handles different cases for individual payments
+        depending on the http method
+    """
+    # if the method is delete, delete the payment
+    if request.method == 'DELETE':
+        deleteid = request.matchdict['id']
+        # Deleting it from the table deletes the object
+        deletethis = DBSession.query(Payment).filter_by(ID=deleteid).first()
+
+        qry = DBSession.delete(deletethis)
+        if qry == 0:
+            return HTTPNotFound()
+        transaction.commit()
+
+        return HTTPOk()
+
+    # if the method is post, add a new payment
+    if request.method == 'POST':
+        projectid = request.json_body['ProjectID']
+        # convert to date from json format
+        date = request.json_body.get('Date', None)
+        if date:
+            date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
+        refnumber = request.json_body.get('ReferenceNumber', '')
+        amount = Decimal(0.00)
+        if 'Amount' in request.json_body.keys():
+            amount = Decimal(request.json_body['Amount']).quantize(Decimal('.01'))
+
+        newpayment = Payment(ProjectID=projectid,
+                            Date=date,
+                            ReferenceNumber=refnumber,
+                            Amount=amount)
+        DBSession.add(newpayment)
+        DBSession.flush()
+
+        # return the new payment
+        return newpayment.dict()
+
+    # if the method is put, edit an existing payment
+    if request.method == 'PUT':
+        payment = DBSession.query(Payment
+                                ).filter_by(ID=request.matchdict['id']).first()
+        payment.ProjectID = request.json_body['ProjectID']
+        payment.ReferenceNumber = request.json_body.get('ReferenceNumber', '')
+        amount = Decimal(0.00)
+        if 'Amount' in request.json_body.keys():
+            amount = Decimal(request.json_body['Amount']).quantize(Decimal('.01'))
+        payment.Amount = amount
+        date = request.json_body.get('Date', None)
+        if date:
+            date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
+        payment.Date = date
+
+        transaction.commit()
+        # return the edited payment
+        payment = DBSession.query(Payment
+                                ).filter_by(ID=request.matchdict['id']).first()
+        return payment.dict()
+
+    # otherwise return the selected payment
+    paymentid = request.matchdict['id']
+    payment = DBSession.query(Payment).filter_by(ID=paymentid).first()
+
+    return payment.dict()
