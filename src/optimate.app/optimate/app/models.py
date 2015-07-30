@@ -1796,9 +1796,9 @@ class ValuationItem(Base):
     ID = Column(Integer, primary_key=True)
     ValuationID = Column(Integer, ForeignKey('Valuation.ID'))
     BudgetGroupID = Column(Integer, ForeignKey('BudgetGroup.ID'))
-    BudgetGroupTotal = Column('BudgetGroupTotal', Numeric) # stores snapshot of
+    BudgetGroupTotal = Column(Numeric, default=Decimal(0.00)) # stores snapshot of
                                                            #a budgetgroups total
-    PercentageComplete = Column(Numeric)
+    PercentageComplete = Column(Numeric, default=Decimal(0.00))
 
     BudgetGroup = relationship('BudgetGroup',
                               backref=backref('BudgetGroups'))
