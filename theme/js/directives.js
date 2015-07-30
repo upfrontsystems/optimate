@@ -928,6 +928,9 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                 if (item.percentage_complete > 100) {
                     item.percentage_complete = 100;
                 }
+                else if (item.percentage_complete < 0) {
+                    item.percentage_complete = 0;
+                }                
                 item.amount_complete = (item.total_budget/100) * item.percentage_complete;
                 item.amount_complete = item.amount_complete.toFixed(2);
                 dataView.updateItem(item.id, item);
