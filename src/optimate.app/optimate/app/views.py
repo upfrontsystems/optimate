@@ -1800,11 +1800,16 @@ def valuations_tree_view(request):
 @view_config(route_name='valuationsview', renderer='json')
 def valuationsview(request):
     """ The valuationsview returns a list in json format of a section of the
-        valuations in the server database
+        valuations in the server database.
+        It accepts optional filter parameters
     """
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
     qry = DBSession.query(Valuation).order_by(Valuation.ID.desc())
+
+    # filter the valuations
+    if 'Project' in paramkeys:
+        qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
 
     # cut the section
     if 'start' not in paramkeys:
@@ -1818,7 +1823,6 @@ def valuationsview(request):
     for valuation in section:
         valuationlist.append(valuation.dict())
     return valuationlist
-
 
 @view_config(route_name='valuations_length', renderer='json')
 def valuations_length(request):

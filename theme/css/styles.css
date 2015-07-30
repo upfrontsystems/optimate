@@ -213,6 +213,14 @@ li.invoice-filters-flexbox {
     width: 60vw;
 }
 
+li.claim-filters-flexbox {
+    display: inline-flex;
+    justify-content: flex-end;
+    align-items: center;
+    float: right;
+    width: 40vw;
+}
+
 .filter-bar {
     flex: 1;
 }

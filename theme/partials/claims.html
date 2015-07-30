@@ -1,0 +1,120 @@
+<nav class="navbar navbar-default navbar-fixed-top action-bar">
+    <div class="container-fluid">
+        <ul class="nav nav-pills">
+            <li>
+                <a title="Add Claim"
+                    data-ng-click="addingState()"
+                    data-target="#saveClaimModal"
+                    data-toggle="modal">
+                        <i class="fa fa-plus-square"></i>
+                </a>
+            </li>
+            <li ng-show="selectedClaim">
+                <a title="Edit Claim"
+                    data-ng-click="editingState()"
+                    data-target="#saveClaimModal"
+                    data-toggle="modal">
+                        <i class="fa fa-pencil"></i>
+                </a>
+            </li>
+            <li ng-show="selectedClaim">
+                <a title="Delete Claim"
+                    data-target="#deleteClaimModal"
+                    data-toggle="modal">
+                        <i class="fa fa-trash"></i>
+                </a>
+            </li>
+            <li ng-show="claimsReportEnabled">
+                <a title="Claims Report" data-target="#claimsReport"
+                data-toggle="modal" data-ng-click="filterReportBy()"
+                class="pdf_download">
+                <i class="fa fa-file-pdf-o"></i></a>
+                 <!-- hidden anchor for download hook -->
+                <a class="pdf_hidden_download"></a>
+            </li>
+            <li class="claim-filters-flexbox active">
+                <select chosen
+                        class="filter-bar"
+                        id="projectFilter"
+                        data-ng-model="filters.Project"
+                        data-ng-options="project.ID as project.Name for project in projectsList"
+                        data-ng-change="loadClaimsSection()">
+                    <option value="">Project</option>
+                </select>
+                <div class="filter-datepicker">
+                    <a class="dropdown-toggle"
+                        id="filterDateDropdown"
+                        role="button"
+                        data-toggle="dropdown" href="">
+                        <div class="input-group">
+                            <input type="text"
+                                    date-parser="DD MMMM YYYY"
+                                    class="col-sm-7 form-control custom-datepicker"
+                                    data-ng-model="filters.Date">
+                            <span class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </span>
+                        </div>
+                    </a>
+                    <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                        <datetimepicker data-ng-model="filters.Date"
+                            data-on-set-time="loadClaimsSection()"
+                            data-datetimepicker-config="{ dropdownSelector: '#filterDateDropdown' ,
+                                                            minView:'day'}"/>
+                    </ul>
+                </div>
+                <a href=""
+                        data-ng-click="clearFilters(); loadClaimsSection()">
+                    Clear
+                </a>
+            <li>
+            <li class="filters-label"><label>Filter by:</label></li>
+        </ul>
+    </div>
+</nav>
+
+<div custom-modals modal-id="saveClaimModal"
+    modal-type="claim"
+    modal-src="modal_templates/saveClaimModal.html">
+</div>
+<div custom-modals modal-id="claimsReport"
+    modal-src="modal_templates/claimsReport.html">
+</div>
+
+<div id="deleteClaimModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h4>Delete claim {{selectedClaim.ID}}</h4>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal" data-ng-click="deleteClaim()">Delete</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div id="claims" class="row">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Claim Number</th>
+                    <th>Claim Date</th>
+                    <th>Project</th>
+                    <th class="currency">Claim Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="obj in jsonclaims"
+                    ng-click="showActionsFor(obj)" id="claim-{{obj.ID}}">
+                    <td>{{obj.ID}}</td>
+                    <td>{{obj.Date}}</td>
+                    <td>{{obj.Project}}</td>
+                    <td class="currency">{{obj.Total}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
