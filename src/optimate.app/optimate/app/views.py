@@ -1723,9 +1723,7 @@ def valuations_tree_view(request):
     # build the list and only get the neccesary values
     if qry != None:
         for child in qry.Children:
-            if child.type == 'Component':
-                childrenlist.append(child.toOrderDict())
-            elif child.type != 'ResourceCategory':
+            if child.type != 'ResourceCategory':
                 childrenlist.append(child.toChildDict())
 
     # sort childrenlist

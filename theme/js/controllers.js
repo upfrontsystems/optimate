@@ -2942,7 +2942,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                     for (var i = 0; i<selectedNode.Subitem.length; i++) {
                         if (selectedNode.Subitem[i].NodeType == 'BudgetGroup') {
                             for (var b = 0; b<$scope.budgetgroupList.length; b++) {
-                                if ($scope.budgetgroupList[b].ID == selectedNode.Subitem[i].ID) {
+                                if ($scope.budgetgroupList[b].BudgetGroup == selectedNode.Subitem[i].ID) {
                                     selectedNode.Subitem[i].selected = true;
                                 }
                             }
@@ -2955,7 +2955,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                     console.log("Children loaded");
                 });
             }
-            else{
+            else {
                 selectedNode.collapsed = false;
             }
         };

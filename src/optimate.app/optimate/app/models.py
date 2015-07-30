@@ -506,8 +506,8 @@ class BudgetGroup(Node):
         return budgetgrouplist
 
     def toValuationDict(self):
-        """ Returns a dictionary of this node used both in the valuation tree
-            view and slickgrid
+        """ Returns a dictionary of this node used both in the valuation 
+            slickgrid
         """
         return {'Name': self.Name,
                 'name': self.Name,
