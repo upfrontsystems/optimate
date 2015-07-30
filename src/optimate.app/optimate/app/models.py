@@ -1805,6 +1805,11 @@ class ValuationItem(Base):
     Valuation = relationship('Valuation',
                               backref=backref('ValuationItems'))
 
+    @property
+    def Total(self):
+        total = (self.BudgetGroupTotal / 100) * self.PercentageComplete
+        return Decimal(total).quantize(Decimal('.01'))
+
     def dict(self):
         """ Returns a dictionary of this ValuationItem
         """
@@ -1817,13 +1822,74 @@ class ValuationItem(Base):
                 'TotalBudget': str(self.BudgetGroup.Total),
                 'NodeType': 'BudgetGroup'}
 
-    @property
-    def Total(self):
-        total = (self.BudgetGroupTotal / 100) * self.PercentageComplete
-        return Decimal(total).quantize(Decimal('.01'))
-
     def __repr__(self):
         """Return a representation of this valuation item
         """
         return '<ValuationItem(ID="%s", BudgetGroupID="%s")>' % (
             self.ID, self.BudgetGroupID)
+
+class Claim(Base):
+    """ A table to hold Claims """
+    __tablename__ = 'Claim'
+    ID = Column(Integer, primary_key=True)
+    ProjectID = Column(Integer, ForeignKey('Project.ID'))
+    Date = Column(DateTime)
+    ValuationID = Column(Integer, ForeignKey('Valuation.ID'))
+
+    Project = relationship('Project',
+                            backref=backref('Claims'))
+    Valuation = relationship('Valuation',
+                            backref=backref('Valuations'))
+
+    @property
+    def Total(self):
+        """ Total equals Valuation minus Payment
+        """
+        # total = self.Valuation.Total - self.PaymentTotal
+        total = self.Valuation.Total
+        return Decimal(total).quantize(Decimal('.01'))
+
+    def dict(self):
+        """ Returns a dictionary of this Claim
+        """
+        if self.Date:
+            date = self.Date.strftime("%d %B %Y")
+        else:
+            date = ''
+        return {'ID': self.ID,
+                'id': self.ID,
+                'ProjectID': self.ProjectID,
+                'Project': self.Project.Name,
+                'ValuationID': self.ValuationID,
+                'Date': date,
+                'Total': str(self.Total)}
+
+    def __repr__(self):
+        """Return a representation of this Claim
+        """
+        return '<Claim(ID="%s", ProjectID="%s", ValuationID="%s")>' % (
+            self.ID, self.ProjectID, self.ValuationID)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

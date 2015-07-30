@@ -49,7 +49,8 @@ from optimate.app.models import (
     OrderItem,
     Invoice,
     Valuation,
-    ValuationItem
+    ValuationItem,
+    Claim
 )
 
 # the categories the resources fall into
@@ -2193,3 +2194,83 @@ def invoiceview(request):
     invoice = DBSession.query(Invoice).filter_by(ID=invoiceid).first()
 
     return invoice.dict()
+
+
+@view_config(route_name='claimsview', renderer='json')
+def claimsview(request):
+    """ The claimsview returns a list in json format of all the claims
+    """
+    claimslist = []
+    qry = DBSession.query(Claim).order_by(Claim.ID.desc())
+    paramsdict = request.params.dict_of_lists()
+    paramkeys = paramsdict.keys()
+    if 'Project' in paramkeys:
+        qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
+    if 'Date' in paramkeys:
+        date = ''.join(paramsdict['Date'])
+        date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
+        qry = qry.filter_by(Date=date)
+
+    for claim in qry:
+        claimslist.append(claim.dict())
+    return claimslist
+
+
+@view_config(route_name='claimview', renderer='json')
+def claimview(request):
+    """ The claimview handles different cases for individual claims
+        depending on the http method
+    """
+    # if the method is delete, delete the claim
+    if request.method == 'DELETE':
+        deleteid = request.matchdict['id']
+        # Deleting it from the table deletes the object
+        deletethis = DBSession.query(Claim).filter_by(ID=deleteid).first()
+
+        qry = DBSession.delete(deletethis)
+        if qry == 0:
+            return HTTPNotFound()
+        transaction.commit()
+
+        return HTTPOk()
+
+    # if the method is post, add a new claim
+    if request.method == 'POST':
+        projectid = request.json_body['ProjectID']
+        # convert to date from json format
+        date = request.json_body.get('Date', None)
+        if date:
+            date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
+        valuationid = request.json_body['ValuationID']
+
+        newclaim = Claim(ProjectID=projectid,
+                            Date=date,
+                            ValuationID=valuationid)
+        DBSession.add(newclaim)
+        DBSession.flush()
+
+        # return the new claim
+        return newclaim.dict()
+
+    # if the method is put, edit an existing claim
+    if request.method == 'PUT':
+        claim = DBSession.query(Claim
+                                ).filter_by(ID=request.matchdict['id']).first()
+        claim.ProjectID = request.json_body['ProjectID']
+        claim.ValuationID= request.json_body['ValuationID']
+        date = request.json_body.get('Date', None)
+        if date:
+            date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
+            claim.Date = date
+
+        transaction.commit()
+        # return the edited claim
+        claim = DBSession.query(Claim
+                                ).filter_by(ID=request.matchdict['id']).first()
+        return claim.dict()
+
+    # otherwise return the selected claim
+    claimid = request.matchdict['id']
+    claim = DBSession.query(Claim).filter_by(ID=claimid).first()
+
+    return claim.dict()

@@ -20,7 +20,8 @@ from optimate.app.models import (
     Unit,
     SimpleBudgetItem,
     Valuation,
-    ValuationItem
+    ValuationItem,
+    Claim
 )
 
 def initdb():
@@ -102,9 +103,27 @@ def initdb():
                                 BudgetGroupID=budgetgroup2.ID,
                                 PercentageComplete=80)
 
+        project2 = Project(Name='Project 2', ID=19,
+                        ClientID=client1.ID,
+                        CityID=city1.ID,
+                        Description='Another Project',
+                        SiteAddress='Address',
+                        FileNumber='0001',
+                        ParentID=0)
+
+        claim1 = Claim(ID=1,
+                        ProjectID=project.ID,
+                        ValuationID=valuation.ID,
+                        Date=datetime.date(2010, 10, 10))
+
+        claim2 = Claim(ID=2,
+                        ProjectID=project2.ID,
+                        ValuationID=valuation.ID,
+                        Date=datetime.date(2013, 10, 10))
+
         for ob in (root, client1, city1, unit1, project, budgetgroup,
             budgetgroup2, budgetitem, rescat, res, sibi, valuation,
-            vitem1, vitem2):
+            vitem1, vitem2, claim1, claim2, project2):
             DBSession().add(ob)
 
 
@@ -247,3 +266,100 @@ class TestValuationView(unittest.TestCase):
         response = self._callFUT(request)
         # test if the response is ok
         self.assertEqual(response['ProjectID'], 1)
+
+
+class DummyClaim(object):
+    def __init__(self, filters):
+        self.filters = filters
+    def dict_of_lists(self):
+        return self.filters
+
+class TestClaimsView(unittest.TestCase):
+    """ Test the claims view responds correctly
+    """
+    def setUp(self):
+        self.config = testing.setUp()
+        self.request = testing.DummyRequest()
+        self.session = initdb();
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from optimate.app.views import claimsview
+        return claimsview(request)
+
+    def test_claims(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.params = DummyClaim({})
+        response = self._callFUT(request)
+        # test if the correct number of claims are returned
+        claims = DBSession.query(Claim).all()
+        self.assertEqual(len(response), len(claims))
+
+    def test_filter(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.params = DummyClaim({'Project': [1]})
+        response = self._callFUT(request)
+        # test if the correct number of claims are returned
+        claims = DBSession.query(Claim).filter_by(ProjectID=1).all()
+        self.assertEqual(len(response), len(claims))
+
+class TestClaimView(unittest.TestCase):
+    """ Test the claim view responds correctly
+    """
+    def setUp(self):
+        self.config = testing.setUp()
+        self.request = testing.DummyRequest()
+        self.session = initdb();
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from optimate.app.views import claimview
+        return claimview(request)
+
+    def test_delete(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.method = 'DELETE'
+        request.matchdict = {'id': 1}
+        response = self._callFUT(request)
+        # test if the response is ok
+        self.assertEqual(response.code, 200)
+
+    def test_get(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.method = 'GET'
+        request.matchdict = {'id': 1}
+        response = self._callFUT(request)
+        # test if the response is ok
+        self.assertEqual(response['ID'], 1)
+
+    def test_post(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.method = 'POST'
+        request.matchdict = {'id': 0}
+        request.json_body = {'ProjectID': 1,
+                            'ValuationID': 1}
+        response = self._callFUT(request)
+        # test if the response is ok
+        self.assertEqual(response['Project'], 'Project 1')
+
+    def test_put(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.method = 'PUT'
+        request.matchdict = {'id': 1}
+        request.json_body = {'ProjectID': 19,
+                            'ValuationID': 1}
+        response = self._callFUT(request)
+        # test if the response is ok
+        self.assertEqual(response['ProjectID'], 19)
