@@ -868,14 +868,14 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
             // on cell change update the totals
             grid.onCellChange.subscribe(function (e, ctx) {
                 var item = ctx.item
-                if (item.percentage_complete > 100) {
-                    item.percentage_complete = 100;
+                if (item.PercentageComplete > 100) {
+                    item.PercentageComplete = 100;
                 }
-                else if (item.percentage_complete < 0) {
-                    item.percentage_complete = 0;
+                else if (item.PercentageComplete < 0) {
+                    item.PercentageComplete = 0;
                 }
-                item.amount_complete = (item.total_budget/100) * item.percentage_complete;
-                item.amount_complete = item.amount_complete.toFixed(2);
+                item.AmountComplete = (item.TotalBudget/100) * item.PercentageComplete;
+                item.AmountComplete = item.AmountComplete.toFixed(2);
                 dataView.updateItem(item.id, item);
             });
 

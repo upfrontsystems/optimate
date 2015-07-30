@@ -1814,7 +1814,8 @@ class ValuationItem(Base):
                 'Name': self.BudgetGroup.Name,
                 'PercentageComplete': str(self.PercentageComplete),
                 'AmountComplete': str(self.Total),
-                'TotalBudget': str(self.BudgetGroup.Total)}
+                'TotalBudget': str(self.BudgetGroup.Total),
+                'NodeType': 'BudgetGroup'}
 
     @property
     def Total(self):

@@ -1859,7 +1859,7 @@ def valuationview(request):
         newid = newvaluation.ID
         budgetgrouplist = request.json_body.get('BudgetGroupList', [])
         for budgetgroup in budgetgrouplist:
-            p_complete = float(budgetgroup.get('percentage_complete', 0))
+            p_complete = float(budgetgroup.get('PercentageComplete', 0))
             bg = DBSession.query(Node).filter_by(ID=budgetgroup['ID']).first()
             newvaluationitem = ValuationItem(ValuationID=newid,
                                          BudgetGroupID=budgetgroup['ID'],
@@ -1895,7 +1895,7 @@ def valuationview(request):
         for budgetgroup in budgetgrouplist:
             if budgetgroup['ID'] not in iddict.values():
                 # add the new valuation item
-                p_complete = float(budgetgroup.get('percentage_complete', 0))
+                p_complete = float(budgetgroup.get('PercentageComplete', 0))
                 bg = DBSession.query(Node).filter_by(ID=budgetgroup['ID']).first()
                 newvaluationitem = ValuationItem(ValuationID=valuation.ID,
                                                BudgetGroupID=budgetgroup['ID'],
@@ -1913,7 +1913,7 @@ def valuationview(request):
                 bg = DBSession.query(Node).filter_by(ID=bg_id).first()
                 valuationitem.BudgetGroupTotal=bg.Total
                 valuationitem.PercentageComplete = \
-                    float(budgetgroup['percentage_complete'])
+                    float(budgetgroup['PercentageComplete'])
                 del iddict[budgetgroup['BudgetGroup']]
         # delete the leftover id's
         for oldid in iddict.values():
