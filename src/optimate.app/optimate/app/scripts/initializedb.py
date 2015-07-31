@@ -57,11 +57,6 @@ def main(argv=sys.argv):
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
 
-    Valuation.__table__.drop(engine)
-    transaction.commit()
-    Client.__table__.drop(engine)
-    ValuationItem.commit()
-
     # Initialise used database with an admin user
     try:
         user = DBSession.query(User).filter(User.username==u'admin').one()
