@@ -1635,8 +1635,10 @@ def orderview(request):
         client = DBSession.query(Project).filter_by(ID=proj).first().ClientID
         # convert to date from json format
         date = request.json_body.get('Date', None)
+        import pdb; pdb.set_trace()
         if date:
             date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
+
         neworder = Order(UserCode=user,
                             Authorisation=auth,
                             ProjectID=proj,
@@ -1685,6 +1687,7 @@ def orderview(request):
         address = request.json_body.get('DeliveryAddress', '')
         # convert to date from json format
         date = request.json_body.get('Date', None)
+        import pdb; pdb.set_trace()
         if date:
             date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
 
