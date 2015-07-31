@@ -573,7 +573,11 @@ def node_budgetgroups(request):
     budgetgrouplist = qry.getBudgetGroups()
     itemlist = []
     for bg in budgetgrouplist:
-        itemlist.append(bg.dict())
+        # for the valuations slickgrid, the budgetgroup type
+        # needs to be ValuationItem
+        data = bg.dict()
+        data['NodeType'] = 'ValuationItem'
+        itemlist.append(data)
     return itemlist
 
 

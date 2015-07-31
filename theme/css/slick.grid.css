@@ -14,10 +14,6 @@ classes should alter those!
     background-color: #F8F8F8;
 }
 
-.non-editable-row {
-    background-color: #F8F8F8;
-}
-
 div.non-editable-row div.cell{
     background-color: #F8F8F8;
 }

@@ -388,7 +388,7 @@ class BudgetGroup(Node):
         self.Parent.Invoiced = self.Parent.Invoiced + difference
 
     def copy(self, parentid):
-        """ Copy returns an exact duplicate of this object,
+        """ Copy returns an exact duplicate of this BudgetGroup,
             but with the ParentID specified.
         """
         copied = BudgetGroup(Name=self.Name,
@@ -1828,7 +1828,7 @@ class ValuationItem(Base):
                 'PercentageComplete': str(self.PercentageComplete),
                 'AmountComplete': str(self.Total),
                 'TotalBudget': str(self.BudgetGroup.Total),
-                'NodeType': 'BudgetGroup'}
+                'NodeType': self.type}
 
     def __repr__(self):
         """Return a representation of this valuation item

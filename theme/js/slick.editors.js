@@ -29,7 +29,7 @@
     // the cell will be non-editable
 
     var node_type = args.item["NodeType"];
-    var editableTypes = ["Resource", "ResourcePart", "BudgetGroup", "BudgetItem", "SimpleBudgetItem", "OrderItem"];
+    var editableTypes = ["Resource", "ResourcePart", "BudgetItem", "SimpleBudgetItem", "OrderItem", "ValuationItem"];
     if (editableTypes.indexOf(node_type) > -1){
       var $input;
       var defaultValue;

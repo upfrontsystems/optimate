@@ -61,7 +61,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     if(rowData){
                         // on the first row, if it is the parent
                         // set selectable false and non-editable
-                        if (row == 0  && grid.getDataItem(row).isparent){
+                        if (row == 0  && rowData.isparent){
                             return {selectable: false,
                                     'cssClasses': "non-editable-row"
                                 };
@@ -72,12 +72,11 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                         }
                         // otherwise if the parent is a budgetitem
                         // set it non-editable and unselectable
-                        else if (rowData.NodeType == 'BudgetItem' && rowData.ParentType == 'BudgetItem'){
+                       if (rowData.NodeType == 'BudgetItem' && rowData.ParentType == 'BudgetItem'){
                             return {selectable: false,
                                     'cssClasses': "non-editable-row"
                                 };
                         }
-
                     }
                 }
                 return {};
