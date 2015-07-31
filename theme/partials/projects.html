@@ -57,7 +57,12 @@
                 </select>
             </div>
             <div class="modal-footer">
-                <button type="select" class="btn btn-primary" data-ng-click="loadProject()" data-dismiss="modal">Open</button>
+                <button type="select"
+                        class="btn btn-primary"
+                        data-ng-click="loadProject()"
+                        data-ng-disabled="selectedProject"
+                        data-dismiss="modal">Open
+                </button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
             </div>
         </div>
