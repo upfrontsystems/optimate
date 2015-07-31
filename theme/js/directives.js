@@ -764,7 +764,7 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                     {id: "Name", name: "Budget Group", field: "Name",
                      width: valuations_column_width.Name,
                      cssClass: "cell-title non-editable-column"},
-                    {id: "PercentageComplete", name: "Percentage Complete", field: "PercentageComplete",
+                    {id: "PercentageComplete", name: "% Complete", field: "PercentageComplete",
                      cssClass: "cell editable-column", formatter: PercentageFormatter,
                      editor: Slick.Editors.CustomEditor},
                     {id: "AmountComplete", name: "Total", field: "AmountComplete", cssClass: "cell non-editable-column",

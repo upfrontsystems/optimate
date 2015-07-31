@@ -362,7 +362,8 @@ span.fa-asterisk{
     pointer-events: none;
 }
 
-.input-group{
+#inputDate .dropdown-menu,
+.input-group {
     pointer-events: auto;
 }
 

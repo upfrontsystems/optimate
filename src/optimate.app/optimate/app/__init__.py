@@ -114,6 +114,10 @@ def main(global_config, **settings):
     config.add_route('paymentsview', '/payments')
     config.add_route('paymentview', '/payment/{id}/')
 
+    # payments
+    config.add_route('paymentsview', '/payments')
+    config.add_route('paymentview', '/payment/{id}/')
+
     # Editing users
     config.add_route('usersview', '/users', factory=makeProtected(Administrator))
     config.add_route('userview', '/users/{username}', factory=makeProtected(Administrator))

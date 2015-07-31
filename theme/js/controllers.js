@@ -1839,7 +1839,12 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
     function($scope, $http, globalServerURL, sharedService, $timeout) {
 
         toggleMenu('orders');
-
+        $scope.dateTimeNow = function() {
+            var d = new Date();
+            // create a timezone agnostic date by setting time info to 0 and timezone to UTC.
+            date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0,0));
+            $scope.date = date;
+        };
         $scope.isDisabled = false;
         $scope.isCollapsed = true;
         $scope.jsonorders = [];
@@ -2016,6 +2021,8 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $scope.isDisabled = false;
             $scope.modalState = "Add";
             $scope.budgetItemsList = [];
+            $scope.dateTimeNow();
+            $scope.formData['Date'] = $scope.date;
             if ($scope.selectedOrder) {
                 $('#order-'+$scope.selectedOrder.ID).removeClass('active');
                 $scope.selectedOrder = undefined;
@@ -2035,7 +2042,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 $scope.formData = response;
                 $scope.loadProject();
                 $scope.budgetItemsList = $scope.formData.BudgetItemsList;
-                $scope.formData['Date'] = new Date($scope.formData['Date']);
+                $scope.date = new Date($scope.formData['Date']);
                 $scope.formData.NodeType = 'order';
             });
             $scope.saveOrderModalForm.$setPristine();
@@ -2307,7 +2314,13 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
     function($scope, $http, globalServerURL, sharedService, $timeout) {
 
         toggleMenu('invoices');
-
+        $scope.dateTimeNow = function() {
+            var d = new Date();
+            // create a timezone agnostic date by setting time info to 0 and timezone to UTC.
+            date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0,0));
+            $scope.idate = date;
+            $scope.pdate = date;
+        };
         $scope.isDisabled = false;
         $scope.jsoninvoices = [];
         $scope.invoiceList = [];
@@ -2491,6 +2504,9 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
             $scope.modalState = "Add";
+            $scope.dateTimeNow();
+            $scope.formData['Invoicedate'] = $scope.idate;
+            $scope.formData['Paymentdate'] = $scope.pdate;
             $scope.calculatedAmounts = [{'name': 'Subtotal', 'amount': ''},
                                         {'name': 'VAT', 'amount': ''},
                                         {'name': 'Total', 'amount': ''},
@@ -2513,8 +2529,10 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             }).success(function(response) {
                 $scope.formData = response;
                 $scope.saveInvoiceModalForm.inputOrderNumber.$setValidity('default1', true);
-                $scope.formData.Invoicedate = new Date($scope.formData.Invoicedate);
-                $scope.formData.Paymentdate = new Date($scope.formData.Paymentdate);
+                $scope.idate = new Date($scope.formData['Invoicedate']);
+                console.log($scope.idate);
+                $scope.pdate = new Date($scope.formData['Paymentdate']);
+                console.log($scope.pdate);
                 $scope.formData['NodeType'] = 'invoice';
                 $scope.calculatedAmounts = [{'name': 'Subtotal', 'amount': response.Amount},
                                         {'name': 'VAT', 'amount': response.VAT},
@@ -2660,9 +2678,11 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
 
         toggleMenu('valuations');
         $scope.dateTimeNow = function() {
-            $scope.date = new Date();
+            var d = new Date();
+            // create a timezone agnostic date by setting time info to 0 and timezone to UTC.
+            date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0,0));
+            $scope.date = date;
         };
-        $scope.dateTimeNow();
         $scope.isDisabled = false;
         $scope.isCollapsed = true;
         $scope.jsonvaluations = [];
@@ -2711,8 +2731,6 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                 $scope.isDisabled = true;
                 // set the list of checked budgetgroups
                 $scope.formData['BudgetGroupList'] = $scope.budgetgroupList;
-                // convert the date to json format
-                $scope.formData['Date'] = $scope.date.toJSON();
                 if ($scope.modalState == 'Edit') {
                     $http({
                         method: 'PUT',
