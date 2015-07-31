@@ -2719,7 +2719,6 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
             $scope.date = date;
         };
         $scope.isDisabled = false;
-        $scope.isCollapsed = true;
         $scope.jsonvaluations = [];
         $scope.budgetgroupList = [];
         $scope.modalForm = [];
@@ -2836,7 +2835,6 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
         // When the Add button is pressed change the state and form data
         $scope.addingState = function () {
             $scope.formData = {'NodeType': 'valuation'};
-            $scope.isCollapsed = true;
             $scope.isDisabled = false;
             $scope.modalState = "Add";
             $scope.dateTimeNow();
@@ -2851,7 +2849,6 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
 
         // When the edit button is pressed change the state and set the data
         $scope.editingState = function () {
-            $scope.isCollapsed = true;
             $scope.isDisabled = false;
             $scope.modalState = "Edit";
             $http({
@@ -2859,7 +2856,6 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                 url: globalServerURL + 'valuation/' + $scope.selectedValuation.ID + '/'
             }).success(function(response) {
                 $scope.formData = response;
-                $scope.loadProject()
                 $scope.budgetgroupList = $scope.formData['BudgetGroupList'];
                 $scope.date = new Date($scope.formData['Date']);
                 $scope.formData['NodeType'] = 'valuation';
@@ -2884,166 +2880,6 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                     console.log("Deleted valuation");
                 }
             });
-        };
-
-        $scope.toggleBudgetgroups = function(bg) {
-            // set the budgetgroup selected or unselected
-            var flag = (bg.selected === true) ? undefined : true;
-            bg.selected = flag;
-            // find the budgetgroup in the budgetgroup list
-            var i = $scope.budgetgroupList.map(function(e)
-                { return e.id; }).indexOf(bg.ID);
-            // if the budgetgroup is already in the list
-            // and the node is deselected
-            if ((i>-1) &(!flag)) {
-                // remove it
-                $scope.budgetgroupList.splice(i, 1);
-            }
-            // if the budgetgroup is not in the list
-            // and the node is being selected
-            else if ((i==-1) & flag) {
-                // add the budgetgroup
-                $scope.budgetgroupList.push(bg);
-                console.log(bg);
-            }
-        }
-
-        // remove a budgetgroup from the budgetgroup list
-        $scope.removeBudgetgroup = function(node) {
-            var deleteid = node.ID;
-            var result = $.grep($scope.budgetgroupList, function(e) {
-                    return e.id == deleteid;
-            });
-            var i = $scope.budgetgroupList.indexOf(result[0]);
-            if (i>-1) {
-                $scope.budgetgroupList.splice(i, 1);
-                // loop through all the open nodes and if the checked budgetgroup
-                // is in it uncheck the budgetgroup
-                for (var i = 0; i<$scope.openProjectsList.length; i++) {
-                    var subitem = $scope.openProjectsList[i].Subitem || [];
-                    if (subitem.length > 0) {
-                        $scope.uncheckBudgetgroup(deleteid, subitem);
-                    }
-                }
-
-            }
-        };
-
-        $scope.uncheckBudgetgroup = function(budgetgroupId, subitem) {
-            for (var i = 0; i<subitem.length; i++) {
-                if (subitem[i].ID == budgetgroupId) {
-                    subitem[i].selected = false;
-                    break;
-                }
-                else{
-                    var subsubitem = subitem[i].Subitem || [];
-                    if (subsubitem.length > 0) {
-                        $scope.uncheckBudgetgroup(budgetgroupId, subsubitem);
-                    }
-                }
-            }
-        }
-
-        $scope.toggleNode = function(node) {
-            // when a node that is not a budgetgroup is selected
-            // flag the node, set the selection on all its children
-            // load the budgetgroups in the node and toggle them in the
-            // budgetgroup list
-            var flag = (node.selected === true) ? undefined : true;
-            node.selected = flag;
-            var nodeid = node.ID;
-            var subitems = node['Subitem'];
-            // select the subitems
-            for (var i = 0; i<subitems.length; i++) {
-                subitems[i].selected = flag;
-                var subsubitem = subitems[i]['Subitem'] || [];
-                if (subsubitem.length > 0) {
-                    $scope.toggleSubitems(subsubitem, flag);
-                }
-            }
-            // add the budgetgroups to the list
-            $http.get(globalServerURL + 'node/' + nodeid + '/budgetgroups/')
-            .success(function(response) {
-                for (var v = 0; v<response.length; v++) {
-                    var bg = response[v];
-                    // find the budgetgroup in the budgetgroup list
-                    var i = $scope.budgetgroupList.map(function(e)
-                        { return e.id; }).indexOf(bg.ID);
-                    // if the budgetgroup is already in the list
-                    // and the node is deselected
-                    if ((i>-1) &(!flag)) {
-                        // remove it
-                        $scope.budgetgroupList.splice(i, 1);
-                    }
-                    // if the budgetgroup is not in the list
-                    // and the node is being selected
-                    else if ((i==-1) & flag) {
-                        // add the budgetgroup
-                        $scope.budgetgroupList.push(bg);
-                    }
-                }
-            });
-        };
-
-        $scope.toggleSubitems = function(subitem, selected) {
-            // recursively select/unselect all the children of a node
-            for (var i = 0; i<subitem.length; i++) {
-                subitem[i].selected = selected;
-                var subsubitem = subitem[i]['Subitem'] || [];
-                if (subsubitem.length > 0) {
-                    $scope.toggleSubitems(subsubitem, selected);
-                }
-            }
-        };
-
-        $scope.toggleBudgetgroupGrid = function() {
-            $scope.isCollapsed = !$scope.isCollapsed;
-            if ($scope.isCollapsed) {
-                $scope.handleReloadValuationSlickgrid();
-            }
-        };
-
-        $scope.openProjectsList = [];
-        // load the project that has been selected into the tree
-        $scope.loadProject = function () {
-            var id = $scope.formData['ProjectID']
-            $http.get(globalServerURL + 'node/' + id + '/')
-            .success(function(data) {
-                $scope.openProjectsList = [data];
-                $scope.selectNodeHead(data);
-            });
-        };
-
-        // if node head clicks, get the children of the node
-        // and collapse or expand the node
-        $scope.selectNodeHead = function(selectedNode) {
-            // if the node is collapsed, get the data and expand the node
-            if (!selectedNode.collapsed) {
-                selectedNode.collapsed = true;
-                var parentid = selectedNode.ID;
-                $http.get(globalServerURL + "valuations/tree/" + parentid + '/').success(function(data) {
-                    selectedNode.Subitem = data;
-                    // check if any of the budgetgroup are in the budgetgroup list
-                    // and select then
-                    for (var i = 0; i<selectedNode.Subitem.length; i++) {
-                        if (selectedNode.Subitem[i].NodeType == 'BudgetGroup') {
-                            for (var b = 0; b<$scope.budgetgroupList.length; b++) {
-                                if ($scope.budgetgroupList[b].BudgetGroup == selectedNode.Subitem[i].ID) {
-                                    selectedNode.Subitem[i].selected = true;
-                                }
-                            }
-                        }
-                        // for all the other node set the same state as the parent
-                        else {
-                            selectedNode.Subitem[i].selected = selectedNode.selected;
-                        }
-                    }
-                    console.log("Children loaded");
-                });
-            }
-            else {
-                selectedNode.collapsed = false;
-            }
         };
 
         $scope.getReport = function (report) {

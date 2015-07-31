@@ -1779,28 +1779,6 @@ def orderview(request):
             'Date': jsondate}
 
 
-@view_config(route_name="valuations_tree_view", renderer='json')
-def valuations_tree_view(request):
-    """ This view is for when the user requests the children of a node
-        in the valuations tree. The nodes used by the valuations use a different
-        format than the projects tree view
-    """
-
-    parentid = request.matchdict['id']
-    childrenlist = []
-
-    qry = DBSession.query(Node).filter_by(ID=parentid).first()
-    # build the list and only get the neccesary values
-    if qry != None:
-        for child in qry.Children:
-            if child.type != 'ResourceCategory':
-                childrenlist.append(child.dict())
-
-    # sort childrenlist
-    sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'].upper())
-    return sorted_childrenlist
-
-
 @view_config(route_name='valuationsview', renderer='json')
 def valuationsview(request):
     """ The valuationsview returns a list in json format of a section of the
