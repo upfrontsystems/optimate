@@ -1840,7 +1840,10 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
 
         toggleMenu('orders');
         $scope.dateTimeNow = function() {
-            $scope.date = new Date();
+            d = new Date();
+            // create a timezone agnostic date by setting time info to 0 and timezone to UTC.
+            date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0,0));
+            $scope.date = date;
         };
         $scope.isDisabled = false;
         $scope.isCollapsed = true;
@@ -2314,8 +2317,11 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
 
         toggleMenu('invoices');
         $scope.dateTimeNow = function() {
-            $scope.idate = new Date();
-            $scope.pdate = new Date();
+            d = new Date();
+            // create a timezone agnostic date by setting time info to 0 and timezone to UTC.
+            date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0,0));
+            $scope.idate = date;
+            $scope.pdate = date;
         };
         $scope.isDisabled = false;
         $scope.jsoninvoices = [];
@@ -2504,6 +2510,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             $scope.isDisabled = false;
             $scope.modalState = "Add";
             $scope.dateTimeNow();
+            console.log($scope.idate);
             $scope.formData['Invoicedate'] = $scope.idate;
             $scope.formData['Paymentdate'] = $scope.pdate;
             $scope.calculatedAmounts = [{'name': 'Subtotal', 'amount': ''},
@@ -2675,7 +2682,10 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
 
         toggleMenu('valuations');
         $scope.dateTimeNow = function() {
-            $scope.date = new Date();
+            d = new Date();
+            // create a timezone agnostic date by setting time info to 0 and timezone to UTC.
+            date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0,0));
+            $scope.date = date;
         };
         $scope.isDisabled = false;
         $scope.isCollapsed = true;
