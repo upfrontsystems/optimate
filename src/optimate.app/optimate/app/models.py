@@ -1794,6 +1794,7 @@ class ValuationItem(Base):
     """ A table to hold valuation items. """
     __tablename__ = 'ValuationItem'
     ID = Column(Integer, primary_key=True)
+    ParentID = Column(Integer, ForeignKey('Parent.ID'))
     ValuationID = Column(Integer, ForeignKey('Valuation.ID'))
     BudgetGroupID = Column(Integer, ForeignKey('BudgetGroup.ID'))
     BudgetGroupTotal = Column(Numeric, default=Decimal(0.00)) # stores snapshot of
@@ -1827,6 +1828,7 @@ class ValuationItem(Base):
         """
         return '<ValuationItem(ID="%s", BudgetGroupID="%s")>' % (
             self.ID, self.BudgetGroupID)
+
 
 class Claim(Base):
     """ A table to hold Claims """
@@ -1872,6 +1874,7 @@ class Claim(Base):
         return '<Claim(ID="%s", ProjectID="%s", ValuationID="%s")>' % (
             self.ID, self.ProjectID, self.ValuationID)
 
+
 class Payment(Base):
     """ A table for payments """
     __tablename__ = 'Payment'
@@ -1904,24 +1907,3 @@ class Payment(Base):
         """
         return '<Payment(ID="%s", ProjectID="%s", Amount="%s")>' % (
             self.ID, self.ProjectID, str(self.Amount))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
