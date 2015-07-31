@@ -1019,20 +1019,28 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     // if the node parent is the current node
                     var node = response.node;
                     if (node.ParentID == $scope.currentNode.ID){
-                        $scope.handleReloadSlickgrid(currentid)
-                        // expand the node if this is its first child
-                        if ($scope.currentNode.Subitem.length == 0) {
-                            $scope.currentNode.collapsed = true;
-                        }
-                        // insert the newly created node in the correct place
-                        // in the childlist
-                        $scope.currentNode.Subitem.push(node);
-                        $scope.currentNode.Subitem.sort(function(a, b) {
-                            return a.Name.localeCompare(b.Name)
-                        });
+                        $scope.handleNew(node);
                     }
                     console.log("Node added");
                 });
+            }
+        };
+
+        $scope.handleNew= function(node){
+            $scope.handleReloadSlickgrid(currentid)
+            // expand the node if this is its first child
+            if ($scope.currentNode.Subitem.length == 0) {
+                $scope.currentNode.Subitem.push(node);
+                $scope.currentNode.collapsed = true;
+            }
+            // insert the newly created node in the correct place
+            else{
+                var start = 0;
+                if ($scope.currentNode.Subitem[0].NodeType == 'ResourceCategory'){
+                    start = 1;
+                }
+                var index = $scope.locationOf(node, start);
+                $scope.currentNode.Subitem.splice(index, 0, node)
             }
         };
 
@@ -1054,6 +1062,33 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     $scope.formData = {'NodeType':$scope.formData['NodeType']};
                 });
             }
+        };
+
+        $scope.locationOf = function(element, start, end) {
+            // return the location the object should be inserted in a sorted array
+            if ($scope.currentNode.Subitem.length === 0){
+                return -1;
+            }
+
+            start = start || 0;
+            end = end || $scope.currentNode.Subitem.length;
+            var pivot = (start + end) >> 1;
+            var c = $scope.nodeCompare(element, $scope.currentNode.Subitem[pivot]);
+            if (end - start <= 1) {
+                return c == -1 ? pivot: pivot + 1;
+
+            }
+            switch (c) {
+                case -1: return $scope.locationOf(element, start, pivot);
+                case 0: return pivot;
+                case 1: return $scope.locationOf(element, pivot, end);
+            };
+        };
+
+        $scope.nodeCompare = function (a, b) {
+            if (a.Name.toUpperCase() < b.Name.toUpperCase()) return -1;
+            if (a.Name.toUpperCase() > b.Name.toUpperCase()) return 1;
+            return 0;
         };
 
         // save changes made to the node's properties
