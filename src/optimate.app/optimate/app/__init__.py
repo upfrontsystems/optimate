@@ -108,13 +108,9 @@ def main(global_config, **settings):
     config.add_route('valuations_length', '/valuations/length')
     config.add_route('valuations_tree_view', '/valuations/tree/{id}/')
 
-    # claims abd payments
+    # claims and payments
     config.add_route('claimsview', '/claims')
     config.add_route('claimview', '/claim/{id}/')
-    config.add_route('paymentsview', '/payments')
-    config.add_route('paymentview', '/payment/{id}/')
-
-    # payments
     config.add_route('paymentsview', '/payments')
     config.add_route('paymentview', '/payment/{id}/')
 
