@@ -11,34 +11,32 @@ Getting Started in development mode
 
     virtualenv .
     ./bin/pip install -e src/optimate.app/
-
-- Build the SQLite database by running:
-    ./bin/initialize_server_db development.ini
-
-- Note: currently by default no data is input in the database, this is done seperately using populatedb.py 
-	and the Optimate excel files
-	To fully run the project ensure you have server.sqlite in the current directory.
+    
+- Ensure you have the database file, server.sqlite, in the current folder
 
 - Start the server by running:
     ./bin/pserve development.ini --reload
 
-- Going to http://127.0.0.1:8100/ will show the default home page which is all the items with the root
-  as their parent.
+- Going to http://127.0.0.1:8100/ will show the login page
 
-- To run server tests
+- To run server unit tests
 	(in this directory and with the virtualenv set up)
-	./bin/python src/optimate.app/setup.py test -q
+	bin/nosetests -s src/optimate.app/optimate/app/tests
+	
+- Build the database tables by running:
+    ./bin/initialize_server_db development.ini
 
-- To run populatedb.py
+- To run the populate database script:
 	Note: this will replace the current server.sqlite file in this directory
 		Also, it is assumed a folder named 'exceldata' is in this directory
-		containing the excel spreadsheets
-	./bin/python src/optimate.app/optimate/app/scripts/populatedb.py
+		containing the excel spreadsheets, as well as a folder data.csv 
+		with the csv data
+	./bin/python src/optimate.app/optimate/app/scripts/csvpopulatedb.py
 	
 
 =================================================================================
 
-client README
+Client README
 for setting up the client in the Optimate Project
 -----------------------------------------------
 
@@ -56,17 +54,4 @@ for setting up the client in the Optimate Project
 - The client server will start and the Optimate root view can be accessed via
 	http://127.0.0.1:8000
 
-- Clicking on a node label will display the costs of the children of this 
-	node in the Slickgrid, as well as display the menu button to the 
-	right of the label
-
-- Clicking on the node '+' icon will load the children of that node, clicking
-	the '-' icon will collapse the tree. An empty box indicates the node 
-	has no children.
-
-- Clicking on the "" will display a dialog menus of options
-	- Add
-	- Copy
-  	- Paste
-	- Delete
-	- Calculate cost
+- Enter your login details in the login page
