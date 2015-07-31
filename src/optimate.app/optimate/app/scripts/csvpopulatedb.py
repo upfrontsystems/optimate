@@ -59,6 +59,11 @@ resourcecodeno = 0
 
 def generateResourceCode(resname):
     global resourcecodeno
+    # the name is used by another resource already, use that code:
+    resource = DBSession.query(Resource).filter_by(Name=resname).first()
+    if resource:
+        return resource.Code
+
     if len(resname) < 3:
         resname = resname.upper() + (3-len(resname))*'X'
     else:
@@ -664,8 +669,8 @@ if __name__ == '__main__':
                                 # check the resource exists
                                 # in the resource category
                                 resource = None
-                                # resource = DBSession.query(Resource).filter_by(
-                                #     ParentID=resourcecategory.ID, Name=name).first()
+                                resource = DBSession.query(Resource).filter_by(
+                                    ParentID=resourcecategory.ID, Name=name).first()
 
                                 if resource:
                                     # the resource exists
@@ -692,8 +697,8 @@ if __name__ == '__main__':
                                         measureunit = qry.ID
                                     else:
                                         measureunit = None
-                                    newcode+=1
                                     resourcecode = generateResourceCode(name)
+                                    newcode+=1
                                     resource = ResourceUnit(ID=newcode,
                                                             Code=resourcecode,
                                                             Name=name,
@@ -778,8 +783,8 @@ if __name__ == '__main__':
                             measureunit = qry.ID
                         else:
                             measureunit = None
-                        newcode+=1
                         resourcecode = generateResourceCode(name)
+                        newcode+=1
                         resource = ResourceUnit(ID=newcode,
                                                 Name=name,
                                                 Code=resourcecode,
@@ -991,7 +996,6 @@ if __name__ == '__main__':
                             # if it already exists in the database create a new one
                             # and add it to the resourcecategory
                             if existingresource:
-                                newcode += 1
                                 # get the id of the unit the resource is using
                                 qry = DBSession.query(Unit).filter_by(
                                         Name=measureunit).first()
@@ -999,6 +1003,7 @@ if __name__ == '__main__':
                                     measureunit = qry.ID
                                 else:
                                     measureunit = None
+                                newcode += 1
                                 resource = Resource(ID=newcode,
                                                 Type=rtype,
                                                 Name=existingresource.Name,
@@ -1012,8 +1017,6 @@ if __name__ == '__main__':
                         if not resource:
                             # resource does not exist yet
                             # build the resource
-                            newcode += 1
-                            resourceid = newcode
                             resourcecode = generateResourceCode(checkname)
                             # get the unit id
                             qry = DBSession.query(Unit).filter_by(
@@ -1022,7 +1025,8 @@ if __name__ == '__main__':
                                 measureunit = qry.ID
                             else:
                                 measureunit = None
-                            resource = Resource(ID=resourceid,
+                            newcode += 1
+                            resource = Resource(ID=newcode,
                                             Type=rtype,
                                             Code=resourcecode,
                                             Name=checkname,
@@ -1042,6 +1046,12 @@ if __name__ == '__main__':
                                                         ParentID=parentresourceid)
                                 DBSession.add(newpart)
                                 biquantity = parent.Quantity * quantity
+
+                                # if the resource equals the resource part part
+                                if parentresourceid == resource.ID:
+                                    import pdb
+                                    pdb.set_trace()
+
                             bi = BudgetItem(ID=code,
                                             ResourceID=resource.ID,
                                             _Quantity = biquantity,
@@ -1380,6 +1390,22 @@ if __name__ == '__main__':
 
         transaction.commit()
 
+        print "Deleting messed up projects"
+        projects = DBSession.query(Project).all()
+        for proj in projects:
+            try:
+                proj.Total
+            except:
+                print "deleting this project"
+                print proj
+                projid = proj.ID
+                order = DBSession.query(Order).filter_by(ProjectID=projid).first()
+                if order:
+                    DBSession.delete(order)
+                delete = DBSession.query(Project).filter_by(ID=projid).first()
+                DBSession.delete(delete)
+
+
         print "Recalculating Order totals"
         orders = DBSession.query(Order).all()
         percentile = len(orders) / 100.0
@@ -1406,7 +1432,6 @@ if __name__ == '__main__':
         print 'Percentage done: '
         counter = 0
         x = 0
-        # if the order has no order items delete it
         for resource in resources:
             if x == int(percentile * counter):
                 counter += 1
@@ -1419,18 +1444,5 @@ if __name__ == '__main__':
                 orderitem = budgetitem.OrderItems[0]
                 if orderitem.Order:
                     resource.SupplierID = orderitem.Order.SupplierID
-
-        print "Deleting messed up projects"
-        projects = DBSession.query(Project).all()
-        for proj in projects:
-            try:
-                proj.Total
-            except:
-                projid = proj.ID
-                order = DBSession.query(Order).filter_by(ProjectID=projid).first()
-                if order:
-                    DBSession.delete(order)
-                delete = DBSession.query(Project).filter_by(ID=projid).first()
-                DBSession.delete(delete)
 
     print '\nDone'
