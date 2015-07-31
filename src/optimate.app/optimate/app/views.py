@@ -186,7 +186,6 @@ def node_children(request):
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'].upper())
     # sort categories
     sorted_categories = sorted(resourcecategories, key=lambda k: k['Name'].upper())
-
     completelist = sorted_categories + sorted_childrenlist
 
     return completelist

@@ -108,9 +108,11 @@ def main(global_config, **settings):
     config.add_route('valuations_length', '/valuations/length')
     config.add_route('valuations_tree_view', '/valuations/tree/{id}/')
 
-    # claims
+    # claims abd payments
     config.add_route('claimsview', '/claims')
     config.add_route('claimview', '/claim/{id}/')
+    config.add_route('paymentsview', '/payments')
+    config.add_route('paymentview', '/payment/{id}/')
 
     # Editing users
     config.add_route('usersview', '/users', factory=makeProtected(Administrator))

@@ -1090,22 +1090,22 @@ if __name__ == '__main__':
         DBSession.delete(deletethis)
         transaction.commit()
 
-        print 'Recalculating the totals of the projects'
-        projectlist = DBSession.query(Project).all()
-        percentile = len(projectlist) / 100.0
-        print 'Percentage done: '
-        counter = 0
-        x = 0
-        for project in projectlist:
-            if x == int(percentile * counter):
-                counter += 1
-                stdout.write('\r%d' % counter + '%')
-                stdout.flush()
-                sleep(1)
-            x +=1
-            project.Total
+        # print 'Recalculating the totals of the projects'
+        # projectlist = DBSession.query(Project).all()
+        # percentile = len(projectlist) / 100.0
+        # print 'Percentage done: '
+        # counter = 0
+        # x = 0
+        # for project in projectlist:
+        #     if x == int(percentile * counter):
+        #         counter += 1
+        #         stdout.write('\r%d' % counter + '%')
+        #         stdout.flush()
+        #         sleep(1)
+        #     x +=1
+        #     project.Total
 
-        transaction.commit()
+        # transaction.commit()
 
         print "\nReorganising the Resources"
         # define the categories
@@ -1388,12 +1388,12 @@ if __name__ == '__main__':
         x = 0
         # if the order has no order items delete it
         for order in orders:
-            x +=1
             if x == int(percentile * counter):
                 counter += 1
                 stdout.write('\r%d' % counter + '%')
                 stdout.flush()
                 sleep(1)
+            x +=1
             if len(order.OrderItems) == 0:
                 DBSession.delete(order)
             else:
@@ -1408,16 +1408,29 @@ if __name__ == '__main__':
         x = 0
         # if the order has no order items delete it
         for resource in resources:
-            x +=1
             if x == int(percentile * counter):
                 counter += 1
                 stdout.write('\r%d' % counter + '%')
                 stdout.flush()
                 sleep(1)
+            x +=1
             budgetitem = resource.BudgetItems[0]
             if len(budgetitem.OrderItems) > 0:
                 orderitem = budgetitem.OrderItems[0]
                 if orderitem.Order:
                     resource.SupplierID = orderitem.Order.SupplierID
+
+        print "Deleting messed up projects"
+        projects = DBSession.query(Project).all()
+        for proj in projects:
+            try:
+                proj.Total
+            except:
+                projid = proj.ID
+                order = DBSession.query(Order).filter_by(ProjectID=projid).first()
+                if order:
+                    DBSession.delete(order)
+                delete = DBSession.query(Project).filter_by(ID=projid).first()
+                DBSession.delete(delete)
 
     print '\nDone'
