@@ -1,6 +1,5 @@
 """
-This scrip builds the SQLite DB used in this project and populates it with
-default data.
+This scrip builds the SQLite DB tables for optimate
 """
 
 import os
@@ -34,16 +33,18 @@ from optimate.app.models import (
     User,
     Order,
     OrderItem,
-    Invoice
+    Invoice,
+    Valuation,
+    ValuationItem,
+    Claim,
+    Payment
 )
-
 
 def usage(argv):
     cmd = os.path.basename(argv[0])
     print('usage: %s <config_uri> [var=value]\n'
           '(example: "%s development.ini")' % (cmd, cmd))
     sys.exit(1)
-
 
 def main(argv=sys.argv):
     if len(argv) < 2:
