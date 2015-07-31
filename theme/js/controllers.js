@@ -712,7 +712,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 // reset previous to default values
                 $scope.dragOverNode.copy.selected = undefined;
                 var original = $scope.dragOverNode.original || {'Subitem': undefined};
-                if (original.Subitem != undefined){
+                if (original.Subitem != undefined) {
                     $scope.dragOverNode.copy.Subitem = original.Subitem;
                     // $scope.dragOverNode.copy.collapsed = $scope.dragOverNode.original.collapsed;
                 }
@@ -750,7 +750,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 if ($scope.allowed[dsttype]) {
                     if($scope.allowed[dsttype].indexOf(srctype) > -1) {
                         // call the drag over function
-                        if (destNodesScope.$nodeScope){
+                        if (destNodesScope.$nodeScope) {
                             $scope.dragOver(destNodesScope.$nodeScope.$modelValue);
                         }
                         return true;
@@ -824,8 +824,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     }
                 }
                 // clear the drag over value
-                if ($scope.dragOverNode != undefined){
-                    if ($scope.dragOverNode.copy != undefined){
+                if ($scope.dragOverNode != undefined) {
+                    if ($scope.dragOverNode.copy != undefined) {
                         $scope.dragOverNode.copy.selected = undefined;
                     }
                 }
@@ -951,8 +951,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         };
 
         // search for the resources in the node's category that match the search term
-        $scope.refreshResources = function(searchterm){
-            if ($scope.currentNode){
+        $scope.refreshResources = function(searchterm) {
+            if ($scope.currentNode) {
                 var req = {
                     method: 'GET',
                     url: globalServerURL + 'project/' + $scope.currentNode.ID + '/resources/',
@@ -964,10 +964,10 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }
         }
 
-        $scope.resourceSelected = function(item){
+        $scope.resourceSelected = function(item) {
             var $addBudgetItem = $('#addBudgetItem'),
                 $description = $addBudgetItem.find('#description');
-            if (item.ID == undefined){
+            if (item.ID == undefined) {
                 $scope.addBudgetItemForm.has_selection = false;
                 $description.focus();
             }
@@ -978,7 +978,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         };
 
         // load the lists used in adding/editing a budgetitem
-        $scope.loadBudgetItemRelatedList = function(nodeid){
+        $scope.loadBudgetItemRelatedList = function(nodeid) {
             $scope.loadBudgetItemOverheads(nodeid);
         };
 
@@ -990,8 +990,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 $scope.isDisabled = true;
                 var currentid = $scope.currentNode.ID;
                 // if the node is a budgetitem set the selected data to the form
-                if ($scope.formData.NodeType == 'BudgetItem' || $scope.formData.NodeType == 'SimpleBudgetItem'){
-                    if ($scope.formData.selected.ID === undefined){
+                if ($scope.formData.NodeType == 'BudgetItem' || $scope.formData.NodeType == 'SimpleBudgetItem') {
+                    if ($scope.formData.selected.ID === undefined) {
                         $scope.formData.Quantity = $scope.formData.selected.Quantity;
                         $scope.formData.Rate = $scope.formData.selected.Rate;
                         $scope.formData.Name = $scope.formData.selected.Name;
@@ -1006,7 +1006,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         $scope.formData.NodeType = 'BudgetItem';
                     }
                 }
-                else if ($scope.formData.NodeType == 'ResourcePart'){
+                else if ($scope.formData.NodeType == 'ResourcePart') {
                     $scope.formData.ResourceID = $scope.formData.selected.ID;
                     $scope.formData.Quantity = $scope.formData.selected.Quantity;
                 }
@@ -1018,7 +1018,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     $scope.formData = {'NodeType':$scope.formData.NodeType};
                     // if the node parent is the current node
                     var node = response.node;
-                    if (node.ParentID == $scope.currentNode.ID){
+                    if (node.ParentID == $scope.currentNode.ID) {
                         $scope.handleNew(node);
                     }
                     console.log("Node added");
@@ -1026,7 +1026,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }
         };
 
-        $scope.handleNew= function(node){
+        $scope.handleNew= function(node) {
             $scope.handleReloadSlickgrid(currentid)
             // expand the node if this is its first child
             if ($scope.currentNode.Subitem.length == 0) {
@@ -1036,7 +1036,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             // insert the newly created node in the correct place
             else{
                 var start = 0;
-                if ($scope.currentNode.Subitem[0].NodeType == 'ResourceCategory'){
+                if ($scope.currentNode.Subitem[0].NodeType == 'ResourceCategory') {
                     start = 1;
                 }
                 var index = $scope.locationOf(node, start);
@@ -1066,7 +1066,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
         $scope.locationOf = function(element, start, end) {
             // return the location the object should be inserted in a sorted array
-            if ($scope.currentNode.Subitem.length === 0){
+            if ($scope.currentNode.Subitem.length === 0) {
                 return -1;
             }
 
@@ -1096,10 +1096,10 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             if (!$scope.isDisabled) {
                 $scope.isDisabled = true;
                 // if the node is a budgetitem set the selected data to the form
-                if ($scope.formData.NodeType == 'BudgetItem' || $scope.formData.NodeType == 'SimpleBudgetItem'){
+                if ($scope.formData.NodeType == 'BudgetItem' || $scope.formData.NodeType == 'SimpleBudgetItem') {
                     $scope.formData.ResourceID = $scope.formData.selected.ID;
                     $scope.formData.Quantity = $scope.formData.selected.Quantity;
-                    if ($scope.formData.ResourceID == undefined){
+                    if ($scope.formData.ResourceID == undefined) {
                         $scope.formData.NodeType == 'SimpleBudgetItem';
                         $scope.formData.Rate = $scope.formData.selected.Rate;
                         $scope.formData.Name = $scope.formData.selected.Name;
@@ -1112,7 +1112,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         $scope.formData['OverheadList'] = $scope.budgetItemOverheadList || [];
                     }
                 }
-                else if ($scope.formData.NodeType == 'ResourcePart'){
+                else if ($scope.formData.NodeType == 'ResourcePart') {
                     $scope.formData.ResourceID = $scope.formData.selected.ID;
                     $scope.formData.Quantity = $scope.formData.selected.Quantity;
                 }
@@ -1128,7 +1128,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         $scope.currentNode.Name = $scope.formData.Name;
                         // only sort if its not a project's resource category
                         var parent = $scope.currentNodeScope.$parentNodeScope || {'$modelValue':{'NodeType':'Project'}};
-                        if (!($scope.currentNode.NodeType == 'ResourceCategory' && parent.$modelValue.NodeType == 'Project')){
+                        if (!($scope.currentNode.NodeType == 'ResourceCategory' && parent.$modelValue.NodeType == 'Project')) {
                             $scope.currentNodeScope.$parentNodesScope.$modelValue.sort(function(a, b) {
                                 var textA = a.Name.toUpperCase();
                                 var textB = b.Name.toUpperCase();
@@ -1198,7 +1198,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         $scope.formData['OverheadList'] = $scope.budgetItemOverheadList;
                     });
                 }
-                else if(nodetype == 'SimpleBudgetItem'){
+                else if(nodetype == 'SimpleBudgetItem') {
                     // populate the selection
                     $scope.formData.selected = response;
                     $scope.formData.NodeType = nodetype;
@@ -1227,7 +1227,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 else {
                     $scope.nodeDeleted();
                 }
-            }).error(function(){
+            }).error(function() {
                 console.log("Server error");
                 $scope.statusMessage("Server error.", 2000, 'alert-warning');
             });
@@ -1273,9 +1273,9 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     });
                     $scope.statusMessage("New project pasted.", 2000, 'alert-info');
                 }
-                else if (index !== undefined){
+                else if (index !== undefined) {
                     // if we pasted the last node of the copied records
-                    if (index == $scope.copiedRecords.length-1){
+                    if (index == $scope.copiedRecords.length-1) {
                         $scope.statusMessage("Records pasted.", 2000, 'alert-info');
                         $scope.handleReloadSlickgrid(node.ID);
                         $scope.loadNodeChildren(node.ID);
@@ -1301,8 +1301,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }).error(function() {
                 console.log("Server error");
                 $scope.statusMessage("Server error.", 2000, 'alert-warning');
-            }).then(function(){
-                if (index !== undefined){
+            }).then(function() {
+                if (index !== undefined) {
                     index+=1;
                     $scope.resolvePastePromise(node, index);
                 }
@@ -1310,7 +1310,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         };
 
         // loop over a list of duplicate resources and get the user action for each
-        $scope.handleDuplicateResourceActions = function(node, duplicatelist, index){
+        $scope.handleDuplicateResourceActions = function(node, duplicatelist, index) {
             var doAll = undefined;
             var overwrite = false;
             var keys = Object.keys(duplicatelist);
@@ -1382,12 +1382,12 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 $scope.statusMessage("You can't paste a node into itself", 2000, 'alert-warning');
             }
             // check the allowed array for the types
-            if (flag && ($scope.allowed[node.NodeType].indexOf(cnode.NodeType) == -1)){
+            if (flag && ($scope.allowed[node.NodeType].indexOf(cnode.NodeType) == -1)) {
                 flag = false;
                 console.log("You can't paste a " + cnode.NodeType + " into a " + node.NodeType);
                 $scope.statusMessage("You can't paste a " + cnode.NodeType + " into a " + node.NodeType, 2000, 'alert-warning');
                 // if the index is set, paste the next record
-                if (index !== undefined){
+                if (index !== undefined) {
                     index+=1;
                     $scope.resolvePastePromise(node, index);
                 }
@@ -1403,7 +1403,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 if (cnode.ParentID == node.ID) {
                     console.log("You can't paste a Resource Category into the same list");
                     $scope.statusMessage("You can't paste a Resource Category into the same list", 2000, 'alert-warning');
-                    if (index !== undefined){
+                    if (index !== undefined) {
                         index+=1;
                         $scope.resolvePastePromise(node, index);
                     }
@@ -1467,7 +1467,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
         $scope.loadBudgetItemTypes = function() {
             var bitypes = [];
-            for (var i in $scope.restypeList){
+            for (var i in $scope.restypeList) {
                 bitypes.push({Name: $scope.restypeList[i].Name, selected: true})
             }
             $scope.budgetItemTypeList = bitypes;
@@ -1489,9 +1489,9 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             $scope.filterBySupplier = false;
         };
 
-        $scope.copySelectedRecords = function(node){
+        $scope.copySelectedRecords = function(node) {
             // put the id's of the selected records in an array
-            if ($scope.rowsSelected){
+            if ($scope.rowsSelected) {
                 $scope.toggleCopiedRecords($scope.getSelectedNodes(), false);
                 $scope.copiedNode = {'NodeType': 'Records'};
                 console.log("Records copied");
@@ -1499,20 +1499,20 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }
         };
 
-        $scope.cutSelectedRecords = function(node){
+        $scope.cutSelectedRecords = function(node) {
             // put the id's of the selected records in an array
-            if ($scope.rowsSelected){
+            if ($scope.rowsSelected) {
                 var selectedRows = $scope.getSelectedNodes();
                 $scope.toggleCopiedRecords(selectedRows, true);
                 $scope.copiedNode = {'NodeType': 'Records'};
                 // remove rows from slickgrid
                 $scope.cutSelectedNodes(selectedRows);
                 // get node in scope and remove
-                if (selectedRows[0].ID == node.ID){
+                if (selectedRows[0].ID == node.ID) {
                     $scope.nodeDeleted()
                 }
                 else{
-                    for (var i in selectedRows){
+                    for (var i in selectedRows) {
                         var result = $.grep($scope.currentNode.Subitem, function(e) {
                             return e.ID == selectedRows[i].ID;
                         });
@@ -1527,42 +1527,42 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }
         };
 
-        $scope.pasteSelectedRecords = function(node){
+        $scope.pasteSelectedRecords = function(node) {
             // start pasting each record
             $scope.resolvePastePromise(node, 0)
         };
 
         // after operation has finished on pasting a node, paste the next
         // selected node
-        $scope.resolvePastePromise = function(node, index){
-            if (index < $scope.copiedRecords.length){
+        $scope.resolvePastePromise = function(node, index) {
+            if (index < $scope.copiedRecords.length) {
                 $scope.copiedNode = $scope.copiedRecords[index];
                 $scope.pasteThisNode(node, index);
             }
         }
 
-        $scope.deleteSelectedRecords = function(nodeid){
+        $scope.deleteSelectedRecords = function(nodeid) {
             // all the currently selected records in the slickgrid are
             // deleted from the database and the grid is reloaded
-            if ($scope.rowsSelected){
+            if ($scope.rowsSelected) {
                 var selectedRows = $scope.getSelectedNodes()
-                for (var i in selectedRows){
+                for (var i in selectedRows) {
                     $http({
                         method: 'DELETE',
                         url:globalServerURL + 'node/' + selectedRows[i].ID + '/'
                     }).success(function (response) {
                         console.log(selectedRows[i].ID + " deleted");
                         // on the last loop reload the slickgrid and node
-                        if (i == selectedRows.length-1){
+                        if (i == selectedRows.length-1) {
                             // if the deleted id equals the selected id
                             // simply remove it from the tree
-                            if (nodeid == selectedRows[i].ID){
+                            if (nodeid == selectedRows[i].ID) {
                                 $scope.nodeDeleted();
                             }
-                            else{
+                            else {
                                 $scope.loadNodeChildren(nodeid);
                                 $scope.handleReloadSlickgrid(nodeid);
-                            }3
+                            }
                             $scope.statusMessage("Deleted records", 2000, 'alert-info');
                             $scope.toggleRowsSelected(false);
                         }
@@ -1572,13 +1572,13 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         };
 
 
-        $scope.toggleRowsSelected = function(rowsselected){
+        $scope.toggleRowsSelected = function(rowsselected) {
             $timeout(function() {
                 $scope.rowsSelected = rowsselected;
             });
         }
 
-        $scope.toggleCopiedRecords = function(copiedrecords, cut){
+        $scope.toggleCopiedRecords = function(copiedrecords, cut) {
             $scope.copiedRecords = copiedrecords;
             $scope.cut = cut;
         }
@@ -2121,7 +2121,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 // find the index to insert the node into
                 var index = $scope.locationOf(bi);
                 // add the budgeitem
-                if (index == -1){
+                if (index == -1) {
                     $scope.budgetItemsList.push(bi);
                 }
                 else{
@@ -2187,7 +2187,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $http.get(globalServerURL + 'node/' + nodeid + '/budgetitems/')
             .success(function(response) {
                 // if the budgetitem list is empty just add all the nodes in order
-                if ($scope.budgetItemsList.length == 0){
+                if ($scope.budgetItemsList.length == 0) {
                     $scope.budgetItemsList =response;
                 }
                 else{
@@ -2208,7 +2208,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                             // add the budgetItem
                             var index = $scope.locationOf(comp);
                             // add the budgetItem
-                            if (index == -1){
+                            if (index == -1) {
                                 $scope.budgetItemsList.push(comp);
                             }
                             else{
@@ -2251,7 +2251,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
 
         $scope.locationOf = function(element, start, end) {
             // return the location the object should be inserted in a sorted array
-            if ($scope.budgetItemsList.length === 0){
+            if ($scope.budgetItemsList.length === 0) {
                 return -1;
             }
 
@@ -2450,8 +2450,8 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
         };
 
         // search for the orders that match the search term
-        $scope.refreshOrders = function(searchterm){
-            if ($scope.modalState){
+        $scope.refreshOrders = function(searchterm) {
+            if ($scope.modalState) {
                 var req = {
                     method: 'GET',
                     url: globalServerURL + 'orders',
@@ -2465,7 +2465,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             }
         };
 
-        $scope.orderSelected = function(item){
+        $scope.orderSelected = function(item) {
             console.log(item);
             $scope.formData.OrderID = item.ID;
         };
@@ -2600,7 +2600,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
         $scope.checkOrderNumber = function() {
             // check if the order exists and set the form valid or invalid
             $http.get(globalServerURL + 'order/' + $scope.formData.OrderID + '/')
-            .success(function(response){
+            .success(function(response) {
                 $scope.saveInvoiceModalForm.inputOrderNumber.$setValidity('default1', true);
                 $scope.calculatedAmounts[3].Amount = response.Total
             })
@@ -2609,7 +2609,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             });
         };
 
-        $scope.updateAmounts = function(){
+        $scope.updateAmounts = function() {
             var subtotal = parseFloat($scope.formData.Amount);
             var vatcost = parseFloat($scope.formData.VAT);
             var total = subtotal + vatcost;
@@ -3129,8 +3129,8 @@ allControllers.controller('claimsController', ['$scope', '$http', 'globalServerU
         $scope.loadClaimSection();
 
         // load the list of valuations based on a project
-        $scope.loadProjectValuations = function(projectid){
-            if (projectid){
+        $scope.loadProjectValuations = function(projectid) {
+            if (projectid) {
                 var req = {
                     method: 'GET',
                     url: globalServerURL + 'valuations',
