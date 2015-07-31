@@ -1839,7 +1839,9 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
     function($scope, $http, globalServerURL, sharedService, $timeout) {
 
         toggleMenu('orders');
-
+        $scope.dateTimeNow = function() {
+            $scope.date = new Date();
+        };
         $scope.isDisabled = false;
         $scope.isCollapsed = true;
         $scope.jsonorders = [];
@@ -1947,6 +1949,8 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 $scope.isDisabled = true;
                 // set the list of checked budgetitems
                 $scope.formData['BudgetItemsList'] = $scope.budgetItemsList;
+                // convert the date to json format
+                $scope.formData['Date'] = $scope.date.toJSON();
                 if ($scope.modalState == 'Edit') {
                     $http({
                         method: 'PUT',
@@ -2016,6 +2020,8 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $scope.isDisabled = false;
             $scope.modalState = "Add";
             $scope.budgetItemsList = [];
+            $scope.dateTimeNow();
+            $scope.formData['Date'] = $scope.date;
             if ($scope.selectedOrder) {
                 $('#order-'+$scope.selectedOrder.ID).removeClass('active');
                 $scope.selectedOrder = undefined;
@@ -2035,7 +2041,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 $scope.formData = response;
                 $scope.loadProject();
                 $scope.budgetItemsList = $scope.formData.BudgetItemsList;
-                $scope.formData['Date'] = new Date($scope.formData['Date']);
+                $scope.date = new Date($scope.formData['Date']);
                 $scope.formData.NodeType = 'order';
             });
             $scope.saveOrderModalForm.$setPristine();
@@ -2307,7 +2313,10 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
     function($scope, $http, globalServerURL, sharedService, $timeout) {
 
         toggleMenu('invoices');
-
+        $scope.dateTimeNow = function() {
+            $scope.idate = new Date();
+            $scope.pdate = new Date();
+        };
         $scope.isDisabled = false;
         $scope.jsoninvoices = [];
         $scope.invoiceList = [];
@@ -2427,6 +2436,9 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             // check if saving is disabled, if not disable it and save
             if (!$scope.isDisabled) {
                 $scope.isDisabled = true;
+                // convert the date to json format
+                $scope.formData['Paymentdate'] = $scope.pdate.toJSON();
+                $scope.formData['Invoicedate'] = $scope.idate.toJSON();
                 if ($scope.modalState == 'Edit') {
                     $http({
                         method: 'PUT',
@@ -2491,6 +2503,9 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
             $scope.modalState = "Add";
+            $scope.dateTimeNow();
+            $scope.formData['Invoicedate'] = $scope.idate;
+            $scope.formData['Paymentdate'] = $scope.pdate;
             $scope.calculatedAmounts = [{'name': 'Subtotal', 'amount': ''},
                                         {'name': 'VAT', 'amount': ''},
                                         {'name': 'Total', 'amount': ''},
@@ -2513,8 +2528,8 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             }).success(function(response) {
                 $scope.formData = response;
                 $scope.saveInvoiceModalForm.inputOrderNumber.$setValidity('default1', true);
-                $scope.formData.Invoicedate = new Date($scope.formData.Invoicedate);
-                $scope.formData.Paymentdate = new Date($scope.formData.Paymentdate);
+                $scope.idate = new Date($scope.formData['Invoicedate']);
+                $scope.pdate = new Date($scope.formData['Paymentdate']);
                 $scope.formData['NodeType'] = 'invoice';
                 $scope.calculatedAmounts = [{'name': 'Subtotal', 'amount': response.Amount},
                                         {'name': 'VAT', 'amount': response.VAT},
@@ -2662,7 +2677,6 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
         $scope.dateTimeNow = function() {
             $scope.date = new Date();
         };
-        $scope.dateTimeNow();
         $scope.isDisabled = false;
         $scope.isCollapsed = true;
         $scope.jsonvaluations = [];
