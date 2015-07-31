@@ -1952,8 +1952,6 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 $scope.isDisabled = true;
                 // set the list of checked budgetitems
                 $scope.formData['BudgetItemsList'] = $scope.budgetItemsList;
-                // convert the date to json format
-                $scope.formData['Date'] = $scope.date.toJSON();
                 if ($scope.modalState == 'Edit') {
                     $http({
                         method: 'PUT',
@@ -2442,9 +2440,6 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             // check if saving is disabled, if not disable it and save
             if (!$scope.isDisabled) {
                 $scope.isDisabled = true;
-                // convert the date to json format
-                $scope.formData['Paymentdate'] = $scope.pdate.toJSON();
-                $scope.formData['Invoicedate'] = $scope.idate.toJSON();
                 if ($scope.modalState == 'Edit') {
                     $http({
                         method: 'PUT',
@@ -2510,7 +2505,6 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             $scope.isDisabled = false;
             $scope.modalState = "Add";
             $scope.dateTimeNow();
-            console.log($scope.idate);
             $scope.formData['Invoicedate'] = $scope.idate;
             $scope.formData['Paymentdate'] = $scope.pdate;
             $scope.calculatedAmounts = [{'name': 'Subtotal', 'amount': ''},
@@ -2536,7 +2530,9 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
                 $scope.formData = response;
                 $scope.saveInvoiceModalForm.inputOrderNumber.$setValidity('default1', true);
                 $scope.idate = new Date($scope.formData['Invoicedate']);
+                console.log($scope.idate);
                 $scope.pdate = new Date($scope.formData['Paymentdate']);
+                console.log($scope.pdate);
                 $scope.formData['NodeType'] = 'invoice';
                 $scope.calculatedAmounts = [{'name': 'Subtotal', 'amount': response.Amount},
                                         {'name': 'VAT', 'amount': response.VAT},
@@ -2735,8 +2731,6 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                 $scope.isDisabled = true;
                 // set the list of checked budgetgroups
                 $scope.formData['BudgetGroupList'] = $scope.budgetgroupList;
-                // convert the date to json format
-                $scope.formData['Date'] = $scope.date.toJSON();
                 if ($scope.modalState == 'Edit') {
                     $http({
                         method: 'PUT',
