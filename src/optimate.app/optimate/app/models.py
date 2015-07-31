@@ -98,6 +98,7 @@ class Node(Base):
         return Decimal(0.00)
 
     @Total.setter
+
     def Total(self, total):
         pass
 
@@ -818,6 +819,7 @@ class SimpleBudgetItem(BudgetItem):
         return None
 
     @hybrid_property
+
     def Rate(self):
         """ Get the Rate. If it is None return 0
         """
@@ -1794,7 +1796,7 @@ class ValuationItem(Base):
     """ A table to hold valuation items. """
     __tablename__ = 'ValuationItem'
     ID = Column(Integer, primary_key=True)
-    ParentID = Column(Integer, ForeignKey('Parent.ID'))
+    ParentID = Column(Integer, ForeignKey('ValuationItem.ID'))
     ValuationID = Column(Integer, ForeignKey('Valuation.ID'))
     BudgetGroupID = Column(Integer, ForeignKey('BudgetGroup.ID'))
     BudgetGroupTotal = Column(Numeric, default=Decimal(0.00)) # stores snapshot of
@@ -1805,6 +1807,11 @@ class ValuationItem(Base):
                               backref=backref('BudgetGroups'))
     Valuation = relationship('Valuation',
                               backref=backref('ValuationItems'))
+
+    Children = relationship('ValuationItem',
+                            cascade='all',
+                            backref=backref('Parent', remote_side='ValuationItem.ID'),
+                            )
 
     @property
     def Total(self):
