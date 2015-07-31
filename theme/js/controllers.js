@@ -1840,7 +1840,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
 
         toggleMenu('orders');
         $scope.dateTimeNow = function() {
-            d = new Date();
+            var d = new Date();
             // create a timezone agnostic date by setting time info to 0 and timezone to UTC.
             date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0,0));
             $scope.date = date;
@@ -2315,7 +2315,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
 
         toggleMenu('invoices');
         $scope.dateTimeNow = function() {
-            d = new Date();
+            var d = new Date();
             // create a timezone agnostic date by setting time info to 0 and timezone to UTC.
             date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0,0));
             $scope.idate = date;
@@ -2678,7 +2678,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
 
         toggleMenu('valuations');
         $scope.dateTimeNow = function() {
-            d = new Date();
+            var d = new Date();
             // create a timezone agnostic date by setting time info to 0 and timezone to UTC.
             date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0,0));
             $scope.date = date;
