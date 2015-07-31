@@ -1828,7 +1828,7 @@ class ValuationItem(Base):
                 'PercentageComplete': str(self.PercentageComplete),
                 'AmountComplete': str(self.Total),
                 'TotalBudget': str(self.BudgetGroup.Total),
-                'NodeType': self.type}
+                'NodeType': 'ValuationItem'}
 
     def __repr__(self):
         """Return a representation of this valuation item
