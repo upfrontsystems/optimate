@@ -14,12 +14,13 @@ classes should alter those!
     background-color: #F8F8F8;
 }
 
-div.non-editable-row div.cell{
-    background-color: #F8F8F8;
-}
-
 .editable-column {
     background-color: white;
+}
+
+/* set non-editable rows background grey */
+div.non-editable-row div.cell{
+    background-color: #F8F8F8;
 }
 
 .slick-header.ui-state-default,
@@ -283,7 +284,7 @@ classes should alter those!
 }
 
 .slick-cell.selected {
-  background-color:  #428BCA;
+  background-color:  #428BCA !important;
   color: white;
 }
 
