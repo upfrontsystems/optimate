@@ -836,10 +836,19 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 if($scope.addNodeBack) {
                     var sourceobject = event.source.nodeScope.$modelValue;
                     var parent = event.source.nodeScope.$parentNodeScope.$modelValue;
-                    parent.Subitem.push(sourceobject);
-                    parent.Subitem.sort(function(a, b) {
-                        return a.Name.localeCompare(b.Name)
-                    });
+                    var start = 0;
+                    // start sorting from index 1 if parent is project
+                    if (parent.NodeType == 'Project'){
+                        start = 1;
+                    }
+                    // get the index to insert the node
+                    var index = $scope.locationOf(sourceobject, parent.Subitem, start);
+                    if (index > -1){
+                        parent.Subitem.splice(index, 0, sourceobject)
+                    }
+                    else{
+                        parent.Subitem.push(sourceobject);
+                    }
                     $scope.addNodeBack = false;
                 }
             },
@@ -1039,7 +1048,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 if ($scope.currentNode.Subitem[0].NodeType == 'ResourceCategory'){
                     start = 1;
                 }
-                var index = $scope.locationOf(node, start);
+                var index = $scope.locationOf(node, $scope.currentNode.Subitem, start);
                 $scope.currentNode.Subitem.splice(index, 0, node)
             }
         };
@@ -1064,24 +1073,24 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }
         };
 
-        $scope.locationOf = function(element, start, end) {
+        $scope.locationOf = function(element, array, start, end) {
             // return the location the object should be inserted in a sorted array
             if ($scope.currentNode.Subitem.length === 0){
                 return -1;
             }
 
             start = start || 0;
-            end = end || $scope.currentNode.Subitem.length;
+            end = end || array.length;
             var pivot = (start + end) >> 1;
-            var c = $scope.nodeCompare(element, $scope.currentNode.Subitem[pivot]);
+            var c = $scope.nodeCompare(element, array[pivot]);
             if (end - start <= 1) {
                 return c == -1 ? pivot: pivot + 1;
 
             }
             switch (c) {
-                case -1: return $scope.locationOf(element, start, pivot);
+                case -1: return $scope.locationOf(element, array, start, pivot);
                 case 0: return pivot;
-                case 1: return $scope.locationOf(element, pivot, end);
+                case 1: return $scope.locationOf(element, array, pivot, end);
             };
         };
 
