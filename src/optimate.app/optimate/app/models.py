@@ -755,6 +755,9 @@ class BudgetItem(Node):
         for orderitem in self.OrderItems:
             orderitemsquantity+=orderitem.Quantity
         quantity = self.Quantity - orderitemsquantity
+        if quantity < 0:
+            quantity = 0.0
+
         subtotal = Decimal(quantity*float(self.Rate)).quantize(Decimal('.01'))
         vat = 14
         companyinfo = DBSession.query(CompanyInformation
