@@ -13,7 +13,7 @@ $(document).on('shown.bs.modal', function(){
          $('input#inputLevelLimit').focus();
      }
      if ( $('#saveValuationModal.in').length != 0 ) {
-         $('#addBudgetgroupButton').focus();
+         $('.valuation-edit .chosen-container').off()
      }
      if ( $('#saveOrderModal.in').length != 0 ) {
          $('#addComponentsButton').focus();

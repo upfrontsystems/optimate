@@ -1806,6 +1806,7 @@ def valuationsview(request):
         valuationlist.append(valuation.dict())
     return valuationlist
 
+
 @view_config(route_name='valuations_length', renderer='json')
 def valuations_length(request):
     """ Returns the number of valuations in the database
