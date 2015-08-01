@@ -223,6 +223,9 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 if (value != undefined) {
                     var parts = value.toString().split(".");
                     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    if (parts.length > 1) {
+                        parts[parts.length-1] = parts[parts.length-1].slice(0,2);
+                    }
                     return parts.join(".");
                 }
                 else {
@@ -395,12 +398,23 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 }
                 $http(req).success(function(data) {
                     if (data){
+                        var oldtotal = item.Total;
                         item.Total = data.Total;
                         item.Subtotal = data.Subtotal;
                         //store the active cell and editor
                         var activeCell = grid.getActiveCell();
                         var activeEditor = grid.getCellEditor();
                         dataView.updateItem(item.id, item);
+
+                        // check if the first row is a parent
+                        var firstrow = dataView.getItem(0);
+                        if (firstrow.isparent){
+                            // update the parent total
+                            firstrow.Total = parseFloat(firstrow.Total) +
+                                                (parseFloat(item.Total) -
+                                                    parseFloat(oldtotal));
+                            dataView.updateItem(firstrow.id, firstrow);
+                        }
 
                         grid.setActiveCell(activeCell.row, activeCell.cell);
                         grid.editActiveCell();
