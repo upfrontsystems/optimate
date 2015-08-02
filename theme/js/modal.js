@@ -17,5 +17,9 @@ $(document).on('shown.bs.modal', function(){
      }
      if ( $('#saveOrderModal.in').length != 0 ) {
          $('#addComponentsButton').focus();
+         $('.project-dropdown-disabled .chosen-container').off()
      }
 });
+
+
+

@@ -1891,6 +1891,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
         };
         $scope.isDisabled = false;
         $scope.isCollapsed = true;
+        $scope.orderFormProjectsDisabled = false;
         $scope.jsonorders = [];
         $scope.budgetItemsList = [];
         $scope.invoiceList = [];
@@ -2063,6 +2064,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $scope.formData = {'NodeType': 'order'};
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
+            $scope.orderFormProjectsDisabled = false;
             $scope.modalState = "Add";
             $scope.budgetItemsList = [];
             $scope.dateTimeNow();
@@ -2244,6 +2246,13 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             $scope.isCollapsed = !$scope.isCollapsed;
             if ($scope.isCollapsed) {
                 $scope.handleReloadOrderSlickgrid();
+            }
+            // check if project selection dropdown should be enabled/disabled
+            if ( $scope.budgetItemsList.length != 0 ) {
+                $scope.orderFormProjectsDisabled = true;
+            }
+            else {
+                $scope.orderFormProjectsDisabled = false;
             }
         };
 
