@@ -849,12 +849,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     }
                     // get the index to insert the node
                     var index = $scope.locationOf(sourceobject, parent.Subitem, start);
-                    if (index > -1){
-                        parent.Subitem.splice(index, 0, sourceobject)
-                    }
-                    else{
-                        parent.Subitem.push(sourceobject);
-                    }
+                    parent.Subitem.splice(index, 0, sourceobject)
                     $scope.addNodeBack = false;
                 }
             },
@@ -1045,18 +1040,15 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             $scope.handleReloadSlickgrid(node.ParentID)
             // expand the node if this is its first child
             if ($scope.currentNode.Subitem.length == 0) {
-                $scope.currentNode.Subitem.push(node);
                 $scope.currentNode.collapsed = true;
             }
             // insert the newly created node in the correct place
-            else{
-                var start = 0;
-                if ($scope.currentNode.Subitem[0].NodeType == 'ResourceCategory') {
-                    start = 1;
-                }
-                var index = $scope.locationOf(node, $scope.currentNode.Subitem, start);
-                $scope.currentNode.Subitem.splice(index, 0, node)
+            var start = 0;
+            if ($scope.currentNode.NodeType == 'Project') {
+                start = 1;
             }
+            var index = $scope.locationOf(node, $scope.currentNode.Subitem, start);
+            $scope.currentNode.Subitem.splice(index, 0, node)
         };
 
         // Add a project to the tree and reload the projectlist
@@ -1082,7 +1074,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         $scope.locationOf = function(element, array, start, end) {
             // return the location the object should be inserted in a sorted array
             if ($scope.currentNode.Subitem.length === 0) {
-                return -1;
+                return 0;
             }
 
             start = start || 0;
@@ -1093,6 +1085,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 return c == -1 ? pivot: pivot + 1;
 
             }
+
             switch (c) {
                 case -1: return $scope.locationOf(element, array, start, pivot);
                 case 0: return pivot;
@@ -1101,9 +1094,14 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         };
 
         $scope.nodeCompare = function (a, b) {
-            if (a.Name.toUpperCase() < b.Name.toUpperCase()) return -1;
-            if (a.Name.toUpperCase() > b.Name.toUpperCase()) return 1;
-            return 0;
+            if (b){
+                if (a.Name.toUpperCase() < b.Name.toUpperCase()) return -1;
+                if (a.Name.toUpperCase() > b.Name.toUpperCase()) return 1;
+                return 0;
+            }
+            else{
+                return -1;
+            }
         };
 
         // save changes made to the node's properties
