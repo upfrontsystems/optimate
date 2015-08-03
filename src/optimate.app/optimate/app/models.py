@@ -1709,10 +1709,10 @@ class Invoice(Base):
         # get the date in json format
         jsonindate = None
         if self.InvoiceDate:
-            jsonindate = self.InvoiceDate.strftime("%d %B %Y")
+            jsonindate = self.InvoiceDate.isoformat() + '.000Z'
         jsonpaydate = None
         if self.PaymentDate:
-            jsonpaydate = self.PaymentDate.strftime("%d %B %Y")
+            jsonpaydate = self.PaymentDate.isoformat() + '.000Z'
         return {'ID':self.ID,
                 'id':self.ID,
                 'OrderID': self.OrderID,
@@ -1722,6 +1722,7 @@ class Invoice(Base):
                 'VAT': str(self.VAT),
                 'Paymentdate': jsonpaydate,
                 'Invoicedate': jsonindate,
+                'ReadablePaymentdate': self.PaymentDate.strftime("%d %B %Y"),
                 'Ordertotal': str(self.Order.Total),
                 'Status': self.Status}
 
@@ -1764,13 +1765,17 @@ class Valuation(Base):
         """ Override the dict function
         """
         if self.Date:
-            date = self.Date.strftime("%d %B %Y")
+            date = self.Date.isoformat()
+            date = date + '.000Z'
+            readable_date = self.Date.strftime("%d %B %Y")
         else:
             date = ''
+            readable_date = ''
         return {'ID': self.ID,
                 'id': self.ID,
                 'Project': self.Project.Name,
                 'Date': date,
+                'ReadableDate': readable_date,
                 'PercentageClaimed': str(self.TotalPercentage),
                 'AmountClaimed': str(self.Total)}
 

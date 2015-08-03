@@ -1766,6 +1766,7 @@ def orderview(request):
     jsondate = None
     if order.Date:
         jsondate = order.Date.isoformat()
+        jsondate = jsondate + '.000Z'
     total = '0.00'
     if order.Total:
         total = order.Total
@@ -1930,6 +1931,7 @@ def valuationview(request):
     jsondate = None
     if valuation.Date:
         jsondate = valuation.Date.isoformat()
+        jsondate = jsondate + '.000Z'
 
     return {'ID': valuation.ID,
             'ProjectID': valuation.ProjectID,
