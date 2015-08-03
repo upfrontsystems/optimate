@@ -2090,6 +2090,12 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 $scope.budgetItemsList = $scope.formData.BudgetItemsList;
                 $scope.date = new Date($scope.formData['Date']);
                 $scope.formData.NodeType = 'order';
+                if ( $scope.budgetItemsList.length != 0 ) {
+                    $scope.orderFormProjectsDisabled = true;
+                }
+                else {
+                    $scope.orderFormProjectsDisabled = false;
+                }
             });
             $scope.saveOrderModalForm.$setPristine();
         }
