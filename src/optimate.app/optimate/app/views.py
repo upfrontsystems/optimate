@@ -1940,7 +1940,6 @@ def valuationview(request):
         if valuationitem.BudgetGroup:
             budgetgrouplist.append(valuationitem.dict())
 
-    budgetgrouplist = sorted(budgetgrouplist, key=lambda k: k['Name'].upper())
     # get the date in json format
     jsondate = None
     if valuation.Date:
