@@ -229,8 +229,11 @@ function decorationsProvider() {
                         decorator.decorateElement($element, false);
                         // If input is valid and value has changed.
                     } else if (ngModel.modified) {
-                        // Decorating element as valid.
-                        decorator.decorateElement($element, true);
+                        // only decorate if if the element is required
+                        if ($element[0].required){
+                            // Decorating element as valid.
+                            decorator.decorateElement($element, true);
+                        }
                     } else {
                         // Removing all decorations if it's valid and not modified.
                         decorator.clearDecorations($element);

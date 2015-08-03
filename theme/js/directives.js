@@ -366,8 +366,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             }
 
             // reload the slickgrid
-            $scope.handleReloadSlickgrid = function(reloadid) {
-                var nodeid = reloadid;
+            $scope.handleReloadSlickgrid = function(nodeid) {
                 var url = globalServerURL +'node/' + nodeid + '/grid/'
                 var target = document.getElementsByClassName('slick-viewport');
                 var spinner = new Spinner().spin(target[0]);

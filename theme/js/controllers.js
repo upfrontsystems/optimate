@@ -59,7 +59,10 @@ allControllers.controller('companyinformationController', ['$scope', '$http', '$
             }).success(function(response) {
                 $scope.formData = response;
             })
-            $scope.EditCompanyInformationForm.$setPristine();
+            // set each field dirty
+            angular.forEach($scope.EditCompanyInformationForm.$error.required, function(field) {
+                field.$setDirty();
+            });
         }
 
         // editing company information data
@@ -184,7 +187,10 @@ allControllers.controller('clientsController', ['$scope', '$http', 'globalServer
                 $scope.formData = response;
                 $scope.formData['NodeType'] = 'client';
             })
-            $scope.saveModalForm.$setPristine();
+            // set each field dirty
+            angular.forEach($scope.saveModalForm.$error.required, function(field) {
+                field.$setDirty();
+            });
         }
 
         // Delete client and remove from the clients list
@@ -315,7 +321,10 @@ allControllers.controller('suppliersController', ['$scope', '$http', 'globalServ
                 $scope.formData = response;
                 $scope.formData['NodeType'] = 'supplier';
             })
-            $scope.saveModalForm.$setPristine();
+            // set each field dirty
+            angular.forEach($scope.saveModalForm.$error.required, function(field) {
+                field.$setDirty();
+            });
         }
 
         // Delete supplier and remove from the supplier list
@@ -574,7 +583,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
         // When a new project is added to the tree
         $scope.projectAdded = function(newproject) {
-            console.log("adding project");
             if (!(containsObject(newproject, $scope.projectsRoot.Subitem))) {
                 // add the new project to the projects and role list and sort
                 $scope.projectsList.push(newproject);
@@ -593,8 +601,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 if (hasStorage) {
                     // add id of project to local storage
                     var open_projects;
-                    console.log("adding to localstorage");
-                    console.log(newproject);
                     try {
                         // attempt to add an id to open_projects storage
                         open_projects = JSON.parse(localStorage["open_projects"])
@@ -1216,7 +1222,10 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 else{
                     $scope.formData = response;
                 }
-                $scope['add' + nodetype + 'Form'].$setPristine();
+                // set each field dirty
+                angular.forEach($scope['add' + nodetype + 'Form'].$error.required, function(field) {
+                    field.$setDirty();
+                });
             });
         };
 
@@ -2097,7 +2106,10 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                     $scope.orderFormProjectsDisabled = false;
                 }
             });
-            $scope.saveOrderModalForm.$setPristine();
+            // set each field dirty
+            angular.forEach($scope.saveOrderModalForm.$error.required, function(field) {
+                field.$setDirty();
+            });
         }
 
         // Delete an order and remove from the orders list
@@ -2596,7 +2608,10 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
                                         {'name': 'Total', 'amount': response.Total},
                                         {'name': 'Order total', 'amount': response.Ordertotal}];
             });
-            $scope.saveInvoiceModalForm.$setPristine();
+            // set each field dirty
+            angular.forEach($scope.saveInvoiceModalForm.$error.required, function(field) {
+                field.$setDirty();
+            });
         }
 
         // Delete an invoice and remove from the list
@@ -2882,7 +2897,10 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                 $scope.date = new Date($scope.formData['Date']);
                 $scope.formData['NodeType'] = 'valuation';
             });
-            $scope.saveValuationModalForm.$setPristine();
+            // set each field dirty
+            angular.forEach($scope.saveValuationModalForm.$error.required, function(field) {
+                field.$setDirty();
+            });
         }
 
         // Delete a valuation and remove from the valuations list
@@ -3094,7 +3112,10 @@ allControllers.controller('claimsController', ['$scope', '$http', 'globalServerU
                 $scope.formData.Date = new Date($scope.formData.Date);
                 $scope.formData.NodeType = 'claim';
             });
-            $scope.saveClaimModalForm.$setPristine();
+            // set each field dirty
+            angular.forEach($scope.saveClaimModalForm.$error.required, function(field) {
+                field.$setDirty();
+            });
         }
 
         // Delete a claim and remove from the list
@@ -3310,7 +3331,10 @@ allControllers.controller('paymentsController', ['$scope', '$http', 'globalServe
                 $scope.formData.Date = new Date($scope.formData.Date);
                 $scope.formData.NodeType = 'payment';
             });
-            $scope.savePaymentModalForm.$setPristine();
+            // set each field dirty
+            angular.forEach($scope.savePaymentModalForm.$error.required, function(field) {
+                field.$setDirty();
+            });
         }
 
         // Delete a payment and remove from the list

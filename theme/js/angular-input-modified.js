@@ -133,7 +133,6 @@
                         toggleCssClasses();
 
                     } else {
-
                         // Comparing current input value with preserved master value
                         // to determine if it's changed.
                         var modified = !valuesEqual(ngModel.$modelValue, ngModel.masterValue);

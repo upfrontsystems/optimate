@@ -486,9 +486,9 @@ def edititemview(request):
 
     elif objecttype == 'ResourceUnit':
         runit = DBSession.query(ResourceUnit).filter_by(ID=nodeid).first()
-        runit.Type = request.json_body['ResourceType']
+        runit.Type = request.json_body['ResourceTypeID']
         runit.Description=request.json_body.get('Description', '')
-        runit.UnitID = request.json_body.get('Unit', '')
+        runit.UnitID = request.json_body.get('UnitID', '')
         runit.SupplierID=request.json_body.get('Supplier', '')
         rate = request.json_body.get('Rate', 0)
         rate = Decimal(rate).quantize(Decimal('.01'))
