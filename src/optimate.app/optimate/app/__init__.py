@@ -106,6 +106,7 @@ def main(global_config, **settings):
     config.add_route('valuationsview', '/valuations')
     config.add_route('valuationview', '/valuation/{id}/')
     config.add_route('valuations_length', '/valuations/length')
+    config.add_route('valuation_items', '/valuation_items/{id}/')
 
     # claims and payments
     config.add_route('claimsview', '/claims')

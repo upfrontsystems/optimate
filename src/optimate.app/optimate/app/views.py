@@ -1939,6 +1939,17 @@ def valuationview(request):
             'Date': jsondate}
 
 
+@view_config(route_name='valuation_items', renderer='json')
+def valuation_items_view(request):
+    """ Returns a list of valuation items for a specific valuation
+    """
+    projectID = request.matchdict['id']
+    project = DBSession.query(Node).filter_by(ID=projectID).first()
+
+    # TODO return valuation items to front end
+    return []
+
+
 @view_config(route_name='usersview', renderer='json')
 def usersview(request):
     if request.method == 'POST':

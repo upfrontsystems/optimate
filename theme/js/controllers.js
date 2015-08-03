@@ -2780,6 +2780,16 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
         }
         $scope.loadValuationSection();
 
+        $scope.loadBudgetItems = function() {
+            $http({
+                method: 'GET',
+                url: globalServerURL + 'valuation_items/' + $scope.formData['ProjectID'] + '/'
+            }).success(function(response) {
+                $scope.budgetgroupList = response;
+                console.log("BudgetItems loaded");
+            });
+        }
+
         // Adding or editing a valuation
         $scope.save = function() {
             // check if saving is disabled, if not disable it and save
@@ -2867,6 +2877,9 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                 $scope.selectedValuation = undefined;
             }
             $scope.saveValuationModalForm.$setPristine();
+            $('#inputProject').on('change', function(e, params) {
+                $scope.loadBudgetItems();
+            });
         }
 
         // When the edit button is pressed change the state and set the data
