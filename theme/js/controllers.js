@@ -1036,7 +1036,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         };
 
         $scope.handleNew= function(node) {
-            $scope.handleReloadSlickgrid(currentid)
+            $scope.handleReloadSlickgrid(node.ID)
             // expand the node if this is its first child
             if ($scope.currentNode.Subitem.length == 0) {
                 $scope.currentNode.Subitem.push(node);

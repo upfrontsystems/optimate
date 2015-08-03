@@ -97,7 +97,6 @@
                  * @param {boolean} modified
                  */
                 var onElementModified = function(modelName, modified) {
-
                     // Updating form when one of the inputs is modified.
                     if (ngForm) {
                         var index = ngForm.modifiedModels.indexOf(modelName);
@@ -122,13 +121,14 @@
                  * Sets proper modification state for model controller according to current and master value.
                  */
                 var onInputValueChanged = function() {
-
                     // If master value is not set.
                     if ('undefined' === typeof ngModel.masterValue) {
-
                         // Initializing the master value.
                         ngModel.masterValue = ngModel.$modelValue;
-
+                        // if the master value has a value, set modified to true
+                        if (ngModel.masterValue){
+                            ngModel.modified = true;
+                        }
                         // Initially decorating the element.
                         toggleCssClasses();
 
@@ -140,7 +140,6 @@
 
                         // If modified flag is changed.
                         if (ngModel.modified !== modified) {
-
                             onElementModified(modelPath, modified);
 
                             // Setting new flag.
