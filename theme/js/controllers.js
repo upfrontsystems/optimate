@@ -2589,9 +2589,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
                 $scope.formData = response;
                 $scope.saveInvoiceModalForm.inputOrderNumber.$setValidity('default1', true);
                 $scope.idate = new Date($scope.formData['Invoicedate']);
-                console.log($scope.idate);
                 $scope.pdate = new Date($scope.formData['Paymentdate']);
-                console.log($scope.pdate);
                 $scope.formData['NodeType'] = 'invoice';
                 $scope.calculatedAmounts = [{'name': 'Subtotal', 'amount': response.Amount},
                                         {'name': 'VAT', 'amount': response.VAT},
