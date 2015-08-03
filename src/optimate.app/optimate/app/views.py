@@ -113,10 +113,12 @@ def expandBudgetItem(nodeid, resource):
         if childresource.type == 'ResourceUnit':
             expandBudgetItem(node.ID, childresource)
 
+
 @view_config(route_name='options', renderer='json')
 def options_view(request):
     """ This view will be called for all OPTIONS requests. """
     return {"success": True}
+
 
 @view_config(route_name='auth', renderer='json')
 def auth(request):
@@ -577,7 +579,18 @@ def node_budgetgroups(request):
         # needs to be ValuationItem
         data = bg.dict()
         data['NodeType'] = 'ValuationItem'
+        data['level'] = '1'
+        level2nodes = []
         itemlist.append(data)
+        # add the children (level2 budgetgroups) if they exist
+        if len(bg.Children) != 0:
+            sorted_children = sorted(bg.Children, key=lambda k: k.Name.upper())        
+            for child in sorted_children:
+                if child.type == 'BudgetGroup':
+                    data = child.dict()
+                    data['NodeType'] = 'ValuationItem'
+                    data['level'] = '2'
+                    itemlist.append(data)
     return itemlist
 
 
@@ -721,6 +734,7 @@ def project_overheads(request):
         DBSession.add(newoverhead)
         transaction.commit()
         return HTTPOk()
+
 
 @view_config(route_name="overheadview",renderer='json')
 def overheadview(request):
@@ -1937,17 +1951,6 @@ def valuationview(request):
             'ProjectID': valuation.ProjectID,
             'BudgetGroupList': budgetgrouplist,
             'Date': jsondate}
-
-
-@view_config(route_name='valuation_items', renderer='json')
-def valuation_items_view(request):
-    """ Returns a list of valuation items for a specific valuation
-    """
-    projectID = request.matchdict['id']
-    project = DBSession.query(Node).filter_by(ID=projectID).first()
-
-    # TODO return valuation items to front end
-    return []
 
 
 @view_config(route_name='usersview', renderer='json')

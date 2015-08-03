@@ -254,9 +254,7 @@ class Project(Node):
         for child in self.Children:
             if child.type == 'BudgetGroup':
                 budgetgrouplist.append(child)
-            elif child.type != 'BudgetItem':
-                budgetgrouplist += child.getBudgetGroups()
-        return budgetgrouplist
+        return sorted(budgetgrouplist, key=lambda k: k.Name.upper())
 
     def dict(self):
         """ Override the dict function
@@ -433,9 +431,7 @@ class BudgetGroup(Node):
         for child in self.Children:
             if child.type == 'BudgetGroup':
                 budgetgrouplist.append(child)
-            elif child.type != 'BudgetItem':
-                budgetgrouplist += child.getBudgetGroups()
-        return budgetgrouplist
+        return sorted(budgetgrouplist, key=lambda k: k.Name.upper())        
 
     def dict(self):
         """ Override the dict function

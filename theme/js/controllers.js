@@ -2783,7 +2783,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
         $scope.loadBudgetItems = function() {
             $http({
                 method: 'GET',
-                url: globalServerURL + 'valuation_items/' + $scope.formData['ProjectID'] + '/'
+                url: globalServerURL + 'node/' + $scope.formData['ProjectID'] + '/budgetgroups/'
             }).success(function(response) {
                 $scope.budgetgroupList = response;
                 console.log("BudgetItems loaded");
