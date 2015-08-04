@@ -134,35 +134,10 @@ def _registerRoutes(config):
     config.add_route('valuationsview', '/valuations')
     config.add_route('valuationview', '/valuation/{id}/')
     config.add_route('valuations_length', '/valuations/length')
-    config.add_route('valuations_tree_view', '/valuations/tree/{id}/')
 
 class DummyValuation(object):
     def dict_of_lists(self):
         return {}
-
-class TestValuationsTree(unittest.TestCase):
-    """ Test the valuations tree view responds correctly
-    """
-    def setUp(self):
-        self.config = testing.setUp()
-        self.request = testing.DummyRequest()
-        self.session = initdb();
-
-    def tearDown(self):
-        DBSession.remove()
-        testing.tearDown()
-
-    def _callFUT(self, request):
-        from optimate.app.views import valuations_tree_view
-        return valuations_tree_view(request)
-
-    def test_it(self):
-        _registerRoutes(self.config)
-        request = testing.DummyRequest()
-        request.matchdict = {'id': 1}
-        response = self._callFUT(request)
-        # test if the correct number of children are returned
-        self.assertEqual(len(response), 2)
 
 class TestValuationsView(unittest.TestCase):
     """ Test the valuations view responds correctly

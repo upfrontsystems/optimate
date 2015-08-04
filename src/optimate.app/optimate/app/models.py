@@ -1703,8 +1703,10 @@ class Invoice(Base):
         if self.InvoiceDate:
             jsonindate = self.InvoiceDate.isoformat() + '.000Z'
         jsonpaydate = None
+        readable_date= None
         if self.PaymentDate:
             jsonpaydate = self.PaymentDate.isoformat() + '.000Z'
+            readable_date = self.PaymentDate.strftime("%d %B %Y")
         return {'ID':self.ID,
                 'id':self.ID,
                 'OrderID': self.OrderID,
@@ -1714,7 +1716,7 @@ class Invoice(Base):
                 'VAT': str(self.VAT),
                 'Paymentdate': jsonpaydate,
                 'Invoicedate': jsonindate,
-                'ReadablePaymentdate': self.PaymentDate.strftime("%d %B %Y"),
+                'ReadablePaymentdate': readable_date,
                 'Ordertotal': str(self.Order.Total),
                 'Status': self.Status}
 
