@@ -137,7 +137,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                 formatter: CurrencyFormatter}
                 unit_column = {id: "Unit", name: "Unit", field: "Unit",
                                 width: projects_column_width.Unit,
-                                cssClass: "cell non-editable-column"}
+                                cssClass: "text-cell non-editable-column"}
                 ordered_column = {id: "Ordered", name: "Ordered", field: "Ordered",
                                 width: projects_column_width.Ordered,
                                 cssClass: "cell non-editable-column",
@@ -149,7 +149,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 resource_type_column =  {id: "ResourceType", name: "Resource Type",
                                 field: "ResourceType",
                                 width: projects_column_width.ResourceType,
-                                cssClass: "cell non-editable-column"}
+                                cssClass: "text-cell non-editable-column"}
             }
             initialiseColumns();
 

@@ -197,6 +197,11 @@ div.non-editable-row div.cell{
     font: 0.8em;
 }
 
+.text-cell {
+    text-align: left;
+    font: 0.8em;
+}
+
 .cell-effort-driven {
     text-align: center;
 }
