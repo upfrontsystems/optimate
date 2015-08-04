@@ -1150,7 +1150,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         }
                     }
                     $scope.currentNode.Description = $scope.formData.Description
-                    $scope.handleReloadSlickgrid($scope.formData.ID);
+                    $scope.handleReloadSlickgrid($scope.currentNode.ID);
                 });
             }
         };

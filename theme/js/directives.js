@@ -330,7 +330,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                             var overheadnames = [];
                             // Add columns for the overheads in the budgetItems
                             for (var i=0; i < data.length; i++) {
-                                if (data[i]['node_type'] == 'BudgetItem') {
+                                if ((data[i]['NodeType'] == 'BudgetItem') || (data[i]['NodeType'] == 'SimpleBudgetItem')) {
                                     // get the list of overheads in the budgetItem
                                     var overheadslist = data[i]['OverheadList'];
                                     // get the name of the overhead

@@ -179,8 +179,11 @@ if __name__ == '__main__':
             except UnicodeEncodeError, u:
                 name = unicodedata.normalize('NFKD',
                                     name).encode('ascii', 'ignore')
-            resourcetype = ResourceType(ID=code, Name=name)
-            DBSession.add(resourcetype)
+            if name != 'S&T':
+                if name == 'Subcontractors':
+                    name = 'Subcontractor'
+                resourcetype = ResourceType(ID=code, Name=name)
+                DBSession.add(resourcetype)
         transaction.commit()
         # add a none type resource type
         resourcetype = ResourceType(ID=0, Name="")
@@ -907,6 +910,8 @@ if __name__ == '__main__':
                 rate = Decimal(0.00)
             try:
                 rtype = int(row[typeindex])
+                if rtype == 6:
+                    rtype = 0
             except:
                 rtype = 0
             # try:
