@@ -1318,6 +1318,13 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                             var index = $scope.locationOf(pastednode, $scope.currentNode.Subitem, start);
                             $scope.currentNode.Subitem.splice(index, 0, pastednode)
                         }
+                        else if (response.newId){
+                            // if the response id equals the current id
+                            // it acts as a signal to reload the node
+                            if (node.ID == response.newId){
+                                $scope.loadNodeChildren(node.ID);
+                            }
+                        }
                     }
                     $scope.pastingFromDnd = false;
                 }
@@ -1481,7 +1488,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 $http.get(globalServerURL + 'node/' + parentid + '/children/')
                 .success(function(data) {
                     $scope.currentNode.Subitem = data;
-                    console.log("Children loaded !!");
+                    console.log("Children loaded");
                 });
             }
         }

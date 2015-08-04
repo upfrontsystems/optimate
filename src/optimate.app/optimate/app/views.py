@@ -846,6 +846,7 @@ def node_paste(request):
     dest.Total
     parentid = dest.ID
     sourceparent = source.ParentID
+    node_pasted = True
     # if a project is being pasted into the root
     if (parentid == 0) and (source.type == 'Project'):
         if request.json_body["cut"]:
@@ -952,7 +953,13 @@ def node_paste(request):
         if not destcategory:
             destcategory = DBSession.query(ResourceCategory).filter_by(
                                     ParentID=rescatid, Name=sourcename).first()
-            pasted_id = destcategory.ID
+            # if the category was not created, the destination category needs
+            # to be reloaded
+            if destcategory:
+                pasted_id = destcategory.ID
+            else:
+                pasted_id = parentid
+                node_pasted = False
         else:
             # the category had already existed, so don't return an id
             pasted_id = None
@@ -1142,7 +1149,7 @@ def node_paste(request):
 
     transaction.commit()
     # return the new id
-    if pasted_id:
+    if pasted_id and node_pasted:
         node = DBSession.query(Node).filter_by(ID=pasted_id).first()
         data = node.dict()
     else:
