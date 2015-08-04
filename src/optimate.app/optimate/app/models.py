@@ -220,9 +220,7 @@ class Project(Node):
                         IncomeReceived=self.IncomeReceived,
                         ClientCost=self.ClientCost,
                         ProjectedProfit=self.ProjectedProfit,
-                        ActualProfit=self.ActualProfit,
-                        Ordered=self.Ordered,
-                        Invoiced=self.Invoiced)
+                        ActualProfit=self.ActualProfit)
         return copied
 
     def paste(self, source, sourcechildren):
@@ -401,9 +399,7 @@ class BudgetGroup(Node):
                             IncomeReceived=self.IncomeReceived,
                             ClientCost=self.ClientCost,
                             ProjectedProfit=self.ProjectedProfit,
-                            ActualProfit=self.ActualProfit,
-                            _Ordered=self.Ordered,
-                            _Invoiced=self.Invoiced)
+                            ActualProfit=self.ActualProfit)
         return copied
 
     def paste(self, source, sourcechildren):
@@ -743,9 +739,7 @@ class BudgetItem(Node):
                             IncomeReceived=self.IncomeReceived,
                             ClientCost=self.ClientCost,
                             ProjectedProfit=self.ProjectedProfit,
-                            ActualProfit=self.ActualProfit,
-                            _Ordered=self.Ordered,
-                            _Invoiced=self.Invoiced)
+                            ActualProfit=self.ActualProfit)
         return copied
 
     def order(self):
@@ -855,9 +849,7 @@ class SimpleBudgetItem(BudgetItem):
                                 IncomeReceived=self.IncomeReceived,
                                 ClientCost=self.ClientCost,
                                 ProjectedProfit=self.ProjectedProfit,
-                                ActualProfit=self.ActualProfit,
-                                _Ordered=self.Ordered,
-                                _Invoiced=self.Invoiced)
+                                ActualProfit=self.ActualProfit)
 
     def __repr__(self):
         """ return a representation of this simplebudgetitem
