@@ -2646,7 +2646,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
 
         $scope.updateAmounts = function() {
             var subtotal = parseFloat($scope.formData.Amount);
-            var vatcost = parseFloat($scope.formData.VAT);
+            var vatcost = parseFloat($scope.formData.VAT) ? parseFloat($scope.formData.VAT) : 0;
             var total = subtotal + vatcost;
 
             var parts = subtotal.toString().split(".");
