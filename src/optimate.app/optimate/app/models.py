@@ -712,6 +712,7 @@ class BudgetItem(Node):
                 'Rate': str(self.Rate),
                 'Quantity': self.Quantity,
                 'Total': str(self.Total),
+                'Markup': str(self.Total-self.Subtotal),
                 'Subtotal': str(self.Subtotal),
                 'Ordered': str(self.Ordered),
                 'Invoiced': str(self.Invoiced),

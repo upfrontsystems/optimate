@@ -131,6 +131,10 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                 width: projects_column_width.Total,
                                 cssClass: "cell non-editable-column",
                                 formatter: CurrencyFormatter}
+                markup_column = {id: "Markup", name: "Markup", field: "Markup",
+                                width: projects_column_width.Markup,
+                                cssClass: "cell non-editable-column",
+                                formatter: CurrencyFormatter}
                 subtotal_column = {id: "Subtotal", name: "Subtotal", field: "Subtotal",
                                 width: projects_column_width.Subtotal,
                                 cssClass: "cell non-editable-column",
@@ -159,6 +163,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     quantity_column,
                     rate_column,
                     subtotal_column,
+                    markup_column,
                     total_column,
                     ordered_column,
                     invoiced_column
@@ -313,19 +318,11 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                 quantity_column,
                                 rate_column,
                                 subtotal_column,
+                                markup_column,
                                 total_column,
                                 ordered_column,
                                 invoiced_column
                             ];
-
-                            if (no_subtotal_column) {
-                                // remove subtotal column
-                                var index = emptycolumns.map(function(e)
-                                    { return e.id; }).indexOf("Subtotal");
-                                if (index > -1) {
-                                    emptycolumns.splice(index, 1);
-                                }
-                            }
 
                             var overheadnames = [];
                             // Add columns for the overheads in the budgetItems
