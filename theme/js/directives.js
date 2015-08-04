@@ -155,11 +155,11 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
 
             var columns = [
                     name_column,
+                    unit_column,
                     quantity_column,
                     rate_column,
-                    total_column,
                     subtotal_column,
-                    unit_column,
+                    total_column,
                     ordered_column,
                     invoiced_column
                 ];
@@ -277,8 +277,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     else if (type == 'Resources') {
                         newcolumns = [
                             name_column,
-                            rate_column,
                             unit_column,
+                            rate_column,
                             resource_type_column,
                         ];
                     }
@@ -292,8 +292,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                         if (emptycolumns) {
                             newcolumns = [
                                 name_column,
-                                total_column,
                                 subtotal_column,
+                                total_column,
                                 ordered_column,
                                 invoiced_column
                             ];
@@ -309,11 +309,11 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                         else {
                             emptycolumns = [
                                 name_column,
-                                quantity_column,
-                                read_only_rate_column,
-                                total_column,
-                                subtotal_column,
                                 unit_column,
+                                quantity_column,
+                                rate_column,
+                                subtotal_column,
+                                total_column,
                                 ordered_column,
                                 invoiced_column
                             ];
@@ -364,11 +364,11 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 else {
                     newcolumns = [
                         name_column,
+                        unit_column,
                         quantity_column,
                         rate_column,
-                        total_column,
                         subtotal_column,
-                        unit_column,
+                        total_column,
                         ordered_column,
                         invoiced_column
                     ];
