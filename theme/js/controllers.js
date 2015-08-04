@@ -3304,6 +3304,8 @@ allControllers.controller('paymentsController', ['$scope', '$http', 'globalServe
         // When the Add button is pressed change the state and form data
         $scope.addingState = function () {
             $scope.formData = {'NodeType': 'payment'};
+            var d = new Date();
+            $scope.formData.Date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0,0));
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
             $scope.modalState = "Add";
@@ -3324,7 +3326,6 @@ allControllers.controller('paymentsController', ['$scope', '$http', 'globalServe
                 method: 'GET',
                 url: globalServerURL + 'payment/' + $scope.selectedPayment.id + '/'
             }).success(function(response) {
-                $scope.loadProjectValuations(response.ProjectID);
                 $scope.formData = response;
                 $scope.formData.Date = new Date($scope.formData.Date);
                 $scope.formData.NodeType = 'payment';
