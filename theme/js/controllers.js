@@ -1601,7 +1601,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }
         };
 
-
         $scope.toggleRowsSelected = function(rowsselected) {
             $timeout(function() {
                 $scope.rowsSelected = rowsselected;
@@ -2767,7 +2766,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
             date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0,0));
             $scope.date = date;
         };
-        $scope.isDisabled = false;
+        $scope.isDisabled = false;        
         $scope.jsonvaluations = [];
         $scope.budgetgroupList = [];
         $scope.modalForm = [];
@@ -2806,6 +2805,16 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
             });
         }
         $scope.loadValuationSection();
+
+        $scope.loadBudgetItems = function() {
+            $http({
+                method: 'GET',
+                url: globalServerURL + 'node/' + $scope.formData['ProjectID'] + '/budgetgroups/'
+            }).success(function(response) {
+                $scope.budgetgroupList = response;
+                console.log("BudgetItems loaded");
+            });
+        }
 
         // Adding or editing a valuation
         $scope.save = function() {
@@ -2894,6 +2903,9 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                 $scope.selectedValuation = undefined;
             }
             $scope.saveValuationModalForm.$setPristine();
+            $('#inputProject').on('change', function(e, params) {
+                $scope.loadBudgetItems();
+            });
         }
 
         // When the edit button is pressed change the state and set the data

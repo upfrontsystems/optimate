@@ -252,9 +252,7 @@ class Project(Node):
         for child in self.Children:
             if child.type == 'BudgetGroup':
                 budgetgrouplist.append(child)
-            elif child.type != 'BudgetItem':
-                budgetgrouplist += child.getBudgetGroups()
-        return budgetgrouplist
+        return sorted(budgetgrouplist, key=lambda k: k.Name.upper())
 
     def dict(self):
         """ Override the dict function
@@ -352,7 +350,6 @@ class BudgetGroup(Node):
         self.Parent.Total = self.Parent.Total + difference
         self._Total = Decimal(total).quantize(Decimal('.01'))
 
-
     @hybrid_property
     def Ordered(self):
         """ Get the Ordered property
@@ -429,9 +426,7 @@ class BudgetGroup(Node):
         for child in self.Children:
             if child.type == 'BudgetGroup':
                 budgetgrouplist.append(child)
-            elif child.type != 'BudgetItem':
-                budgetgrouplist += child.getBudgetGroups()
-        return budgetgrouplist
+        return sorted(budgetgrouplist, key=lambda k: k.Name.upper())        
 
     def dict(self):
         """ Override the dict function

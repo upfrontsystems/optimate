@@ -103,10 +103,12 @@ def expandBudgetItem(nodeid, resource):
         if childresource.type == 'ResourceUnit':
             expandBudgetItem(node.ID, childresource)
 
+
 @view_config(route_name='options', renderer='json')
 def options_view(request):
     """ This view will be called for all OPTIONS requests. """
     return {"success": True}
+
 
 @view_config(route_name='auth', renderer='json')
 def auth(request):
@@ -545,16 +547,55 @@ def node_budgetitems(request):
 def node_budgetgroups(request):
     """ Retrieves and returns all the budgetgroups in a node
     """
-    nodeid = request.matchdict['id']
-    qry = DBSession.query(Node).filter_by(ID=nodeid).first()
-    budgetgrouplist = qry.getBudgetGroups()
+    proj_id = request.matchdict['id']
+    project = DBSession.query(Node).filter_by(ID=proj_id).first()
+    budgetgrouplist = project.getBudgetGroups()
     itemlist = []
-    for bg in budgetgrouplist:
-        # for the valuations slickgrid, the budgetgroup type
-        # needs to be ValuationItem
-        data = bg.dict()
-        data['NodeType'] = 'ValuationItem'
-        itemlist.append(data)
+
+    recent_valuation_exists = False
+    qry = DBSession.query(Valuation).filter_by(ProjectID=proj_id)
+    if qry.first() != None:
+        # find the valuation closest to the current date
+        valuation_dates = [x.Date for x in qry]
+        most_recent = max(valuation_dates)
+        idx = valuation_dates.index(max(valuation_dates))
+        most_recent_valuation = [x for x in qry][idx]
+        # new valuation must be in the future of most recent valuation stored
+        recent_valuation_exists = True
+
+    if not recent_valuation_exists:
+        for bg in budgetgrouplist:
+            # for the valuations slickgrid, the budgetgroup type
+            # needs to be ValuationItem
+            data = bg.dict()
+            data['NodeType'] = 'ValuationItem'
+            data['PercentageComplete'] = 0
+    #        data['level'] = '1'
+            itemlist.append(data)
+    #        # add the children (level2 budgetgroups) if they exist
+    #        if len(bg.Children) != 0:
+    #            sorted_children = sorted(bg.Children, key=lambda k: k.Name.upper())        
+    #            for child in sorted_children:
+    #                if child.type == 'BudgetGroup':
+    #                    data = child.dict()
+    #                    data['NodeType'] = 'ValuationItem'
+    #                    data['level'] = '2'
+    #                    itemlist.append(data)
+    else:
+        # get the data from an existing & most recent valuation for this project
+        for vi in most_recent_valuation.ValuationItems:
+            bg = DBSession.query(Node).filter_by(ID=vi.BudgetGroupID).first()
+            data = bg.dict()
+            data['ID'] = vi.BudgetGroupID
+            data['id'] = vi.BudgetGroupID
+            data['NodeType'] = 'ValuationItem'
+            # recalculate the amount complete
+            # get the latest 'budgetgroup total' from project's budgetgroup data                
+            total = (bg.Total / 100) * vi.PercentageComplete
+            total_str = str(total.quantize(Decimal('.01')))
+            data['AmountComplete'] = total_str
+            data['PercentageComplete'] = str(vi.PercentageComplete)
+            itemlist.append(data)
     return itemlist
 
 
@@ -698,6 +739,7 @@ def project_overheads(request):
         DBSession.add(newoverhead)
         transaction.commit()
         return HTTPOk()
+
 
 @view_config(route_name="overheadview",renderer='json')
 def overheadview(request):
@@ -1845,6 +1887,7 @@ def valuationview(request):
         date = request.json_body.get('Date', None)
         if date:
             date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
+
         newvaluation = Valuation(ProjectID=proj,
                                  Date=date)
         DBSession.add(newvaluation)
@@ -1856,9 +1899,9 @@ def valuationview(request):
             p_complete = float(budgetgroup.get('PercentageComplete', 0))
             bg = DBSession.query(Node).filter_by(ID=budgetgroup['ID']).first()
             newvaluationitem = ValuationItem(ValuationID=newid,
-                                         BudgetGroupID=budgetgroup['ID'],
-                                         BudgetGroupTotal=bg.Total,
-                                         PercentageComplete=p_complete)
+                                             BudgetGroupID=budgetgroup['ID'],
+                                             BudgetGroupTotal=bg.Total,
+                                             PercentageComplete=p_complete)
             DBSession.add(newvaluationitem)
         transaction.commit()
         # return the new valuation
@@ -1931,7 +1974,6 @@ def valuationview(request):
         if valuationitem.BudgetGroup:
             budgetgrouplist.append(valuationitem.dict())
 
-    budgetgrouplist = sorted(budgetgrouplist, key=lambda k: k['Name'].upper())
     # get the date in json format
     jsondate = None
     if valuation.Date:
