@@ -962,8 +962,7 @@ class ResourceCategory(Node):
         """
         copied = ResourceCategory(Name=self.Name,
                          Description=self.Description,
-                         ParentID=parentid,
-                         _Total = self.Total)
+                         ParentID=parentid)
         return copied
 
     def paste(self, source, sourcechildren):

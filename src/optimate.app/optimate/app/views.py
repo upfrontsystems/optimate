@@ -68,37 +68,27 @@ resourcecatlist = {"A-B": ("A-B"),
                     "U-V": ("U-V"),
                     "W-X-Y-Z": ("W-X-Y-Z")}
 
-def sortResource(rcat, resourcename):
-    """ Given the Resource List id and Resource name, return the id of the
-        ResourceCategories the Resource should be listed in
+def sortResource(rcat, categoryName):
+    """ Given the Resource List id and original Category name,
+        return the id of the ResourceCategory the Resource should be listed in
     """
     while rcat.Parent.type != 'Project':
         rcat = rcat.Parent
 
     parentCategoryId =rcat.ID
-    letter = resourcename[0].upper()
-    if letter.isalpha():
-        # get the category the resource falls in
-        result = next(v for (k,v) in
-            resourcecatlist.iteritems() if letter in k)
-        if result:
-            category = DBSession.query(ResourceCategory).filter_by(ParentID=parentCategoryId, Name=result).first()
-            if not category:
-                category = ResourceCategory(Name=result,
-                            Description="Resources from " + result,
-                            ParentID=parentCategoryId)
-                DBSession.add(category)
-                DBSession.flush()
-            return category.ID
-    else:
-        category = DBSession.query(ResourceCategory).filter_by(ParentID=parentCategoryId, Name="Other").first()
-        if not category:
-            category = ResourceCategory(Name="Other",
-                        Description="Other Resources",
-                        ParentID=parentCategoryId)
-            DBSession.add(category)
-            DBSession.flush()
-        return category.ID
+    if categoryName == rcat.Name:
+        return parentCategoryId
+
+    category = DBSession.query(ResourceCategory).filter_by(
+                    ParentID=parentCategoryId, Name=categoryName).first()
+    # if the category already exists, return its id, otherwise create it
+    if not category:
+        original = DBSession.query(ResourceCategory).filter_by(
+                    Name=categoryName).first()
+        category = original.copy(parentCategoryId)
+        DBSession.add(category)
+        DBSession.flush()
+    return category.ID
 
 def expandBudgetItem(nodeid, resource):
     """ Add a budgetitem to the existing budgetitem for each
@@ -318,10 +308,6 @@ def additemview(request):
     elif objecttype == 'Resource' or objecttype == 'ResourceUnit':
         resourcetype = request.json_body['ResourceTypeID']
         name =  request.json_body['Name']
-        # get the sorted parent id
-        resourcecategory = DBSession.query(
-                ResourceCategory).filter_by(ID=parentid).first()
-        parentid = sortResource(resourcecategory, name)
 
         if objecttype == 'Resource':
             newnode = Resource(Name=name,
@@ -478,11 +464,7 @@ def edititemview(request):
         resource.Type=request.json_body.get('ResourceType', None)
         resource.UnitID=unit
         resource.SupplierID=supplier
-        name = request.json_body['Name']
-        if resource.Name != name:
-            parentid = sortResource(resource.Parent, name)
-            resource.ParentID = parentid
-        resource.Name=name
+        resource.Name=request.json_body['Name']
 
     elif objecttype == 'ResourceUnit':
         runit = DBSession.query(ResourceUnit).filter_by(ID=nodeid).first()
@@ -493,12 +475,7 @@ def edititemview(request):
         rate = request.json_body.get('Rate', 0)
         rate = Decimal(rate).quantize(Decimal('.01'))
         runit.Rate = rate
-        name = request.json_body['Name']
-        if runit.Name != name:
-            parentid = sortResource(runit.Parent, name)
-            runit.ParentID = parentid
-        runit.Name=name
-
+        runit.Name = request.json_body['Name']
 
     elif objecttype == 'ResourcePart':
         rpart = DBSession.query(ResourcePart).filter_by(ID=nodeid).first()
@@ -898,8 +875,10 @@ def node_paste(request):
             for budgetitem in sourcebudgetitems:
                 if budgetitem.ResourceID not in copiedresourceIds:
                     try:
+                        # the original category name
+                        categoryName = budgetitem.Resource.Parent.Name
                         newparentid = sortResource(resourcecategory,
-                                                    budgetitem.Name)
+                                                    categoryName)
                         copiedresource = budgetitem.Resource.copy(newparentid)
                         DBSession.add(copiedresource)
                         DBSession.flush()
@@ -924,6 +903,7 @@ def node_paste(request):
         duplicates = request.json_body.get('duplicates', {})
         resourcecodes = duplicates.keys()
         sourceresources = source.getResources()
+
         # if we are cutting the source, and the resources are being used,
         # return an error
         if request.json_body["cut"]:
@@ -935,9 +915,13 @@ def node_paste(request):
                 ResourceCategory).filter_by(ParentID=projectid).first()
         rescatid = resourcecategory.ID
         destresources = resourcecategory.getResources()
-        # get the parent category
-        while resourcecategory.Parent.type != 'Project':
-            resourcecategory = resourcecategory.Parent
+
+        # if the source category already exists in the destination,
+        # set the pasted id to its id
+        sourcename = source.Name
+        destcategory = DBSession.query(ResourceCategory).filter_by(
+                                    ParentID=rescatid, Name=sourcename).first()
+
         # loop through all the source resources
         # if they are duplicated, check what the action should be taken
         for resource in sourceresources:
@@ -947,22 +931,31 @@ def node_paste(request):
                     for destresource in destresources:
                         if destresource.Code == resource.Code:
                             destresource.overwrite(resource)
-                            pasted_id = destresource.ID
             # otherwise paste the resource into the new category
             else:
-                # add the source resource category to the destination category
-                newparentid = sortResource(resourcecategory, source.Name)
+                # add the resource to the destination category
+                # the original category name
+                categoryName = resource.Parent.Name
+                newparentid = sortResource(resourcecategory,
+                                            categoryName)
                 newresource = resource.copy(newparentid)
-
                 DBSession.add(newresource)
                 DBSession.flush()
-                pasted_id = newresource.ID
 
         # if the source is cut, delete it
         if request.json_body["cut"]:
             deletethis = DBSession.query(
                             ResourceCategory).filter_by(ID=sourceid).first()
             qry = DBSession.delete(deletethis)
+
+        # get the pasted id
+        if not destcategory:
+            destcategory = DBSession.query(ResourceCategory).filter_by(
+                                    ParentID=rescatid, Name=sourcename).first()
+            pasted_id = destcategory.ID
+        else:
+            # the category had already existed, so don't return an id
+            pasted_id = None
         transaction.commit()
     # check the node isnt being pasted into it's parent
     elif parentid != sourceparent:
@@ -978,13 +971,11 @@ def node_paste(request):
                     for resource in sourceresources:
                         if len(resource.BudgetItems) > 0:
                             return HTTPInternalServerError("Can't cut resources that are used")
-                    newparentid = sortResource(resourcecategory, source.Name)
-                    source.ParentID = newparentid
+                    source.ParentID = parentid
                     pasted_id = source.ID
                 else:
                     # Paste the source into the destination
-                    newparentid = sortResource(resourcecategory, source.Name)
-                    newresource = source.copy(newparentid)
+                    newresource = source.copy(parentid)
                     DBSession.add(newresource)
                     DBSession.flush()
                     pasted_id = newresource.ID
@@ -1021,8 +1012,9 @@ def node_paste(request):
                 copiedresourceIds = {}
                 for budgetitem in sourcebudgetitems:
                     if budgetitem.ResourceID not in copiedresourceIds:
+                        categoryName = budgetitem.Resource.Parent.Name
                         newparentid = sortResource(resourcecategory,
-                                                    budgetitem.Name)
+                                                    categoryName)
                         copiedresource = budgetitem.Resource.copy(newparentid)
                         DBSession.add(copiedresource)
                         DBSession.flush()
@@ -1090,8 +1082,9 @@ def node_paste(request):
                 copiedresourceIds = {}
                 for budgetitem in sourcebudgetitems:
                     if budgetitem.ResourceID not in copiedresourceIds:
+                        categoryName = budgetitem.Resource.Parent.Name
                         newparentid = sortResource(resourcecategory,
-                                                    budgetitem.Name)
+                                                    categoryName)
                         copiedresource = budgetitem.Resource.copy(newparentid)
                         DBSession.add(copiedresource)
                         DBSession.flush()
@@ -1149,8 +1142,13 @@ def node_paste(request):
 
     transaction.commit()
     # return the new id
-    node = DBSession.query(Node).filter_by(ID=pasted_id).first()
-    return {'newId': pasted_id, 'node': node.dict()}
+    if pasted_id:
+        node = DBSession.query(Node).filter_by(ID=pasted_id).first()
+        data = node.dict()
+    else:
+        data = None
+
+    return {'newId': pasted_id, 'node': data}
 
 
 @view_config(route_name="node_cost", renderer='json')

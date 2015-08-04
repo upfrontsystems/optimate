@@ -1277,6 +1277,11 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         'duplicates': selectionlist}
             }).success(function (response) {
                 console.log('Success: Node pasted');
+                // expand the node if this is its first child
+                if ($scope.currentNode.Subitem.length == 0) {
+                    $scope.currentNode.collapsed = true;
+                }
+
                 // if a project was pasted into the root
                 if (node.ID === 0) {
                     var newprojectid = response.newId;
@@ -1303,16 +1308,18 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     // insert the copied/cut node in the correct destination without reloading
                     // all the children of the parent
                     if (!$scope.pastingFromDnd) {
-                        $scope.currentNode.Subitem.push(response['node']);
-                        $scope.currentNode.Subitem.sort(function(a, b) {
-                            return a.Name.localeCompare(b.Name)
-                        });
+                        var pastednode = response['node'];
+                        if (pastednode){
+                            // insert the newly created node in the correct place
+                            var start = 0;
+                            if ($scope.currentNode.NodeType == 'Project') {
+                                start = 1;
+                            }
+                            var index = $scope.locationOf(pastednode, $scope.currentNode.Subitem, start);
+                            $scope.currentNode.Subitem.splice(index, 0, pastednode)
+                        }
                     }
                     $scope.pastingFromDnd = false;
-                }
-                // expand the node if this is its first child
-                if ($scope.currentNode.Subitem.length == 0) {
-                    $scope.currentNode.collapsed = true;
                 }
             }).error(function() {
                 console.log("Server error");
