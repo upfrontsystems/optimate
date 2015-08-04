@@ -55,24 +55,24 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             }());
 
             // override the getitemmetadata method
-            function getItemMetaData(row){
-                if (grid){
+            function getItemMetaData(row) {
+                if (grid) {
                     var rowData = grid.getDataItem(row);
-                    if(rowData){
+                    if (rowData) {
                         // on the first row, if it is the parent
                         // set selectable false and non-editable
-                        if (row == 0  && rowData.isparent){
+                        if (row == 0  && rowData.isparent) {
                             return {selectable: false,
                                     'cssClasses': "non-editable-row"
                                 };
                         }
                         // set the whole row non-editable for budgetgroups,resource categories and resource units
-                        if(rowData.NodeType == 'BudgetGroup' || rowData.NodeType == 'ResourceCategory' || rowData.NodeType == 'ResourceUnit'){
+                        if (rowData.NodeType == 'BudgetGroup' || rowData.NodeType == 'ResourceCategory' || rowData.NodeType == 'ResourceUnit') {
                             return {'cssClasses': "non-editable-row"};
                         }
                         // otherwise if the parent is a budgetitem
                         // set it non-editable and unselectable
-                       if (rowData.NodeType == 'BudgetItem' && rowData.ParentType == 'BudgetItem'){
+                       if (rowData.NodeType == 'BudgetItem' && rowData.ParentType == 'BudgetItem') {
                             return {selectable: false,
                                     'cssClasses': "non-editable-row"
                                 };
@@ -111,7 +111,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 total_column, subtotal_column, unit_column, ordered_column,
                 invoiced_column, resource_type_column, markup_column,
                 product_code_column;
-            function initialiseColumns(){
+            function initialiseColumns() {
                 name_column = {id: "Name", name: "Name", field: "Name",
                                 width: projects_column_width.Name,
                                 cssClass: "cell-title non-editable-column"}
@@ -218,13 +218,13 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             grid.onColumnsResized.subscribe(function(e,args) {
                 var gridcolumns = args.grid.getColumns();
                 for (var i in gridcolumns) {
-                    if (gridcolumns[i].previousWidth != gridcolumns[i].width){
+                    if (gridcolumns[i].previousWidth != gridcolumns[i].width) {
                         projects_column_width[gridcolumns[i].field] = gridcolumns[i].width;
                     }
                 }
                 // rebuild the columns with the new widths
                 initialiseColumns();
-                if(hasStorage) {
+                if (hasStorage) {
                     localStorage["projects_column_width"] = JSON.stringify(projects_column_width);
                 }
             });
@@ -232,7 +232,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             // when the columns are reordered
             grid.onColumnsReordered.subscribe(function (e, args) {
                 console.log("columns reordered");
-                if(hasStorage) {
+                if (hasStorage) {
                     localStorage["projects_columns"] = JSON.stringify(grid.getColumns());
                 }
             });
@@ -242,7 +242,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 if (value != undefined) {
                     return value + " %";
                 }
-                else{
+                else {
                     return "";
                 }
               }
@@ -282,7 +282,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 var type = response['type'];
                 if (data.length > 0) {
                     // If the grid is only showing resource types
-                    if ((data[0].NodeType == 'ResourceUnit' && data[0].isparent) || (data[0].NodeType == 'ResourcePart')){
+                    if ((data[0].NodeType == 'ResourceUnit' && data[0].isparent) || (data[0].NodeType == 'ResourcePart')) {
                         // for resource parts show a non-editable rate column
                         newcolumns = [
                             name_column,
@@ -300,7 +300,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                             resource_type_column,
                         ];
                     }
-                    else if (type == 'ResourceCategories'){
+                    else if (type == 'ResourceCategories') {
                         newcolumns = [
                             name_column
                         ];
@@ -418,7 +418,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     data: item
                 }
                 $http(req).success(function(data) {
-                    if (data){
+                    if (data) {
                         var oldtotal = item.Total;
                         item.Total = data.Total;
                         item.Subtotal = data.Subtotal;
@@ -429,15 +429,15 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
 
                         // check if the first row is a parent
                         var firstrow = dataView.getItem(0);
-                        if (firstrow.isparent){
+                        if (firstrow.isparent) {
                             // update the parent total or rate
-                            if (firstrow.NodeType == 'ResourceUnit'){
+                            if (firstrow.NodeType == 'ResourceUnit') {
                                 total = parseFloat(firstrow.Rate) +
                                                 (parseFloat(item.Total) -
                                                 parseFloat(oldtotal));
                                 firstrow.Rate = total
                             }
-                            else{
+                            else {
                                 total = parseFloat(firstrow.Total) +
                                                 (parseFloat(item.Total) -
                                                 parseFloat(oldtotal));
@@ -451,7 +451,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                         dataView.syncGridSelection(grid, true);
                         console.log('Node '+ item.id + ' updated')
                     }
-                    else{
+                    else {
                         console.log("No updates performed");
                     }
                 })
@@ -554,7 +554,7 @@ allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedSer
             function getItemMetaData(row) {
                 // set the css for the last row with the totals
                 if (grid) {
-                    if(row == grid.getDataLength()-1) {
+                    if (row == grid.getDataLength()-1) {
                         return {selectable: false,
                                 'cssClasses': "sum-row non-editable-row"};
                     }
@@ -563,7 +563,7 @@ allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedSer
 
             var name_column, quantity_column, rate_column, total_column,
                 subtotal_column, vat_column,vatcost_column;
-            function initialiseColumns(){
+            function initialiseColumns() {
                 name_column = {id: "Name", name: "Name", field: "Name",
                                 width: columns_widths.Name,
                                 cssClass: "cell-title non-editable-column"}
@@ -640,7 +640,7 @@ allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedSer
                 }
                 // rebuild the columns
                 initialiseColumns();
-                if(hasStorage) {
+                if (hasStorage) {
                     localStorage["orders_column_width"] = JSON.stringify(columns_widths);
                 }
             });
@@ -853,7 +853,7 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                     if (gridcolumns[i].previousWidth != gridcolumns[i].width)
                         valuations_column_width[gridcolumns[i].field] = gridcolumns[i].width;
                 }
-                if(hasStorage) {
+                if (hasStorage) {
                     localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
                 }
             });
@@ -989,7 +989,7 @@ function dateParser() {
 
         function parser(viewValue) {
             var value = ngModel.$viewValue; //value that none of the parsers touched
-            if(value) {
+            if (value) {
                 var date = moment(value, [dateFormat, alternativeFormat], true);
                 ngModel.$setValidity('date', date.isValid());
                 return date.isValid() ? date._d : value;
