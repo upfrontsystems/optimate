@@ -1854,21 +1854,47 @@ def valuationview(request):
         date = request.json_body.get('Date', None)
         if date:
             date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
+
+        recent_valuation_exists = False
+        qry = DBSession.query(Valuation).filter_by(ProjectID=proj)
+        if qry.first() != None:
+            # find the valuation closest to the current date
+            valuation_dates = [x.Date for x in qry]
+            most_recent = max(valuation_dates)
+            idx = valuation_dates.index(max(valuation_dates))
+            most_recent_valuation = [x for x in qry][idx]
+            # new valuation must be in the future of most recent valuation stored
+            if date > most_recent:
+                recent_valuation_exists = True
+                pass
+
         newvaluation = Valuation(ProjectID=proj,
                                  Date=date)
         DBSession.add(newvaluation)
         DBSession.flush()
         # add the valuation items to the valuation
         newid = newvaluation.ID
-        budgetgrouplist = request.json_body.get('BudgetGroupList', [])
-        for budgetgroup in budgetgrouplist:
-            p_complete = float(budgetgroup.get('PercentageComplete', 0))
-            bg = DBSession.query(Node).filter_by(ID=budgetgroup['ID']).first()
-            newvaluationitem = ValuationItem(ValuationID=newid,
-                                         BudgetGroupID=budgetgroup['ID'],
+        if not recent_valuation_exists:
+            # create new valuation from data specified in
+            budgetgrouplist = request.json_body.get('BudgetGroupList', [])
+            for budgetgroup in budgetgrouplist:
+                    p_complete = float(budgetgroup.get('PercentageComplete', 0))
+                    bg = DBSession.query(Node).filter_by(ID=budgetgroup['ID']).first()
+                    newvaluationitem = ValuationItem(ValuationID=newid,
+                                                 BudgetGroupID=budgetgroup['ID'],
+                                                 BudgetGroupTotal=bg.Total,
+                                                 PercentageComplete=p_complete)
+                    DBSession.add(newvaluationitem)
+        else:
+            # get the data from existing most recent valuation
+            for vi in most_recent_valuation.ValuationItems:
+                    bg = DBSession.query(Node).filter_by(ID=vi.BudgetGroupID).first()
+                    newvi = ValuationItem(ValuationID=newid,
+                                         BudgetGroupID=vi.BudgetGroupID,
                                          BudgetGroupTotal=bg.Total,
-                                         PercentageComplete=p_complete)
-            DBSession.add(newvaluationitem)
+                                         PercentageComplete=vi.PercentageComplete)
+                    DBSession.add(newvi)
+
         transaction.commit()
         # return the new valuation
         newvaluation = DBSession.query(Valuation).filter_by(ID=newid).first()
