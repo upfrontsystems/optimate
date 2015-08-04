@@ -109,7 +109,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
 
             var name_column, quantity_column, rate_column, read_only_rate_column,
                 total_column, subtotal_column, unit_column, ordered_column,
-                invoiced_column, resource_type_column;
+                invoiced_column, resource_type_column, markup_column,
+                product_code_column;
             function initialiseColumns(){
                 name_column = {id: "Name", name: "Name", field: "Name",
                                 width: projects_column_width.Name,
@@ -153,6 +154,9 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 resource_type_column =  {id: "ResourceType", name: "Resource Type",
                                 field: "ResourceType",
                                 width: projects_column_width.ResourceType,
+                                cssClass: "text-cell non-editable-column"}
+                product_code_column = {id: "Code", name: "Product Code", field: "Code",
+                                width: projects_column_width.Code,
                                 cssClass: "text-cell non-editable-column"}
             }
             initialiseColumns();
@@ -282,6 +286,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     else if (type == 'Resources') {
                         newcolumns = [
                             name_column,
+                            product_code_column,
                             unit_column,
                             rate_column,
                             resource_type_column,
