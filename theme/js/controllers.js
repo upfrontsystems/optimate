@@ -1580,7 +1580,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }
         };
 
-
         $scope.toggleRowsSelected = function(rowsselected) {
             $timeout(function() {
                 $scope.rowsSelected = rowsselected;
@@ -2740,7 +2739,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
             date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0,0));
             $scope.date = date;
         };
-        $scope.isDisabled = false;
+        $scope.isDisabled = false;        
         $scope.jsonvaluations = [];
         $scope.budgetgroupList = [];
         $scope.modalForm = [];

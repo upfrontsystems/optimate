@@ -579,18 +579,18 @@ def node_budgetgroups(request):
         # needs to be ValuationItem
         data = bg.dict()
         data['NodeType'] = 'ValuationItem'
-        data['level'] = '1'
-        level2nodes = []
+        data['PercentageComplete'] = 0
+#        data['level'] = '1'
         itemlist.append(data)
-        # add the children (level2 budgetgroups) if they exist
-        if len(bg.Children) != 0:
-            sorted_children = sorted(bg.Children, key=lambda k: k.Name.upper())        
-            for child in sorted_children:
-                if child.type == 'BudgetGroup':
-                    data = child.dict()
-                    data['NodeType'] = 'ValuationItem'
-                    data['level'] = '2'
-                    itemlist.append(data)
+#        # add the children (level2 budgetgroups) if they exist
+#        if len(bg.Children) != 0:
+#            sorted_children = sorted(bg.Children, key=lambda k: k.Name.upper())        
+#            for child in sorted_children:
+#                if child.type == 'BudgetGroup':
+#                    data = child.dict()
+#                    data['NodeType'] = 'ValuationItem'
+#                    data['level'] = '2'
+#                    itemlist.append(data)
     return itemlist
 
 

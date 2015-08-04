@@ -352,7 +352,6 @@ class BudgetGroup(Node):
         self.Parent.Total = self.Parent.Total + difference
         self._Total = Decimal(total).quantize(Decimal('.01'))
 
-
     @hybrid_property
     def Ordered(self):
         """ Get the Ordered property
