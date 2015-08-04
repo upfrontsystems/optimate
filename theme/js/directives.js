@@ -106,44 +106,53 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 }
             };
             $scope.preloadWidths();
-            var name_column = {id: "Name", name: "Name", field: "Name",
-                                    width: projects_column_width.Name,
-                                    cssClass: "cell-title non-editable-column"}
-            var quantity_column = {id: "Quantity", name: "Quantity", field: "Quantity",
-                                    width: projects_column_width.Quantity,
-                                    cssClass: "cell editable-column",
-                                    editor: Slick.Editors.CustomEditor}
-            var rate_column = {id: "Rate", name: "Rate", field: "Rate",
-                                    width: projects_column_width.Rate,
-                                    cssClass: "cell editable-column",
-                                    formatter: CurrencyFormatter,
-                                    editor: Slick.Editors.CustomEditor}
-            var read_only_rate_column = {id: "Rate", name: "Rate", field: "Rate",
-                                    width: projects_column_width.Rate,
-                                    cssClass: "cell non-editable-column",
-                                    formatter: CurrencyFormatter}
-            var total_column = {id: "Total", name: "Total", field: "Total",
-                                    width: projects_column_width.Total,
-                                    cssClass: "cell non-editable-column",
-                                    formatter: CurrencyFormatter}
-            var subtotal_column = {id: "Subtotal", name: "Subtotal", field: "Subtotal",
-                                    width: projects_column_width.Subtotal,
-                                    cssClass: "cell non-editable-column",
-                                    formatter: CurrencyFormatter}
-            var unit_column = {id: "Unit", name: "Unit", field: "Unit",
-                                    width: projects_column_width.Unit,
-                                    cssClass: "cell non-editable-column"}
-            var ordered_column = {id: "Ordered", name: "Ordered", field: "Ordered",
-                                    width: projects_column_width.Ordered,
-                                    cssClass: "cell non-editable-column",
-                                    formatter: CurrencyFormatter}
-            var invoiced_column = {id: "Invoiced", name: "Invoiced", field: "Invoiced",
-                                    width: projects_column_width.Invoiced,
-                                    cssClass: "cell non-editable-column",
-                                    formatter: CurrencyFormatter}
-            var resource_type_column =  {id: "ResourceType", name: "Resource Type", field: "ResourceType",
-                                    width: projects_column_width.ResourceType,
-                                    cssClass: "cell non-editable-column"}
+
+            var name_column, quantity_column, rate_column, read_only_rate_column,
+                total_column, subtotal_column, unit_column, ordered_column,
+                invoiced_column, resource_type_column;
+            function initialiseColumns(){
+                name_column = {id: "Name", name: "Name", field: "Name",
+                                width: projects_column_width.Name,
+                                cssClass: "cell-title non-editable-column"}
+                quantity_column = {id: "Quantity", name: "Quantity", field: "Quantity",
+                                width: projects_column_width.Quantity,
+                                cssClass: "cell editable-column",
+                                editor: Slick.Editors.CustomEditor}
+                rate_column = {id: "Rate", name: "Rate", field: "Rate",
+                                width: projects_column_width.Rate,
+                                cssClass: "cell editable-column",
+                                formatter: CurrencyFormatter,
+                                editor: Slick.Editors.CustomEditor}
+                read_only_rate_column = {id: "Rate", name: "Rate", field: "Rate",
+                                width: projects_column_width.Rate,
+                                cssClass: "cell non-editable-column",
+                                formatter: CurrencyFormatter}
+                total_column = {id: "Total", name: "Total", field: "Total",
+                                width: projects_column_width.Total,
+                                cssClass: "cell non-editable-column",
+                                formatter: CurrencyFormatter}
+                subtotal_column = {id: "Subtotal", name: "Subtotal", field: "Subtotal",
+                                width: projects_column_width.Subtotal,
+                                cssClass: "cell non-editable-column",
+                                formatter: CurrencyFormatter}
+                unit_column = {id: "Unit", name: "Unit", field: "Unit",
+                                width: projects_column_width.Unit,
+                                cssClass: "cell non-editable-column"}
+                ordered_column = {id: "Ordered", name: "Ordered", field: "Ordered",
+                                width: projects_column_width.Ordered,
+                                cssClass: "cell non-editable-column",
+                                formatter: CurrencyFormatter}
+                invoiced_column = {id: "Invoiced", name: "Invoiced", field: "Invoiced",
+                                width: projects_column_width.Invoiced,
+                                cssClass: "cell non-editable-column",
+                                formatter: CurrencyFormatter}
+                resource_type_column =  {id: "ResourceType", name: "Resource Type",
+                                field: "ResourceType",
+                                width: projects_column_width.ResourceType,
+                                cssClass: "cell non-editable-column"}
+            }
+            initialiseColumns();
+
             var columns = [
                     name_column,
                     quantity_column,
@@ -200,9 +209,12 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             grid.onColumnsResized.subscribe(function(e,args) {
                 var gridcolumns = args.grid.getColumns();
                 for (var i in gridcolumns) {
-                    if (gridcolumns[i].previousWidth != gridcolumns[i].width)
+                    if (gridcolumns[i].previousWidth != gridcolumns[i].width){
                         projects_column_width[gridcolumns[i].field] = gridcolumns[i].width;
+                    }
                 }
+                // rebuild the columns with the new widths
+                initialiseColumns();
                 if(hasStorage) {
                     localStorage["projects_column_width"] = JSON.stringify(projects_column_width);
                 }
@@ -478,7 +490,7 @@ allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedSer
 
             var grid;
             var data = [];
-            var orders_column_width= {};
+            var columns_widths= {};
             // aux function to test if we can support localstorage
             var hasStorage = (function() {
                 try {
@@ -494,7 +506,7 @@ allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedSer
 
             // load the columns widths (if any) from local storage
             $scope.preloadWidths = function () {
-                orders_column_width= {'Name': 350,
+                column_widths = {'Name': 350,
                                     'Quantity': 75,
                                     'Rate': 75,
                                     'Subtotal': 75,
@@ -503,14 +515,14 @@ allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedSer
                                     'Total': 100};
                 if (hasStorage) {
                     try {
-                        orders_column_width = JSON.parse(localStorage["orders_column_width"])
+                        columns_widths = JSON.parse(localStorage["orders_column_width"])
                     }
                     catch (exception) {
                         console.log("No columns widths found in storage. Setting to default.");
-                        localStorage["orders_column_width"] = JSON.stringify(orders_column_width);
+                        localStorage["orders_column_width"] = JSON.stringify(columns_widths);
                     }
-                    if ( orders_column_width.length == 0 ) {
-                        localStorage["orders_column_width"] = JSON.stringify(orders_column_width);
+                    if ( columns_widths.length == 0 ) {
+                        localStorage["orders_column_width"] = JSON.stringify(columns_widths);
                     }
                 }
                 else {
@@ -530,35 +542,41 @@ allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedSer
                 }
             }
 
-            var name_column = {id: "Name", name: "Budget Item", field: "Name",
-                                    width: orders_column_width.Name,
-                                    cssClass: "cell-title non-editable-column"}
-            var quantity_column = {id: "Quantity", name: "Quantity", field: "Quantity",
-                                    width: orders_column_width.Quantity,
-                                    cssClass: "cell editable-column",
-                                    editor: Slick.Editors.CustomEditor}
-            var rate_column = {id: "Rate", name: "Rate", field: "Rate",
-                                    width: orders_column_width.Rate,
-                                    cssClass: "cell editable-column",
-                                    formatter: CurrencyFormatter,
-                                    editor: Slick.Editors.CustomEditor}
-            var subtotal_column = {id: "Subtotal", name: "Subtotal", field: "Subtotal",
-                                    width: orders_column_width.Subtotal,
-                                    cssClass: "cell non-editable-column",
-                                    formatter: CurrencyFormatter}
-            var vat_column = {id: "VAT", name: "VAT %", field: "VAT",
-                                    width: orders_column_width.VAT,
-                                    cssClass: "cell editable-column",
-                                    formatter: VATFormatter,
-                                    editor: Slick.Editors.CustomEditor}
-            var vatcost_column = {id: "VATCost", name: "VAT", field: "VATCost",
-                                    width: orders_column_width.VATCost,
-                                    cssClass: "cell non-editable-column",
-                                    formatter: CurrencyFormatter}
-            var total_column = {id: "Total", name: "Total", field: "Total",
-                                    width: orders_column_width.Total,
-                                    cssClass: "cell non-editable-column",
-                                    formatter: CurrencyFormatter}
+            var name_column, quantity_column, rate_column, total_column,
+                subtotal_column, vat_column,vatcost_column;
+            function initialiseColumns(){
+                name_column = {id: "Name", name: "Name", field: "Name",
+                                width: columns_widths.Name,
+                                cssClass: "cell-title non-editable-column"}
+                quantity_column = {id: "Quantity", name: "Quantity", field: "Quantity",
+                                width: columns_widths.Quantity,
+                                cssClass: "cell editable-column",
+                                editor: Slick.Editors.CustomEditor}
+                rate_column = {id: "Rate", name: "Rate", field: "Rate",
+                                width: columns_widths.Rate,
+                                cssClass: "cell editable-column",
+                                formatter: CurrencyFormatter,
+                                editor: Slick.Editors.CustomEditor}
+                total_column = {id: "Total", name: "Total", field: "Total",
+                                width: columns_widths.Total,
+                                cssClass: "cell non-editable-column",
+                                formatter: CurrencyFormatter}
+                subtotal_column = {id: "Subtotal", name: "Subtotal", field: "Subtotal",
+                                width: columns_widths.Subtotal,
+                                cssClass: "cell non-editable-column",
+                                formatter: CurrencyFormatter}
+                vat_column = {id: "VAT", name: "VAT %", field: "VAT",
+                                width: columns_widths.VAT,
+                                cssClass: "cell editable-column",
+                                formatter: VATFormatter,
+                                editor: Slick.Editors.CustomEditor}
+                vatcost_column = {id: "VATCost", name: "VAT", field: "VATCost",
+                                width: columns_widths.VATCost,
+                                cssClass: "cell non-editable-column",
+                                formatter: CurrencyFormatter}
+            }
+            initialiseColumns();
+
             var columns = [
                     name_column,
                     quantity_column,
@@ -599,10 +617,12 @@ allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedSer
                 var gridcolumns = args.grid.getColumns();
                 for (var i in gridcolumns) {
                     if (gridcolumns[i].previousWidth != gridcolumns[i].width)
-                        orders_column_width[gridcolumns[i].field] = gridcolumns[i].width;
+                        columns_widths[gridcolumns[i].field] = gridcolumns[i].width;
                 }
+                // rebuild the columns
+                initialiseColumns();
                 if(hasStorage) {
-                    localStorage["orders_column_width"] = JSON.stringify(orders_column_width);
+                    localStorage["orders_column_width"] = JSON.stringify(columns_widths);
                 }
             });
 
