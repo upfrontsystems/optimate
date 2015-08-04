@@ -265,7 +265,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 var type = response['type'];
                 if (data.length > 0) {
                     // If the grid is only showing resource types
-                    if (data[0].NodeType == 'ResourcePart'){
+                    if ((data[0].NodeType == 'ResourceUnit' && data[0].isparent) || (data[0].NodeType == 'ResourcePart')){
                         // for resource parts show a non-editable rate column
                         newcolumns = [
                             name_column,
@@ -420,10 +420,19 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                         // check if the first row is a parent
                         var firstrow = dataView.getItem(0);
                         if (firstrow.isparent){
-                            // update the parent total
-                            firstrow.Total = parseFloat(firstrow.Total) +
+                            // update the parent total or rate
+                            if (firstrow.NodeType == 'ResourceUnit'){
+                                total = parseFloat(firstrow.Rate) +
                                                 (parseFloat(item.Total) -
-                                                    parseFloat(oldtotal));
+                                                parseFloat(oldtotal));
+                                firstrow.Rate = total
+                            }
+                            else{
+                                total = parseFloat(firstrow.Total) +
+                                                (parseFloat(item.Total) -
+                                                parseFloat(oldtotal));
+                                firstrow.Total = total
+                            }
                             dataView.updateItem(firstrow.id, firstrow);
                         }
 

@@ -744,7 +744,7 @@ def node_grid(request):
     else:
         # otherwise, if the parent is a budgetgroup/item, add it to the list
         parent = DBSession.query(Node).filter_by(ID=parentid).first()
-        if parent.type == 'BudgetGroup' or parent.type == 'BudgetItem':
+        if parent.type in ['BudgetGroup', 'BudgetItem', 'ResourceUnit']:
             parentlist = [parent.dict()]
             parentlist[0]['isparent'] = True
 
