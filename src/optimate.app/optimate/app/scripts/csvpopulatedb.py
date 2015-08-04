@@ -1392,7 +1392,7 @@ if __name__ == '__main__':
 
         transaction.commit()
 
-        print "Deleting messed up projects"
+        print "Deleting broken projects"
         projects = DBSession.query(Project).all()
         for proj in projects:
             try:
@@ -1401,11 +1401,17 @@ if __name__ == '__main__':
                 print "deleting this project"
                 print proj
                 projid = proj.ID
-                order = DBSession.query(Order).filter_by(ProjectID=projid).first()
-                if order:
-                    DBSession.delete(order)
                 delete = DBSession.query(Project).filter_by(ID=projid).first()
                 DBSession.delete(delete)
+
+        print "Deleting broken orders"
+        orders = DBSession.query(Order).all()
+        for order in orders:
+            try:
+                if not order.Project:
+                    DBSession.delete(order)
+            except:
+                DBSession.delete(order)
 
 
         print "Recalculating Order totals"

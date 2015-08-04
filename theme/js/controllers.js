@@ -2637,7 +2637,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
             $http.get(globalServerURL + 'order/' + $scope.formData.OrderID + '/')
             .success(function(response) {
                 $scope.saveInvoiceModalForm.inputOrderNumber.$setValidity('default1', true);
-                $scope.calculatedAmounts[3].Amount = response.Total
+                $scope.calculatedAmounts[3].amount = response.Total
             })
             .error(function(response) {
                 $scope.saveInvoiceModalForm.inputOrderNumber.$setValidity('default1', false);

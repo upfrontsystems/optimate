@@ -2119,6 +2119,19 @@ def invoiceview(request):
         vat = request.json_body.get('VAT', 0)
         vat = Decimal(vat).quantize(Decimal('.01'))
 
+        invoicetotal = amount + vat
+        # update the budgetitem invoiced amounts
+        order = DBSession.query(Order).filter_by(ID=orderid).first()
+        ordertotal = order.Total
+
+        for orderitem in order.OrderItems:
+            if ordertotal > 0:
+                proportion = orderitem.Total/ordertotal
+                orderitem.BudgetItem.Invoiced += invoicetotal * proportion
+            else:
+                if not orderitem.BudgetItem.Invoiced:
+                    orderitem.BudgetItem.Invoiced = 0
+
         newinvoice = Invoice(OrderID=orderid,
                             InvoiceDate=indate,
                             PaymentDate=paydate,
@@ -2127,15 +2140,6 @@ def invoiceview(request):
         DBSession.add(newinvoice)
         DBSession.flush()
         newid = newinvoice.ID
-        invoicetotal = newinvoice.Total
-        # update the budgetitem invoiced amounts
-        order = DBSession.query(Order).filter_by(ID=orderid).first()
-        for orderitem in order.OrderItems:
-            if order.Total > 0:
-                proportion = orderitem.Total/order.Total
-                orderitem.BudgetItem.Invoiced = invoicetotal * proportion
-            else:
-                orderitem.BudgetItem.Invoiced = 0
         transaction.commit()
         # return the new invoice
         newinvoice = DBSession.query(Invoice).filter_by(ID=newid).first()

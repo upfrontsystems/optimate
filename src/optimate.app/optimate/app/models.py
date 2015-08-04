@@ -1481,10 +1481,13 @@ class Order(Base):
         date = ''
         if self.Date:
             date = self.Date.strftime("%d %B %Y")
+        projname = ""
+        if self.Project:
+            projname = self.Project.Name
 
         return {'ID': self.ID,
                 'Date': date,
-                'Project': self.Project.Name,
+                'Project': projname,
                 'ProjectID': self.ProjectID,
                 'Supplier': suppname,
                 'SupplierID': self.SupplierID,
@@ -1714,6 +1717,7 @@ class Invoice(Base):
                 'Supplier': self.Order.Supplier.Name,
                 'Amount': str(self.Amount),
                 'VAT': str(self.VAT),
+                'Total': str(self.Total),
                 'Paymentdate': jsonpaydate,
                 'Invoicedate': jsonindate,
                 'ReadablePaymentdate': readable_date,
