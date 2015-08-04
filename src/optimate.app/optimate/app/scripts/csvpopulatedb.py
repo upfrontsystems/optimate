@@ -66,6 +66,11 @@ def generateResourceCode(resname):
     if resource:
         return resource.Code
 
+    letter = resname[0].upper()
+    # if the name is not alphanumeric clear it
+    if not letter.isalpha():
+        resname = ""
+
     if len(resname) < 3:
         resname = resname.upper() + (3-len(resname))*'X'
     else:

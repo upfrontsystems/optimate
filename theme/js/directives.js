@@ -229,6 +229,14 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 }
             });
 
+            // when the columns are reordered
+            grid.onColumnsReordered.subscribe(function (e, args) {
+                console.log("columns reordered");
+                if(hasStorage) {
+                    localStorage["projects_columns"] = JSON.stringify(grid.getColumns());
+                }
+            });
+
             // Formatter for displaying markup
             function MarkupFormatter(row, cell, value, columnDef, dataContext) {
                 if (value != undefined) {
