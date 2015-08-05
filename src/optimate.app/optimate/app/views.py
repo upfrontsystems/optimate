@@ -758,13 +758,22 @@ def project_overheads(request):
         return sorted(overheadlist, key=lambda k: k['Name'].upper())
     elif request.method == 'POST':
         projectid = request.matchdict['id']
-        name = request.json_body['Name']
-        perc = float(request.json_body.get('Percentage', 0))
-        # Build a new overhead with the data
-        newoverhead = Overhead(Name = name,
-                                Percentage = perc,
-                                ProjectID =projectid)
-        DBSession.add(newoverhead)
+        overheadlist = request.json_body['overheadlist']
+        for overhead in overheadlist:
+            keys = overhead.keys()
+            if 'ID' in keys:
+                if 'edit' in keys:
+                    editing = DBSession.query(Overhead
+                                        ).filter_by(ID=overhead['ID']).first()
+                    if editing:
+                        editing.Name = overhead['Name']
+                        editing.Percentage = float(overhead['Percentage'])
+            else:
+                # Build a new overhead with the data
+                newoverhead = Overhead(Name = overhead['Name'],
+                                    Percentage = float(overhead['Percentage']),
+                                    ProjectID = projectid)
+                DBSession.add(newoverhead)
         transaction.commit()
         return HTTPOk()
 

@@ -393,3 +393,9 @@ ul.nav-pills-center {
     justify-content: center;
 }
 
+/* change the styling of disabled inputs in tables */
+td > input:disabled {
+    background-color: white;
+    border: none;
+}
+

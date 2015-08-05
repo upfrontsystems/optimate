@@ -910,40 +910,45 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         }
 
         // delete an overhead by id
-        $scope.deleteOverhead = function(overheadid, index) {
-            var req = {
-                method: 'DELETE',
-                url: globalServerURL + 'overhead/' + overheadid + '/'
+        $scope.deleteOverhead = function(overhead) {
+            if (overhead.ID){
+                var req = {
+                    method: 'DELETE',
+                    url: globalServerURL + 'overhead/' + overhead.ID + '/'
+                }
+                $http(req).success(function() {
+                    console.log("Overhead deleted");
+                });
             }
-            $http(req).success(function() {
-                $scope.overheadList.splice(index, 1);
-                console.log("Overhead deleted");
-            });
+            else{
+                console.log("Overhead removed");
+            }
+            var index = $scope.overheadList.indexOf(overhead);
+            $scope.overheadList.splice(index, 1);
         }
 
         // add an overhead with the project id
-        $scope.addOverhead = function(projectid) {
+        $scope.addOverhead = function() {
             if ($scope.newOverhead) {
-                var req = {
-                    method: 'POST',
-                    url: globalServerURL + 'project/' + projectid + '/overheads/',
-                    data: {'Name':$scope.newOverhead.Name,
-                            'Percentage': $scope.newOverhead.Percentage}
-                }
-                $http(req).success(function() {
-                    $scope.newOverhead = undefined;
-                    $scope.loadOverheads(projectid);
-                    console.log("Overhead added");
-                });
+                $scope.overheadList.push({'Name': $scope.newOverhead.Name,
+                                        'Percentage': $scope.newOverhead.Percentage})
+                $scope.newOverhead = undefined;
             }
         }
 
-        // add an overhead if it has been input
-        // and clear the overhead modal input fields
-        $scope.clearInput = function() {
+        // post the edited overheadlist to the server
+        $scope.updateOverheads = function(projectid) {
             if ($scope.newOverhead) {
-                $scope.addOverhead($scope.currentNode.ID);
+                $scope.addOverhead();
             }
+            var req = {
+                method: 'POST',
+                url: globalServerURL + 'project/' + projectid + '/overheads/',
+                data: {'overheadlist':$scope.overheadList}
+            }
+            $http(req).success(function() {
+                console.log("Overheads updated");
+            });
             $scope.newOverhead = undefined;
         }
 
@@ -2766,7 +2771,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
             date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0,0));
             $scope.date = date;
         };
-        $scope.isDisabled = false;        
+        $scope.isDisabled = false;
         $scope.jsonvaluations = [];
         $scope.budgetgroupList = [];
         $scope.modalForm = [];
