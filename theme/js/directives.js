@@ -419,36 +419,47 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 }
                 $http(req).success(function(data) {
                     if (data){
-                        var oldtotal = item.Total;
-                        item.Total = data.Total;
-                        item.Subtotal = data.Subtotal;
                         //store the active cell and editor
                         var activeCell = grid.getActiveCell();
                         var activeEditor = grid.getCellEditor();
-                        dataView.updateItem(item.id, item);
-
-                        // check if the first row is a parent
-                        var firstrow = dataView.getItem(0);
-                        if (firstrow.isparent){
-                            // update the parent total or rate
-                            if (firstrow.NodeType == 'ResourceUnit'){
-                                total = parseFloat(firstrow.Rate) +
-                                                (parseFloat(item.Total) -
-                                                parseFloat(oldtotal));
-                                firstrow.Rate = total
-                            }
-                            else{
-                                total = parseFloat(firstrow.Total) +
-                                                (parseFloat(item.Total) -
-                                                parseFloat(oldtotal));
-                                firstrow.Total = total
-                            }
-                            dataView.updateItem(firstrow.id, firstrow);
+                        // if the parent row has been updated, reload the slickgrid
+                        if (item.isparent){
+                            $http.get(globalServerURL +'node/' + item.ID + '/grid/')
+                            .success(function(response) {
+                                loadSlickgrid(response);
+                                grid.setActiveCell(activeCell.row, activeCell.cell);
+                                grid.editActiveCell();
+                                dataView.syncGridSelection(grid, true);
+                            });
                         }
+                        else{
+                            var oldtotal = item.Total;
+                            item.Total = data.Total;
+                            item.Subtotal = data.Subtotal;
+                            dataView.updateItem(item.id, item);
 
-                        grid.setActiveCell(activeCell.row, activeCell.cell);
-                        grid.editActiveCell();
-                        dataView.syncGridSelection(grid, true);
+                            // check if the first row is a parent
+                            var firstrow = dataView.getItem(0);
+                            if (firstrow.isparent){
+                                // update the parent total or rate
+                                if (firstrow.NodeType == 'ResourceUnit'){
+                                    total = parseFloat(firstrow.Rate) +
+                                                    (parseFloat(item.Total) -
+                                                    parseFloat(oldtotal));
+                                    firstrow.Rate = total
+                                }
+                                else{
+                                    total = parseFloat(firstrow.Total) +
+                                                    (parseFloat(item.Total) -
+                                                    parseFloat(oldtotal));
+                                    firstrow.Total = total
+                                }
+                                dataView.updateItem(firstrow.id, firstrow);
+                            }
+                            grid.setActiveCell(activeCell.row, activeCell.cell);
+                            grid.editActiveCell();
+                            dataView.syncGridSelection(grid, true);
+                        }
                         console.log('Node '+ item.id + ' updated')
                     }
                     else{

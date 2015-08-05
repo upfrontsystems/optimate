@@ -581,30 +581,55 @@ def search_resources(top, search):
 
 
 @view_config(route_name="project_resources", renderer='json')
-@view_config(route_name="resources", renderer='json')
 def project_resources(request):
     """ Return a list of all the resources in a nodes project's resourcecategory
         If an optional search term is included the resources are filtered by it.
     """
     nodeid = request.matchdict['id']
-    if request.matched_route.name == 'project_resources':
-        currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
-        resourcecategory = DBSession.query(ResourceCategory).filter_by(
-                ParentID=currentnode.getProjectID()).first()
-    else:
-        resourcecategory = DBSession.query(Node).filter_by(ID=nodeid).first()
-
-    # if it doesnt exist return the empty list
-    if not resourcecategory:
-        return []
+    currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
+    resourcecategory = DBSession.query(ResourceCategory).filter_by(
+            ParentID=currentnode.getProjectID()).first()
 
     if 'search' in request.params:
         resources = search_resources(resourcecategory, request.params['search'])
     else:
         resources = resourcecategory.getResources()
-    return [
-            item.dict()
-         for item in sorted(resources, key=lambda o: o.Name.upper())]
+
+    resourceslist = [item.dict()
+                    for item in sorted(resources, key=lambda o: o.Name.upper())]
+
+    excludedlist = []
+    # if current node is a budgetgroup we are adding a budgetitem
+    if currentnode.type == 'BudgetGroup':
+        for child in currentnode.Children:
+            if child.type == 'BudgetItem':
+                if child.Resource:
+                    excludedlist.append(child.Resource.dict())
+    # if current node is a budgetitem we are editing a budgetitem
+    elif currentnode.type == 'BudgetItem':
+        siblings = currentnode.Parent.Children
+        for sib in siblings:
+            if sib.type == 'BudgetItem' and sib.ID != currentnode.ID:
+                if sib.Resource:
+                    excludedlist.append(sib.Resource.dict())
+    # if the current node is a resourceunit we are adding a resourcepart
+    elif currentnode.type == 'ResourceUnit':
+        # add it to the excluded nodes
+        excludedNodes.append(currentnode)
+        # and go through all it's resource parts and add their parents
+        for part in currentnode.ResourceParts:
+            excludedlist.append(part.Parent.dict())
+    # if the current node is a resourcepart we are editing a resourcepart
+    elif currentnode.type == 'ResourcePart':
+        # add the parent to the excluded nodes
+        excludedNodes.append(currentnode.Parent)
+        # and go through all the parents resource parts and add their parents
+        for part in currentnode.Parent.ResourceParts:
+            excludedlist.append(part.Parent.dict())
+
+    sortedlist = [x for x in resourceslist if x not in excludedNodes]
+
+    return sortedlist
 
 
 @view_config(route_name="resourcecategory_allresources", renderer='json')
