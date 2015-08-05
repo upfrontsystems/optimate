@@ -539,7 +539,9 @@ def node_budgetitems(request):
     budgetitemslist = qry.getBudgetItems()
     itemlist = []
     for bi in budgetitemslist:
-        itemlist.append(bi.order())
+        # only add budgetitems with no children as an order item
+        if len(bi.Children) == 0:
+            itemlist.append(bi.order())
     return sorted(itemlist, key=lambda k: k['Name'].upper())
 
 
@@ -574,7 +576,7 @@ def node_budgetgroups(request):
             itemlist.append(data)
     #        # add the children (level2 budgetgroups) if they exist
     #        if len(bg.Children) != 0:
-    #            sorted_children = sorted(bg.Children, key=lambda k: k.Name.upper())        
+    #            sorted_children = sorted(bg.Children, key=lambda k: k.Name.upper())
     #            for child in sorted_children:
     #                if child.type == 'BudgetGroup':
     #                    data = child.dict()
@@ -590,7 +592,7 @@ def node_budgetgroups(request):
             data['id'] = vi.BudgetGroupID
             data['NodeType'] = 'ValuationItem'
             # recalculate the amount complete
-            # get the latest 'budgetgroup total' from project's budgetgroup data                
+            # get the latest 'budgetgroup total' from project's budgetgroup data
             total = (bg.Total / 100) * vi.PercentageComplete
             total_str = str(total.quantize(Decimal('.01')))
             data['AmountComplete'] = total_str
@@ -636,17 +638,17 @@ def project_resources(request):
         excludedlist = []
         # if current node is a budgetgroup we are adding a budgetitem
         if currentnode.type == 'BudgetGroup':
-            for child in currentnode.Children:
-                if child.type == 'BudgetItem':
-                    if child.Resource:
-                        excludedlist.append(child.Resource)
+            budgetitems = currentnode.getBudgetItems()
+            for bi in budgetitems:
+                if bi.Resource:
+                    excludedlist.append(bi.Resource)
         # if current node is a budgetitem we are editing a budgetitem
         elif currentnode.type == 'BudgetItem':
-            siblings = currentnode.Parent.Children
-            for sib in siblings:
-                if sib.type == 'BudgetItem' and sib.ID != currentnode.ID:
-                    if sib.Resource:
-                        excludedlist.append(sib.Resource)
+            budgetitems = currentnode.Parent.getBudgetItems()
+            for bi in budgetitems:
+                if bi.ID != currentnode.ID:
+                    if bi.Resource:
+                        excludedlist.append(bi.Resource)
         # if the current node is a resourceunit we are adding a resourcepart
         elif currentnode.type == 'ResourceUnit':
             # add it to the excluded nodes

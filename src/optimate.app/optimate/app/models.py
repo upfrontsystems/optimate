@@ -426,7 +426,7 @@ class BudgetGroup(Node):
         for child in self.Children:
             if child.type == 'BudgetGroup':
                 budgetgrouplist.append(child)
-        return sorted(budgetgrouplist, key=lambda k: k.Name.upper())        
+        return sorted(budgetgrouplist, key=lambda k: k.Name.upper())
 
     def dict(self):
         """ Override the dict function
@@ -665,14 +665,12 @@ class BudgetItem(Node):
             source.paste(child.copy(source.ID), child.Children)
 
     def getBudgetItems(self):
-        """ Return a list of the leaf BudgetItems
+        """ Return a list of the BudgetItems
         """
         budgetitemslist = []
-        if len(self.Children) == 0:
-            budgetitemslist = [self]
-        else:
-            for child in self.Children:
-                budgetitemslist += child.getBudgetItems()
+        budgetitemslist.append(self)
+        for child in self.Children:
+            budgetitemslist += child.getBudgetItems()
         return budgetitemslist
 
     def updateOrdered(self, ordered):
