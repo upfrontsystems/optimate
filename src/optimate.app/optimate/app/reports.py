@@ -19,7 +19,7 @@ from optimate.app.models import (
     Project
 )
 
-def projectbudget_nodes(node, data, level, level_limit, component_filter):
+def projectbudget_nodes(node, data, level, level_limit, budgetitem_filter):
     level +=1
     nodelist = []
     for child in node.Children:
@@ -27,17 +27,17 @@ def projectbudget_nodes(node, data, level, level_limit, component_filter):
             nodelist.append(child)
     sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())
     for child in sorted_nodelist:
-        # leaf nodes with no children act as components
+        # leaf nodes with no children act as budgetitems
         leaf = len(child.Children) == 0
         if child.type != 'ResourceCategory':
             if child.type == 'BudgetGroup':
                 data.append((child, 'level' + str(level), 'bold'))
             elif leaf:
                 # no filtering selected
-                if len(component_filter) == 3:
+                if len(budgetitem_filter) == 5:
                     data.append((child, 'level' + str(level), 'normal'))
                 # filter by resource type
-                elif child.Resource.Type in component_filter:
+                elif child.Resource.Type in budgetitem_filter:
                     data.append((child, 'level' + str(level), 'normal'))
             else:
                 data.append((child, 'level' + str(level), 'normal'))
@@ -45,7 +45,7 @@ def projectbudget_nodes(node, data, level, level_limit, component_filter):
                 # restrict level as specified
                 if level != level_limit:
                     data += projectbudget_nodes(child, [], level, level_limit,
-                        component_filter)
+                        budgetitem_filter)
     return data
 
 
@@ -77,14 +77,14 @@ def projectbudget(request):
     print "Generating Project Budget Report"
     nodeid = request.matchdict['id']
     level_limit = request.json_body['LevelLimit']
-    ctypelist = request.json_body['BudgetItemTypeList']
+    bi_typelist = request.json_body['BudgetItemTypeList']
     print_bgroups = request.json_body['PrintSelectedBudgerGroups']
     bgroup_list = request.json_body['BudgetGroupList']
 
-    component_filter = []
-    for record in ctypelist:
+    budgetitem_filter = []
+    for record in bi_typelist:
         if record['selected']:
-            component_filter.append(record['Name'])
+            budgetitem_filter.append(record['Name'])
 
     project = DBSession.query(Node).filter_by(ID=nodeid).first()
 
@@ -102,12 +102,12 @@ def projectbudget(request):
             nodes.append((qry, 'level1', 'bold'))
             # group data
             nodes += projectbudget_nodes(qry, [], 1, level_limit+1,
-                component_filter)
+                budgetitem_filter)
             # add blank line seperator between groups
             nodes.append(None)
     else:
         nodes = projectbudget_nodes(project, [], 0, level_limit,
-            component_filter)
+            budgetitem_filter)
 
     # this needs explaining. The 1st component or budgetitem of a budget group
     # needs a a special class so that extra spacing can be added above it for
