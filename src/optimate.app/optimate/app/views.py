@@ -690,7 +690,8 @@ def resourcetypes(request):
     qry = DBSession.query(ResourceType).all()
     # return a list of the ResourceType names
     for restype in qry:
-        restypelist.append({'ID': restype.ID, 'Name': restype.Name})
+        if restype.Name != '':
+            restypelist.append({'ID': restype.ID, 'Name': restype.Name})
     return sorted(restypelist, key=lambda k: k['Name'].upper())
 
 
