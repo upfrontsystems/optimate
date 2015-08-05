@@ -109,7 +109,7 @@ def projectbudget(request):
         nodes = projectbudget_nodes(project, [], 0, level_limit,
             budgetitem_filter)
 
-    # this needs explaining. The 1st component or budgetitem of a budget group
+    # this needs explaining. The 1st budgetitem of a budget group
     # needs a a special class so that extra spacing can be added above it for
     # report readability & clarity
     count = 0
@@ -260,7 +260,7 @@ def all_resources(node, data, level, supplier_filter):
         nodelist.append(child)
     sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())
     for child in sorted_nodelist:
-        if child.type == 'Resource':
+        if child.type in ['Resource']:
             if supplier_filter:
                 if supplier_filter == child.SupplierID:
                     quantity = 0
@@ -273,8 +273,14 @@ def all_resources(node, data, level, supplier_filter):
                 for budgetitem in child.BudgetItems:
                     quantity += budgetitem.Quantity
                 data.append((child, 'level' + str(level), 'normal', quantity))
-        else: # ResourceCategory
-            data.append((child, 'level' + str(level), 'bold', None))
+        else:
+            # XXX
+            # temporary implementation of ResourceUnit and ResourcePart
+            # once backref for ResourceUnit is implemented, this should change
+            if child.type in ['ResourceUnit', 'ResourcePart']:
+                data.append((child, 'level' + str(level), 'normal', None))
+            else: # ResourceCategory
+                data.append((child, 'level' + str(level), 'bold', None))
             data += all_resources(child, [], level, supplier_filter)
     return data
 
@@ -288,17 +294,20 @@ def resourcelist(request):
 
     # inject node data into template
     nodes = []
+    filtered_by = ''
     if filter_by_supplier and 'Supplier' in request.json_body:
         supplier = request.json_body['Supplier']
         nodes = all_resources(project, [], 0, supplier)
+        sp = DBSession.query(Supplier).filter_by(ID=supplier).first()
+        filtered_by = '(Supplier: ' + sp.Name + ')'
     else:
         nodes = all_resources(project, [], 0, None)
 
     # render template
-    # XXX add a filtered by to title.. if exists
     now = datetime.now()
     template_data = render('templates/resourcelistreport.pt',
                            {'nodes': nodes,
+                            'filtered_by_string': filtered_by,
                             'project_name': project.Name,
                             'print_date' : now.strftime("%d %B %Y - %k:%M")},
                            request=request)
