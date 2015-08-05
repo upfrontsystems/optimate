@@ -456,14 +456,14 @@ def edititemview(request):
     elif objecttype == 'Resource':
         rate = request.json_body.get('Rate', 0)
         rate = Decimal(rate).quantize(Decimal('.01'))
-        unit = request.json_body.get('Unit', '')
+        unit = request.json_body['UnitID']
         supplier = request.json_body.get('Supplier', '')
         resource = DBSession.query(Resource).filter_by(ID=nodeid).first()
         resource.Description=request.json_body.get('Description', '')
         resource.Code = request.json_body['Code']
         resource.Rate=rate
         resource.UnitID=request.json_body.get('Unit', '')
-        resource.Type=request.json_body.get('ResourceType', None)
+        resource.Type=request.json_body['ResourceTypeID']
         resource.UnitID=unit
         resource.SupplierID=supplier
         resource.Name=request.json_body['Name']

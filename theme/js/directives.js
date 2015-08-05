@@ -221,8 +221,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 dataView.beginUpdate();
                 dataView.setItems(data);
                 dataView.endUpdate();
-                grid.setSelectedRows([]);
-                grid.render();
+                dataView.refresh();
+                grid.invalidate();
             }
 
             dataView.onRowCountChanged.subscribe(function (e, args) {
