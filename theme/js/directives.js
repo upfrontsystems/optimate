@@ -41,6 +41,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             var data = [];
             // set the default column sizes
             var projects_column_width= {};
+            var projects_columns = [];
+            var columns_list = {};
             // aux function to test if we can support localstorage
             var hasStorage = (function() {
                 try {
@@ -50,6 +52,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     return true;
                 }
                 catch (exception) {
+                    console.log("LOCAL STORAGE NOT SUPPORTED")
                     return false;
                 }
             }());
@@ -95,83 +98,105 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     catch (exception) {
                         console.log("No columns widths found in storage. Setting to default.");
                         localStorage["projects_column_width"] = JSON.stringify(projects_column_width);
-
                     }
                     if ( projects_column_width.length == 0 ) {
                         localStorage["projects_column_width"] = JSON.stringify(projects_column_width);
                     }
                 }
-                else {
-                    console.log("LOCAL STORAGE NOT SUPPORTED")
-                }
             };
             $scope.preloadWidths();
 
-            var name_column, quantity_column, rate_column, read_only_rate_column,
-                total_column, subtotal_column, unit_column, ordered_column,
-                invoiced_column, resource_type_column, markup_column,
-                product_code_column;
+            // load the columns (if any) from local storage
+            $scope.preloadColumns = function () {
+                // set the default order
+                projects_columns = ["Name",
+                                    "Code",
+                                    "Unit",
+                                    "Quantity",
+                                    "Rate",
+                                    "ReadRate",
+                                    "Subtotal",
+                                    "Markup",
+                                    "Total",
+                                    "Ordered",
+                                    "Invoiced",
+                                    "ResourceType"]
+                if (hasStorage) {
+                    var columns = [];
+                    try {
+                        columns = JSON.parse(localStorage["projects_columns"]);
+                    }
+                    catch (exception) {
+                        console.log("No columns widths found in storage. Setting to default.");
+                    }
+                    if (columns.length < projects_columns.length) {
+                        localStorage["projects_columns"] = JSON.stringify(projects_columns);
+                    }
+                    else{
+                        projects_columns = columns;
+                    }
+                }
+            };
+            $scope.preloadColumns();
+
             function initialiseColumns() {
-                name_column = {id: "Name", name: "Name", field: "Name",
-                                width: projects_column_width.Name,
-                                cssClass: "cell-title non-editable-column"}
-                quantity_column = {id: "Quantity", name: "Quantity", field: "Quantity",
-                                width: projects_column_width.Quantity,
-                                cssClass: "cell editable-column",
-                                editor: Slick.Editors.CustomEditor}
-                rate_column = {id: "Rate", name: "Rate", field: "Rate",
-                                width: projects_column_width.Rate,
-                                cssClass: "cell editable-column",
-                                formatter: CurrencyFormatter,
-                                editor: Slick.Editors.CustomEditor}
-                read_only_rate_column = {id: "Rate", name: "Rate", field: "Rate",
-                                width: projects_column_width.Rate,
-                                cssClass: "cell non-editable-column",
-                                formatter: CurrencyFormatter}
-                total_column = {id: "Total", name: "Total", field: "Total",
-                                width: projects_column_width.Total,
-                                cssClass: "cell non-editable-column",
-                                formatter: CurrencyFormatter}
-                markup_column = {id: "Markup", name: "Markup", field: "Markup",
-                                width: projects_column_width.Markup,
-                                cssClass: "cell non-editable-column",
-                                formatter: CurrencyFormatter}
-                subtotal_column = {id: "Subtotal", name: "Subtotal", field: "Subtotal",
-                                width: projects_column_width.Subtotal,
-                                cssClass: "cell non-editable-column",
-                                formatter: CurrencyFormatter}
-                unit_column = {id: "Unit", name: "Unit", field: "Unit",
-                                width: projects_column_width.Unit,
-                                cssClass: "text-cell non-editable-column"}
-                ordered_column = {id: "Ordered", name: "Ordered", field: "Ordered",
-                                width: projects_column_width.Ordered,
-                                cssClass: "cell non-editable-column",
-                                formatter: CurrencyFormatter}
-                invoiced_column = {id: "Invoiced", name: "Invoiced", field: "Invoiced",
-                                width: projects_column_width.Invoiced,
-                                cssClass: "cell non-editable-column",
-                                formatter: CurrencyFormatter}
-                resource_type_column =  {id: "ResourceType", name: "Resource Type",
-                                field: "ResourceType",
-                                width: projects_column_width.ResourceType,
-                                cssClass: "text-cell non-editable-column"}
-                product_code_column = {id: "Code", name: "Product Code", field: "Code",
-                                width: projects_column_width.Code,
-                                cssClass: "text-cell non-editable-column"}
+                columns_list.Name = {id: "Name", name: "Name", field: "Name",
+                                    width: projects_column_width.Name,
+                                    cssClass: "cell-title non-editable-column"}
+                columns_list.Quantity = {id: "Quantity", name: "Quantity", field: "Quantity",
+                                    width: projects_column_width.Quantity,
+                                    cssClass: "cell editable-column",
+                                    editor: Slick.Editors.CustomEditor}
+                columns_list.Rate = {id: "Rate", name: "Rate", field: "Rate",
+                                    width: projects_column_width.Rate,
+                                    cssClass: "cell editable-column",
+                                    formatter: CurrencyFormatter,
+                                    editor: Slick.Editors.CustomEditor}
+                columns_list.ReadRate = {id: "ReadRate", name: "Rate", field: "Rate",
+                                    width: projects_column_width.Rate,
+                                    cssClass: "cell non-editable-column",
+                                    formatter: CurrencyFormatter}
+                columns_list.Total = {id: "Total", name: "Total", field: "Total",
+                                    width: projects_column_width.Total,
+                                    cssClass: "cell non-editable-column",
+                                    formatter: CurrencyFormatter}
+                columns_list.Markup = {id: "Markup", name: "Markup", field: "Markup",
+                                    width: projects_column_width.Markup,
+                                    cssClass: "cell non-editable-column",
+                                    formatter: CurrencyFormatter}
+                columns_list.Subtotal = {id: "Subtotal", name: "Subtotal", field: "Subtotal",
+                                    width: projects_column_width.Subtotal,
+                                    cssClass: "cell non-editable-column",
+                                    formatter: CurrencyFormatter}
+                columns_list.Unit = {id: "Unit", name: "Unit", field: "Unit",
+                                    width: projects_column_width.Unit,
+                                    cssClass: "text-cell non-editable-column"}
+                columns_list.Ordered = {id: "Ordered", name: "Ordered", field: "Ordered",
+                                    width: projects_column_width.Ordered,
+                                    cssClass: "cell non-editable-column",
+                                    formatter: CurrencyFormatter}
+                columns_list.Invoiced = {id: "Invoiced", name: "Invoiced", field: "Invoiced",
+                                    width: projects_column_width.Invoiced,
+                                    cssClass: "cell non-editable-column",
+                                    formatter: CurrencyFormatter}
+                columns_list.ResourceType =  {id: "ResourceType", name: "Resource Type",
+                                    field: "ResourceType",
+                                    width: projects_column_width.ResourceType,
+                                    cssClass: "text-cell non-editable-column"}
+                columns_list.Code = {id: "Code", name: "Product Code", field: "Code",
+                                    width: projects_column_width.Code,
+                                    cssClass: "text-cell non-editable-column"}
             }
             initialiseColumns();
 
-            var columns = [
-                    name_column,
-                    unit_column,
-                    quantity_column,
-                    rate_column,
-                    subtotal_column,
-                    markup_column,
-                    total_column,
-                    ordered_column,
-                    invoiced_column
-                ];
+            var columns = [];
+            var shown = ["Name", "Unit", "Quantity", "Rate", "Subtotal",
+                        "Markup", "Total", "Ordered", "Invoiced"];
+            for (var c in projects_columns){
+                if (shown.indexOf(projects_columns[c]) > -1){
+                    columns.push(columns_list[projects_columns[c]]);
+                }
+            }
 
             var options = {
                     editable: true,
@@ -231,9 +256,35 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
 
             // when the columns are reordered
             grid.onColumnsReordered.subscribe(function (e, args) {
-                console.log("columns reordered");
                 if (hasStorage) {
-                    localStorage["projects_columns"] = JSON.stringify(grid.getColumns());
+                    var gridcolumns = grid.getColumns();
+                    // var ordercolumns = []
+                    // for (var c in gridcolumns){
+                    //     ordercolumns.push(gridcolumns[c].id);
+                    // }
+                    // projects_columns.sort(function(a, b) {
+                    //     var indexa = ordercolumns.indexOf(a);
+                    //     var indexb = ordercolumns.indexOf(b);
+                    //     console.log(a + ": " + indexa);
+                    //     console.log(b + ": " + indexb);
+                    //     console.log();
+                    //     if ((indexa > -1) && (indexb > -1)){
+                    //         if (indexa > indexb){
+                    //             return 1;
+                    //         }
+                    //         return -1;
+                    //     }
+                    //     return 0;
+                    // });
+
+                    for (var c in gridcolumns){
+                        var index = projects_columns.indexOf(gridcolumns[c].id);
+                        if (index > -1){
+                            var name = projects_columns.splice(index, 1)[0];
+                            projects_columns.push(name);
+                        }
+                    }
+                    localStorage["projects_columns"] = JSON.stringify(projects_columns);
                 }
             });
 
@@ -277,65 +328,53 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 var data = response['list'];
                 // Get the value that indicated whether there are empty columns
                 var emptycolumns = response['emptycolumns'];
-                var no_subtotal_column = response['no_sub_cost'];
-                var no_quantity_column = response['no_quantity'];
                 var type = response['type'];
                 if (data.length > 0) {
                     // If the grid is only showing resource types
                     if ((data[0].NodeType == 'ResourceUnit' && data[0].isparent) || (data[0].NodeType == 'ResourcePart')) {
                         // for resource parts show a non-editable rate column
-                        newcolumns = [
-                            name_column,
-                            quantity_column,
-                            read_only_rate_column,
-                            total_column
-                        ];
+                        var shown = ["Name", "Quantity", "ReadRate", "Total"];
+                        for (var c in projects_columns){
+                            if (shown.indexOf(projects_columns[c]) > -1){
+                                newcolumns.push(columns_list[projects_columns[c]]);
+                            }
+                        }
                     }
                     else if (type == 'Resources') {
-                        newcolumns = [
-                            name_column,
-                            product_code_column,
-                            unit_column,
-                            rate_column,
-                            resource_type_column,
-                        ];
+                        var shown = ["Name", "Code", "Unit", "Rate", "ResourceType"];
+                        for (var c in projects_columns){
+                            if (shown.indexOf(projects_columns[c]) > -1){
+                                newcolumns.push(columns_list[projects_columns[c]]);
+                            }
+                        }
                     }
                     else if (type == 'ResourceCategories') {
-                        newcolumns = [
-                            name_column
-                        ];
+                        var shown = ["Name"];
+                        for (var c in projects_columns){
+                            if (shown.indexOf(projects_columns[c]) > -1){
+                                newcolumns.push(columns_list[projects_columns[c]]);
+                            }
+                        }
                     }
                     else {
                         // if there will be empty columns remove them
                         if (emptycolumns) {
-                            newcolumns = [
-                                name_column,
-                                subtotal_column,
-                                total_column,
-                                ordered_column,
-                                invoiced_column
-                            ];
-                            if (no_subtotal_column) {
-                                // remove subtotal column
-                                var index = newcolumns.map(function(e)
-                                    { return e.id; }).indexOf("Subtotal");
-                                if (index > -1) {
-                                    newcolumns.splice(index, 1);
+                            var shown = ["Name", "Total", "Ordered", "Invoiced"];
+                            for (var c in projects_columns){
+                                if (shown.indexOf(projects_columns[c]) > -1){
+                                    newcolumns.push(columns_list[projects_columns[c]]);
                                 }
                             }
                         }
                         else {
-                            emptycolumns = [
-                                name_column,
-                                unit_column,
-                                quantity_column,
-                                rate_column,
-                                subtotal_column,
-                                markup_column,
-                                total_column,
-                                ordered_column,
-                                invoiced_column
-                            ];
+                            plaincolumns = [];
+                            var shown = ["Name", "Unit", "Quantity", "Rate",
+                                        "Subtotal","Markup", "Total", "Ordered", "Invoiced"];
+                            for (var c in projects_columns){
+                                if (shown.indexOf(projects_columns[c]) > -1){
+                                    plaincolumns.push(columns_list[projects_columns[c]]);
+                                }
+                            }
 
                             var overheadnames = [];
                             // Add columns for the overheads in the budgetItems
@@ -359,7 +398,6 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                             // build the overhead columns
                             var overheadcolumns = [];
                             for (var i = 0; i<overheadnames.length; i++) {
-                                projects_column_width[overheadnames[i]] = 75;
                                 overheadcolumns.push({id: overheadnames[i],
                                                 name: overheadnames[i],
                                                 field: overheadnames[i],
@@ -367,21 +405,18 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                                                 formatter: MarkupFormatter,
                                                 cssClass: "cell non-editable-column"})
                             }
-                            newcolumns = emptycolumns.concat(overheadcolumns);
+                            newcolumns = plaincolumns.concat(overheadcolumns);
                         }
                     }
                 }
                 else {
-                    newcolumns = [
-                        name_column,
-                        unit_column,
-                        quantity_column,
-                        rate_column,
-                        subtotal_column,
-                        total_column,
-                        ordered_column,
-                        invoiced_column
-                    ];
+                    var shown = ["Name", "Unit", "Quantity", "Rate", "Subtotal",
+                        "Markup", "Total", "Ordered", "Invoiced"];
+                    for (var c in projects_columns){
+                        if (shown.indexOf(projects_columns[c]) > -1){
+                            newcolumns.push(columns_list[projects_columns[c]]);
+                        }
+                    }
                 }
                 renderGrid(newcolumns, data)
                 console.log("Slickgrid data loaded");
@@ -530,6 +565,7 @@ allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedSer
                     return true;
                 }
                 catch (exception) {
+                    console.log("LOCAL STORAGE NOT SUPPORTED")
                     return false;
                 }
             }());
@@ -554,9 +590,6 @@ allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedSer
                     if ( columns_widths.length == 0 ) {
                         localStorage["orders_column_width"] = JSON.stringify(columns_widths);
                     }
-                }
-                else {
-                    console.log("LOCAL STORAGE NOT SUPPORTED")
                 }
             };
             $scope.preloadWidths();
@@ -815,9 +848,6 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                     if ( valuations_column_width.length == 0 ) {
                         localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
                     }
-                }
-                else {
-                    console.log("LOCAL STORAGE NOT SUPPORTED")
                 }
             };
             $scope.preloadWidths();
