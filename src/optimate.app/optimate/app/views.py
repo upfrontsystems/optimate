@@ -592,42 +592,42 @@ def project_resources(request):
 
     if 'search' in request.params:
         resources = search_resources(resourcecategory, request.params['search'])
+        excludedlist = []
+        # if current node is a budgetgroup we are adding a budgetitem
+        if currentnode.type == 'BudgetGroup':
+            for child in currentnode.Children:
+                if child.type == 'BudgetItem':
+                    if child.Resource:
+                        excludedlist.append(child.Resource)
+        # if current node is a budgetitem we are editing a budgetitem
+        elif currentnode.type == 'BudgetItem':
+            siblings = currentnode.Parent.Children
+            for sib in siblings:
+                if sib.type == 'BudgetItem' and sib.ID != currentnode.ID:
+                    if sib.Resource:
+                        excludedlist.append(sib.Resource)
+        # if the current node is a resourceunit we are adding a resourcepart
+        elif currentnode.type == 'ResourceUnit':
+            # add it to the excluded nodes
+            excludedlist.append(currentnode)
+            # and go through all it's resource parts and add their parents
+            for part in currentnode.ResourceParts:
+                excludedlist.append(part.Parent)
+        # if the current node is a resourcepart we are editing a resourcepart
+        elif currentnode.type == 'ResourcePart':
+            # add the parent to the excluded nodes
+            excludedlist.append(currentnode.Parent)
+            # and go through all the parents resource parts and add their parents
+            for part in currentnode.Parent.ResourceParts:
+                excludedlist.append(part.Parent)
+
+        filteredlist = [x for x in resources if x not in excludedlist]
+        sortedlist = [item.dict()
+                for item in sorted(filteredlist, key=lambda o: o.Name.upper())]
     else:
         resources = resourcecategory.getResources()
-
-    resourceslist = [item.dict()
+        sortedlist = [item.dict()
                     for item in sorted(resources, key=lambda o: o.Name.upper())]
-
-    excludedlist = []
-    # if current node is a budgetgroup we are adding a budgetitem
-    if currentnode.type == 'BudgetGroup':
-        for child in currentnode.Children:
-            if child.type == 'BudgetItem':
-                if child.Resource:
-                    excludedlist.append(child.Resource.dict())
-    # if current node is a budgetitem we are editing a budgetitem
-    elif currentnode.type == 'BudgetItem':
-        siblings = currentnode.Parent.Children
-        for sib in siblings:
-            if sib.type == 'BudgetItem' and sib.ID != currentnode.ID:
-                if sib.Resource:
-                    excludedlist.append(sib.Resource.dict())
-    # if the current node is a resourceunit we are adding a resourcepart
-    elif currentnode.type == 'ResourceUnit':
-        # add it to the excluded nodes
-        excludedNodes.append(currentnode)
-        # and go through all it's resource parts and add their parents
-        for part in currentnode.ResourceParts:
-            excludedlist.append(part.Parent.dict())
-    # if the current node is a resourcepart we are editing a resourcepart
-    elif currentnode.type == 'ResourcePart':
-        # add the parent to the excluded nodes
-        excludedNodes.append(currentnode.Parent)
-        # and go through all the parents resource parts and add their parents
-        for part in currentnode.Parent.ResourceParts:
-            excludedlist.append(part.Parent.dict())
-
-    sortedlist = [x for x in resourceslist if x not in excludedNodes]
 
     return sortedlist
 
