@@ -116,7 +116,7 @@ allControllers.controller('clientsController', ['$scope', '$http', 'globalServer
                         $scope.formData = {'NodeType': $scope.formData['NodeType']};
                     });
                 }
-                else{
+                else {
                     $http({
                         method: 'POST',
                         url: globalServerURL + 'client/0/',
@@ -248,7 +248,7 @@ allControllers.controller('suppliersController', ['$scope', '$http', 'globalServ
                         $scope.formData = {'NodeType': $scope.formData['NodeType']};
                     });
                 }
-                else{
+                else {
                     $http({
                         method: 'POST',
                         url: globalServerURL + 'supplier/0/',
@@ -754,7 +754,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
                 // check the allowed array for the types
                 if ($scope.allowed[dsttype]) {
-                    if($scope.allowed[dsttype].indexOf(srctype) > -1) {
+                    if ($scope.allowed[dsttype].indexOf(srctype) > -1) {
                         // call the drag over function
                         if (destNodesScope.$nodeScope) {
                             $scope.dragOver(destNodesScope.$nodeScope.$modelValue);
@@ -765,7 +765,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         return false;
                     }
                 }
-                else{
+                else {
                     return false;
                 }
             },
@@ -776,12 +776,12 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 if (event.dest.nodesScope.$nodeScope) {
                     var dest = event.dest.nodesScope.$nodeScope.$modelValue;
                 }
-                else{
+                else {
                      var dest = {"ID":0}
                 }
                 if (event.source.nodesScope.$nodeScope)
                     var srcparent = event.source.nodesScope.$nodeScope.$modelValue.ID;
-                else{
+                else {
                     var srcparent = 0;
                 }
                 // only paste if it is not the same parent
@@ -818,7 +818,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         $scope.pastingFromDnd = true;
                     }
                     // otherwise paste
-                    else{
+                    else {
                         $scope.copyThisNode(src);
                         $scope.pasteThisNode(dest);
                         // set the flag to indicate the source needs to be added
@@ -839,12 +839,12 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             },
 
             dragStop: function(event) {
-                if($scope.addNodeBack) {
+                if ($scope.addNodeBack) {
                     var sourceobject = event.source.nodeScope.$modelValue;
                     var parent = event.source.nodeScope.$parentNodeScope.$modelValue;
                     var start = 0;
                     // start sorting from index 1 if parent is project
-                    if (parent.NodeType == 'Project'){
+                    if (parent.NodeType == 'Project') {
                         start = 1;
                     }
                     // get the index to insert the node
@@ -981,7 +981,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 $scope.addBudgetItemForm.has_selection = false;
                 $description.focus();
             }
-            else{
+            else {
                 $scope.addBudgetItemForm.has_selection = true;
                 $addBudgetItem.find('#inputQuantity').focus();
             }
@@ -1009,7 +1009,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         $scope.formData.ResourceTypeID = $scope.formData.selected.ResourceTypeID;
                         $scope.formData.NodeType = 'SimpleBudgetItem';
                     }
-                    else{
+                    else {
                         $scope.formData.ResourceID = $scope.formData.selected.ID;
                         $scope.formData.Quantity = $scope.formData.selected.Quantity;
                         $scope.formData['OverheadList'] = $scope.budgetItemOverheadList || [];
@@ -1094,12 +1094,12 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         };
 
         $scope.nodeCompare = function (a, b) {
-            if (b){
+            if (b) {
                 if (a.Name.toUpperCase() < b.Name.toUpperCase()) return -1;
                 if (a.Name.toUpperCase() > b.Name.toUpperCase()) return 1;
                 return 0;
             }
-            else{
+            else {
                 return -1;
             }
         };
@@ -1119,7 +1119,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         $scope.formData.Description = $scope.formData.selected.Description;
                         $scope.formData.ResourceTypeID = $scope.formData.selected.ResourceTypeID;
                     }
-                    else{
+                    else {
                         $scope.formData.NodeType == 'BudgetItem';
                         $scope.formData.Name = $scope.formData.selected.Name;
                         $scope.formData['OverheadList'] = $scope.budgetItemOverheadList || [];
@@ -1168,7 +1168,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     $scope.changeAddingType(nodetype);
                 });
             }
-            else{
+            else {
                 $scope.addingNodeType = nodetype;
             }
             $scope.isDisabled = false;
@@ -1211,13 +1211,13 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         $scope.formData['OverheadList'] = $scope.budgetItemOverheadList;
                     });
                 }
-                else if(nodetype == 'SimpleBudgetItem') {
+                else if (nodetype == 'SimpleBudgetItem') {
                     // populate the selection
                     $scope.formData.selected = response;
                     $scope.formData.NodeType = nodetype;
                     nodetype = 'BudgetItem';
                 }
-                else{
+                else {
                     $scope.formData = response;
                 }
                 // set each field dirty
@@ -1309,7 +1309,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     // all the children of the parent
                     if (!$scope.pastingFromDnd) {
                         var pastednode = response['node'];
-                        if (pastednode){
+                        if (pastednode) {
                             // insert the newly created node in the correct place
                             var start = 0;
                             if ($scope.currentNode.NodeType == 'Project') {
@@ -1318,10 +1318,10 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                             var index = $scope.locationOf(pastednode, $scope.currentNode.Subitem, start);
                             $scope.currentNode.Subitem.splice(index, 0, pastednode)
                         }
-                        else if (response.newId){
+                        else if (response.newId) {
                             // if the response id equals the current id
                             // it acts as a signal to reload the node
-                            if (node.ID == response.newId){
+                            if (node.ID == response.newId) {
                                 $scope.loadNodeChildren(node.ID);
                             }
                         }
@@ -1377,7 +1377,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         if (keys.length) {
                             checkItems();
                         }
-                        else{
+                        else {
                             $scope.pasteAction(node, selectionlist, index);
                         }
                     });
@@ -1541,7 +1541,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 if (selectedRows[0].ID == node.ID) {
                     $scope.nodeDeleted()
                 }
-                else{
+                else {
                     for (var i in selectedRows) {
                         var result = $.grep($scope.currentNode.Subitem, function(e) {
                             return e.ID == selectedRows[i].ID;
@@ -1600,7 +1600,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 }
             }
         };
-
 
         $scope.toggleRowsSelected = function(rowsselected) {
             $timeout(function() {
@@ -1704,7 +1703,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     console.log("Children loaded");
                 });
             }
-            else{
+            else {
                 selectedNode.collapsed = false;
             }
         };
@@ -2029,7 +2028,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                         $scope.formData = {'NodeType': $scope.formData['NodeType']};
                     });
                 }
-                else{
+                else {
                     $http({
                         method: 'POST',
                         url: globalServerURL + $scope.formData['NodeType'] + '/0/',
@@ -2165,7 +2164,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 if (index == -1) {
                     $scope.budgetItemsList.push(bi);
                 }
-                else{
+                else {
                     $scope.budgetItemsList.splice(index, 0, bi);
                 }
             }
@@ -2198,7 +2197,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                     subitem[i].selected = false;
                     break;
                 }
-                else{
+                else {
                     var subsubitem = subitem[i].Subitem || [];
                     if (subsubitem.length > 0) {
                         $scope.uncheckBudgetItem(budgetitemId, subsubitem);
@@ -2231,7 +2230,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                 if ($scope.budgetItemsList.length == 0) {
                     $scope.budgetItemsList =response;
                 }
-                else{
+                else {
                     for (var v = 0; v<response.length; v++) {
                         var comp = response[v];
                         // find the budgetitem in the budgetitem list
@@ -2252,7 +2251,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                             if (index == -1) {
                                 $scope.budgetItemsList.push(comp);
                             }
-                            else{
+                            else {
                                 $scope.budgetItemsList.splice(index, 0, comp);
                             }
                         }
@@ -2351,7 +2350,7 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
                     console.log("Children loaded");
                 });
             }
-            else{
+            else {
                 selectedNode.collapsed = false;
             }
         };
@@ -2534,7 +2533,7 @@ allControllers.controller('invoicesController', ['$scope', '$http', 'globalServe
                         $scope.formData = {'NodeType': 'invoice'};
                     });
                 }
-                else{
+                else {
                     $http({
                         method: 'POST',
                         url: globalServerURL + 'invoice/0/',
@@ -2767,7 +2766,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
             date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0,0));
             $scope.date = date;
         };
-        $scope.isDisabled = false;
+        $scope.isDisabled = false;        
         $scope.jsonvaluations = [];
         $scope.budgetgroupList = [];
         $scope.modalForm = [];
@@ -2806,6 +2805,16 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
             });
         }
         $scope.loadValuationSection();
+
+        $scope.loadBudgetItems = function() {
+            $http({
+                method: 'GET',
+                url: globalServerURL + 'node/' + $scope.formData['ProjectID'] + '/budgetgroups/'
+            }).success(function(response) {
+                $scope.budgetgroupList = response;
+                console.log("BudgetItems loaded");
+            });
+        }
 
         // Adding or editing a valuation
         $scope.save = function() {
@@ -2894,6 +2903,9 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                 $scope.selectedValuation = undefined;
             }
             $scope.saveValuationModalForm.$setPristine();
+            $('#inputProject').on('change', function(e, params) {
+                $scope.loadBudgetItems();
+            });
         }
 
         // When the edit button is pressed change the state and set the data
@@ -3029,7 +3041,7 @@ allControllers.controller('claimsController', ['$scope', '$http', 'globalServerU
                     console.log("Valuations list loaded")
                 });
             }
-            else{
+            else {
                 $scope.valuationsList = [];
             }
         }
@@ -3050,7 +3062,7 @@ allControllers.controller('claimsController', ['$scope', '$http', 'globalServerU
                         $scope.formData = {'NodeType': 'claim'};
                     });
                 }
-                else{
+                else {
                     $http({
                         method: 'POST',
                         url: globalServerURL + 'claim/0/',
@@ -3269,7 +3281,7 @@ allControllers.controller('paymentsController', ['$scope', '$http', 'globalServe
                         $scope.formData = {'NodeType': 'payment'};
                     });
                 }
-                else{
+                else {
                     $http({
                         method: 'POST',
                         url: globalServerURL + 'payment/0/',

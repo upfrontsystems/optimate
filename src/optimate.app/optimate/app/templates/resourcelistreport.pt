@@ -28,7 +28,7 @@
 
 <body>
     <div id="headerContent">
-        <h1>Resource List for ${project_name}</h1>
+        <h1>Resource List for ${project_name}&nbsp;&nbsp;${filtered_by_string}</h1>
         <table>
             <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding-top: 6px; padding-bottom: 3px;">
                 <td class="resourcelist-heading-font" style="width: 600px; text-align:left">Description</td>
