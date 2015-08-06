@@ -221,7 +221,6 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                 dataView.beginUpdate();
                 dataView.setItems(data);
                 dataView.endUpdate();
-                dataView.refresh();
                 grid.invalidate();
             }
 
@@ -258,30 +257,21 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             grid.onColumnsReordered.subscribe(function (e, args) {
                 if (hasStorage) {
                     var gridcolumns = grid.getColumns();
-                    // var ordercolumns = []
-                    // for (var c in gridcolumns){
-                    //     ordercolumns.push(gridcolumns[c].id);
-                    // }
-                    // projects_columns.sort(function(a, b) {
-                    //     var indexa = ordercolumns.indexOf(a);
-                    //     var indexb = ordercolumns.indexOf(b);
-                    //     console.log(a + ": " + indexa);
-                    //     console.log(b + ": " + indexb);
-                    //     console.log();
-                    //     if ((indexa > -1) && (indexb > -1)){
-                    //         if (indexa > indexb){
-                    //             return 1;
-                    //         }
-                    //         return -1;
-                    //     }
-                    //     return 0;
-                    // });
-
+                    var ordercolumns = []
                     for (var c in gridcolumns){
-                        var index = projects_columns.indexOf(gridcolumns[c].id);
-                        if (index > -1){
-                            var name = projects_columns.splice(index, 1)[0];
-                            projects_columns.push(name);
+                        ordercolumns.push(gridcolumns[c].id);
+                    }
+
+                    for(var i = 0; i < ordercolumns.length; i++) {
+                        var indexI = projects_columns.indexOf(ordercolumns[i]);
+                        for(var j = i + 1; j < ordercolumns.length; j++) {
+                            var indexJ = projects_columns.indexOf(ordercolumns[j]);
+                            if(indexI > indexJ) {
+                                var temp = projects_columns[indexI];
+                                projects_columns[indexI] = projects_columns[indexJ];
+                                projects_columns[indexJ] = temp;
+                                indexI = indexJ;
+                            }
                         }
                     }
                     localStorage["projects_columns"] = JSON.stringify(projects_columns);
