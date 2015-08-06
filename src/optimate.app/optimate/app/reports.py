@@ -261,6 +261,7 @@ def all_resources(node, data, level, supplier_filter):
     sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())
     for child in sorted_nodelist:
         if child.type in ['Resource']:
+            # Resource is a leaf
             if supplier_filter:
                 if supplier_filter == child.SupplierID:
                     quantity = 0
@@ -274,14 +275,27 @@ def all_resources(node, data, level, supplier_filter):
                     quantity += budgetitem.Quantity
                 data.append((child, 'level' + str(level), 'normal', quantity))
         else:
-            # XXX
-            # temporary implementation of ResourceUnit and ResourcePart
-            # once backref for ResourceUnit is implemented, this should change
-            if child.type in ['ResourceUnit', 'ResourcePart']:
+            if child.type in ['ResourceUnit']:
+                if supplier_filter:
+                    if supplier_filter == child.SupplierID:
+                        quantity = 0
+                        for budgetitem in child.BudgetItems:
+                            quantity += budgetitem.Quantity
+                        data.append((child, 'level' + str(level), 'normal',
+                            quantity))
+                else:
+                    quantity = 0
+                    for budgetitem in child.BudgetItems:
+                        quantity += budgetitem.Quantity
+                data.append((child, 'level' + str(level), 'normal', quantity))
+                if child.Children:
+                    data += all_resources(child, [], level, supplier_filter)
+            elif child.type in ['ResourcePart']:
+                # ResourcePart is a leaf
                 data.append((child, 'level' + str(level), 'normal', None))
             else: # ResourceCategory
                 data.append((child, 'level' + str(level), 'bold', None))
-            data += all_resources(child, [], level, supplier_filter)
+                data += all_resources(child, [], level, supplier_filter)
     return data
 
 
