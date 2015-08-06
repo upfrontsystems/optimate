@@ -1300,6 +1300,7 @@ class ResourcePart(Node):
                 'Quantity': self.Quantity,
                 'Rate': str(self.Rate),
                 'Total': str(self.Total),
+                'ResourceID': self.ResourceID,
                 'NodeType': self.type,
                 'NodeTypeAbbr' : 'P'}
 

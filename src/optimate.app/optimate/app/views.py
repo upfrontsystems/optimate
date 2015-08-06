@@ -486,16 +486,18 @@ def edititemview(request):
         # if the resourcepart references a different resource update
         # the budgetitems
         if rpart.ResourceID != uid:
-            parentresource = DBSession.query(ResourceUnit
-                                                ).filter_by(ID=uid).first()
+            parentresource = rpart.Parent
             for budgetitem in parentresource.BudgetItems:
-                newbudgetitem = BudgetItem(ParentID=budgetitem.ID,
-                                            ResourceID=uid)
-                DBSession.add(newbudgetitem)
-                DBSession.flush()
-                if parentresource.type == 'ResourceUnit':
-                    expandBudgetItem(newbudgetitem.ID, parentresource)
-                newbudgetitem.Quantity = budgetitem.Quantity * quantity
+                if budgetitem.ResourceID == rpart.ResourceID:
+                    newbudgetitem = budgetitem.copy(budgetitem.ParentID)
+                    newbudgetitem.ResourceID = uid
+                    DBSession.add(newbudgetitem)
+                    DBSession.flush()
+                    # if the changed resource is a resource unit
+                    cres = DBSession.query(Resource).filter_by(ID=uid).first()
+                    if cres.type == 'ResourceUnit':
+                        expandBudgetItem(newbudgetitem.ID, cres)
+                    newbudgetitem.Quantity = budgetitem.Quantity * rpart.Quantity
             rpart.ResourceID = uid
 
     else:

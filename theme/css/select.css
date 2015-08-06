@@ -5,6 +5,27 @@
  * License: MIT
  */
 
+ /* custom input type styling */
+.ui-select-input {
+    padding: 1px !important;
+    height: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+    -webkit-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+            transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+ }
+
+.ui-select-placeholder {
+    position: relative;
+    top: 20%;
+}
+
+.ui-select-match-text {
+  position: relative;
+  top: 20%;
+}
 
 /* Style when highlighting a search. */
 .ui-select-highlight {
@@ -26,11 +47,6 @@
 }
 
 /* Select2 theme */
-
-/* Mark invalid Select2 */
-.ng-dirty.ng-invalid > a.select2-choice {
-    border-color: #D44950;
-}
 
 .select2-result-single {
   padding-left: 0;
@@ -249,11 +265,6 @@ body > .ui-select-bootstrap.open {
 .ui-select-match.ng-hide-add,
 .ui-select-search.ng-hide-add {
     display: none !important;
-}
-
-/* Mark invalid Bootstrap */
-.ui-select-bootstrap.ng-dirty.ng-invalid > button.btn.ui-select-match {
-    border-color: #D44950;
 }
 
 /* Handle up direction Bootstrap */

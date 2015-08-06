@@ -979,16 +979,18 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }
         }
 
-        $scope.resourceSelected = function(item) {
-            var $addBudgetItem = $('#addBudgetItem'),
-                $description = $addBudgetItem.find('#description');
-            if (item.ID == undefined) {
-                $scope.addBudgetItemForm.has_selection = false;
-                $description.focus();
-            }
-            else {
-                $scope.addBudgetItemForm.has_selection = true;
-                $addBudgetItem.find('#inputQuantity').focus();
+        $scope.resourceSelected = function(item, nodetype) {
+            if (nodetype != 'ResourcePart'){
+                var $addBudgetItem = $('#addBudgetItem'),
+                    $description = $addBudgetItem.find('#description');
+                if (item.ID == undefined) {
+                    $scope.addBudgetItemForm.has_selection = false;
+                    $description.focus();
+                }
+                else {
+                    $scope.addBudgetItemForm.has_selection = true;
+                    $addBudgetItem.find('#inputQuantity').focus();
+                }
             }
         };
 
@@ -1023,7 +1025,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 }
                 else if ($scope.formData.NodeType == 'ResourcePart') {
                     $scope.formData.ResourceID = $scope.formData.selected.ID;
-                    $scope.formData.Quantity = $scope.formData.selected.Quantity;
+                    $scope.formData.selected = {};
                 }
                 $http({
                     method: 'POST',
@@ -1131,8 +1133,9 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     }
                 }
                 else if ($scope.formData.NodeType == 'ResourcePart') {
+                    $scope.formData.Name = $scope.formData.selected.Name;
                     $scope.formData.ResourceID = $scope.formData.selected.ID;
-                    $scope.formData.Quantity = $scope.formData.selected.Quantity;
+                    $scope.formData.selected = {};
                 }
                 var req = {
                     method: 'PUT',
@@ -1177,7 +1180,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 $scope.addingNodeType = nodetype;
             }
             $scope.isDisabled = false;
-            $scope.modalState = "Add"
+            $scope.modalState = "Add";
+            $scope.resourceList = [];
             $scope.formData = {'NodeType': nodetype};
             $scope['add' + nodetype + 'Form'].$setPristine();
         }
@@ -1194,10 +1198,11 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             }
             $http(req).success(function(response) {
                 var nodetype = response.NodeType;
-                $scope.formData.ID = nodeid;
+                $scope.formData = response;
                 // special case for budgetitem types
                 if (nodetype == 'BudgetItem') {
                     // populate the selection
+                    $scope.refreshResources(response.Name);
                     $scope.formData.selected = response;
                     $scope.formData.selected.ID = response.ResourceID
                     $scope.formData.NodeType = nodetype;
@@ -1222,9 +1227,14 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     $scope.formData.NodeType = nodetype;
                     nodetype = 'BudgetItem';
                 }
-                else {
-                    $scope.formData = response;
+                else if (nodetype == 'ResourcePart'){
+                    $scope.refreshResources(response.Name);
+                    $scope.formData.selected = response;
+                    $scope.formData.selected.ID = response.ResourceID
+                    $scope.resourceSelected($scope.formData.selected);
+                    $scope.formData.NodeType = nodetype;
                 }
+                $scope.formData.ID = response.ID;
                 // set each field dirty
                 angular.forEach($scope['add' + nodetype + 'Form'].$error.required, function(field) {
                     field.$setDirty();
