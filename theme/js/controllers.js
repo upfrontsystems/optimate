@@ -2817,6 +2817,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                 url: globalServerURL + 'node/' + $scope.formData['ProjectID'] + '/budgetgroups/'
             }).success(function(response) {
                 $scope.budgetgroupList = response;
+                console.log($scope.budgetgroupList);
                 console.log("BudgetItems loaded");
             });
         }
@@ -2950,6 +2951,34 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                 }
             });
         };
+
+        $scope.toggleRowsSelected = function(rowsselected) {
+            $timeout(function() {
+                $scope.rowsSelected = rowsselected;
+            });
+        }
+
+        $scope.expandBudgetGroupsGrid = function() {
+            var selectedRows = $scope.getSelectedNodes()
+            console.log("Expand Budget Groups grid")
+            for (var i in selectedRows) {
+                $http({
+                    method: 'POST',
+                    url:globalServerURL + 'node/' + $scope.formData['ProjectID'] + '/expand_budgetgroup/' + selectedRows[i].ID,
+                    data: {'budgetgroupList': $scope.budgetgroupList},
+                }).success(function (response) {
+                    // on the last loop reload the slickgrid and node
+                    $scope.budgetgroupList = response
+                    console.log($scope.budgetgroupList)
+                    // on the last loop reload the slickgrid and node
+                    $scope.toggleRowsSelected(false);
+                    $scope.handleReloadValuationSlickgrid();
+
+                });
+            }
+        };
+
+//$scope.formData['BudgetGroupList']
 
         $scope.getReport = function (report) {
             if ( report == 'valuation' ) {

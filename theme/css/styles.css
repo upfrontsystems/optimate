@@ -287,7 +287,9 @@ input.custom-datepicker{
 }
 
 #addBudgetItemsButton,
-#addBudgetgroupButton {
+#addBudgetgroupButton,
+#collapseBudgetGroupButton,
+#expandBudgetGroupButton {
     float: left;
 }
 

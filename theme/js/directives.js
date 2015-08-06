@@ -976,6 +976,7 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
             $scope.handleReloadValuationSlickgrid = function() {
                 $timeout(function() {
                     grid.resizeCanvas();
+                    console.log("GRID RELOAD!");
                 });
             };
 
@@ -994,7 +995,7 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                 else {
                     rowsSelected = false;
                 }
-               // $scope.toggleRowsSelected(rowsSelected);
+                $scope.toggleRowsSelected(rowsSelected);
             });
 
             $scope.getSelectedNodes = function() {

@@ -598,7 +598,26 @@ def node_budgetgroups(request):
             data['AmountComplete'] = total_str
             data['PercentageComplete'] = str(vi.PercentageComplete)
             itemlist.append(data)
+
     return itemlist
+
+
+@view_config(route_name="node_expand_budgetgroup", renderer='json')
+def node_expand_budgetgroup(request):
+    """ 
+    """
+    # budgetgrouplist is a parameter
+    # nodeid is a parameter
+    proj_id = request.matchdict['id']
+    bg_id = request.matchdict['bg_id']
+    blist = request.json_body.get('budgetgroupList', '')
+    project = DBSession.query(Node).filter_by(ID=proj_id).first()
+    bgroups = DBSession.query(Node).filter_by(ID=bg_id).first().Children
+    if not bgroups:
+        import pdb; pdb.set_trace()
+        return blist # XXX TEST THIS!!!
+
+    return blist
 
 
 @view_config(route_name="projects", renderer='json')
