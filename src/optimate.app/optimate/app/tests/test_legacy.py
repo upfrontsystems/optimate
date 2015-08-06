@@ -1355,7 +1355,8 @@ class TestEditItemSuccessCondition(unittest.TestCase):
             'NodeType': 'Resource',
             'Code': 'E000',
             'Rate': 50,
-            'ResourceTypeID': 1
+            'ResourceTypeID': 1,
+            'UnitID': 2
         })
         request.matchdict = {'id': 25}
         request.method = 'PUT'
