@@ -401,3 +401,8 @@ td > input:disabled {
     border: none;
 }
 
+.nav-pills-valuation {
+    float: left;
+}
+
+

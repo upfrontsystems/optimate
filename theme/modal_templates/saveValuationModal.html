@@ -81,18 +81,22 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-default"
-                        id="expandBudgetGroupButton"
-                        data-ng-click="expandBudgetGroupsGrid()"
-                        tabindex="1">
-                    Expand
-                </button>
-                <button class="btn btn-default"
-                        id="collapseBudgetGroupButton"
-                        data-ng-click="collapseBudgetGroupsGrid()"
-                        tabindex="1">
-                    Collapse
-                </button>                
+                <ul class="nav nav-pills no-top-margin nav-pills-valuation" data-ng-show="rowSelected">
+                    <li>
+                        <a role="button"
+                            data-ng-click="expandBudgetGroupsGrid()"
+                           title="Expand">
+                            <i class="fa fa-caret-square-o-down"></i>
+                        </a>
+                    </li>
+                    <li>
+                        <a role="button"
+                            data-ng-click="collapseBudgetGroupsGrid()"
+                           title="Collapse">
+                            <i class="fa fa-caret-square-o-up"></i>
+                        </a>
+                    </li>
+                </ul>
                 <button data-ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal"
                  data-ng-disabled="!saveValuationModalForm.$valid" data-ng-click="save()">
                     Save

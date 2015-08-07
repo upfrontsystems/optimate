@@ -959,6 +959,7 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
 
             // on cell change update the totals
             grid.onCellChange.subscribe(function (e, ctx) {
+                $scope.cellSelected = true;
                 var item = ctx.item
                 if (item.PercentageComplete > 100) {
                     item.PercentageComplete = 100;
@@ -976,11 +977,11 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
             $scope.handleReloadValuationSlickgrid = function() {
                 $timeout(function() {
                     grid.resizeCanvas();
-                    console.log("GRID RELOAD!");
                 });
             };
 
             var rowsSelected = false;
+            $scope.rowSelected = false;
             grid.onSelectedRowsChanged.subscribe(function(e, args) {
                 var selectedrows = grid.getSelectedRows();
                 if (selectedrows.length > 0) {
@@ -994,6 +995,12 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedSe
                 }
                 else {
                     rowsSelected = false;
+                }
+                if (selectedrows.length >= 0) {
+                    $scope.rowSelected = true;
+                }
+                else {
+                    $scope.rowSelected = false;
                 }
                 $scope.toggleRowsSelected(rowsSelected);
             });

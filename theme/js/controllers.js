@@ -489,6 +489,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         $scope.isDisabled = false;
         $scope.calculatorHidden = true; // set calculator to be hidden by default
         $scope.rowsSelected = false;    // set selected rows false
+        $scope.rowSelected = false;
 
         // aux function to test if we can support localstorage
         var hasStorage = (function() {
@@ -2817,7 +2818,6 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                 url: globalServerURL + 'node/' + $scope.formData['ProjectID'] + '/budgetgroups/'
             }).success(function(response) {
                 $scope.budgetgroupList = response;
-                console.log($scope.budgetgroupList);
                 console.log("BudgetItems loaded");
             });
         }
@@ -2901,6 +2901,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
             $scope.formData = {'NodeType': 'valuation'};
             $scope.isDisabled = false;
             $scope.modalState = "Add";
+            $scope.rowSelected = false;
             $scope.dateTimeNow();
             $scope.formData['Date'] = $scope.date;
             $scope.budgetgroupList = [];
@@ -2918,6 +2919,7 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
         $scope.editingState = function () {
             $scope.isDisabled = false;
             $scope.modalState = "Edit";
+            $scope.rowSelected = false;
             $http({
                 method: 'GET',
                 url: globalServerURL + 'valuation/' + $scope.selectedValuation.ID + '/'
@@ -2960,7 +2962,6 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
 
         $scope.expandBudgetGroupsGrid = function() {
             var selectedRows = $scope.getSelectedNodes()
-            console.log("Expand Budget Groups grid")
             for (var i in selectedRows) {
                 $http({
                     method: 'POST',
@@ -2979,7 +2980,6 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
 
         $scope.collapseBudgetGroupsGrid = function() {
             var selectedRows = $scope.getSelectedNodes()
-            console.log("Collapse Budget Groups grid")
             for (var i in selectedRows) {
                 $http({
                     method: 'POST',

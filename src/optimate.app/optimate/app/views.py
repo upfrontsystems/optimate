@@ -551,6 +551,8 @@ def node_budgetgroups(request):
     """
     proj_id = request.matchdict['id']
     project = DBSession.query(Node).filter_by(ID=proj_id).first()
+    if project == None:
+        return []
     budgetgrouplist = project.getBudgetGroups()
     itemlist = []
 
@@ -615,7 +617,6 @@ def node_expand_budgetgroup(request):
     if not bgroups:
         return blist
 
-    print len(blist)
     sorted_bgroups = sorted(bgroups, key=lambda k: k.Name.upper())
     bgroups_dicts = [x.dict() for x in sorted_bgroups]
     if int(bgroups_dicts[0]['ID']) in [x['ID'] for x in blist]:
@@ -626,15 +627,16 @@ def node_expand_budgetgroup(request):
     for x in bgroups_dicts:
         x['level'] = u'2'
         x['Name'] = ' - ' + x['Name']
+        x['NodeType'] = 'ValuationItem'
+        x['PercentageComplete'] = 0
         children.append(x)
 
     index_to_insert_after = [x['ID'] for x in blist].index(int(bg_id))
     # inject bgroups into blist after the parent node that was expanded
-    start = blist[0:index_to_insert_after+1] # XXX must check this
+    start = blist[0:index_to_insert_after+1]
     end = blist[index_to_insert_after+1:]
     # inject bgroups into blist after
     result = start + children + end
-
     return result
 
 
@@ -669,7 +671,6 @@ def node_collapse_budgetgroup(request):
         delete_index = [x['ID'] for x in blist].index(int(bgroup['ID']))
         del blist[delete_index]
 
-    print len(blist)
     return blist
 
 
