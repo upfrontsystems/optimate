@@ -516,10 +516,15 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         var id = open_projects[i];
                         var url = globalServerURL + 'node/' + id + '/'
                         $http.get(url).success(function(data) {
-                            $scope.projectsRoot.Subitem.push(data);
-                            $scope.projectsRoot.Subitem.sort(function(a, b) {
-                                return a.Name.localeCompare(b.Name)
-                            });
+                            if (data.NodeType != 'Project'){
+                                $scope.closeProject(id);
+                            }
+                            else{
+                                $scope.projectsRoot.Subitem.push(data);
+                                $scope.projectsRoot.Subitem.sort(function(a, b) {
+                                    return a.Name.localeCompare(b.Name)
+                                });
+                            }
                         });
                     }
                 }
@@ -681,18 +686,19 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             if (i != -1) {
                 $scope.projectsRoot.Subitem.splice(i, 1);
 
-                if (hasStorage) {
-                    // remove id of project that we are closing from storage
-                    var open_projects = JSON.parse(localStorage["open_projects"])
-                    var index = open_projects.indexOf(project_id);
-                    if (index > -1) {
-                       open_projects.splice(index, 1);
-                    }
-                    localStorage["open_projects"] = JSON.stringify(open_projects);
+            if (hasStorage) {
+                // remove id of project that we are closing from storage
+                var open_projects = JSON.parse(localStorage["open_projects"])
+                var index = open_projects.indexOf(project_id);
+                if (index > -1) {
+                    console.log("splicing " + project_id);
+                   open_projects.splice(index, 1);
                 }
-                else {
-                    console.log("LOCAL STORAGE NOT SUPPORTED!")
-                }
+                localStorage["open_projects"] = JSON.stringify(open_projects);
+            }
+            else {
+                console.log("LOCAL STORAGE NOT SUPPORTED!")
+            }
             }
         };
 
@@ -1252,7 +1258,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 url:globalServerURL + 'node/' + nodeid + '/'
             }).success(function (response) {
                 $scope.statusMessage("Deleted " + $scope.currentNode.Name, 2000, 'alert-info');
-                if (response['parentid'] == 0) {
+                if ($scope.currentNode.NodeType == 'Project') {
                     $scope.closeProject(nodeid);
                 }
                 else {
