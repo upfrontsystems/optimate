@@ -1307,8 +1307,8 @@ class ResourcePart(Node):
     def __repr__(self):
         """ Return a representation of this ResourcePart
         """
-        return '<ResourcePart(Name="%s", Quantity"%f", Total="%f", ID="%s")>' % (
-            self.Name, self.Quantity, self.Total, self.ID)
+        return '<ResourcePart(Name="%s", ID="%s")>' % (
+            self.Name, self.ID)
 
 
 class Unit(Base):
