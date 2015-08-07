@@ -813,6 +813,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     // set the current node to the one dropped in
                     $scope.currentNode = dest;
                     var src = event.source.nodeScope.$modelValue;
+                    // add a flag to the destination parent
+                    event.source.nodeScope.$modelValue.destParent = dest.ID;
                     // if it's in the same project, cut
                     if (destprojectid == srcprojectid) {
                         $scope.currentNodeScope = event.source.nodeScope;
@@ -842,6 +844,11 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     }
                 }
                 $scope.dragOverNode = {'original': undefined};
+            },
+
+            dragStart: function(event){
+                // collapse the node on drag start
+                event.source.nodeScope.$modelValue.collapsed = false;
             },
 
             dragStop: function(event) {
@@ -1304,16 +1311,11 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 }
 
                 // if a project was pasted into the root
-                if (node.ID === 0) {
+                if ($scope.copiedNode.NodeType === 'Project') {
                     var newprojectid = response.newId;
                     $scope.statusMessage($scope.copiedNode.Name + " pasted.", 1000, 'alert-info');
-                    // get the new project
-                    $http.get(globalServerURL + 'node/' + newprojectid + '/')
-                    .success(function(data) {
-                        // and add it to the open projects
-                        $scope.projectAdded(data);
-                    });
-                    $scope.statusMessage("New project pasted.", 2000, 'alert-info');
+                    // and add it to the open projects
+                    $scope.projectAdded(response.node);
                 }
                 else if (index !== undefined) {
                     // if we pasted the last node of the copied records
@@ -1328,8 +1330,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     $scope.handleReloadSlickgrid(node.ID);
                     // insert the copied/cut node in the correct destination without reloading
                     // all the children of the parent
+                    var pastednode = response['node'];
                     if (!$scope.pastingFromDnd) {
-                        var pastednode = response['node'];
                         if (pastednode) {
                             // insert the newly created node in the correct place
                             var start = 0;
@@ -1344,6 +1346,29 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                             // it acts as a signal to reload the node
                             if (node.ID == response.newId) {
                                 $scope.loadNodeChildren(node.ID);
+                            }
+                        }
+                    }
+                    // otherwise we pasted from a drop
+                    else{
+                        // check if the placeholder is in the parent, and remove it
+                        var result = $.grep($scope.currentNode.Subitem, function(e) {
+                            return e.NodeType == 'Default';
+                        });
+                        var index = $scope.currentNode.Subitem.indexOf(result[0]);
+                        if (index>-1) {
+                            $scope.currentNode.Subitem.splice(index, 1);
+                            // placeholder means parent was an empty node
+                            $scope.currentNode.Subitem[0] = pastednode;
+                        }
+                        else{
+                            // find the DOM added node
+                            var result = $.grep($scope.currentNode.Subitem, function(e) {
+                                return e.destParent == $scope.currentNode.ID;
+                            });
+                            var index = $scope.currentNode.Subitem.indexOf(result[0]);
+                            if (index>-1) {
+                                $scope.currentNode.Subitem[index] = pastednode;
                             }
                         }
                     }

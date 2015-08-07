@@ -174,7 +174,9 @@
     <div id="costs" class="row">
         <div id="left">
             <div id="tree-outer">
-                <div ui-tree="treeOptions" expand-on-hover="true" id="tree-root">
+                <div ui-tree="treeOptions"
+                    expand-on-hover="true"
+                    id="tree-root">
                     <ol ui-tree-nodes="" ng-model="projectsRoot.Subitem">
                         <li ng-repeat="node in projectsRoot.Subitem"
                             data-type="{{node.NodeType}}"
