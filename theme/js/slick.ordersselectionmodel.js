@@ -2,11 +2,11 @@
   // register namespace
   $.extend(true, window, {
     "Slick": {
-      "CustomSelectionModel": CustomSelectionModel
+      "OrdersSelectionModel": OrdersSelectionModel
     }
   });
 
-  function CustomSelectionModel(options) {
+  function OrdersSelectionModel(options) {
     var _grid;
     var _ranges = [];
     var _self = this;
@@ -103,9 +103,9 @@
 
     function handleKeyDown(e) {
       var activeRow = _grid.getActiveCell();
-      _ctrlClick = false;
+
       if (activeRow && e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && (e.which == 38 || e.which == 40)) {
-        _ctrlClick = true;
+
         var selectedRows = getSelectedRows();
         selectedRows.sort(function (x, y) {
           return x - y
@@ -159,6 +159,7 @@
         selection.push(cell.row);
         _grid.setActiveCell(cell.row, cell.cell);
       } else if (idx !== -1 && (e.ctrlKey || e.metaKey)) {
+        _ctrlClick = true;
         selection = $.grep(selection, function (o, i) {
           return (o !== cell.row);
         });

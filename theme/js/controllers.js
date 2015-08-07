@@ -850,7 +850,9 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 // collapse the node on drag start
                 event.source.nodeScope.$modelValue.collapsed = false;
                 event.source.nodeScope.$modelValue.selected = undefined;
-                $scope.currentNode.selected = undefined;
+                if ($scope.currentNode){
+                    $scope.currentNode.selected = undefined;
+                }
             },
 
             dragStop: function(event) {
@@ -867,7 +869,9 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     parent.Subitem.splice(index, 0, sourceobject)
                     $scope.addNodeBack = false;
                 }
-                $scope.currentNode.selected = 'selected';
+                if ($scope.currentNode){
+                    $scope.currentNode.selected = 'selected';
+                }
             },
         };
 
@@ -1630,7 +1634,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                         method: 'DELETE',
                         url:globalServerURL + 'node/' + selectedRows[i].ID + '/'
                     }).success(function (response) {
-                        console.log(selectedRows[i].ID + " deleted");
                         // on the last loop reload the slickgrid and node
                         if (i == selectedRows.length-1) {
                             // if the deleted id equals the selected id
@@ -2401,6 +2404,24 @@ allControllers.controller('ordersController', ['$scope', '$http', 'globalServerU
             }
             else {
                 selectedNode.collapsed = false;
+            }
+        };
+
+        $scope.toggleRowsSelected = function(rowsselected) {
+            $timeout(function() {
+                $scope.rowsSelected = rowsselected;
+            });
+        }
+
+        $scope.deleteSelectedRecords = function() {
+            // all the currently selected records in the slickgrid are
+            // removed from the budgetitem list
+            if ($scope.rowsSelected) {
+                var selectedRows = $scope.getSelectedNodes()
+                for (var i in selectedRows) {
+                    $scope.removeBudgetItem(selectedRows[i]);
+                }
+                $scope.clearSelectedRows();
             }
         };
 

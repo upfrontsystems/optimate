@@ -213,7 +213,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
             dataView = new Slick.Data.DataView();
             dataView.getItemMetadata = getItemMetaData;
             grid = new Slick.Grid("#optimate-data-grid", dataView, columns, options);
-            grid.setSelectionModel(new Slick.CustomSelectionModel());
+            grid.setSelectionModel(new Slick.ProjectsSelectionModel());
 
             // render the grid with the given columns and data
             var renderGrid = function(columns, data) {
@@ -528,7 +528,6 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
                     dataView.deleteItem(nodearray[i].ID);
                 }
                 grid.invalidate();
-                grid.render();
             };
         }
     }
@@ -655,7 +654,7 @@ allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedSer
             dataView = new Slick.Data.DataView();
             dataView.getItemMetadata = getItemMetaData;
             grid = new Slick.Grid("#budgetitem-data-grid", dataView, columns, options);
-            grid.setSelectionModel(new Slick.CellSelectionModel());
+            grid.setSelectionModel(new Slick.OrdersSelectionModel());
             // resize the slickgrid when modal is shown
             $('#saveOrderModal').on('shown.bs.modal', function() {
                  grid.init();
@@ -761,7 +760,7 @@ allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedSer
                     dataView.beginUpdate();
                     dataView.setItems(gridlist);
                     dataView.endUpdate();
-                    grid.render();
+                    grid.invalidate();
                 }
             }, true);
 
@@ -791,6 +790,42 @@ allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedSer
                 $timeout(function() {
                     grid.resizeCanvas();
                 });
+            };
+
+            var rowsSelected = false;
+            grid.onSelectedRowsChanged.subscribe(function(e, args) {
+                var selectedrows = grid.getSelectedRows();
+                if (selectedrows.length > 0) {
+                    var selectedRowIds = dataView.mapRowsToIds(selectedrows);
+                    if ((selectedRowIds.length > 0) && grid.getSelectionModel().ctrlClicked()) {
+                        rowsSelected = true;
+                    }
+                    else {
+                        rowsSelected = false;
+                    }
+                }
+                else {
+                    rowsSelected = false;
+                }
+                $scope.toggleRowsSelected(rowsSelected);
+            });
+
+            $scope.getSelectedNodes = function() {
+                var ids = dataView.mapRowsToIds(grid.getSelectedRows());
+                var selectedNodes = [];
+                for (var i in ids) {
+                    var node = dataView.getItemById(ids[i]);
+                    if (!node.isparent) {
+                        selectedNodes.push(node);
+                    }
+                }
+                return selectedNodes;
+            }
+
+            $scope.clearSelectedRows = function(){
+                $scope.rowsSelected = false;
+                grid.setSelectedRows([]);
+                grid.render();
             };
         }
     }

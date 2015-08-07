@@ -1846,6 +1846,8 @@ def orderview(request):
     for orderitem in order.OrderItems:
         if orderitem.BudgetItem:
             budgetitemslist.append(orderitem.dict())
+        else:
+            DBSession.delete(orderitem)
 
     budgetitemslist = sorted(budgetitemslist, key=lambda k: k['Name'].upper())
     # get the date in json format
