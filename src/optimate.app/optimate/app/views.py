@@ -590,7 +590,14 @@ def node_budgetgroups(request):
             total_str = str(total.quantize(Decimal('.01')))
             data['AmountComplete'] = total_str
             data['PercentageComplete'] = str(vi.PercentageComplete)
-            itemlist.append(data)
+            parent = DBSession.query(Node).filter_by(ID=bg.ParentID).first()
+            if parent.type == 'Project':
+                data['level'] = '1'
+                itemlist.append(data)                
+            else:
+                # at the moment, do not include level two items,
+                # let user see them by expanding the parent node
+                data['level'] = '2'
 
     return itemlist
 
@@ -618,17 +625,26 @@ def node_expand_budgetgroup(request):
         return blist
 
     sorted_bgroups = sorted(bgroups, key=lambda k: k.Name.upper())
-    bgroups_dicts = [x.dict() for x in sorted_bgroups]
-    if int(bgroups_dicts[0]['ID']) in [x['ID'] for x in blist]:
+    if int(sorted_bgroups[0].dict()['ID']) in [x['ID'] for x in blist]:
         # make sure we are not trying to expand an expanded node
         print "DONT EXPAND AGAIN!"
         return blist
     children = []
-    for x in bgroups_dicts:
+    for bg in sorted_bgroups:
+        x = bg.dict()
         x['level'] = u'2'
         x['Name'] = ' - ' + x['Name']
         x['NodeType'] = 'ValuationItem'
-        x['PercentageComplete'] = 0
+        vi = DBSession.query(ValuationItem).filter_by(BudgetGroupID=bg.ID).first()
+        if vi:
+            # recalculate the amount complete
+            # get the latest 'budgetgroup total' from project's budgetgroup data
+            total = (bg.Total / 100) * vi.PercentageComplete
+            total_str = str(total.quantize(Decimal('.01')))
+            x['AmountComplete'] = total_str
+            x['PercentageComplete'] = str(vi.PercentageComplete)
+        else:
+            x['PercentageComplete'] = 0
         children.append(x)
 
     index_to_insert_after = [x['ID'] for x in blist].index(int(bg_id))
@@ -2082,7 +2098,17 @@ def valuationview(request):
     budgetgrouplist = []
     for valuationitem in valuation.ValuationItems:
         if valuationitem.BudgetGroup:
-            budgetgrouplist.append(valuationitem.dict())
+            data = valuationitem.dict()
+            bg = valuationitem.BudgetGroup
+#            import pdb; pdb.set_trace()
+            parent = DBSession.query(Node).filter_by(ID=bg.ParentID).first()
+            if parent.type == 'Project':
+                data['level'] = '1'
+                budgetgrouplist.append(data)
+            else:
+                # at the moment, do not include level two items,
+                # let user see them by expanding the parent node
+                data['level'] = '2'
 
     # get the date in json format
     jsondate = None

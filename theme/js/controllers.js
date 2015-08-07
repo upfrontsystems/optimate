@@ -2968,12 +2968,12 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                     url:globalServerURL + 'node/' + $scope.formData['ProjectID'] + '/expand_budgetgroup/' + selectedRows[i].ID,
                     data: {'budgetgroupList': $scope.budgetgroupList},
                 }).success(function (response) {
-                    // on the last loop reload the slickgrid and node
                     $scope.budgetgroupList = response
-                    console.log($scope.budgetgroupList)
-                    // on the last loop reload the slickgrid and node
-                    $scope.toggleRowsSelected(false);
-                    $scope.handleReloadValuationSlickgrid();
+                    if (i == selectedRows.length-1) {
+                        // on the last loop reload the slickgrid and node
+                        $scope.toggleRowsSelected(false);
+                        $scope.handleReloadValuationSlickgrid();
+                    }
                 });
             }
         };
@@ -2987,11 +2987,13 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                     data: {'budgetgroupList': $scope.budgetgroupList},
                 }).success(function (response) {
                     // on the last loop reload the slickgrid and node
-                    $scope.budgetgroupList = response
-                    console.log($scope.budgetgroupList)
+                    $scope.budgetgroupList = response                    
                     // on the last loop reload the slickgrid and node
-                    $scope.toggleRowsSelected(false);
-                    $scope.handleReloadValuationSlickgrid();
+                    if (i == selectedRows.length-1) {
+                        // on the last loop reload the slickgrid and node
+                        $scope.toggleRowsSelected(false);
+                        $scope.handleReloadValuationSlickgrid();
+                    }
                 });
             }
         };
