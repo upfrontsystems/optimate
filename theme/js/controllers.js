@@ -849,6 +849,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             dragStart: function(event){
                 // collapse the node on drag start
                 event.source.nodeScope.$modelValue.collapsed = false;
+                event.source.nodeScope.$modelValue.selected = undefined;
+                $scope.currentNode.selected = undefined;
             },
 
             dragStop: function(event) {
@@ -865,6 +867,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     parent.Subitem.splice(index, 0, sourceobject)
                     $scope.addNodeBack = false;
                 }
+                $scope.currentNode.selected = 'selected';
             },
         };
 
