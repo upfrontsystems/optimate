@@ -24,6 +24,7 @@
 </div>
 <ol ui-tree-nodes ng-model="node.Subitem" data-ng-hide="!node.collapsed" data-type="{{node.NodeType}}">
     <li ng-repeat="node in node.Subitem"
+        data-ng-class="{'node-cut': node.cut}"
         data-type="{{node.NodeType}}"
         ui-tree-node
         ng-include="'partials/angularTree.html'">

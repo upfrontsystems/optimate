@@ -1286,20 +1286,37 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
         // Function to copy a node
         $scope.copyThisNode = function(node) {
+            if ($scope.copiedNode){
+                $scope.copiedNode.cut = false;
+            }
+            if ($scope.copiedRecords){
+                for (var i in $scope.copiedRecords)
+                    $scope.copiedRecords[i].cut = false;
+            }
             $scope.statusMessage(node.Name + " copied.", 2000, 'alert-info');
+            node.cut = false;
             $scope.copiedNode = node;
-            $scope.cut = false;
             console.log("Node id copied: " + node.ID);
         }
 
         // Function to cut a node
-        // the node is removed from the tree (but not deleted)
+        // the node is styled to be transparent
         $scope.cutThisNode = function(node) {
+            if ($scope.copiedNode){
+                $scope.copiedNode.cut = false;
+            }
+            if ($scope.copiedRecords){
+                for (var i in $scope.copiedRecords)
+                    $scope.copiedRecords[i].cut = false;
+            }
             $scope.statusMessage(node.Name + " cut.", 2000, 'alert-info');
+            node.cut = true;
             $scope.copiedNode = node;
+            // put the current node's parent in scope
+            if ($scope.currentNodeScope.$nodeScope.$parentNodeScope){
+                $scope.cutScope = $scope.currentNodeScope.$nodeScope.$parentNodeScope.$modelValue;
+            }
             console.log("Node id cut: " + node.ID);
-            $scope.cut = true;
-            $scope.nodeDeleted();
         }
 
         // handle pasting nodes
@@ -1308,7 +1325,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 method: 'POST',
                 url: globalServerURL + 'node/' + node.ID + '/paste/',
                 data:{'ID': $scope.copiedNode.ID,
-                        'cut': $scope.cut,
+                        'cut': $scope.copiedNode.cut,
                         'duplicates': selectionlist}
             }).success(function (response) {
                 console.log('Success: Node pasted');
@@ -1316,7 +1333,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 if ($scope.currentNode.Subitem.length == 0) {
                     $scope.currentNode.collapsed = true;
                 }
-
                 // if a project was pasted into the root
                 if ($scope.copiedNode.NodeType === 'Project') {
                     var newprojectid = response.newId;
@@ -1327,6 +1343,20 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 else if (index !== undefined) {
                     // if we pasted the last node of the copied records
                     if (index == $scope.copiedRecords.length-1) {
+                        // if the nodes were cut remove them from their parent
+                        if ($scope.copiedNode.cut){
+                            for (var i in $scope.copiedRecords){
+                                var result = $.grep($scope.cutScope.Subitem, function(e) {
+                                    return e.ID == $scope.copiedRecords[i].ID;
+                                });
+                                var index = $scope.cutScope.Subitem.indexOf(result[0]);
+                                if (index>-1) {
+                                    $scope.cutScope.Subitem.splice(index, 1);
+                                }
+                            }
+                            $scope.cutScope = undefined;
+                        }
+                        $scope.copiedRecords = undefined;
                         $scope.statusMessage("Records pasted.", 2000, 'alert-info');
                         $scope.handleReloadSlickgrid(node.ID);
                         $scope.loadNodeChildren(node.ID);
@@ -1339,6 +1369,16 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     // all the children of the parent
                     var pastednode = response['node'];
                     if (!$scope.pastingFromDnd) {
+                        // if the node was cut, remove it from its parent
+                        if ($scope.copiedNode.cut){
+                            var result = $.grep($scope.cutScope.Subitem, function(e) {
+                                return e.ID == $scope.copiedNode.ID;
+                            });
+                            var index = $scope.cutScope.Subitem.indexOf(result[0]);
+                            if (index>-1) {
+                                $scope.cutScope.Subitem.splice(index, 1);
+                            }
+                        }
                         if (pastednode) {
                             // insert the newly created node in the correct place
                             var start = 0;
@@ -1381,6 +1421,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     }
                     $scope.pastingFromDnd = false;
                 }
+                $scope.copiedNode = undefined;
             }).error(function() {
                 console.log("Server error");
                 $scope.statusMessage("Server error.", 2000, 'alert-warning');
@@ -1475,7 +1516,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                     $scope.resolvePastePromise(node, index);
                 }
             }
-            if ($scope.cut) {
+            if (cnode.cut) {
                 $scope.statusMessage("Busy moving...", 0, 'alert-info');
             }
             else {
@@ -1575,6 +1616,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         $scope.copySelectedRecords = function(node) {
             // put the id's of the selected records in an array
             if ($scope.rowsSelected) {
+                $scope.cutScope = $scope.currentNode;
                 $scope.toggleCopiedRecords($scope.getSelectedNodes(), false);
                 $scope.copiedNode = {'NodeType': 'Records'};
                 console.log("Records copied");
@@ -1585,26 +1627,13 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         $scope.cutSelectedRecords = function(node) {
             // put the id's of the selected records in an array
             if ($scope.rowsSelected) {
+                // put the current node, the parent, in scope
+                $scope.cutScope = $scope.currentNode;
                 var selectedRows = $scope.getSelectedNodes();
                 $scope.toggleCopiedRecords(selectedRows, true);
                 $scope.copiedNode = {'NodeType': 'Records'};
                 // remove rows from slickgrid
                 $scope.cutSelectedNodes(selectedRows);
-                // get node in scope and remove
-                if (selectedRows[0].ID == node.ID) {
-                    $scope.nodeDeleted()
-                }
-                else {
-                    for (var i in selectedRows) {
-                        var result = $.grep($scope.currentNode.Subitem, function(e) {
-                            return e.ID == selectedRows[i].ID;
-                        });
-                        var index = $scope.currentNode.Subitem.indexOf(result[0]);
-                        if (index>-1) {
-                            $scope.currentNode.Subitem.splice(index, 1);
-                        }
-                    }
-                }
                 console.log("Records cut");
                 $scope.statusMessage("Records cut.", 2000, 'alert-info');
             }
@@ -1660,8 +1689,24 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         }
 
         $scope.toggleCopiedRecords = function(copiedrecords, cut) {
+            if ($scope.copiedNode){
+                $scope.copiedNode.cut = false;
+            }
+            if ($scope.copiedRecords){
+                for (var i in $scope.copiedRecords)
+                    $scope.copiedRecords[i].cut = false;
+            }
             $scope.copiedRecords = copiedrecords;
-            $scope.cut = cut;
+            for (var i in $scope.copiedRecords){
+                $scope.copiedRecords[i].cut = cut;
+                var result = $.grep($scope.cutScope.Subitem, function(e) {
+                    return e.ID == $scope.copiedRecords[i].ID;
+                });
+                var index = $scope.cutScope.Subitem.indexOf(result[0]);
+                if (index>-1) {
+                    $scope.cutScope.Subitem[index].cut = cut;
+                }
+            }
         }
 
         $scope.openNodeList = [];

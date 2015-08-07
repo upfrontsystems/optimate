@@ -399,3 +399,8 @@ td > input:disabled {
     border: none;
 }
 
+/* cut nodes have an opacity of 50% */
+.node-cut {
+    opacity: 0.5;
+}
+
