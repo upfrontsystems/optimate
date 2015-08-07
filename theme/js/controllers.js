@@ -2973,7 +2973,25 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
                     // on the last loop reload the slickgrid and node
                     $scope.toggleRowsSelected(false);
                     $scope.handleReloadValuationSlickgrid();
+                });
+            }
+        };
 
+        $scope.collapseBudgetGroupsGrid = function() {
+            var selectedRows = $scope.getSelectedNodes()
+            console.log("Collapse Budget Groups grid")
+            for (var i in selectedRows) {
+                $http({
+                    method: 'POST',
+                    url:globalServerURL + 'node/' + $scope.formData['ProjectID'] + '/collapse_budgetgroup/' + selectedRows[i].ID,
+                    data: {'budgetgroupList': $scope.budgetgroupList},
+                }).success(function (response) {
+                    // on the last loop reload the slickgrid and node
+                    $scope.budgetgroupList = response
+                    console.log($scope.budgetgroupList)
+                    // on the last loop reload the slickgrid and node
+                    $scope.toggleRowsSelected(false);
+                    $scope.handleReloadValuationSlickgrid();
                 });
             }
         };

@@ -574,15 +574,6 @@ def node_budgetgroups(request):
             data['PercentageComplete'] = 0
             data['level'] = '1'
             itemlist.append(data)
-    #        # add the children (level2 budgetgroups) if they exist
-    #        if len(bg.Children) != 0:
-    #            sorted_children = sorted(bg.Children, key=lambda k: k.Name.upper())
-    #            for child in sorted_children:
-    #                if child.type == 'BudgetGroup':
-    #                    data = child.dict()
-    #                    data['NodeType'] = 'ValuationItem'
-    #                    data['level'] = '2'
-    #                    itemlist.append(data)
     else:
         # get the data from an existing & most recent valuation for this project
         for vi in most_recent_valuation.ValuationItems:
@@ -604,7 +595,12 @@ def node_budgetgroups(request):
 
 @view_config(route_name="node_expand_budgetgroup", renderer='json')
 def node_expand_budgetgroup(request):
-    """ 
+    """ this method manipulates a list of budgetgroup entries as used by
+        the valuationsgrid in add/edit valuation form
+        if target node is a top level node and contains children:                
+        return the list of budgetgroups with children of target node included
+        in the list, the position of the children in the list is following the
+        parent (target)
     """
     proj_id = request.matchdict['id']
     bg_id = request.matchdict['bg_id']
@@ -622,15 +618,15 @@ def node_expand_budgetgroup(request):
     print len(blist)
     sorted_bgroups = sorted(bgroups, key=lambda k: k.Name.upper())
     bgroups_dicts = [x.dict() for x in sorted_bgroups]
+    if int(bgroups_dicts[0]['ID']) in [x['ID'] for x in blist]:
+        # make sure we are not trying to expand an expanded node
+        print "DONT EXPAND AGAIN!"
+        return blist
     children = []
     for x in bgroups_dicts:
         x['level'] = u'2'
         x['Name'] = ' - ' + x['Name']
         children.append(x)
-    if int(children[0]['ID']) in [x['ID'] for x in blist]:
-        # make sure we are not trying to expand an expanded node
-        print "DONT EXPAND AGAIN!"
-        return blist
 
     index_to_insert_after = [x['ID'] for x in blist].index(int(bg_id))
     # inject bgroups into blist after the parent node that was expanded
@@ -640,6 +636,41 @@ def node_expand_budgetgroup(request):
     result = start + children + end
 
     return result
+
+
+@view_config(route_name="node_collapse_budgetgroup", renderer='json')
+def node_collapse_budgetgroup(request):
+    """ 
+    """
+    proj_id = request.matchdict['id']
+    bg_id = request.matchdict['bg_id']
+    blist = request.json_body.get('budgetgroupList', '')
+    project = DBSession.query(Node).filter_by(ID=proj_id).first()
+    parent = DBSession.query(Node).filter_by(ID=bg_id).first()
+    if blist[[x['ID'] for x in blist].index(int(bg_id))]['level'] != '1':
+        # only allow collapse of top level nodes
+        print "COLLAPSE OF INNER NODES NOT ALLOWED"
+        return blist
+
+    bgroups = parent.Children
+    if not bgroups:
+        # level1 node didnt have any children to collapse
+        return blist
+
+    sorted_bgroups = sorted(bgroups, key=lambda k: k.Name.upper())
+    bgroups_dicts = [x.dict() for x in sorted_bgroups]
+
+    if int(bgroups_dicts[0]['ID']) not in [x['ID'] for x in blist]:
+        # make sure we are not trying to collapse a collapsed node
+        print "DONT COLLAPSE AGAIN!"
+        return blist
+
+    for bgroup in bgroups_dicts:
+        delete_index = [x['ID'] for x in blist].index(int(bgroup['ID']))
+        del blist[delete_index]
+
+    print len(blist)
+    return blist
 
 
 @view_config(route_name="projects", renderer='json')
