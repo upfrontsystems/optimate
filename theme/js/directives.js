@@ -28,8 +28,8 @@ allControllers.directive('customModals', function ($http, $compile, globalServer
 });
 
 // Directive for the project slickgrid
-allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedService', '$http',
-    function(globalServerURL, sharedService, $http) {
+allControllers.directive('projectslickgridjs', ['globalServerURL', '$http',
+    function(globalServerURL, $http) {
     return {
         require: '?ngModel',
         restrict: 'E',
@@ -533,8 +533,8 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', 'sharedServic
     }
 }]);
 
-allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedService', '$http', '$timeout',
-    function(globalServerURL, sharedService, $http, $timeout) {
+allControllers.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout',
+    function(globalServerURL, $http, $timeout) {
     return {
         require: '?ngModel',
         restrict: 'E',
@@ -832,8 +832,8 @@ allControllers.directive('budgetitemslickgridjs', ['globalServerURL', 'sharedSer
 }]);
 
 
-allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', 'sharedService', '$http', '$timeout',
-    function(globalServerURL, sharedService, $http, $timeout) {
+allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout',
+    function(globalServerURL, $http, $timeout) {
     return {
         require: '?ngModel',
         restrict: 'E',
