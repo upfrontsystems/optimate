@@ -572,7 +572,7 @@ def node_budgetgroups(request):
             data = bg.dict()
             data['NodeType'] = 'ValuationItem'
             data['PercentageComplete'] = 0
-    #        data['level'] = '1'
+            data['level'] = '1'
             itemlist.append(data)
     #        # add the children (level2 budgetgroups) if they exist
     #        if len(bg.Children) != 0:
@@ -606,18 +606,40 @@ def node_budgetgroups(request):
 def node_expand_budgetgroup(request):
     """ 
     """
-    # budgetgrouplist is a parameter
-    # nodeid is a parameter
     proj_id = request.matchdict['id']
     bg_id = request.matchdict['bg_id']
     blist = request.json_body.get('budgetgroupList', '')
     project = DBSession.query(Node).filter_by(ID=proj_id).first()
-    bgroups = DBSession.query(Node).filter_by(ID=bg_id).first().Children
+    parent = DBSession.query(Node).filter_by(ID=bg_id).first()
+    if blist[[x['ID'] for x in blist].index(int(bg_id))]['level'] != '1':
+        # only allow expansion of top level nodes
+        print "EXPANSION OF INNER NODES NOT ALLOWED"
+        return blist
+    bgroups = parent.Children
     if not bgroups:
-        import pdb; pdb.set_trace()
-        return blist # XXX TEST THIS!!!
+        return blist
 
-    return blist
+    print len(blist)
+    sorted_bgroups = sorted(bgroups, key=lambda k: k.Name.upper())
+    bgroups_dicts = [x.dict() for x in sorted_bgroups]
+    children = []
+    for x in bgroups_dicts:
+        x['level'] = u'2'
+        x['Name'] = ' - ' + x['Name']
+        children.append(x)
+    if int(children[0]['ID']) in [x['ID'] for x in blist]:
+        # make sure we are not trying to expand an expanded node
+        print "DONT EXPAND AGAIN!"
+        return blist
+
+    index_to_insert_after = [x['ID'] for x in blist].index(int(bg_id))
+    # inject bgroups into blist after the parent node that was expanded
+    start = blist[0:index_to_insert_after+1] # XXX must check this
+    end = blist[index_to_insert_after+1:]
+    # inject bgroups into blist after
+    result = start + children + end
+
+    return result
 
 
 @view_config(route_name="projects", renderer='json')

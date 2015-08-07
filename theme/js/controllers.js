@@ -2978,8 +2978,6 @@ allControllers.controller('valuationsController', ['$scope', '$http', 'globalSer
             }
         };
 
-//$scope.formData['BudgetGroupList']
-
         $scope.getReport = function (report) {
             if ( report == 'valuation' ) {
                 var target = document.getElementsByClassName('pdf_download');
