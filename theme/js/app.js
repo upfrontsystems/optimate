@@ -1,6 +1,6 @@
 "use strict";
 var myApp = angular.module('myApp', [
-                    'allControllers',
+                    'config',
                     'ngRoute',
                     'ui.bootstrap',
                     'ui.tree',

@@ -1,13 +1,13 @@
 <script type="text/ng-template" id="angularOrderTree.html">
   <div ui-tree-handle class="tree-node order-tree-node-content">
       <input type="button"
-          class="tree-control collapsed"
-          data-ng-show="node.Subitem.length && node.collapsed"
+          class="tree-control expanded"
+          data-ng-show="node.Subitem.length && node.expanded"
           data-ng-click="selectNodeHead(node)">
       </input>
       <input type="button"
-          class="tree-control expanded"
-          data-ng-show="node.Subitem.length && !node.collapsed"
+          class="tree-control collapsed"
+          data-ng-show="node.Subitem.length && !node.expanded"
           data-ng-click="selectNodeHead(node)">
       </button>
       <input type="button"
@@ -34,7 +34,7 @@
           </i>
       </button>
   </div>
-  <ol ui-tree-nodes ng-model="node.Subitem" data-ng-hide="!node.collapsed" data-type="{{node.NodeType}}">
+  <ol ui-tree-nodes ng-model="node.Subitem" data-ng-hide="!node.expanded" data-type="{{node.NodeType}}">
       <li ng-repeat="node in node.Subitem"
           data-type="{{node.NodeType}}"
           ui-tree-node

@@ -1,6 +1,3 @@
-// angular module that contains all the controllers
-var allControllers = angular.module('allControllers', ['config']);
-
 function toggleMenu(itemclass) {
     $("ul.nav li").removeClass("active");
     $("li."+itemclass).toggleClass("active");
@@ -21,10 +18,10 @@ var duplicateModalController = function ($scope, $modalInstance, selections) {
     };
 };
 
-angular.module('allControllers').controller('duplicateModalController', duplicateModalController);
+angular.module('myApp').controller('duplicateModalController', duplicateModalController);
 
 // Controller for the projects and treeview
-allControllers.controller('projectsController',['$scope', '$http', '$cacheFactory', 'globalServerURL', '$timeout', '$modal',
+myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'globalServerURL', '$timeout', '$modal',
     function($scope, $http, $cacheFactory, globalServerURL, $timeout, $modal) {
 
         toggleMenu('projects');
@@ -269,7 +266,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 var original = $scope.dragOverNode.original || {'Subitem': undefined};
                 if (original.Subitem != undefined) {
                     $scope.dragOverNode.copy.Subitem = original.Subitem;
-                    // $scope.dragOverNode.copy.collapsed = $scope.dragOverNode.original.collapsed;
+                    // $scope.dragOverNode.copy.expanded = $scope.dragOverNode.original.expanded;
                 }
             }
             // reset original node values
@@ -280,16 +277,16 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             // if the current node has no children add a dummy child
             if ($scope.dragOverNode.copy.Subitem.length == 0) {
                 $scope.dragOverNode.original.Subitem = [];
-                // $scope.dragOverNode.original.collapsed = false;
+                // $scope.dragOverNode.original.expanded = false;
                 $scope.dragOverNode.copy.Subitem.push({'Name': '', 'NodeType': 'Default'});
-                // $scope.dragOverNode.copy.collapsed = true;
+                // $scope.dragOverNode.copy.expanded = true;
             }
             // if the node is collapsed clear the children name
-            // else if (!$scope.dragOverNode.copy.collapsed) {
+            // else if (!$scope.dragOverNode.copy.expanded) {
             //     $scope.dragOverNode.original.Subitem = [{'Name': '...', 'NodeType': 'Default'}];
-            //     // $scope.dragOverNode.original.collapsed = false;
+            //     // $scope.dragOverNode.original.expanded = false;
             //     $scope.dragOverNode.copy.Subitem[0].Name = '';
-            //     // $scope.dragOverNode.copy.collapsed = true;
+            //     // $scope.dragOverNode.copy.expanded = true;
             // }
         }
 
@@ -391,7 +388,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
             dragStart: function(event){
                 // collapse the node on drag start
-                event.source.nodeScope.$modelValue.collapsed = false;
+                event.source.nodeScope.$modelValue.expanded = false;
                 event.source.nodeScope.$modelValue.selected = undefined;
                 if ($scope.currentNode){
                     $scope.currentNode.selected = undefined;
@@ -422,8 +419,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         // and collapse or expand the node
         $scope.selectNodeHead = function(selectedNode) {
             // if the node is collapsed, get the data and expand the node
-            if (!selectedNode.collapsed) {
-                selectedNode.collapsed = true;
+            if (!selectedNode.expanded) {
+                selectedNode.expanded = true;
                 var parentid = selectedNode.ID;
                 $http.get(globalServerURL + 'node/' + parentid + '/children/').success(function(data) {
                     selectedNode.Subitem = data;
@@ -431,7 +428,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 });
             }
             else {
-                selectedNode.collapsed = false;
+                selectedNode.expanded = false;
             }
         };
 
@@ -609,7 +606,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
             $scope.handleReloadSlickgrid(node.ParentID)
             // expand the node if this is its first child
             if ($scope.currentNode.Subitem.length == 0) {
-                $scope.currentNode.collapsed = true;
+                $scope.currentNode.expanded = true;
             }
             // insert the newly created node in the correct place
             var start = 0;
@@ -873,7 +870,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 console.log('Success: Node pasted');
                 // expand the node if this is its first child
                 if ($scope.currentNode.Subitem.length == 0) {
-                    $scope.currentNode.collapsed = true;
+                    $scope.currentNode.expanded = true;
                 }
                 // if a project was pasted into the root
                 if ($scope.copiedNode.NodeType === 'Project') {
@@ -1334,8 +1331,8 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
         // and collapse or expand the node
         $scope.selectReportNodeHead = function(selectedNode) {
             // if the node is collapsed, get the data and expand the node
-            if (!selectedNode.collapsed) {
-                selectedNode.collapsed = true;
+            if (!selectedNode.expanded) {
+                selectedNode.expanded = true;
                 var parentid = selectedNode.ID;
                 $http.get(globalServerURL + "reports/tree/" + parentid + '/').success(function(data) {
                     selectedNode.Subitem = data;
@@ -1343,7 +1340,7 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
                 });
             }
             else {
-                selectedNode.collapsed = false;
+                selectedNode.expanded = false;
             }
         };
 
@@ -1353,6 +1350,6 @@ allControllers.controller('projectsController',['$scope', '$http', '$cacheFactor
 
 }]);
 
-allControllers.run(['$cacheFactory', function($cacheFactory) {
+myApp.run(['$cacheFactory', function($cacheFactory) {
     $cacheFactory('optimate.resources')
 }]);

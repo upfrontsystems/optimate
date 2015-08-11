@@ -1,6 +1,6 @@
 // Directive for the custom modals, the html for the relevant modal is loaded
 // from the directive attribute and compiled
-allControllers.directive('customModals', function ($http, $compile, globalServerURL) {
+myApp.directive('customModals', function ($http, $compile, globalServerURL) {
     return {
         restrict: 'A',
         require: '?ngModel',
@@ -28,7 +28,7 @@ allControllers.directive('customModals', function ($http, $compile, globalServer
 });
 
 // Directive for the project slickgrid
-allControllers.directive('projectslickgridjs', ['globalServerURL', '$http',
+myApp.directive('projectslickgridjs', ['globalServerURL', '$http',
     function(globalServerURL, $http) {
     return {
         require: '?ngModel',
@@ -533,7 +533,7 @@ allControllers.directive('projectslickgridjs', ['globalServerURL', '$http',
     }
 }]);
 
-allControllers.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout',
+myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout',
     function(globalServerURL, $http, $timeout) {
     return {
         require: '?ngModel',
@@ -832,7 +832,7 @@ allControllers.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '
 }]);
 
 
-allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout',
+myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout',
     function(globalServerURL, $http, $timeout) {
     return {
         require: '?ngModel',
@@ -1038,7 +1038,7 @@ allControllers.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', 
 }]);
 
 
-allControllers.directive('dateParser', dateParser);
+myApp.directive('dateParser', dateParser);
 function dateParser() {
     return {
         link: link,
@@ -1073,7 +1073,7 @@ function dateParser() {
 }
 
 /* directive for validating float types */
-allControllers.directive('smartFloat', function ($filter) {
+myApp.directive('smartFloat', function ($filter) {
     var FLOAT_REGEXP_1 = /^\$?\d+.(\d{3})*(\,\d*)$/; //Numbers like: 1.123,56
     var FLOAT_REGEXP_2 = /^\$?\d+,(\d{3})*(\.\d*)$/; //Numbers like: 1,123.56
     var FLOAT_REGEXP_3 = /^\$?\d+(\.\d*)?$/; //Numbers like: 1123.56
