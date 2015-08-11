@@ -1449,6 +1449,15 @@ class TestCopySuccessCondition(unittest.TestCase):
 
     def test_budgetgroup_in_project(self):
         _registerRoutes(self.config)
+        # check the destination project overheads
+        from optimate.app.views import project_overheads
+        request = testing.DummyRequest()
+        request.method = 'GET'
+        request.matchdict = {'id': 4}
+        response = project_overheads(request)
+        projectoverheads = DBSession.query(Overhead).filter_by(ProjectID=4).all()
+        self.assertEqual(len(response), len(projectoverheads))
+
         # set the default node to be copied
         # which is budgetgroup with id 2
         request = testing.DummyRequest(json_body={
@@ -1462,6 +1471,15 @@ class TestCopySuccessCondition(unittest.TestCase):
 
         # true if the response from paste view returns the new id
         self.assertEqual(response.keys(), ['node', 'newId'])
+
+        # check the destination project overheads has changed
+        request = testing.DummyRequest()
+        request.method = 'GET'
+        request.matchdict = {'id': 4}
+        response = project_overheads(request)
+        newprojectoverheads = DBSession.query(Overhead).filter_by(ProjectID=4).all()
+        self.assertNotEqual(len(newprojectoverheads), len(projectoverheads))
+        self.assertEqual(len(response), len(newprojectoverheads))
 
         # do another test to see if the children of the parent is now three
         # (two budgetgroups and the resourcecategory)

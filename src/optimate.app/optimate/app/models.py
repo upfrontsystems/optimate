@@ -734,6 +734,9 @@ class BudgetItem(Node):
                             ClientCost=self.ClientCost,
                             ProjectedProfit=self.ProjectedProfit,
                             ActualProfit=self.ActualProfit)
+        # add the overheads
+        copied.Overheads = self.Overheads
+
         return copied
 
     def order(self):

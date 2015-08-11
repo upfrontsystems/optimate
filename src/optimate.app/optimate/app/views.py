@@ -1180,27 +1180,28 @@ def node_paste(request):
                                 budgetitem.Resource.ID] = copiedresource.ID
 
                 # get the budgetitems that were pasted
-                destbudgetitems = dest.getBudgetItems()
-                # change the resource ids of budgetitems who were copied
+                destbudgetitems = copy_of_source.getBudgetItems()
+                projectoverheads = DBSession.query(Overhead
+                        ).filter_by(ProjectID=projectid).all()
+
                 for budgetitem in destbudgetitems:
                     if budgetitem.ResourceID in copiedresourceIds:
                         budgetitem.ResourceID = copiedresourceIds[
                                                     budgetitem.ResourceID]
 
-                # # copy the overheads the budgetitems use into the project
-                # overheadids = {}
-                # for budgetitem in sourcebudgetitems:
-                #     for overhead in budgetitem.Overheads:
-                #         if overhead.ID not in overheadids.keys():
-                #             newoverhead = overhead.copy(destprojectid)
-                #             DBSession.add(newoverhead)
-                #             DBSession.flush()
-                #             overheadids[overhead.ID] = newoverhead
-
-                # for budgetitem in destbudgetitems:
-                #     for overhead in budgetitem.Overheads:
-                #         if overhead.ID in overheadids.keys():
-                #             # replace the overhead with the copied one
+                    # replace the overheads in the copied budgetitems with
+                    # the overheads in the project
+                    originaloverheads = budgetitem.Overheads
+                    for overhead in originaloverheads:
+                        if overhead in projectoverheads:
+                            budgetitem.Overheads.remove(overhead)
+                            projectoverhead = projectoverheads[
+                                                projectoverheads.index(overhead)]
+                            budgetitem.Overheads.append(projectoverhead)
+                        else:
+                            budgetitem.Overheads.remove(overhead)
+                            newoverhead = overhead.copy(projectid)
+                            budgetitem.Overheads.append(newoverhead)
 
             # update parent total
             dest.Total = dest.Total + source.Total
@@ -1231,8 +1232,7 @@ def node_paste(request):
     transaction.commit()
     # return the new id
     if pasted_id and node_pasted:
-        node = DBSession.query(Node).filter_by(ID=pasted_id).first()
-        data = node.dict()
+        data = DBSession.query(Node).filter_by(ID=pasted_id).first().dict()
     else:
         data = None
 
