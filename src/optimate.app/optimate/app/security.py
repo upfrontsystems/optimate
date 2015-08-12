@@ -2,6 +2,7 @@ import json
 from base64 import b64encode, b64decode
 from Crypto.Hash import HMAC, SHA
 from uuid import uuid4
+from pyramid.decorator import reify
 from pyramid.security import Allow, Deny, Everyone
 from pyramid.authentication import CallbackAuthenticationPolicy
 from pyramid.view import view_config
@@ -102,6 +103,35 @@ class Public(object):
     __acl__ = [
         (Allow, Everyone, 'view')]
 
+class ProtectedFunction(object):
+    """ Security context that looks up users and roles that may access a
+        particular function, and whether to allow view and/or edit. """
+    def __init__(self, request, function=None):
+        if function is None:
+            function = request.matched_route.name
+        self.function = function
+
+    @reify
+    def __acl__(self):
+        # FIXME look up users for function here
+        users_with_view = ['admin']
+        users_with_edit = ['admin']
+
+        # Ensure that editors are also viewers
+        users_with_edit = dict.fromkeys(
+            users_with_edit + users_with_view).keys()
+
+        return [(Allow, u'user:{}'.format(u), 'view')
+            for u in users_with_view] + [
+            (Allow, u'user:{}'.format(u), 'edit')
+            for u in users_with_edit] + [
+            (Allow, Administrator, 'view'), # Always allow Admin and Manager
+            (Allow, Manager, 'view'),
+            (Allow, Administrator, 'edit'),
+            (Allow, Manager, 'edit'),
+            (Deny, Everyone, 'view') # Catch-all, must be last.
+        ]
+
 def makeProtected(*roles):
     """
         Factory for protected security contexts, use it to restrict 'view'
@@ -121,3 +151,12 @@ def makePublic(r):
         >>>     factory=makePublic)
     """
     return Public()
+
+def makeProtectedFunction(function):
+    """
+        Factory for security contexts that protect particular functions.
+        Example route registration:
+        >>> config.add_route('orders', '/orders',
+        >>>     factory=makeProtectedFunction('orders'))
+    """
+    return lambda r: ProtectedFunction(r, function)
