@@ -86,11 +86,19 @@ either `view` or `edit` (which will implicitly include `view`).
 
 We need a factory that takes:
 1. Name of function (eg projects, orders, claims).
+   1.1. In the absense of a function, we can default to
+   request.matched_route.name, that is the name of the route.
 2. A way to assign functions to users (TODO)
 3. factory will look up function string in database and obtain a list
    of users.
 4. Factory will construct a list of roles of the form `user:username` and
    create a security context.
+
+### Implementation
+makeProtectedFunction:
+    Pass a function name. It will look it up in the database, determine what
+    users have access, and construct the relevant acl list.
+
 
 Finest-level permissions
 ------------------------
