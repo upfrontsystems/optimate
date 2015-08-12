@@ -13,6 +13,7 @@ from optimate.app.security import (
     OAuthPolicy,
     makePublic,
     makeProtected,
+    makeProtectedFunction,
     Authenticated,
     Administrator)
 from optimate.app.models import (
@@ -92,14 +93,14 @@ def main(global_config, **settings):
     config.add_route('cityview', '/city/{id}/')
 
     # orders and invoices
-    config.add_route('ordersview', '/orders')
-    config.add_route('orderview', '/order/{id}/')
-    config.add_route('orders_length', '/orders/length')
-    config.add_route('orders_filter', '/orders/filter')
-    config.add_route('orders_tree_view', '/orders/tree/{id}/')
-    config.add_route('invoicesview', '/invoices')
-    config.add_route('invoices_filter', '/invoices/filter')
-    config.add_route('invoiceview', '/invoice/{id}/')
+    config.add_route('ordersview', '/orders', factory=makeProtectedFunction('orders'))
+    config.add_route('orderview', '/order/{id}/', factory=makeProtectedFunction('orders'))
+    config.add_route('orders_length', '/orders/length', factory=makeProtectedFunction('orders'))
+    config.add_route('orders_filter', '/orders/filter', factory=makeProtectedFunction('orders'))
+    config.add_route('orders_tree_view', '/orders/tree/{id}/', factory=makeProtectedFunction('orders'))
+    config.add_route('invoicesview', '/invoices', factory=makeProtectedFunction('orders'))
+    config.add_route('invoices_filter', '/invoices/filter', factory=makeProtectedFunction('orders'))
+    config.add_route('invoiceview', '/invoice/{id}/', factory=makeProtectedFunction('orders'))
 
     # valuations
     config.add_route('valuationsview', '/valuations')
