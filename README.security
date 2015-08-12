@@ -1,0 +1,113 @@
+Security setup
+==============
+
+We use role-based security. Users have roles. Roles have permissions.
+Routes/views are protected by permissions.
+
+Notes on context
+----------------
+Pyramid has the concept of a `context`. As zope developers we understand the
+context to be the data itself, acquired by traversal. With pyramid, such an
+assumption isn't necessarily true. When using url-dispatch, a context is
+created using a context factory. In these notes I will refer to this context
+as the `security context`, while I will refer to the data as matched by your
+url as the `data context`.
+
+Notes on route vs. view operations
+----------------------------------
+On a route level, a factory is called that comes up with a security context.
+This simply contains an __acl__ member that simplistically lists all roles
+and users with their relevant rights (view or edit).
+
+On a view level, the @view_config decorator will take a permission='view' or
+permission='edit' keyword argument. This will check whether the currently
+logged in user (and his roles) sufficiently matches the __acl__ list determined
+during route selection.
+
+It's the responsibility of the developer to set the right permissions on the
+view.
+
+Special roles
+-------------
+
+In addition to other roles, every logged-in user also has:
+
+1. The role `Authenticated`
+2. The rule `user:username`, where username is the username of the user.
+
+These two special roles makes it possible to restrict access broadly to
+authenticated users, or very finely-tuned to specific users.
+
+Global role setup in the database
+---------------------------------
+The Database contains a User table, mapped onto optimate.app.models.User, which
+contains a `roles` column. This column contains a list of strings indicating
+global roles assigned to this user. The user will have these roles anywhere
+in the site.
+
+Authentication
+--------------
+Authentication is similar to OAuth. You POST a username and password to /auth,
+and you get back a bearer token. You pass this token along with any subsequent
+requests. This is automated in the optimate client-side app, so you don't even
+have to think about it.
+
+Token security
+--------------
+To avoid repeatedly hitting the database, we use the bearer token itself to
+store the roles. User roles are looked up only at authentication time and
+placed on the cookie. Because this naturally opens up the possibility of a
+sufficiently talented user modifying the token to obtain other roles,
+the token is cryptographically signed to prevent such tampering. If the
+token signature verifies, we know we can trust the list of roles on the token.
+
+The signing secret is stored in the ini file under the key optimate.app.secret.
+
+Course-grained role-based permissions
+-------------------------------------
+optimate.app.security two factories which make security contexts.  These are
+meant to broadly restrict access by removing the `view` right unless you have
+the required roles. The idea is that unprivileged users will at least have
+`view` while privileged users will have `view` and `edit`. It is therefore
+sufficient to remove `view` if you want to completely restrict a user from a
+particular section.
+
+makePublic:
+    This creates a security context that allows Everyone view rights.
+makeProtected:
+    This creates a security context that allows view rights only to those
+    global roles specified as parameters to makeProtected.
+
+Finer-grained permissions
+-------------------------
+The object here is to restrict access to some areas, eg only some users will
+have access to orders or to projects. Such access can also be on two levels,
+either `view` or `edit` (which will implicitly include `view`).
+
+We need a factory that takes:
+1. Name of function (eg projects, orders, claims).
+2. A way to assign functions to users (TODO)
+3. factory will look up function string in database and obtain a list
+   of users.
+4. Factory will construct a list of roles of the form `user:username` and
+   create a security context.
+
+Finest-level permissions
+------------------------
+This is planned for a future iteration.
+
+We need a generic factory that takes:
+1. Name of function (eg projects).
+2. A callable that knows how to look up the users that may access a specific
+   item (eg project with id=409).
+3. Like in the previous iteration, the factory will determine all users with
+   access to the function in some way (view or edit).
+4. In addition to the previous iteration, the list determined in 3 will be
+   filtered to contain only those with access to the relevant data (eg
+   project).
+5. The final list is used to cosntruct a list of roles of the form
+   `user:username` and to create a security context.
+
+This generic factory can then be used, by plugging in callables that define
+how to do the specific lookups for a particular project/order/etc, to create
+factories that can protect those routes/views.
