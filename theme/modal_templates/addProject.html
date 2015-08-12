@@ -15,7 +15,7 @@
                                class="col-sm-7"
                                id="inputName"
                                name="inputName"
-                               data-ng-model="formData['Name']"
+                               data-ng-model="formData.Name"
                                required
                                autofocus>
                     </div>
@@ -24,7 +24,7 @@
                         <textarea id="inputDescription"
                                   class="col-sm-7"
                                   name="inputDescription"
-                                  data-ng-model="formData['Description']"
+                                  data-ng-model="formData.Description"
                                   rows="5" cols="40">
                         </textarea>
                     </div>
@@ -34,7 +34,7 @@
                                 class="col-sm-7"
                                 id="inputClient"
                                 name="inputClient"
-                                data-ng-model="formData['Client']"
+                                data-ng-model="formData.Client"
                                 data-ng-options="client.ID as client.Name for client in clientList"
                                 required>
                             <option value="">Select a client</option>
@@ -46,7 +46,7 @@
                                 class="col-sm-7"
                                 id="inputCity"
                                 name="inputCity"
-                                data-ng-model="formData['City']"
+                                data-ng-model="formData.City"
                                 data-ng-options="city.ID as city.Name for city in cityList"
                                 required>
                             <option value="">Select a city</option>
@@ -57,7 +57,7 @@
                         <textarea id="inputSiteAddress"
                                   class="col-sm-7"
                                   name="inputSiteAddress"
-                                  data-ng-model="formData['SiteAddress']"
+                                  data-ng-model="formData.SiteAddress"
                                   rows="5" cols="40">
                         </textarea>
                     </div>
@@ -67,7 +67,7 @@
                                class="col-sm-7"
                                id="inputFileNumber"
                                name="inputFileNumber"
-                               data-ng-model="formData['FileNumber']">
+                               data-ng-model="formData.FileNumber">
                     </div>
                 </form>
             </div>
