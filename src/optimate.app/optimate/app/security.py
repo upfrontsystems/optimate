@@ -86,10 +86,13 @@ class OAuthPolicy(CallbackAuthenticationPolicy):
         return []
 
     def callback(self, username, request):
-        return [Authenticated] + rolefinder(request)
+        return [Authenticated, u'user:{}'.format(username)] + rolefinder(request)
 
 # Factories to create a security context
 class Protected(object): 
+    """ Security context that gives view rights to any of the roles passed
+        to the constructor. Use this to limit all access to specific global
+        roles (such as Administrator or Manager). """
     def __init__(self, roles):
         self.allowed = roles
         self.__acl__ = [(Allow, r, 'view') for r in roles] + [
@@ -101,6 +104,9 @@ class Public(object):
 
 def makeProtected(*roles):
     """
+        Factory for protected security contexts, use it to restrict 'view'
+        rights on a route to specific roles:
+
         Example route registration:
         >>> config.add_route('myview', '/myview',
         >>>     factory=makeProtected(Authenticated))
@@ -109,6 +115,7 @@ def makeProtected(*roles):
 
 def makePublic(r):
     """
+        Factory that makes a security context that allows 'view' for everyone.
         Example route registration:
         >>> config.add_route('myview', '/_/myview',
         >>>     factory=makePublic)
