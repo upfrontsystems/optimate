@@ -118,14 +118,14 @@ def main(global_config, **settings):
     config.add_route('userview', '/users/{username}', factory=makeProtected(Administrator))
 
     # Reports
-    config.add_route('projectbudget', '/project_budget_report/{id}/')
-    config.add_route('costcomparison', '/cost_comparison_report/{id}/')
-    config.add_route('reports_tree_view', '/reports/tree/{id}/')
-    config.add_route('resourcelist', '/resource_list_report/{id}/')
-    config.add_route('order', '/order_report/{id}/')
-    config.add_route('valuation', '/valuation_report/{id}/')
-    config.add_route('invoices', '/invoices_report')
-    config.add_route('invoices_report_filter', '/invoices_report_filter')
+    config.add_route('projectbudget', '/project_budget_report/{id}/', factory=makeProtectedFunction('projects'))
+    config.add_route('costcomparison', '/cost_comparison_report/{id}/', factory=makeProtectedFunction('projects'))
+    config.add_route('reports_tree_view', '/reports/tree/{id}/', factory=makeProtectedFunction('projects'))
+    config.add_route('resourcelist', '/resource_list_report/{id}/', factory=makeProtectedFunction('projects'))
+    config.add_route('order', '/order_report/{id}/', factory=makeProtectedFunction('orders'))
+    config.add_route('valuation', '/valuation_report/{id}/', factory=makeProtectedFunction('valuations'))
+    config.add_route('invoices', '/invoices_report', factory=makeProtectedFunction('invoices'))
+    config.add_route('invoices_report_filter', '/invoices_report_filter', factory=makeProtectedFunction('invoices'))
 
     config.scan()
     return config.make_wsgi_app()

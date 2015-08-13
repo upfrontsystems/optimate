@@ -21,7 +21,8 @@ from pyramid.httpexceptions import (
     HTTPMethodNotAllowed,
     HTTPBadRequest,
     HTTPUnauthorized,
-    HTTPConflict
+    HTTPConflict,
+    HTTPForbidden
 )
 
 from optimate.app.security import create_token
@@ -147,8 +148,8 @@ def auth(request):
     }
 
 
-@view_config(route_name="rootview", renderer='json')
-@view_config(route_name="node_children", renderer='json')
+@view_config(route_name="rootview", renderer='json', permission='view')
+@view_config(route_name="node_children", renderer='json', permission='view')
 def node_children(request):
     """ This view is for when the user requests the children of an item.
         The parent's id is derived from the path of the request,
@@ -184,20 +185,26 @@ def node_children(request):
     return completelist
 
 
-@view_config(route_name="nodeview", renderer='json')
+@view_config(route_name="nodeview", renderer='json', permission='view')
 def nodeview(request):
     """ Manage single operations on a node
         The operation is determined by the HTTP method
     """
     if request.method == 'POST':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         # add a node
         return additemview(request)
 
     if request.method == 'PUT':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         # edit a node
         return edititemview(request)
 
     if request.method == 'DELETE':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         # delete a node
         return deleteitemview(request)
 
@@ -532,7 +539,7 @@ def deleteitemview(request):
     return {"parentid": parentid}
 
 
-@view_config(route_name="node_budgetitems", renderer='json')
+@view_config(route_name="node_budgetitems", renderer='json', permission='view')
 def node_budgetitems(request):
     """ Retrieves and returns all the budgetitems in a node
         that can be ordered
@@ -548,7 +555,7 @@ def node_budgetitems(request):
     return sorted(itemlist, key=lambda k: k['Name'].upper())
 
 
-@view_config(route_name="node_budgetgroups", renderer='json')
+@view_config(route_name="node_budgetgroups", renderer='json', permission='view')
 def node_budgetgroups(request):
     """ Retrieves and returns all the budgetgroups in a node
     """
@@ -604,7 +611,7 @@ def node_budgetgroups(request):
     return itemlist
 
 
-@view_config(route_name="projects", renderer='json')
+@view_config(route_name="projects", renderer='json', permission='view')
 def projects(request):
     """ Returns a list of all the Projects in the database
     """
@@ -626,7 +633,7 @@ def search_resources(top, search):
     return [r for r in resources if search in r.Name.lower()]
 
 
-@view_config(route_name="project_resources", renderer='json')
+@view_config(route_name="project_resources", renderer='json', permission='view')
 def project_resources(request):
     """ Return a list of all the resources in a nodes project's resourcecategory
         If an optional search term is included the resources are filtered by it.
@@ -678,8 +685,8 @@ def project_resources(request):
     return sortedlist
 
 
-@view_config(route_name="resourcecategory_allresources", renderer='json')
-@view_config(route_name="resourcecategory_resources", renderer='json')
+@view_config(route_name="resourcecategory_allresources", renderer='json', permission='view')
+@view_config(route_name="resourcecategory_resources", renderer='json', permission='view')
 def resourcecategory_resources(request):
     """ Returns a list of only the resources in a ResourceCategory
         project_resources returns a mix of resources and categories
@@ -711,7 +718,7 @@ def resourcecategory_resources(request):
     return resourcelist
 
 
-@view_config(route_name="resourcetypes", renderer='json')
+@view_config(route_name="resourcetypes", renderer='json', permission='view')
 def resourcetypes(request):
     """ Returns a list of all the resource types in the database
     """
@@ -725,7 +732,7 @@ def resourcetypes(request):
     return sorted(restypelist, key=lambda k: k['Name'].upper())
 
 
-@view_config(route_name="budgetitem_overheads", renderer='json')
+@view_config(route_name="budgetitem_overheads", renderer='json', permission='view')
 def budgetitem_overheads(request):
     """ Get a list of the Overheads a budgetitem can use
     """
@@ -743,7 +750,7 @@ def budgetitem_overheads(request):
     return sorted(overheadlist, key=lambda k: k['Name'].upper())
 
 
-@view_config(route_name="project_overheads", renderer='json')
+@view_config(route_name="project_overheads", renderer='json', permission='view')
 def project_overheads(request):
     """ Perform operations on the Overheads of a specified Project
         depending on the method
@@ -760,6 +767,9 @@ def project_overheads(request):
                             'ID': overhead.ID})
         return sorted(overheadlist, key=lambda k: k['Name'].upper())
     elif request.method == 'POST':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
+
         projectid = request.matchdict['id']
         overheadlist = request.json_body['overheadlist']
         for overhead in overheadlist:
@@ -781,12 +791,14 @@ def project_overheads(request):
         return HTTPOk()
 
 
-@view_config(route_name="overheadview",renderer='json')
+@view_config(route_name="overheadview",renderer='json', permission='view')
 def overheadview(request):
     """ Perform operations on the Overheads in the database depending in the
         HTTP method
     """
     if request.method == 'DELETE':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         deleteid = request.matchdict['id']
         # Deleting it from the table deletes the object
         deletethis = DBSession.query(
@@ -800,7 +812,7 @@ def overheadview(request):
         return HTTPOk()
 
 
-@view_config(route_name="node_grid", renderer='json')
+@view_config(route_name="node_grid", renderer='json', permission='view')
 def node_grid(request):
     """ This view is for when the user requests the children of an item.
         The parent's id is from the path of the request,
@@ -869,7 +881,7 @@ def node_grid(request):
             'type': node_type}
 
 
-@view_config(route_name="node_update_value", renderer='json')
+@view_config(route_name="node_update_value", renderer='json', permission='edit')
 def node_update_value(request):
     """ This view recieves a node ID along with other data parameters on the
         request. It uses the node ID to select and update the node's
@@ -911,7 +923,7 @@ def node_update_value(request):
             'Subtotal': newsubtotal}
 
 
-@view_config(route_name="node_paste", renderer='json')
+@view_config(route_name="node_paste", renderer='json', permission='edit')
 def node_paste(request):
     """ The node_paste is sent the path of the node that is to be copied.
         That node is then found in the db, copied with the new parent's id,
@@ -1240,7 +1252,7 @@ def node_paste(request):
     return {'newId': pasted_id, 'node': data}
 
 
-@view_config(route_name="node_cost", renderer='json')
+@view_config(route_name="node_cost", renderer='json', permission='view')
 def node_cost(request):
     """ The costview is called using the address from the node to be costed.
         The node ID is sent in the request, and the total cost of that node
@@ -1258,7 +1270,7 @@ def node_cost(request):
     return {'Cost': totalcost}
 
 
-@view_config(route_name='clientsview', renderer='json')
+@view_config(route_name='clientsview', renderer='json', permission='view')
 def clientsview(request):
     """ The clientview returns a list in json format of all the clients
         in the server database
@@ -1272,7 +1284,7 @@ def clientsview(request):
     return sorted(clientlist, key=lambda k: k['Name'].upper())
 
 
-@view_config(route_name='clientview', renderer='json')
+@view_config(route_name='clientview', renderer='json', permission='view')
 def clientview(request):
     """ The clientview handles different cases of a single client
         depending on the http method
@@ -1280,6 +1292,8 @@ def clientview(request):
 
     # if the method is delete, delete the client
     if request.method == 'DELETE':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         deleteid = request.matchdict['id']
 
         # Deleting it from the node table deleted the object
@@ -1294,6 +1308,8 @@ def clientview(request):
 
     # if the method is post, add a new client
     if request.method == 'POST':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         newclient = Client(Name=request.json_body['Name'],
             Address=request.json_body.get('Address', ''),
             CityID=request.json_body.get('City', None),
@@ -1311,6 +1327,8 @@ def clientview(request):
 
     # if the method is put, edit an existing client
     if request.method == 'PUT':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         client = DBSession.query(
                     Client).filter_by(ID=request.matchdict['id']).first()
         client.Name=request.json_body['Name']
@@ -1333,7 +1351,7 @@ def clientview(request):
     return client.dict()
 
 
-@view_config(route_name='suppliersview', renderer='json')
+@view_config(route_name='suppliersview', renderer='json', permission='view')
 def suppliersview(request):
     """ The supplierview returns a list in json format of all the suppliers
         in the server database
@@ -1346,7 +1364,7 @@ def suppliersview(request):
     return sorted(supplierlist, key=lambda k: k['Name'].upper())
 
 
-@view_config(route_name='supplierview', renderer='json')
+@view_config(route_name='supplierview', renderer='json', permission='view')
 def supplierview(request):
     """ The supplierview handles different cases of a single supplier
         depending on the http method
@@ -1354,6 +1372,8 @@ def supplierview(request):
 
     # if the method is delete, delete the supplier
     if request.method == 'DELETE':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         deleteid = request.matchdict['id']
 
         # Deleting it from the node table deleted the object
@@ -1368,6 +1388,8 @@ def supplierview(request):
 
     # if the method is post, add a new supplier
     if request.method == 'POST':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         newsupplier = Supplier(Name=request.json_body['Name'],
             Address=request.json_body.get('Address', ''),
             CityID=request.json_body.get('City', None),
@@ -1386,6 +1408,8 @@ def supplierview(request):
 
     # if the method is put, edit an existing supplier
     if request.method == 'PUT':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         supplier = DBSession.query(
                     Supplier).filter_by(ID=request.matchdict['id']).first()
         supplier.Name=request.json_body['Name']
@@ -1407,12 +1431,14 @@ def supplierview(request):
     return supplier.dict()
 
 
-@view_config(route_name="company_information", renderer='json')
+@view_config(route_name="company_information", renderer='json', permission='view')
 def company_information(request):
     """ Returns all company information data
     """
     # if the method is put, edit the company information data
     if request.method == 'PUT':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         company_information = DBSession.query(CompanyInformation).first()
         company_information.Name=request.json_body.get('Name', '')
         company_information.Address=request.json_body.get('Address', '')
@@ -1461,7 +1487,7 @@ def company_information(request):
     return data
 
 
-@view_config(route_name='unitsview', renderer='json')
+@view_config(route_name='unitsview', renderer='json', permission='view')
 def unitsview(request):
     """ The unitsview returns a list in json format of all the units
         in the server database
@@ -1474,13 +1500,15 @@ def unitsview(request):
     return sorted(unitlist, key=lambda k: k['Name'].upper())
 
 
-@view_config(route_name='unitview', renderer='json')
+@view_config(route_name='unitview', renderer='json', permission='view')
 def unitview(request):
     """ The unitview handles different cases for units
         depending on the http method
     """
     # if the method is delete, delete the unit, granted it is not in use by any resources
     if request.method == 'DELETE':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         deleteid = request.matchdict['id']
         # Deleting it from the node table deletes the object
         deletethis = DBSession.query(Unit).filter_by(ID=deleteid).first()
@@ -1495,6 +1523,8 @@ def unitview(request):
 
     # if the method is post, add a new unit
     if request.method == 'POST':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         newunit = Unit(Name=request.json_body['Name'])
         qry = DBSession.query(Unit).all()
         existing_unitlist = []
@@ -1508,6 +1538,8 @@ def unitview(request):
 
     # if the method is put, edit an existing unit
     if request.method == 'PUT':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         unit = DBSession.query(
                     Unit).filter_by(Name=request.matchdict['id']).first()
         unit.Name=request.json_body['Name']
@@ -1520,7 +1552,7 @@ def unitview(request):
     return {'Name': unit.Name, 'ID': unit.ID}
 
 
-@view_config(route_name='citiesview', renderer='json')
+@view_config(route_name='citiesview', renderer='json', permission='view')
 def citiesview(request):
     """ The citiesview returns a list in json format of all the units
         in the server database
@@ -1533,13 +1565,15 @@ def citiesview(request):
     return sorted(citylist, key=lambda k: k['Name'].upper())
 
 
-@view_config(route_name='cityview', renderer='json')
+@view_config(route_name='cityview', renderer='json', permission='view')
 def cityview(request):
     """ The cityview handles different cases for cities
         depending on the http method
     """
     # if the method is delete, delete the city
     if request.method == 'DELETE':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         deleteid = request.matchdict['id']
         # Deleting it from the node table deletes the object
         deletethis = DBSession.query(City).filter_by(ID=deleteid).first()
@@ -1556,6 +1590,8 @@ def cityview(request):
 
     # if the method is post, add a new city
     if request.method == 'POST':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         newcity = City(Name=request.json_body['Name'])
         qry = DBSession.query(City).all()
         existing_citylist = []
@@ -1569,6 +1605,8 @@ def cityview(request):
 
     # if the method is put, edit an existing city
     if request.method == 'PUT':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         city = DBSession.query(
                     City).filter_by(Name=request.matchdict['id']).first()
         city.Name=request.json_body['Name']
@@ -1581,7 +1619,7 @@ def cityview(request):
     return {'Name': city.Name, 'ID': city.ID}
 
 
-@view_config(route_name="orders_tree_view", renderer='json')
+@view_config(route_name="orders_tree_view", renderer='json', permission='view')
 def orders_tree_view(request):
     """ This view is for when the user requests the children of a node
         in the order tree. The nodes used by the orders use a different format
@@ -1607,7 +1645,7 @@ def orders_tree_view(request):
     return sorted_childrenlist
 
 
-@view_config(route_name='ordersview', renderer='json')
+@view_config(route_name='ordersview', renderer='json', permission='view')
 def ordersview(request):
     """ The ordersview returns a list in json format of a section of the orders
         in the server database
@@ -1649,7 +1687,7 @@ def ordersview(request):
     return orderlist
 
 
-@view_config(route_name='orders_filter', renderer='json')
+@view_config(route_name='orders_filter', renderer='json', permission='view')
 def orders_filter(request):
     """ Returns a list of the Projects, Clients, Suppliers used by an order
         when filtered
@@ -1687,7 +1725,7 @@ def orders_filter(request):
             'suppliers': sorted(supplierlist, key=lambda k: k['Name'].upper())}
 
 
-@view_config(route_name='orders_length', renderer='json')
+@view_config(route_name='orders_length', renderer='json', permission='view')
 def orders_length(request):
     """ Returns the number of orders in the database
     """
@@ -1695,13 +1733,15 @@ def orders_length(request):
     return {'length': rows}
 
 
-@view_config(route_name='orderview', renderer='json')
+@view_config(route_name='orderview', renderer='json', permission='view')
 def orderview(request):
     """ The orderview handles different cases for orders
         depending on the http method
     """
     # if the method is delete, delete the order
     if request.method == 'DELETE':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         deleteid = request.matchdict['id']
         # Deleting it from the table deletes the object
         deletethis = DBSession.query(Order).filter_by(ID=deleteid).first()
@@ -1716,6 +1756,8 @@ def orderview(request):
 
     # if the method is post, add a new order
     if request.method == 'POST':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         user = request.json_body.get('UserCode', '')
         auth = request.json_body.get('Authorisation', '')
         proj = request.json_body.get('ProjectID', None)
@@ -1761,6 +1803,8 @@ def orderview(request):
 
     # if the method is put, edit an existing order
     if request.method == 'PUT':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         order = DBSession.query(
                     Order).filter_by(ID=request.matchdict['id']).first()
 
@@ -1869,7 +1913,7 @@ def orderview(request):
             'Date': jsondate}
 
 
-@view_config(route_name='valuationsview', renderer='json')
+@view_config(route_name='valuationsview', renderer='json', permission='view')
 def valuationsview(request):
     """ The valuationsview returns a list in json format of a section of the
         valuations in the server database.
@@ -1897,7 +1941,7 @@ def valuationsview(request):
     return valuationlist
 
 
-@view_config(route_name='valuations_length', renderer='json')
+@view_config(route_name='valuations_length', renderer='json', permission='view')
 def valuations_length(request):
     """ Returns the number of valuations in the database
     """
@@ -1905,13 +1949,15 @@ def valuations_length(request):
     return {'length': rows}
 
 
-@view_config(route_name='valuationview', renderer='json')
+@view_config(route_name='valuationview', renderer='json', permission='view')
 def valuationview(request):
     """ The valuationview handles different cases for valuations
         depending on the http method
     """
     # if the method is delete, delete the valuation
     if request.method == 'DELETE':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         deleteid = request.matchdict['id']
         # Deleting it from the table deletes the object
         deletethis = DBSession.query(Valuation).filter_by(ID=deleteid).first()
@@ -1924,6 +1970,8 @@ def valuationview(request):
 
     # if the method is post, add a new valuation
     if request.method == 'POST':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         proj = request.json_body.get('ProjectID', None)
         # convert to date from json format
         date = request.json_body.get('Date', None)
@@ -1952,6 +2000,8 @@ def valuationview(request):
 
     # if the method is put, edit an existing valuation
     if request.method == 'PUT':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         valuation = DBSession.query(
                        Valuation).filter_by(ID=request.matchdict['id']).first()
 
@@ -2028,9 +2078,11 @@ def valuationview(request):
             'Date': jsondate}
 
 
-@view_config(route_name='usersview', renderer='json')
+@view_config(route_name='usersview', renderer='json', permission='view')
 def usersview(request):
     if request.method == 'POST':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         # Create a new user
         username = request.json_body['username']
         password = request.json_body['password']
@@ -2065,7 +2117,7 @@ def usersview(request):
         for user in users]
 
 
-@view_config(route_name='userview', renderer='json')
+@view_config(route_name='userview', renderer='json', permission='view')
 def userview(request):
     username = request.matchdict['username']
     session = DBSession()
@@ -2076,6 +2128,8 @@ def userview(request):
         return HTTPNotFound('No such user')
 
     if request.method == 'POST':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         password=request.json_body.get('password', None)
 
         if password:
@@ -2094,12 +2148,14 @@ def userview(request):
                 userright.Permission = permission
 
     elif request.method == 'DELETE':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         session.delete(user)
         return {}
     return user.dict()
 
 
-@view_config(route_name='invoicesview', renderer='json')
+@view_config(route_name='invoicesview', renderer='json', permission='view')
 def invoicesview(request):
     """ The invoicesview returns a list in json format of all the invoices
     """
@@ -2129,7 +2185,7 @@ def invoicesview(request):
     return invoicelist
 
 
-@view_config(route_name='invoices_filter', renderer='json')
+@view_config(route_name='invoices_filter', renderer='json', permission='view')
 def invoices_filter(request):
     """ Returns a list of the available filters used by an invoice
         after all the filters have been applied
@@ -2175,13 +2231,15 @@ def invoices_filter(request):
             'suppliers': sorted(supplierlist, key=lambda k: k['Name'].upper())}
 
 
-@view_config(route_name='invoiceview', renderer='json')
+@view_config(route_name='invoiceview', renderer='json', permission='view')
 def invoiceview(request):
     """ The invoiceview handles different cases for individual invoices
         depending on the http method
     """
     # if the method is delete, delete the invoice
     if request.method == 'DELETE':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         deleteid = request.matchdict['id']
         # Deleting it from the table deletes the object
         deletethis = DBSession.query(Invoice).filter_by(ID=deleteid).first()
@@ -2200,6 +2258,8 @@ def invoiceview(request):
 
     # if the method is post, add a new invoice
     if request.method == 'POST':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         orderid = request.json_body['OrderID']
         # convert to date from json format
         indate = request.json_body.get('Invoicedate', None)
@@ -2241,6 +2301,8 @@ def invoiceview(request):
 
     # if the method is put, edit an existing invoice
     if request.method == 'PUT':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         invoice = DBSession.query(Invoice).filter_by(
                                             ID=request.matchdict['id']).first()
         oldtotal = invoice.Total
@@ -2283,7 +2345,7 @@ def invoiceview(request):
     return invoice.dict()
 
 
-@view_config(route_name='claimsview', renderer='json')
+@view_config(route_name='claimsview', renderer='json', permission='view')
 def claimsview(request):
     """ The claimsview returns a list in json format of all the claims
     """
@@ -2304,13 +2366,15 @@ def claimsview(request):
     return claimslist
 
 
-@view_config(route_name='claimview', renderer='json')
+@view_config(route_name='claimview', renderer='json', permission='view')
 def claimview(request):
     """ The claimview handles different cases for individual claims
         depending on the http method
     """
     # if the method is delete, delete the claim
     if request.method == 'DELETE':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         deleteid = request.matchdict['id']
         # Deleting it from the table deletes the object
         deletethis = DBSession.query(Claim).filter_by(ID=deleteid).first()
@@ -2324,6 +2388,8 @@ def claimview(request):
 
     # if the method is post, add a new claim
     if request.method == 'POST':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         projectid = request.json_body['ProjectID']
         # convert to date from json format
         date = request.json_body.get('Date', None)
@@ -2342,6 +2408,8 @@ def claimview(request):
 
     # if the method is put, edit an existing claim
     if request.method == 'PUT':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         claim = DBSession.query(Claim
                                 ).filter_by(ID=request.matchdict['id']).first()
         claim.ProjectID = request.json_body['ProjectID']
@@ -2363,7 +2431,7 @@ def claimview(request):
 
     return claim.dict()
 
-@view_config(route_name='paymentsview', renderer='json')
+@view_config(route_name='paymentsview', renderer='json', permission='view')
 def paymentsview(request):
     """ The paymentsview returns a list in json format of all the payments
     """
@@ -2384,13 +2452,15 @@ def paymentsview(request):
     return paymentslist
 
 
-@view_config(route_name='paymentview', renderer='json')
+@view_config(route_name='paymentview', renderer='json', permission='view')
 def paymentview(request):
     """ The paymentview handles different cases for individual payments
         depending on the http method
     """
     # if the method is delete, delete the payment
     if request.method == 'DELETE':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         deleteid = request.matchdict['id']
         # Deleting it from the table deletes the object
         deletethis = DBSession.query(Payment).filter_by(ID=deleteid).first()
@@ -2404,6 +2474,8 @@ def paymentview(request):
 
     # if the method is post, add a new payment
     if request.method == 'POST':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         projectid = request.json_body['ProjectID']
         # convert to date from json format
         date = request.json_body.get('Date', None)
@@ -2426,6 +2498,8 @@ def paymentview(request):
 
     # if the method is put, edit an existing payment
     if request.method == 'PUT':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
         payment = DBSession.query(Payment
                                 ).filter_by(ID=request.matchdict['id']).first()
         payment.ProjectID = request.json_body['ProjectID']

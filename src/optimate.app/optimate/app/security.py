@@ -125,8 +125,7 @@ class ProtectedFunction(object):
                     .filter_by(Function=self.function, Permission='view').all()
 
         # Ensure that editors are also viewers
-        users_with_edit = dict.fromkeys(
-            users_with_edit + users_with_view).keys()
+        users_with_view = users_with_edit + users_with_view
 
         return [(Allow, u'user:{}'.format(u.username), 'view')
             for u in users_with_view] + [

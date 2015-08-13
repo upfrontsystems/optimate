@@ -1662,8 +1662,7 @@ class UserRight(Base):
 
     def __repr__(self):
         """ Return a relationship of this right """
-        return '<UserRight(ID="%s", UserID="%s", \
-                    Function="%s", Permission="%s")>' % (
+        return '<UserRight(ID="%s", UserID="%s", Function="%s", Permission="%s")>' % (
                     self.ID, self.UserID, self.Function, self.Permission)
 
 
