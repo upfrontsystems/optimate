@@ -1605,6 +1605,8 @@ class User(Base):
     username = Column(Unicode(length=20), nullable=False, index=True)
     salt = Column(Unicode(length=64), nullable=True)
     password = Column(Unicode(length=64), nullable=True) # For an sha256 hash
+    # to be phased out
+    roles = Column(Text(20))
 
     def validate_password(self, password):
         return hashlib.sha256((self.salt + password).encode('utf-8')).hexdigest() == self.password

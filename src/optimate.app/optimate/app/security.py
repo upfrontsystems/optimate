@@ -7,6 +7,12 @@ from pyramid.security import Allow, Deny, Everyone
 from pyramid.authentication import CallbackAuthenticationPolicy
 from pyramid.view import view_config
 
+from optimate.app.models import(
+    DBSession,
+    User,
+    UserRight
+)
+
 # Roles
 Authenticated = u'Authenticated'
 Administrator = u'Administrator'
@@ -113,21 +119,18 @@ class ProtectedFunction(object):
 
     @reify
     def __acl__(self):
-        # FIXME look up users for function here
-        #
-        # users_with_edit = DBSession.query(UserRights).filter_by(Function=self.function,
-        #                                                        Permission='edit')
-
-        users_with_view = ['admin']
-        users_with_edit = ['admin']
+        users_with_edit = DBSession.query(User).join(User.UserRights, aliased=True)\
+                    .filter_by(Function=self.function, Permission='edit').all()
+        users_with_view = DBSession.query(User).join(User.UserRights, aliased=True)\
+                    .filter_by(Function=self.function, Permission='view').all()
 
         # Ensure that editors are also viewers
         users_with_edit = dict.fromkeys(
             users_with_edit + users_with_view).keys()
 
-        return [(Allow, u'user:{}'.format(u), 'view')
+        return [(Allow, u'user:{}'.format(u.username), 'view')
             for u in users_with_view] + [
-            (Allow, u'user:{}'.format(u), 'edit')
+            (Allow, u'user:{}'.format(u.username), 'edit')
             for u in users_with_edit] + [
             (Allow, Administrator, 'view'), # Always allow Admin and Manager
             (Allow, Manager, 'view'),
