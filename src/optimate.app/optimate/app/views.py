@@ -142,8 +142,7 @@ def auth(request):
             return HTTPUnauthorized('Authentication failed')
 
     return {
-        "access_token": create_token(request, username,
-            user.roles and json.loads(user.roles) or [])
+        "access_token": create_token(request, username, [])
     }
 
 
@@ -2058,6 +2057,9 @@ def usersview(request):
         DBSession().merge(user)
 
         return user.dict()
+
+    users_with_edit = DBSession.query(User).join(User.UserRights, aliased=True)\
+                    .filter_by(Function='projects', Permission='edit')
 
     users = DBSession().query(User).all()
     return [

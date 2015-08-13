@@ -90,7 +90,7 @@ class OAuthPolicy(CallbackAuthenticationPolicy):
         return [Authenticated, u'user:{}'.format(username)] + rolefinder(request)
 
 # Factories to create a security context
-class Protected(object): 
+class Protected(object):
     """ Security context that gives view rights to any of the roles passed
         to the constructor. Use this to limit all access to specific global
         roles (such as Administrator or Manager). """
@@ -114,6 +114,10 @@ class ProtectedFunction(object):
     @reify
     def __acl__(self):
         # FIXME look up users for function here
+        #
+        # users_with_edit = DBSession.query(UserRights).filter_by(Function=self.function,
+        #                                                        Permission='edit')
+
         users_with_view = ['admin']
         users_with_edit = ['admin']
 
