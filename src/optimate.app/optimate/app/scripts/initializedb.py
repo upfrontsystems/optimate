@@ -37,7 +37,8 @@ from optimate.app.models import (
     Valuation,
     ValuationItem,
     Claim,
-    Payment
+    Payment,
+    UserRight
 )
 
 def usage(argv):
@@ -64,7 +65,10 @@ def main(argv=sys.argv):
         user = User()
         user.username = u'admin'
         user.set_password('admin')
-        user.roles = json.dumps(['Administrator'])
+        for right in ['projects','orders','invoices','valuations',
+                        'claims','payments','setup']:
+            userright = UserRight(Function=right, Permission='edit')
+            user.UserRights.append(userright)
         DBSession().merge(user)
 
     transaction.commit()

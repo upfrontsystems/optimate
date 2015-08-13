@@ -26,7 +26,8 @@ from optimate.app.models import (
     User,
     Invoice,
     Claim,
-    Payment
+    Payment,
+    UserRight
 )
 
 from sqlalchemy import (
@@ -210,7 +211,10 @@ if __name__ == '__main__':
         user = User()
         user.username = u'admin'
         user.set_password('admin')
-        user.roles = json.dumps(['Administrator'])
+        for right in ['projects','orders','invoices','valuations',
+                        'claims','payments','setup']:
+            userright = UserRight(Function=right, Permission='edit')
+            user.UserRights.append(userright)
         DBSession().merge(user)
         transaction.commit()
 

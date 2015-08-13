@@ -440,7 +440,7 @@ function BootstrapDecorator() {
             required: 'fa fa-asterisk',
         }
     };
-    var noIconElementTypes = ['checkbox', 'radio', 'password'];
+    var noIconElementTypes = ['checkbox', 'radio'];
 
     /**
      * This traverser will walk from the input element
@@ -816,9 +816,6 @@ function errorsProvider() {
      */
     self.buildErrorListFromConstraints = function(constraints, constraintParameters) {
         var errorList = {};
-        // returning empty error list
-        return errorList;
-        //
         angular.forEach(constraints, function(invalid, name) {
             if (invalid) {
                 var parameters;
@@ -829,6 +826,9 @@ function errorsProvider() {
             }
         });
         // return errorList;
+
+        // return an empty list so no error messages are shown
+        return {};
     };
 
     self.$get = function () {

@@ -1605,7 +1605,6 @@ class User(Base):
     username = Column(Unicode(length=20), nullable=False, index=True)
     salt = Column(Unicode(length=64), nullable=True)
     password = Column(Unicode(length=64), nullable=True) # For an sha256 hash
-    roles = Column(Text(20))
 
     def validate_password(self, password):
         return hashlib.sha256((self.salt + password).encode('utf-8')).hexdigest() == self.password
@@ -1615,6 +1614,55 @@ class User(Base):
         h = hashlib.sha256((salt + password).encode('utf-8')).hexdigest()
         self.salt = unicode(salt)
         self.password = unicode(h)
+
+    def dict(self):
+        """ Return a dictionary of this user """
+        permissions = []
+        for right in self.UserRights:
+            permissions.append(right.dict())
+
+        return {'ID': self.ID,
+                'username': self.username,
+                'permissions': permissions}
+
+    def __repr__(self):
+        """Return a representation of this user
+        """
+        return '<User(ID="%s", username="%s")>' % (
+            self.ID, self.username)
+
+
+class UserRight(Base):
+    """ Table detailing the rights a user can have """
+    __tablename__ = "UserRight"
+    ID = Column(Integer, primary_key=True)
+    UserID = Column(Integer, ForeignKey('User.ID'))
+    Function = Column(Text(50))
+    Permission = Column(Text(20))
+
+    User = relationship('User',
+                          backref=backref('UserRights'))
+
+    def dict(self):
+        """ Return a dictionary of the user right
+        """
+        edit = False
+        view = False
+        if self.Permission == 'edit':
+            edit = True
+            view = True
+        elif self.Permission == 'view':
+            view = True
+
+        return {'title': self.Function,
+                'edit': edit,
+                'view': view}
+
+    def __repr__(self):
+        """ Return a relationship of this right """
+        return '<UserRight(ID="%s", UserID="%s", \
+                    Function="%s", Permission="%s")>' % (
+                    self.ID, self.UserID, self.Function, self.Permission)
 
 
 class Invoice(Base):

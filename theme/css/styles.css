@@ -404,3 +404,12 @@ td > input:disabled {
     opacity: 0.5;
 }
 
+/* styling for the user permissions table*/
+table.modal-table {
+    width: 68%;
+    border-collapse: collapse;
+}
+.modal-table-row{
+    border: none !important;
+}
+

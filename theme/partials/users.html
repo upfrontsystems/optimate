@@ -2,10 +2,10 @@
     <div class="container-fluid">
         <ul class="nav nav-pills">
             <li>
-                <a title="Add User" data-ng-click="addingState()"><i class="fa fa-plus-square"></i></a>
+                <a title="Add User" data-ng-click="addingState()" data-target="#saveUser"  data-toggle="modal"><i class="fa fa-plus-square"></i></a>
             </li>
             <li ng-show="selectedUser">
-                <a title="Edit User" data-ng-click="editingState()"><i class="fa fa-pencil"></i></a>
+                <a title="Edit User" data-ng-click="editingState()" data-target="#saveUser"  data-toggle="modal"><i class="fa fa-pencil"></i></a>
             </li>
             <li ng-show="selectedUser">
                 <a title="Delete User" data-target="#deleteUserModal" data-toggle="modal"><i class="fa fa-trash"></i></a>
@@ -14,59 +14,10 @@
     </div>
 </nav>
 
-<script type="text/ng-template" id="addUser">
-    <div class="modal-header">
-        <button type="button" class="close"
-                ng-click="$dismiss('cancel')" aria-hidden="true">&times;
-        </button>
-        <h3 class="modal-title">{{modalState}} User</h3>
-    </div>
-    <div class="modal-body">
-        <form class="form-horizontal" name="saveUserForm">
-            <div class="form-group" ng-show="modalState == 'Add'">
-                <label for="username" class="col-sm-2 control-label">Name:</label>
-                <input type="text"
-                       class="col-sm-7"
-                       id="username"
-                       name="username"
-                       ng-model="newuser.username"
-                       required
-                       autofocus />
-            </div>
-            <div class="form-group">
-                <label for="password" class="col-sm-2 control-label">Password:</label>
-                <input type="password"
-                       class="col-sm-7"
-                       id="password"
-                       name="password"
-                       ng-model="newuser.password"
-                       required />
-            </div>
-            <div class="form-group">
-                <label class="col-sm-2 control-label">Roles</label>
-                <div class="col-sm-7">
-                    <table class="checkbox">
-                        <tr data-ng-repeat="role in newuser.roles">
-                            <td>{{role.title}} &nbsp;</td>
-                            <td>
-                                <button class="custom-checkbox"
-                                      data-ng-click="role.selected = !role.selected">
-                                    <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[role.selected]">
-                                    </i>
-                                </button>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-        </form>
-    </div>
-    <div class="modal-footer">
-        <button class="btn btn-primary" ng-click="saveUser()">Save</button>
-        <button class="btn btn-default" ng-click="$dismiss('cancel')" data-dismiss="modal">Cancel</button>
-    </div>
-</script>
-
+<div custom-modals modal-id="saveUser"
+    modal-type="user"
+    modal-src="modal_templates/saveUserModal.html">
+</div>
 
 <div id="deleteUserModal" class="modal" tabindex='-1'>
     <div class="modal-dialog modal-sm">
@@ -75,7 +26,7 @@
                 <h4>Delete User: {{selectedUser.username}}</h4>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-dismiss="modal" data-ng-click="deleteUser()">Delete</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" data-ng-click="deleteUser(selectedUser)">Delete</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
             </div>
         </div>
@@ -88,21 +39,12 @@
             <thead>
                 <tr>
                     <th>Username</th>
-                    <th>Roles</th>
-                    <th> </th>
                 </tr>
             </thead>
             <tbody>
                 <tr ng-repeat="obj in users" ng-click="showActionsFor(obj)"
                     ng-class="{active: obj.selected}">
                     <td>{{obj.username}}</td>
-                    <td>
-                        <span class="rolename" ng-repeat="role in obj.roles">{{role}}</span>
-                    </td>
-                    <td>
-                        <button ng-click="deleteUser(obj)" title=""><i
-                            class="fa fa-trash"> </i></button>
-                    </td>
                 </tr>
             </tbody>
         </table>

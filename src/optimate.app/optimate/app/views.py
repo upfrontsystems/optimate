@@ -51,7 +51,8 @@ from optimate.app.models import (
     Valuation,
     ValuationItem,
     Claim,
-    Payment
+    Payment,
+    UserRight
 )
 
 # the categories the resources fall into
@@ -2033,34 +2034,35 @@ def usersview(request):
         # Create a new user
         username = request.json_body['username']
         password = request.json_body['password']
-        roles = request.json_body.get('roles', [])
 
         # Check for existing user
         if DBSession.query(User).filter(User.username==username).count() > 0:
             return HTTPConflict('user exists')
 
-        # createuser
-        user = User()
-        user.username = username
+        # create user
+        user = User(username=username)
         user.set_password(password)
 
-        # Ensure only valid roles can be specified
-        roles = [role for role in roles if role in (Administrator, Manager)]
-        user.roles = json.dumps(roles)
+        # add user rights
+        permissions = request.json_body.get('permissions', [])
+        for right in permissions:
+            permission = ''
+            if right['edit']:
+                permission = 'edit'
+            elif right['view']:
+                permission = 'view'
+            userright = UserRight(Function=right['title'],
+                                    Permission=permission)
+            user.UserRights.append(userright)
 
         DBSession().merge(user)
 
-        return {
-            'username': user.username,
-            'roles': roles
-        }
+        return user.dict()
 
     users = DBSession().query(User).all()
     return [
-        {
-            'username': user.username,
-            'roles': user.roles and json.loads(user.roles) or []
-        } for user in users]
+        user.dict()
+        for user in users]
 
 
 @view_config(route_name='userview', renderer='json')
@@ -2074,23 +2076,27 @@ def userview(request):
         return HTTPNotFound('No such user')
 
     if request.method == 'POST':
-        password=request.json_body['password']
-        roles = request.json_body.get('roles', None)
+        password=request.json_body.get('password', None)
+
         if password:
             user.set_password(password)
-        if roles is not None:
-            # Ensure only valid roles can be specified
-            roles = [role for role in roles if role in (Administrator, Manager)]
-            user.roles = json.dumps(roles)
+        permissions = request.json_body.get('permissions', [])
+        if len(permissions) > 0:
+             # edit user rights
+            for right in permissions:
+                permission = ''
+                if right['edit']:
+                    permission = 'edit'
+                elif right['view']:
+                    permission = 'view'
+                userright = DBSession.query(UserRight).filter_by(UserID=user.ID,
+                                                Function=right['title']).first()
+                userright.Permission = permission
 
     elif request.method == 'DELETE':
         session.delete(user)
         return {}
-
-    return {
-        'username': user.username,
-        'roles': user.roles and json.loads(user.roles) or []
-    }
+    return user.dict()
 
 
 @view_config(route_name='invoicesview', renderer='json')
