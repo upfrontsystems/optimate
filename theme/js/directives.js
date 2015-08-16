@@ -224,95 +224,6 @@ myApp.directive('projectslickgridjs', ['globalServerURL', '$http',
                 grid.invalidate();
             }
 
-            dataView.onRowCountChanged.subscribe(function (e, args) {
-              grid.updateRowCount();
-              grid.resetActiveCell();
-              grid.setSelectedRows([]);
-              grid.render();
-            });
-
-            dataView.onRowsChanged.subscribe(function (e, args) {
-              grid.invalidateRows(args.rows);
-              grid.resetActiveCell();
-              grid.setSelectedRows([]);
-              grid.render();
-            });
-
-            // when a column is resized change the default size of that column
-            grid.onColumnsResized.subscribe(function(e,args) {
-                var gridcolumns = args.grid.getColumns();
-                for (var i in gridcolumns) {
-                    if (gridcolumns[i].previousWidth != gridcolumns[i].width) {
-                        projects_column_width[gridcolumns[i].field] = gridcolumns[i].width;
-                    }
-                }
-                // rebuild the columns with the new widths
-                initialiseColumns();
-                if (hasStorage) {
-                    localStorage["projects_column_width"] = JSON.stringify(projects_column_width);
-                }
-            });
-
-            // when the columns are reordered
-            grid.onColumnsReordered.subscribe(function (e, args) {
-                if (hasStorage) {
-                    var gridcolumns = grid.getColumns();
-                    var ordercolumns = []
-                    for (var c in gridcolumns){
-                        ordercolumns.push(gridcolumns[c].id);
-                    }
-
-                    for(var i = 0; i < ordercolumns.length; i++) {
-                        var indexI = projects_columns.indexOf(ordercolumns[i]);
-                        for(var j = i + 1; j < ordercolumns.length; j++) {
-                            var indexJ = projects_columns.indexOf(ordercolumns[j]);
-                            if(indexI > indexJ) {
-                                var temp = projects_columns[indexI];
-                                projects_columns[indexI] = projects_columns[indexJ];
-                                projects_columns[indexJ] = temp;
-                                indexI = indexJ;
-                            }
-                        }
-                    }
-                    localStorage["projects_columns"] = JSON.stringify(projects_columns);
-                }
-            });
-
-            // Formatter for displaying markup
-            function MarkupFormatter(row, cell, value, columnDef, dataContext) {
-                if (value != undefined) {
-                    return value + " %";
-                }
-                else {
-                    return "";
-                }
-              }
-
-            // Formatter for displaying currencies
-            function CurrencyFormatter(row, cell, value, columnDef, dataContext) {
-                if (value != undefined) {
-                    var parts = value.toString().split(".");
-                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                    if (parts.length > 1) {
-                        parts[parts.length-1] = parts[parts.length-1].slice(0,2);
-                    }
-                    return parts.join(".");
-                }
-                else {
-                    return "";
-                }
-              }
-
-            grid.onAddNewRow.subscribe(function (e, args) {
-                var item = args.item;
-                grid.invalidateRow(data.length);
-                data.push(item);
-                grid.updateRowCount();
-                grid.resetActiveCell();
-                grid.setSelectedRows([]);
-                grid.render();
-            });
-
             function loadSlickgrid(response) {
                 var newcolumns = [];
                 var data = response['list'];
@@ -434,6 +345,60 @@ myApp.directive('projectslickgridjs', ['globalServerURL', '$http',
                 grid.render();
             };
 
+            dataView.onRowCountChanged.subscribe(function (e, args) {
+              grid.updateRowCount();
+              grid.resetActiveCell();
+              grid.setSelectedRows([]);
+              grid.render();
+            });
+
+            dataView.onRowsChanged.subscribe(function (e, args) {
+              grid.invalidateRows(args.rows);
+              grid.resetActiveCell();
+              grid.setSelectedRows([]);
+              grid.render();
+            });
+
+            // when a column is resized change the default size of that column
+            grid.onColumnsResized.subscribe(function(e,args) {
+                var gridcolumns = args.grid.getColumns();
+                for (var i in gridcolumns) {
+                    if (gridcolumns[i].previousWidth != gridcolumns[i].width) {
+                        projects_column_width[gridcolumns[i].field] = gridcolumns[i].width;
+                    }
+                }
+                // rebuild the columns with the new widths
+                initialiseColumns();
+                if (hasStorage) {
+                    localStorage["projects_column_width"] = JSON.stringify(projects_column_width);
+                }
+            });
+
+            // when the columns are reordered
+            grid.onColumnsReordered.subscribe(function (e, args) {
+                if (hasStorage) {
+                    var gridcolumns = grid.getColumns();
+                    var ordercolumns = []
+                    for (var c in gridcolumns){
+                        ordercolumns.push(gridcolumns[c].id);
+                    }
+
+                    for(var i = 0; i < ordercolumns.length; i++) {
+                        var indexI = projects_columns.indexOf(ordercolumns[i]);
+                        for(var j = i + 1; j < ordercolumns.length; j++) {
+                            var indexJ = projects_columns.indexOf(ordercolumns[j]);
+                            if(indexI > indexJ) {
+                                var temp = projects_columns[indexI];
+                                projects_columns[indexI] = projects_columns[indexJ];
+                                projects_columns[indexJ] = temp;
+                                indexI = indexJ;
+                            }
+                        }
+                    }
+                    localStorage["projects_columns"] = JSON.stringify(projects_columns);
+                }
+            });
+
             // on cell change post to the server and update the totals
             grid.onCellChange.subscribe(function (e, ctx) {
                 var item = ctx.item
@@ -511,6 +476,13 @@ myApp.directive('projectslickgridjs', ['globalServerURL', '$http',
                 $scope.toggleRowsSelected(rowsSelected);
             });
 
+            // if the user does not have edit permissions the cell can't be edited
+            grid.onBeforeEditCell.subscribe(function(e,args) {
+                if ($scope.user.permissions.projects != 'edit') {
+                    return false;
+                }
+            });
+
             $scope.getSelectedNodes = function() {
                 var ids = dataView.mapRowsToIds(grid.getSelectedRows());
                 var selectedNodes = [];
@@ -529,6 +501,41 @@ myApp.directive('projectslickgridjs', ['globalServerURL', '$http',
                 }
                 grid.invalidate();
             };
+
+            grid.onAddNewRow.subscribe(function (e, args) {
+                var item = args.item;
+                grid.invalidateRow(data.length);
+                data.push(item);
+                grid.updateRowCount();
+                grid.resetActiveCell();
+                grid.setSelectedRows([]);
+                grid.render();
+            });
+
+            // Formatter for displaying markup
+            function MarkupFormatter(row, cell, value, columnDef, dataContext) {
+                if (value != undefined) {
+                    return value + " %";
+                }
+                else {
+                    return "";
+                }
+            }
+
+            // Formatter for displaying currencies
+            function CurrencyFormatter(row, cell, value, columnDef, dataContext) {
+                if (value != undefined) {
+                    var parts = value.toString().split(".");
+                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    if (parts.length > 1) {
+                        parts[parts.length-1] = parts[parts.length-1].slice(0,2);
+                    }
+                    return parts.join(".");
+                }
+                else {
+                    return "";
+                }
+            }
         }
     }
 }]);

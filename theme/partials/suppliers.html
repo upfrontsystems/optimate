@@ -1,5 +1,6 @@
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
-    <div class="container-fluid">
+    <div data-ng-show="user.permissions.setup == 'edit'"
+        class="container-fluid">
         <ul class="nav nav-pills">
             <li>
                 <a title="Add Supplier" data-ng-click="addingState()" data-target="#saveModal" data-toggle="modal"><i class="fa fa-plus-square"></i></a>

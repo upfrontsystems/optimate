@@ -1,6 +1,6 @@
 // controller for the Claim data from the server
-myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL',
-    function($scope, $http, globalServerURL) {
+myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'SessionService',
+    function($scope, $http, globalServerURL, SessionService) {
 
         toggleMenu('claims');
 
@@ -8,6 +8,12 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL',
         $scope.jsonclaims = [];
         $scope.claimList = [];
         $scope.valuationsList = []
+
+        // get the user permissions
+        $scope.user = {'username':SessionService.username()};
+        SessionService.permissions().then(function(perm){
+            $scope.user.permissions = perm;
+        });
 
         // loading the project list
         $scope.clearFilters = function() {

@@ -413,3 +413,11 @@ table.modal-table {
     border: none !important;
 }
 
+/* only show the trash icon on hover*/
+.table-row-delete {
+    display: none;
+}
+.table-row-hover:hover .table-row-delete{
+    display: inline;
+}
+

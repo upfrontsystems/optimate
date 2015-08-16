@@ -114,8 +114,8 @@ def main(global_config, **settings):
     config.add_route('paymentview', '/payment/{id}/', factory=makeProtectedFunction('payments'))
 
     # Editing users
-    config.add_route('usersview', '/users', factory=makeProtected(Administrator))
-    config.add_route('userview', '/users/{username}', factory=makeProtected(Administrator))
+    config.add_route('usersview', '/users', factory=makeProtectedFunction('setup'))
+    config.add_route('userview', '/users/{username}', factory=makeProtectedFunction('setup'))
 
     # Reports
     config.add_route('projectbudget', '/project_budget_report/{id}/', factory=makeProtectedFunction('projects'))
@@ -126,6 +126,9 @@ def main(global_config, **settings):
     config.add_route('valuation', '/valuation_report/{id}/', factory=makeProtectedFunction('valuations'))
     config.add_route('invoices', '/invoices_report', factory=makeProtectedFunction('invoices'))
     config.add_route('invoices_report_filter', '/invoices_report_filter', factory=makeProtectedFunction('invoices'))
+
+    # user rights
+    config.add_route('userrights', '/rights/{username}/') # no security yet on getting user rights...
 
     config.scan()
     return config.make_wsgi_app()

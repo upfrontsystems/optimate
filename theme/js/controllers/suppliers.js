@@ -1,9 +1,15 @@
 // Controller for the suppliers page
-myApp.controller('suppliersController', ['$scope', '$http', 'globalServerURL',
-    function($scope, $http, globalServerURL) {
+myApp.controller('suppliersController', ['$scope', '$http', 'globalServerURL', 'SessionService',
+    function($scope, $http, globalServerURL, SessionService) {
 
         toggleMenu('setup');
         $scope.isDisabled = false;
+
+        // get the user permissions
+        $scope.user = {'username':SessionService.username()};
+        SessionService.permissions().then(function(perm){
+            $scope.user.permissions = perm;
+        });
 
         $http.get(globalServerURL + 'suppliers').success(function(data) {
             $scope.jsonsuppliers = data;

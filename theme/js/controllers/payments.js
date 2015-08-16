@@ -1,6 +1,6 @@
 // controller for the Payment data from the server
-myApp.controller('paymentsController', ['$scope', '$http', 'globalServerURL',
-    function($scope, $http, globalServerURL) {
+myApp.controller('paymentsController', ['$scope', '$http', 'globalServerURL', 'SessionService',
+    function($scope, $http, globalServerURL, SessionService) {
 
         toggleMenu('payments');
 
@@ -8,6 +8,12 @@ myApp.controller('paymentsController', ['$scope', '$http', 'globalServerURL',
         $scope.jsonpayments = [];
         $scope.paymentList = [];
         $scope.valuationsList = []
+
+        // get the user permissions
+        $scope.user = {'username':SessionService.username()};
+        SessionService.permissions().then(function(perm){
+            $scope.user.permissions = perm;
+        });
 
         // loading the project list
         $scope.clearFilters = function() {

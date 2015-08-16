@@ -119,7 +119,7 @@ def auth(request):
         2. json encoded username and password
         3. username and password fields on json_body
 
-        We return a token.
+        We return a token and the user permissions
     """
     if request.method != 'POST':
         return HTTPMethodNotAllowed(
@@ -144,7 +144,7 @@ def auth(request):
 
     return {
          "access_token": create_token(request, username,
-            user.roles and json.loads(user.roles) or [])
+            user.roles and json.loads(user.roles) or []),
     }
 
 
@@ -969,19 +969,15 @@ def node_paste(request):
             copiedresourceIds = {}
             for budgetitem in sourcebudgetitems:
                 if budgetitem.ResourceID not in copiedresourceIds:
-                    try:
-                        # the original category name
-                        categoryName = budgetitem.Resource.Parent.Name
-                        newparentid = sortResource(resourcecategory,
-                                                    categoryName)
-                        copiedresource = budgetitem.Resource.copy(newparentid)
-                        DBSession.add(copiedresource)
-                        DBSession.flush()
-                        copiedresourceIds[
-                                budgetitem.Resource.ID] = copiedresource.ID
-                    except:
-                        print "budgetitem error"
-                        print budgetitem
+                    # the original category name
+                    categoryName = budgetitem.Resource.Parent.Name
+                    newparentid = sortResource(resourcecategory,
+                                                categoryName)
+                    copiedresource = budgetitem.Resource.copy(newparentid)
+                    DBSession.add(copiedresource)
+                    DBSession.flush()
+                    copiedresourceIds[
+                            budgetitem.Resource.ID] = copiedresource.ID
 
             # get the budgetitems that were pasted
             destbudgetitems = projectcopy.getBudgetItems()
@@ -2098,12 +2094,8 @@ def usersview(request):
         # add user rights
         permissions = request.json_body.get('permissions', [])
         for right in permissions:
-            permission = ''
-            if right['edit']:
-                permission = 'edit'
-            elif right['view']:
-                permission = 'view'
-            userright = UserRight(Function=right['title'],
+            permission = right.get('Permission', None)
+            userright = UserRight(Function=right['Function'],
                                     Permission=permission)
             user.UserRights.append(userright)
 
@@ -2111,6 +2103,7 @@ def usersview(request):
 
         return user.dict()
 
+    # return a list of users
     users = DBSession().query(User).all()
     return [
         user.dict()
@@ -2127,6 +2120,7 @@ def userview(request):
     except NoResultFound:
         return HTTPNotFound('No such user')
 
+    # edit a user
     if request.method == 'POST':
         if not request.has_permission('edit'):
             return HTTPForbidden()
@@ -2135,24 +2129,33 @@ def userview(request):
         if password:
             user.set_password(password)
         permissions = request.json_body.get('permissions', [])
-        if len(permissions) > 0:
-             # edit user rights
-            for right in permissions:
-                permission = ''
-                if right['edit']:
-                    permission = 'edit'
-                elif right['view']:
-                    permission = 'view'
-                userright = DBSession.query(UserRight).filter_by(UserID=user.ID,
-                                                Function=right['title']).first()
-                userright.Permission = permission
+        for right in permissions:
+            permission = right.get('Permission', None)
+            userright = DBSession.query(UserRight).filter_by(UserID=user.ID,
+                                            Function=right['Function']).first()
+            userright.Permission = permission
 
+    # delete a user
     elif request.method == 'DELETE':
         if not request.has_permission('edit'):
             return HTTPForbidden()
         session.delete(user)
         return {}
+
+    # return the user
     return user.dict()
+
+@view_config(route_name='userrights', renderer='json')
+def userrights(request):
+    """ Get the rights of this user
+    """
+    username = request.matchdict['username']
+    user = DBSession.query(User).filter(User.username==username).first()
+    permissions = {}
+    for right in user.UserRights:
+        permissions[right.Function] = right.Permission
+
+    return permissions
 
 
 @view_config(route_name='invoicesview', renderer='json', permission='view')

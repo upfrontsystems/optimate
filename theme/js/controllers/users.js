@@ -1,9 +1,15 @@
-myApp.controller('usersController', ['$scope', '$http', '$modal', 'globalServerURL',
-    function($scope, $http, $modal, globalServerURL) {
+myApp.controller('usersController', ['$scope', '$http', '$modal', 'globalServerURL', 'SessionService',
+    function($scope, $http, $modal, globalServerURL, SessionService) {
 
         toggleMenu('setup');
         $scope.users = [];
         $scope.isDisabled = false;
+
+        // get the user permissions
+        $scope.user = {'username':SessionService.username()};
+        SessionService.permissions().then(function(perm){
+            $scope.user.permissions = perm;
+        });
 
         // populate user list
         ($scope.repopulate = function() {
@@ -33,13 +39,13 @@ myApp.controller('usersController', ['$scope', '$http', '$modal', 'globalServerU
             username: '',
             password: '',
             permissions: [
-                {title: 'projects'},
-                {title: 'orders'},
-                {title: 'invoices'},
-                {title: 'valuations'},
-                {title: 'claims'},
-                {title: 'payments'},
-                {title: 'setup'}
+                {'Function': 'projects'},
+                {'Function': 'orders'},
+                {'Function': 'invoices'},
+                {'Function': 'valuations'},
+                {'Function': 'claims'},
+                {'Function': 'payments'},
+                {'Function': 'setup'}
             ]
         }
         $scope.addingState = function () {
@@ -48,8 +54,7 @@ myApp.controller('usersController', ['$scope', '$http', '$modal', 'globalServerU
             $scope.newuser.username = '';
             $scope.newuser.password = '';
             $scope.newuser.permissions.forEach(function(v) {
-                v.edit = false;
-                v.view = false;
+                v.Permission = null;
             });
             if ($scope.selectedUser) {
                 $scope.selectedUser.selected = false;
@@ -127,4 +132,11 @@ myApp.controller('usersController', ['$scope', '$http', '$modal', 'globalServerU
             );
         };
 
+        $scope.toggleEdit = function(item){
+            (item.Permission == 'edit') ? (item.Permission = 'view') : (item.Permission = 'edit');
+        }
+
+        $scope.toggleView = function(item){
+            (item.Permission == 'view') ? (item.Permission = null) : (item.Permission = 'view');
+        }
 }]);

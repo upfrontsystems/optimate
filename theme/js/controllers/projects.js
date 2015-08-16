@@ -21,14 +21,20 @@ var duplicateModalController = function ($scope, $modalInstance, selections) {
 angular.module('myApp').controller('duplicateModalController', duplicateModalController);
 
 // Controller for the projects and treeview
-myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'globalServerURL', '$timeout', '$modal',
-    function($scope, $http, $cacheFactory, globalServerURL, $timeout, $modal) {
+myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'globalServerURL', '$timeout', '$modal', 'SessionService',
+    function($scope, $http, $cacheFactory, globalServerURL, $timeout, $modal, SessionService) {
 
         toggleMenu('projects');
         // variable for disabling submit button after user clicked it
         $scope.isDisabled = false;
         $scope.calculatorHidden = true; // set calculator to be hidden by default
         $scope.rowsSelected = false;    // set selected rows false
+
+        // get the user permissions
+        $scope.user = {'username':SessionService.username()};
+        SessionService.permissions().then(function(perm){
+            $scope.user.permissions = perm;
+        });
 
         // aux function to test if we can support localstorage
         var hasStorage = (function() {
@@ -73,6 +79,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 console.log("LOCAL STORAGE NOT SUPPORTED!")
             }
         };
+
         // build the root for the projects in the tree
         $scope.projectsRoot = {"Name": "Root", "ID": 0, "NodeType":"Root", "Subitem": []};
         $scope.preloadProjects(); // check if anything is stored in local storage

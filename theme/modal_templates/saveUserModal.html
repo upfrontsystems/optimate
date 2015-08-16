@@ -38,19 +38,19 @@
                             </thead>
                             <tbody>
                                 <tr ng-repeat="item in newuser.permissions">
-                                    <td class="modal-table-row" style="text-transform: capitalize;">{{item.title}}</td>
+                                    <td class="modal-table-row text-capitalize">{{item.Function}}</td>
                                     <td class="modal-table-row">
                                         <button class="custom-checkbox"
-                                              data-ng-click="item.edit = !item.edit; item.view = item.edit">
-                                            <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[item.edit]">
+                                              data-ng-click="toggleEdit(item)">
+                                            <i data-ng-class="{'edit':'fa fa-check-square-o',null:'fa fa-square-o', 'view':'fa fa-square-o'}[item.Permission]">
                                             </i>
                                         </button>
                                     </td>
                                     <td class="modal-table-row">
                                         <button class="custom-checkbox"
-                                              data-ng-disabled="item.edit"
-                                              data-ng-click="item.view = !item.view">
-                                            <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[item.view]">
+                                              data-ng-disabled="item.Permission == 'edit'"
+                                              data-ng-click="toggleView(item)">
+                                            <i data-ng-class="{'view':'fa fa-check-square-o','edit':'fa fa-check-square-o', null:'fa fa-square-o'}[item.Permission]">
                                             </i>
                                         </button>
                                     </td>
