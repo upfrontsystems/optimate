@@ -1,6 +1,6 @@
 // controller for the Order data from the server
-myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$timeout',
-    function($scope, $http, globalServerURL, $timeout) {
+myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$timeout', 'SessionService',
+    function($scope, $http, globalServerURL, $timeout, SessionService) {
 
         toggleMenu('orders');
         $scope.dateTimeNow = function() {
@@ -20,6 +20,12 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
         $scope.currentPage = 1;
         $scope.maxPageSize = 20;
         $scope.orderListLength = $scope.maxPageSize + 1;
+
+        // get the user permissions
+        $scope.user = {'username':SessionService.username()};
+        SessionService.permissions().then(function(perm){
+            $scope.user.permissions = perm;
+        });
 
         // loading the project, client and supplier list
         $scope.clearFilters = function() {

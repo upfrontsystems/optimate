@@ -1,6 +1,7 @@
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div class="container-fluid">
-        <ul class="nav nav-pills">
+        <ul data-ng-show="user.permissions.setup == 'edit'"
+            class="nav nav-pills">
             <li>
                 <a title="Add User" data-ng-click="addingState()" data-target="#saveUser"  data-toggle="modal"><i class="fa fa-plus-square"></i></a>
             </li>

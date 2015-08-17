@@ -1,6 +1,6 @@
 // controller for the Valuation data from the server
-myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', '$timeout',
-    function($scope, $http, globalServerURL, $timeout) {
+myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', '$timeout', 'SessionService',
+    function($scope, $http, globalServerURL, $timeout, SessionService) {
 
         toggleMenu('valuations');
         $scope.dateTimeNow = function() {
@@ -19,7 +19,13 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
         $scope.maxPageSize = 20;
         $scope.valuationListLength = $scope.maxPageSize + 1;
 
-        // get the length of the list of all the valuations
+        // get the user permissions
+        $scope.user = {'username':SessionService.username()};
+        SessionService.permissions().then(function(perm){
+            $scope.user.permissions = perm;
+        });
+
+        // get the length of the list of all valuations
         $http.get(globalServerURL + 'valuations/length').success(function(data) {
             $scope.valuationListLength = data['length'];
         });

@@ -1,6 +1,6 @@
 // controller for the Invoice data from the server
-myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$timeout',
-    function($scope, $http, globalServerURL, $timeout) {
+myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$timeout', 'SessionService',
+    function($scope, $http, globalServerURL, $timeout, SessionService) {
 
         toggleMenu('invoices');
         $scope.dateTimeNow = function() {
@@ -13,6 +13,12 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
         $scope.isDisabled = false;
         $scope.jsoninvoices = [];
         $scope.invoiceList = [];
+
+        // get the user permissions
+        $scope.user = {'username':SessionService.username()};
+        SessionService.permissions().then(function(perm){
+            $scope.user.permissions = perm;
+        });
 
         // loading the project, client and supplier list
         $scope.clearFilters = function() {

@@ -32,20 +32,22 @@
                                     <i class="fa fa-check"></i>
                                 </button>
                             </td>
-                            <td data-ng-hide="overhead.edit">
+                            <td data-ng-show="user.permissions.projects == 'edit'"
+                                data-ng-hide="overhead.edit">
                                 <button data-ng-click="overhead.edit = true"
                                         title="Edit this overhead">
                                     <i class="fa fa-pencil"></i>
                                 </button>
                             </td>
-                            <td data-ng-hide="overhead.edit">
+                            <td data-ng-show="user.permissions.projects == 'edit'"
+                                data-ng-hide="overhead.edit">
                                 <button data-ng-click="deleteOverhead(overhead)"
                                         title="Delete this overhead">
                                     <i class="fa fa-trash"></i>
                                 </button>
                             </td>
                         </tr>
-                        <tr>
+                        <tr data-ng-show="user.permissions.projects == 'edit'">
                             <td>
                                 <input type="text" ng-model="newOverhead.Name" placeholder="Name">
                             </td>

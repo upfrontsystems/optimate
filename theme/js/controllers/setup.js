@@ -1,8 +1,14 @@
 // controller for the Company Information data from the server
-myApp.controller('companyinformationController', ['$scope', '$http', '$modal', '$log', 'globalServerURL',
-    function($scope, $http, $modal, $log, globalServerURL) {
+myApp.controller('companyinformationController', ['$scope', '$http', '$modal', '$log', 'globalServerURL', 'SessionService',
+    function($scope, $http, $modal, $log, globalServerURL, SessionService) {
 
         toggleMenu('setup');
+
+        // get the user permissions
+        $scope.user = {'username':SessionService.username()};
+        SessionService.permissions().then(function(perm){
+            $scope.user.permissions = perm;
+        });
 
         $http.get(globalServerURL + 'company_information').success(function(data) {
             $scope.company_information = data;
@@ -40,11 +46,18 @@ myApp.controller('companyinformationController', ['$scope', '$http', '$modal', '
 
 
 // controller for the Cities data
-myApp.controller('citiesController', ['$scope', '$http', '$modal', '$log', 'globalServerURL',
-    function($scope, $http, $modal, $log, globalServerURL) {
+myApp.controller('citiesController', ['$scope', '$http', '$modal', '$log', 'globalServerURL', 'SessionService',
+    function($scope, $http, $modal, $log, globalServerURL, SessionService) {
 
         toggleMenu('setup');
         $scope.newCity = [];
+
+        // get the user permissions
+        $scope.user = {'username':SessionService.username()};
+        SessionService.permissions().then(function(perm){
+            $scope.user.permissions = perm;
+        });
+
         $http.get(globalServerURL + 'cities').success(function(data) {
             $scope.cityList = data;
         });
@@ -97,11 +110,18 @@ myApp.controller('citiesController', ['$scope', '$http', '$modal', '$log', 'glob
 ]);
 
 // controller for the Units data
-myApp.controller('unitsController', ['$scope', '$http', '$modal', '$log', 'globalServerURL',
-    function($scope, $http, $modal, $log, globalServerURL) {
+myApp.controller('unitsController', ['$scope', '$http', '$modal', '$log', 'globalServerURL', 'SessionService',
+    function($scope, $http, $modal, $log, globalServerURL, SessionService) {
 
         toggleMenu('setup');
         $scope.newUnit = [];
+
+        // get the user permissions
+        $scope.user = {'username':SessionService.username()};
+        SessionService.permissions().then(function(perm){
+            $scope.user.permissions = perm;
+        });
+
         $http.get(globalServerURL + 'units').success(function(data) {
             $scope.unitList = data;
             console.log("Unit list loaded");
@@ -156,39 +176,3 @@ myApp.controller('unitsController', ['$scope', '$http', '$modal', '$log', 'globa
 
     }
 ]);
-
-myApp.controller('loginController', ['$scope', '$location', 'SessionService',
-    function($scope, $location, SessionService) {
-        $scope.credentials = {
-            username: '',
-            password: ''
-        }
-
-        $scope.login = function(e) {
-            e.preventDefault();
-            SessionService.login($scope.credentials.username, $scope.credentials.password).then(
-                function() {
-                    $location.path('/projects');
-                },
-                function() {
-                    alert('Login failed');
-                });
-        }
-}]);
-
-myApp.controller('logoutController', ['$location', 'SessionService',
-    function($location, SessionService) {
-        SessionService.logout();
-        $location.path('/login');
-}]);
-
-myApp.controller('navController', ['$scope', 'SessionService',
-    function($scope, SessionService) {
-        // Hide and show the toolbar depending on whether you're logged in.
-        $scope.logged_in = SessionService.authenticated();
-        $scope.username = SessionService.username();
-        $scope.$on('session:changed', function(evt, username) {
-            $scope.logged_in = SessionService.authenticated();
-            $scope.username = SessionService.username();
-        });
-}]);

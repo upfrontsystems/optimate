@@ -1,7 +1,7 @@
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div class="container-fluid">
         <ul class="nav nav-pills">
-            <li>
+            <li data-ng-show="user.permissions.orders == 'edit'">
                 <a title="Add Order"
                     data-ng-click="addingState()"
                     data-target="#saveOrderModal"
@@ -9,22 +9,24 @@
                         <i class="fa fa-plus-square"></i>
                 </a>
             </li>
-            <li ng-show="selectedOrder">
+            <li data-ng-show="user.permissions.orders == 'edit'">
                 <a title="Edit Order"
+                    data-ng-show="selectedOrder"
                     data-ng-click="editingState()"
                     data-target="#saveOrderModal"
                     data-toggle="modal">
                         <i class="fa fa-pencil"></i>
                 </a>
             </li>
-            <li ng-show="selectedOrder">
+            <li data-ng-show="user.permissions.orders == 'edit'">
                 <a title="Delete Order"
+                    data-ng-show="selectedOrder"
                     data-target="#deleteOrderModal"
                     data-toggle="modal">
                         <i class="fa fa-trash"></i>
                 </a>
             </li>
-            <li ng-show="selectedOrder">
+            <li data-ng-show="selectedOrder">
                 <a title="Order Report"
                 data-ng-click="getReport('order')"
                 class="pdf_download">

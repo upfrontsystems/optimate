@@ -1,12 +1,12 @@
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div class="container-fluid">
         <ul class="nav nav-pills">
-            <li>
-                <a title="Edit Company Information" data-ng-click="editingState()" 
+            <li data-ng-show="user.permissions.setup == 'edit'">
+                <a title="Edit Company Information" data-ng-click="editingState()"
                    data-target="#editCompanyInformation" data-toggle="modal">
                     <i class="fa fa-pencil"></i>
                 </a>
-            </li>        
+            </li>
         </ul>
     </div>
 </nav>
@@ -17,7 +17,7 @@
 
 <div class="container-fluid">
     <div>COMPANY INFORMATION</div>
-    </br>    
+    </br>
     <div>
         <span>Name: </span>
         <span>{{company_information['Name']}}</span>
@@ -40,7 +40,7 @@
     </div>
     </br>
     <div>FINANCIAL DETAIL</div>
-    </br>    
+    </br>
     <div>
         <span>Bank name: </span>
         <span>{{company_information['BankName']}}</span>

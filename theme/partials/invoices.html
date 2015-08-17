@@ -1,7 +1,7 @@
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div class="container-fluid">
         <ul class="nav nav-pills">
-            <li>
+            <li data-ng-show="user.permissions.invoices == 'edit'">
                 <a title="Add Invoice"
                     data-ng-click="addingState()"
                     data-target="#saveInvoiceModal"
@@ -9,16 +9,18 @@
                         <i class="fa fa-plus-square"></i>
                 </a>
             </li>
-            <li ng-show="selectedInvoice">
+            <li data-ng-show="user.permissions.invoices == 'edit'">
                 <a title="Edit Invoice"
+                    data-ng-show="selectedInvoice"
                     data-ng-click="editingState()"
                     data-target="#saveInvoiceModal"
                     data-toggle="modal">
                         <i class="fa fa-pencil"></i>
                 </a>
             </li>
-            <li ng-show="selectedInvoice">
+            <li data-ng-show="user.permissions.invoices == 'edit'">
                 <a title="Delete Invoice"
+                    data-ng-show="selectedInvoice"
                     data-target="#deleteInvoiceModal"
                     data-toggle="modal">
                         <i class="fa fa-trash"></i>

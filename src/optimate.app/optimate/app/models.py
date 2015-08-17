@@ -1648,22 +1648,12 @@ class UserRight(Base):
     def dict(self):
         """ Return a dictionary of the user right
         """
-        edit = False
-        view = False
-        if self.Permission == 'edit':
-            edit = True
-            view = True
-        elif self.Permission == 'view':
-            view = True
-
-        return {'title': self.Function,
-                'edit': edit,
-                'view': view}
+        return {'Function': self.Function,
+                'Permission': self.Permission}
 
     def __repr__(self):
         """ Return a relationship of this right """
-        return '<UserRight(ID="%s", UserID="%s", \
-                    Function="%s", Permission="%s")>' % (
+        return '<UserRight(ID="%s", UserID="%s", Function="%s", Permission="%s")>' % (
                     self.ID, self.UserID, self.Function, self.Permission)
 
 

@@ -1,7 +1,7 @@
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div class="container-fluid">
         <ul data-ng-show="!rowsSelected" class="nav nav-pills">
-            <li>
+            <li data-ng-show="user.permissions.projects == 'edit'">
                 <a title="Add Project" data-ng-click="changeAddingType('Project');"
                  data-target="#addProject" data-toggle="modal" class="project-button">
                     <i class="fa fa-plus-square"></i> P</a>
@@ -12,19 +12,19 @@
             <div ng-include="'partials/treeview_menu.html'"></div>
         </ul>
         <ul data-ng-show="rowsSelected" class="nav nav-pills nav-pills-center">
-            <li>
+            <li data-ng-show="user.permissions.projects == 'edit'">
                 <a role="button" data-ng-click="copySelectedRecords(currentNode)"
                    title="Copy records">
                     <i class="fa fa-files-o"></i>
                 </a>
             </li>
-            <li>
+            <li data-ng-show="user.permissions.projects == 'edit'">
                 <a role="button" data-ng-click="cutSelectedRecords(currentNode)"
                    title="Cut records">
                     <i class="fa fa-cut"></i>
                 </a>
             </li>
-            <li>
+            <li data-ng-show="user.permissions.projects == 'edit'">
                 <a role="button"
                     data-target="#deleteRecordsConfirmation"
                     data-toggle="modal"
@@ -176,6 +176,7 @@
             <div id="tree-outer">
                 <div ui-tree="treeOptions"
                     expand-on-hover="true"
+                    data-drag-enabled="user.permissions.projects == 'edit'"
                     id="tree-root">
                     <ol ui-tree-nodes="" ng-model="projectsRoot.Subitem">
                         <li ng-repeat="node in projectsRoot.Subitem"

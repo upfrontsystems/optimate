@@ -1,7 +1,7 @@
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div class="container-fluid">
         <ul class="nav nav-pills">
-            <li>
+            <li data-ng-show="user.permissions.valuations == 'edit'">
                 <a title="Add Valuation"
                     data-ng-click="addingState()"
                     data-target="#saveValuationModal"
@@ -9,22 +9,24 @@
                         <i class="fa fa-plus-square"></i>
                 </a>
             </li>
-            <li ng-show="selectedValuation">
+            <li data-ng-show="user.permissions.valuations == 'edit'">
                 <a title="Edit Valuation"
+                    data-ng-show="selectedValuation"
                     data-ng-click="editingState()"
                     data-target="#saveValuationModal"
                     data-toggle="modal">
                         <i class="fa fa-pencil"></i>
                 </a>
             </li>
-            <li ng-show="selectedValuation">
+            <li data-ng-show="user.permissions.valuations == 'edit'">
                 <a title="Delete Valuation"
+                    data-ng-show="selectedValuation"
                     data-target="#deleteValuationModal"
                     data-toggle="modal">
                         <i class="fa fa-trash"></i>
                 </a>
             </li>
-            <li ng-show="selectedValuation">
+            <li data-ng-show="selectedValuation">
                 <a title="Valuation Report"
                 data-ng-click="getReport('valuation')"
                 class="pdf_download">
