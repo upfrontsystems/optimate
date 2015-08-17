@@ -421,3 +421,8 @@ table.modal-table {
     display: inline;
 }
 
+/* capitalize words */
+.text-capitalize {
+    text-transform: capitalize;
+}
+

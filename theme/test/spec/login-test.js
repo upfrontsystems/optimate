@@ -7,6 +7,7 @@ describe('Login page', function() {
     });
 
     it('should be logged in', function() {
+        browser.waitForAngular();
         expect(browser.driver.getCurrentUrl()).toBe('http://127.0.0.1:8000/#/projects');
         expect(element(by.css('.project-button')).isPresent()).toBe(true);
     });
