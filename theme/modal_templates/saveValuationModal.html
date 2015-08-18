@@ -81,15 +81,15 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <ul class="nav nav-pills no-top-margin nav-pills-valuation" data-ng-show="rowSelected">
-                    <li>
+                <ul class="nav nav-pills no-top-margin nav-pills-valuation" data-ng-show="rowsSelected.selected">
+                    <li data-ng-show="!rowsSelected.expanded">
                         <a role="button"
                             data-ng-click="expandBudgetGroupsGrid()"
                            title="Expand">
                             <i class="fa fa-caret-square-o-down"></i>
                         </a>
                     </li>
-                    <li>
+                    <li data-ng-show="rowsSelected.expanded">
                         <a role="button"
                             data-ng-click="collapseBudgetGroupsGrid()"
                            title="Collapse">

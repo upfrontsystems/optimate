@@ -585,6 +585,7 @@ def node_budgetgroups(request):
             data['NodeType'] = 'ValuationItem'
             data['PercentageComplete'] = 0
             data['level'] = '1'
+            data['expanded'] = False
             itemlist.append(data)
     else:
         # get the data from an existing & most recent valuation for this project
@@ -594,6 +595,7 @@ def node_budgetgroups(request):
             data['ID'] = vi.BudgetGroupID
             data['id'] = vi.BudgetGroupID
             data['NodeType'] = 'ValuationItem'
+            data['expanded'] = False
             # recalculate the amount complete
             # get the latest 'budgetgroup total' from project's budgetgroup data
             total = (bg.Total / 100) * vi.PercentageComplete
@@ -626,6 +628,7 @@ def node_expand_budgetgroup(request):
     blist = request.json_body.get('budgetgroupList', '')
     project = DBSession.query(Node).filter_by(ID=proj_id).first()
     parent = DBSession.query(Node).filter_by(ID=bg_id).first()
+
     if blist[[x['ID'] for x in blist].index(int(bg_id))]['level'] != '1':
         # only allow expansion of top level nodes
         print "EXPANSION OF INNER NODES NOT ALLOWED"
@@ -645,6 +648,7 @@ def node_expand_budgetgroup(request):
         x['level'] = u'2'
         x['Name'] = ' - ' + x['Name']
         x['NodeType'] = 'ValuationItem'
+        x['expanded'] = False
         vi = DBSession.query(ValuationItem).filter_by(BudgetGroupID=bg.ID).first()
         if vi:
             # recalculate the amount complete
@@ -661,6 +665,8 @@ def node_expand_budgetgroup(request):
     # inject bgroups into blist after the parent node that was expanded
     start = blist[0:index_to_insert_after+1]
     end = blist[index_to_insert_after+1:]
+    # set the parent expanded
+    start[len(start)-1]['expanded'] = True
     # inject bgroups into blist after
     result = start + children + end
     return result
@@ -696,6 +702,9 @@ def node_collapse_budgetgroup(request):
     for bgroup in bgroups_dicts:
         delete_index = [x['ID'] for x in blist].index(int(bgroup['ID']))
         del blist[delete_index]
+
+    parentindex = [x['ID'] for x in blist].index(int(bg_id))
+    blist[parentindex]['expanded'] = False
 
     return blist
 
@@ -2151,6 +2160,10 @@ def valuationview(request):
         if valuationitem.BudgetGroup:
             data = valuationitem.dict()
             bg = valuationitem.BudgetGroup
+            # the id of the valuationitem used in the slickgrid
+            # needs to be the id of the budgetgroup
+            data['id'] = bg.ID
+            data['ID'] = bg.ID
 #            import pdb; pdb.set_trace()
             parent = DBSession.query(Node).filter_by(ID=bg.ParentID).first()
             if parent.type == 'Project':

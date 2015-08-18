@@ -145,7 +145,8 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
             $scope.formData = {'NodeType': 'valuation'};
             $scope.isDisabled = false;
             $scope.modalState = "Add";
-            $scope.rowSelected = false;
+            $scope.rowsSelected = {'selected': false,
+                                    'expanded': false};
             $scope.dateTimeNow();
             $scope.formData['Date'] = $scope.date;
             $scope.budgetgroupList = [];
@@ -163,7 +164,8 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
         $scope.editingState = function () {
             $scope.isDisabled = false;
             $scope.modalState = "Edit";
-            $scope.rowSelected = false;
+            $scope.rowsSelected = {'selected': false,
+                                    'expanded': false};
             $http({
                 method: 'GET',
                 url: globalServerURL + 'valuation/' + $scope.selectedValuation.ID + '/'
@@ -198,49 +200,44 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
             });
         };
 
-        $scope.toggleRowsSelected = function(rowsselected) {
+        $scope.toggleRowsSelected = function(rowsselected, expanded) {
             $timeout(function() {
-                $scope.rowsSelected = rowsselected;
+                $scope.rowsSelected.selected = rowsselected;
+                $scope.rowsSelected.expanded = expanded;
             });
         }
 
         $scope.expandBudgetGroupsGrid = function() {
-            var selectedRows = $scope.getSelectedNodes()
-            for (var i in selectedRows) {
-                $http({
-                    method: 'POST',
-                    url:globalServerURL + 'node/' + $scope.formData['ProjectID'] + '/expand_budgetgroup/' + selectedRows[i].ID,
-                    data: {'budgetgroupList': $scope.budgetgroupList},
-                }).success(function (response) {
-                    $scope.budgetgroupList = response
-                    if (i == selectedRows.length-1) {
-                        // on the last loop reload the slickgrid and node
-                        $scope.toggleRowsSelected(false);
-                        $scope.handleReloadValuationSlickgrid();
-                    }
-                });
-            }
+            var selectedRows = $scope.getSelectedNodes();
+            $scope.iterateOverRows(selectedRows, 0, 'expand_budgetgroup')
         };
 
         $scope.collapseBudgetGroupsGrid = function() {
             var selectedRows = $scope.getSelectedNodes()
-            for (var i in selectedRows) {
-                $http({
-                    method: 'POST',
-                    url:globalServerURL + 'node/' + $scope.formData['ProjectID'] + '/collapse_budgetgroup/' + selectedRows[i].ID,
-                    data: {'budgetgroupList': $scope.budgetgroupList},
-                }).success(function (response) {
-                    // on the last loop reload the slickgrid and node
-                    $scope.budgetgroupList = response
-                    // on the last loop reload the slickgrid and node
-                    if (i == selectedRows.length-1) {
-                        // on the last loop reload the slickgrid and node
-                        $scope.toggleRowsSelected(false);
-                        $scope.handleReloadValuationSlickgrid();
-                    }
-                });
-            }
+            $scope.iterateOverRows(selectedRows, 0, 'collapse_budgetgroup')
         };
+
+        // need to recursively call the http post,
+        // otherwise it reaches the end of the list before it has finished loading
+        $scope.iterateOverRows = function(rows, index, route){
+            $http({
+                method: 'POST',
+                url:globalServerURL + 'node/' + $scope.formData['ProjectID'] + '/' + route + '/' + rows[index].ID,
+                data: {'budgetgroupList': $scope.budgetgroupList},
+            }).success(function (response) {
+                $scope.budgetgroupList = response;
+                // on the last loop reload the slickgrid and node
+                if (index == rows.length-1) {
+                    // on the last loop reload the slickgrid and node
+                    $scope.toggleRowsSelected(false, false);
+                    $scope.handleReloadValuationSlickgrid();
+                }
+                else{
+                    index+=1;
+                    $scope.iterateOverRows(rows, index, route);
+                }
+            });
+        }
 
         $scope.getReport = function (report) {
             if ( report == 'valuation' ) {

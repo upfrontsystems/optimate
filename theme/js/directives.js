@@ -799,9 +799,9 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                 });
             };
 
-            var rowsSelected = false;
             grid.onSelectedRowsChanged.subscribe(function(e, args) {
                 var selectedrows = grid.getSelectedRows();
+                var rowsSelected = false;
                 if (selectedrows.length > 0) {
                     var selectedRowIds = dataView.mapRowsToIds(selectedrows);
                     if ((selectedRowIds.length > 0) && grid.getSelectionModel().ctrlClicked()) {
@@ -830,7 +830,7 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
             }
 
             $scope.clearSelectedRows = function(){
-                $scope.rowsSelected = false;
+                $scope.toggleRowsSelected(false);
                 grid.setSelectedRows([]);
                 grid.render();
             };
@@ -851,6 +851,7 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
             var grid;
             var data = [];
             var valuations_column_width= {};
+
             // aux function to test if we can support localstorage
             var hasStorage = (function() {
                 try {
@@ -909,7 +910,7 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
             data = []
             dataView = new Slick.Data.DataView();
             grid = new Slick.Grid("#budgetgroup-data-grid", dataView, columns, options);
-            grid.setSelectionModel(new Slick.CustomSelectionModel());
+            grid.setSelectionModel(new Slick.OrdersSelectionModel());
             // resize the slickgrid when modal is shown
             $('#saveValuationModal').on('shown.bs.modal', function() {
                  grid.init();
@@ -999,6 +1000,9 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                 else if (item.PercentageComplete < 0) {
                     item.PercentageComplete = 0;
                 }
+                // sometimes total budget is undefined
+                item.TotalBudget = item.TotalBudget ? item.TotalBudget : 0;
+
                 item.AmountComplete = (item.TotalBudget/100) * item.PercentageComplete;
                 item.AmountComplete = item.AmountComplete.toFixed(2);
                 dataView.updateItem(item.id, item);
@@ -1012,29 +1016,41 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                 });
             };
 
-            var rowsSelected = false;
-            $scope.rowSelected = false;
             grid.onSelectedRowsChanged.subscribe(function(e, args) {
                 var selectedrows = grid.getSelectedRows();
+                var selectable = false;
+                var expanded = false;
                 if (selectedrows.length > 0) {
                     var selectedRowIds = dataView.mapRowsToIds(selectedrows);
                     if ((selectedRowIds.length > 0) && grid.getSelectionModel().ctrlClicked()) {
-                        rowsSelected = true;
+                        selectable = true;
+                        var ids = dataView.mapRowsToIds(grid.getSelectedRows());
+                        for (var i in ids){
+                            var node = dataView.getItemById(ids[i]);
+                            // if any of the nodes are level 2, cant select
+                            if (node.level == '2'){
+                                selectable = false;
+                                break;
+                            }
+
+                            // if one of the rows is already expanded
+                            // keep expanded true
+                            if (!expanded){
+                                if (node.expanded){
+                                    expanded = true;
+                                }
+                            }
+                        }
                     }
-                    else {
-                        rowsSelected = false;
-                    }
                 }
-                else {
-                    rowsSelected = false;
+                $scope.toggleRowsSelected(selectable, expanded);
+            });
+
+            grid.onBeforeEditCell.subscribe(function(e,args) {
+                // cant edit an expanded row
+                if (args.item.expanded) {
+                    return false;
                 }
-                if (selectedrows.length >= 0) {
-                    $scope.rowSelected = true;
-                }
-                else {
-                    $scope.rowSelected = false;
-                }
-                $scope.toggleRowsSelected(rowsSelected);
             });
 
             $scope.getSelectedNodes = function() {
