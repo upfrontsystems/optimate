@@ -405,4 +405,29 @@ td > input:disabled {
     float: left;
 }
 
+/* cut nodes have an opacity of 50% */
+.node-cut {
+    opacity: 0.5;
+}
 
+/* styling for the user permissions table*/
+table.modal-table {
+    width: 68%;
+    border-collapse: collapse;
+}
+.modal-table-row{
+    border: none !important;
+}
+
+/* only show the trash icon on hover*/
+.table-row-delete {
+    display: none;
+}
+.table-row-hover:hover .table-row-delete{
+    display: inline;
+}
+
+/* capitalize words */
+.text-capitalize {
+    text-transform: capitalize;
+}

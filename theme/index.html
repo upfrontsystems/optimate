@@ -31,6 +31,8 @@
     <script type="text/javascript" src="js/slick.cellrangedecorator.js"></script>
     <script type="text/javascript" src="js/slick.cellrangeselector.js"></script>
     <script type="text/javascript" src="js/slick.customselectionmodel.js"></script>
+    <script type="text/javascript" src="js/slick.projectsselectionmodel.js"></script>
+    <script type="text/javascript" src="js/slick.ordersselectionmodel.js"></script>
     <script type="text/javascript" src="js/slick.cellselectionmodel.js"></script>
     <!--<script type="text/javascript" src="js/slick.autotooltips.js"></script> -->
     <script type="text/javascript" src="js/slick.dataview.js"></script>
@@ -72,7 +74,17 @@
     <!-- Controllers js files -->
     <script src="js/config.js"></script>
     <script src="js/app.js"></script>
-    <script src="js/controllers.js"></script>
+    <script src="js/controllers/sessions.js"></script>
+    <script src="js/controllers/projects.js"></script>
+    <script src="js/controllers/users.js"></script>
+    <script src="js/controllers/suppliers.js"></script>
+    <script src="js/controllers/clients.js"></script>
+    <script src="js/controllers/orders.js"></script>
+    <script src="js/controllers/invoices.js"></script>
+    <script src="js/controllers/valuations.js"></script>
+    <script src="js/controllers/claims.js"></script>
+    <script src="js/controllers/payments.js"></script>
+    <script src="js/controllers/setup.js"></script>
     <script src="js/directives.js"></script>
     <script src="js/services.js"></script>
     <script src="js/modal.js"></script>
@@ -95,20 +107,27 @@
                 <div class="btn-group pull-right personal-tools">
                     <a href="javascript:;" data-toggle="dropdown"
                        class="btn dropdown-toggle">
-                        {{username}}
+                        {{user.username}}
                         <span class="caret"></span></a>
                     <ul class="dropdown-menu" role="menu">
                         <li><a href="#/logout">Logout</a></li>
                     </ul>
                 </div>
                 <ul class="nav nav-pills">
-                    <li class="projects"><a href="#/projects">Projects</a></li>
-                    <li class="orders"><a href="#/orders">Orders</a></li>
-                    <li class="invoices"><a href="#/invoices">Invoices</a></li>
-                    <li class="valuations"><a href="#/valuations">Valuations</a></li>
-                    <li class="claims"><a href="#/claims">Claims</a></li>
-                    <li class="payments"><a href="#/payments">Payments</a></li>
-                    <li class="dropdown setup">
+                    <li data-ng-show="user.permissions.projects"
+                        class="projects"><a href="#/projects">Projects</a></li>
+                    <li data-ng-show="user.permissions.orders"
+                        class="orders"><a href="#/orders">Orders</a></li>
+                    <li data-ng-show="user.permissions.invoices"
+                        class="invoices"><a href="#/invoices">Invoices</a></li>
+                    <li data-ng-show="user.permissions.valuations"
+                        class="valuations"><a href="#/valuations">Valuations</a></li>
+                    <li data-ng-show="user.permissions.claims"
+                        class="claims"><a href="#/claims">Claims</a></li>
+                    <li data-ng-show="user.permissions.payments"
+                        class="payments"><a href="#/payments">Payments</a></li>
+                    <li data-ng-show="user.permissions.setup"
+                        class="dropdown setup">
                         <a href="javascript:;" data-toggle="dropdown">
                             Setup <span class="caret"></span>
                         </a>

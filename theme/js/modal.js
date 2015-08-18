@@ -21,6 +21,9 @@ $(document).on('shown.bs.modal', function() {
          // disable the 'disabled version' of the project select
          $('.project-dropdown-disabled .chosen-container').off()
      }
+     if ( $('#saveUser.in').length != 0 ) {
+         $('#username').focus();
+     }
 });
 
 

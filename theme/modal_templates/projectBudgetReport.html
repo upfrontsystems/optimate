@@ -1,13 +1,13 @@
 <script type="text/ng-template" id="angularProjectBudgetTree.html">
   <div ui-tree-handle class="tree-node order-tree-node-content">
       <input type="button"
-          class="collapsed"
-          data-ng-show="node.Subitem.length && node.collapsed"
+          class="expanded"
+          data-ng-show="node.Subitem.length && node.expanded"
           data-ng-click="selectReportNodeHead(node)">
       </input>
       <input type="button"
-          class="expanded"
-          data-ng-show="node.Subitem.length && !node.collapsed"
+          class="collapsed"
+          data-ng-show="node.Subitem.length && !node.expanded"
           data-ng-click="selectReportNodeHead(node)">
       </button>
       <input type="button"
@@ -27,7 +27,7 @@
           </i>
       </button>
   </div>
-  <ol ui-tree-nodes ng-model="node.Subitem" data-ng-hide="!node.collapsed" data-type="{{node.NodeType}}">
+  <ol ui-tree-nodes ng-model="node.Subitem" data-ng-hide="!node.expanded" data-type="{{node.NodeType}}">
       <li ng-repeat="node in node.Subitem"
           data-type="{{node.NodeType}}"
           ui-tree-node

@@ -734,6 +734,9 @@ class BudgetItem(Node):
                             ClientCost=self.ClientCost,
                             ProjectedProfit=self.ProjectedProfit,
                             ActualProfit=self.ActualProfit)
+        # add the overheads
+        copied.Overheads = self.Overheads
+
         return copied
 
     def order(self):
@@ -1300,14 +1303,15 @@ class ResourcePart(Node):
                 'Quantity': self.Quantity,
                 'Rate': str(self.Rate),
                 'Total': str(self.Total),
+                'ResourceID': self.ResourceID,
                 'NodeType': self.type,
                 'NodeTypeAbbr' : 'P'}
 
     def __repr__(self):
         """ Return a representation of this ResourcePart
         """
-        return '<ResourcePart(Name="%s", Quantity"%f", Total="%f", ID="%s")>' % (
-            self.Name, self.Quantity, self.Total, self.ID)
+        return '<ResourcePart(Name="%s", ID="%s")>' % (
+            self.Name, self.ID)
 
 
 class Unit(Base):
@@ -1601,6 +1605,7 @@ class User(Base):
     username = Column(Unicode(length=20), nullable=False, index=True)
     salt = Column(Unicode(length=64), nullable=True)
     password = Column(Unicode(length=64), nullable=True) # For an sha256 hash
+    # to be phased out
     roles = Column(Text(20))
 
     def validate_password(self, password):
@@ -1611,6 +1616,45 @@ class User(Base):
         h = hashlib.sha256((salt + password).encode('utf-8')).hexdigest()
         self.salt = unicode(salt)
         self.password = unicode(h)
+
+    def dict(self):
+        """ Return a dictionary of this user """
+        permissions = []
+        for right in self.UserRights:
+            permissions.append(right.dict())
+
+        return {'ID': self.ID,
+                'username': self.username,
+                'permissions': permissions}
+
+    def __repr__(self):
+        """Return a representation of this user
+        """
+        return '<User(ID="%s", username="%s")>' % (
+            self.ID, self.username)
+
+
+class UserRight(Base):
+    """ Table detailing the rights a user can have """
+    __tablename__ = "UserRight"
+    ID = Column(Integer, primary_key=True)
+    UserID = Column(Integer, ForeignKey('User.ID'))
+    Function = Column(Text(50))
+    Permission = Column(Text(20))
+
+    User = relationship('User',
+                          backref=backref('UserRights'))
+
+    def dict(self):
+        """ Return a dictionary of the user right
+        """
+        return {'Function': self.Function,
+                'Permission': self.Permission}
+
+    def __repr__(self):
+        """ Return a relationship of this right """
+        return '<UserRight(ID="%s", UserID="%s", Function="%s", Permission="%s")>' % (
+                    self.ID, self.UserID, self.Function, self.Permission)
 
 
 class Invoice(Base):

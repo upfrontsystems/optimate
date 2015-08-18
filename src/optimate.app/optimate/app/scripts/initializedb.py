@@ -37,7 +37,8 @@ from optimate.app.models import (
     Valuation,
     ValuationItem,
     Claim,
-    Payment
+    Payment,
+    UserRight
 )
 
 def usage(argv):
@@ -55,6 +56,7 @@ def main(argv=sys.argv):
     settings = get_appsettings(config_uri, options=options)
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
+
     Base.metadata.create_all(engine)
 
     # Initialise used database with an admin user
@@ -64,6 +66,10 @@ def main(argv=sys.argv):
         user = User()
         user.username = u'admin'
         user.set_password('admin')
+        for right in ['projects','orders','invoices','valuations',
+                        'claims','payments','setup']:
+            userright = UserRight(Function=right, Permission='edit')
+            user.UserRights.append(userright)
         user.roles = json.dumps(['Administrator'])
         DBSession().merge(user)
 

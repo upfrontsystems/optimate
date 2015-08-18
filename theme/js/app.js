@@ -1,6 +1,6 @@
 "use strict";
 var myApp = angular.module('myApp', [
-                    'allControllers',
+                    'config',
                     'ngRoute',
                     'ui.bootstrap',
                     'ui.tree',
@@ -106,7 +106,7 @@ myApp.config(['$routeProvider', '$httpProvider',
 
 .run(['$rootScope', '$location', 'SessionService', function($rootScope, $location, SessionService){
     $rootScope.$on("$routeChangeStart", function(event, next, current){
-        if (!(SessionService.authenticated() || next.public)){
+        if (!(SessionService.authenticated("if") || next.public)){
             $location.path("/login");
         }
     });

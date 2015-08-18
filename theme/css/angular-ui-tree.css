@@ -18,7 +18,7 @@ div[ui-tree] li .treenode {
     outline:none;
 }
 
-div[ui-tree] li .expanded {
+div[ui-tree] li .collapsed {
     background: url("../img/plusbtn.png") center no-repeat;
     padding-left: 15px;
     background-color: Transparent;
@@ -28,7 +28,7 @@ div[ui-tree] li .expanded {
     outline:none;
 }
 
-div[ui-tree] li .collapsed {
+div[ui-tree] li .expanded {
     background: url("../img/minusbtn.png") center no-repeat;
     padding-left: 15px;
     background-color: Transparent;

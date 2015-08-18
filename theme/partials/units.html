@@ -6,7 +6,7 @@
 </nav>
 
 <div class="container-fluid">
-    <div>
+    <div data-ng-show="user.permissions.setup == 'edit'">
         <td>
             <input type="text" ng-model="newUnit.Name" placeholder="Name">
         </td>
@@ -24,11 +24,14 @@
                 </tr>
             </thead>
             <tbody>
-                <tr ng-repeat="obj in unitList" id="unit-{{obj.ID}}">
+                <tr ng-repeat="obj in unitList" id="unit-{{obj.ID}}"
+                    class="table-row-hover">
                     <td>{{obj.Name}}
                     </td>
                     <td>
-                        <button data-ng-click="deleteUnit(obj.ID, $index)"
+                        <button data-ng-show="user.permissions.setup == 'edit'"
+                                class="table-row-delete"
+                                data-ng-click="deleteUnit(obj.ID, $index)"
                                 title="Delete this unit">
                             <i class="fa fa-trash"></i>
                         </button>

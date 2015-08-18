@@ -20,10 +20,10 @@
                                         tagging="tagTransform"
                                         tagging-label="false"
                                         tagging-tokens="['ENTER'|'TAB']"
-                                        on-select="resourceSelected($item)"
+                                        on-select="resourceSelected($item, formData.NodeType)"
                                         theme="bootstrap"
                                         ng-disabled="disabled"
-                                        reset-search-input="false"
+                                        reset-search-input="true"
                                         class="col-sm-7"
                                         ng-required="!addBudgetItemForm.has_selection">
                                 <ui-select-match placeholder="Search or enter a new name">

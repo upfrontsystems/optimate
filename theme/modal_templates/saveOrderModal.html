@@ -137,6 +137,12 @@
                         data-ng-disabled="saveOrderModalForm.inputProject.$invalid">
                     Add budget items
                 </button>
+                <button data-ng-show="isCollapsed && rowsSelected"
+                        class="btn btn-default pull-left"
+                        data-ng-click="deleteSelectedRecords()"
+                        title="Delete records">
+                    <i class="fa fa-trash"></i>
+                </button>
                 <div data-ng-show="isCollapsed">
                     <button data-ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal"
                      data-ng-disabled="!saveOrderModalForm.$valid" data-ng-click="save()">

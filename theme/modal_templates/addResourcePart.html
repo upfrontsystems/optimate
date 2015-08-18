@@ -14,12 +14,12 @@
                         </label>
                         <ui-select data-ng-model="formData.selected"
                                     id="inputResources"
-                                    on-select="resourceSelected($item)"
+                                    on-select="resourceSelected($item, formData.NodeType)"
                                     theme="bootstrap"
                                     ng-disabled="disabled"
-                                    reset-search-input="false"
+                                    reset-search-input="true"
                                     class="col-sm-7"
-                                    ng-required="true">
+                                    required>
                             <ui-select-match placeholder="Search for a resource or resource unit">
                                 {{$select.selected.Name}}
                             </ui-select-match>
@@ -38,7 +38,7 @@
                                class="col-sm-1"
                                id="inputQuantity"
                                name="inputQuantity"
-                               ng-model="formData.selected.Quantity">
+                               ng-model="formData.Quantity">
                     </div>
                 <form>
             </div>

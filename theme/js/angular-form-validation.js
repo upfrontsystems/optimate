@@ -234,6 +234,10 @@ function decorationsProvider() {
                             // Decorating element as valid.
                             decorator.decorateElement($element, true);
                         }
+                        else{
+                            // Removing all decorations if it's not required
+                            decorator.clearDecorations($element);
+                        }
                     } else {
                         // Removing all decorations if it's valid and not modified.
                         decorator.clearDecorations($element);
@@ -260,7 +264,6 @@ function decorationsProvider() {
              * @param {boolean} temp
              */
             decorateElement: function(formName, ngModel, valid, temp) {
-
                 var self = this;
 
                 var $element = getInputByName(formName, ngModel.$name);
@@ -359,10 +362,8 @@ function ClassNameDecorator() {
          * @param {boolean} valid
          */
         decorateElement: function($inputElement, valid) {
-
             var $decoratedElement = this.getDecoratedElement($inputElement);
             if (null === $decoratedElement) {
-                console.log('Missing decorated element for input element', $inputElement);
                 return;
             }
 
@@ -396,7 +397,6 @@ function ClassNameDecorator() {
 
             var $decoratedElement = this.getDecoratedElement($inputElement);
             if (null === $decoratedElement) {
-                console.log('Missing decorated element for input element', $inputElement);
                 return;
             }
 
@@ -440,7 +440,7 @@ function BootstrapDecorator() {
             required: 'fa fa-asterisk',
         }
     };
-    var noIconElementTypes = ['checkbox', 'radio', 'password'];
+    var noIconElementTypes = ['checkbox', 'radio'];
 
     /**
      * This traverser will walk from the input element
@@ -635,7 +635,6 @@ function BootstrapDecorator() {
          * @param {boolean} valid
          */
         decorateElement: function($inputElement, valid) {
-
             // Calling parent function.
             classNameDecorator.decorateElement.apply(this, arguments);
 
@@ -649,7 +648,6 @@ function BootstrapDecorator() {
             if (useIcons && iconRequired) {
                 var $decoratedElement = classNameDecorator.getDecoratedElement($inputElement);
                 if (null === $decoratedElement) {
-                    console.log('Missing decorated element for input element', $inputElement);
                     return;
                 }
 
@@ -703,7 +701,6 @@ function BootstrapDecorator() {
 
                 var $decoratedElement = classNameDecorator.getDecoratedElement($inputElement);
                 if (null === $decoratedElement) {
-                    console.log('Missing decorated element for input element', $inputElement);
                     return;
                 }
 
@@ -819,9 +816,6 @@ function errorsProvider() {
      */
     self.buildErrorListFromConstraints = function(constraints, constraintParameters) {
         var errorList = {};
-        // returning empty error list
-        return errorList;
-        //
         angular.forEach(constraints, function(invalid, name) {
             if (invalid) {
                 var parameters;
@@ -832,6 +826,9 @@ function errorsProvider() {
             }
         });
         // return errorList;
+
+        // return an empty list so no error messages are shown
+        return {};
     };
 
     self.$get = function () {

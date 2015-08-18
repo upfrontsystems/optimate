@@ -1,7 +1,7 @@
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div class="container-fluid">
         <ul class="nav nav-pills">
-            <li>
+            <li data-ng-show="user.permissions.orders == 'edit'">
                 <a title="Add Claim"
                     data-ng-click="addingState()"
                     data-target="#saveClaimModal"
@@ -9,16 +9,18 @@
                         <i class="fa fa-plus-square"></i>
                 </a>
             </li>
-            <li ng-show="selectedClaim">
+            <li data-ng-show="user.permissions.orders == 'edit'">
                 <a title="Edit Claim"
+                    data-ng-show="selectedClaim"
                     data-ng-click="editingState()"
                     data-target="#saveClaimModal"
                     data-toggle="modal">
                         <i class="fa fa-pencil"></i>
                 </a>
             </li>
-            <li ng-show="selectedClaim">
+            <li data-ng-show="user.permissions.orders == 'edit'">
                 <a title="Delete Claim"
+                    data-ng-show="selectedClaim"
                     data-target="#deleteClaimModal"
                     data-toggle="modal">
                         <i class="fa fa-trash"></i>
