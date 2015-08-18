@@ -37,7 +37,8 @@
     </div>
 </nav>
 
-<pagination boundary-links="true"
+<pagination data-ng-show="valuationListLength > maxPageSize"
+            boundary-links="true"
             total-items="valuationListLength"
             items-per-page="pageSize"
             data-ng-model="currentPage"

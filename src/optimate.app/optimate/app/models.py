@@ -243,17 +243,6 @@ class Project(Node):
                 budgetitemslist += child.getBudgetItems()
         return budgetitemslist
 
-    def getBudgetGroups(self):
-        """ Return a list of all the budgetgroups that are in this project.
-        """
-        budgetgrouplist = []
-        if len(self.Children) == 0:
-            return [self]
-        for child in self.Children:
-            if child.type == 'BudgetGroup':
-                budgetgrouplist.append(child)
-        return sorted(budgetgrouplist, key=lambda k: k.Name.upper())
-
     def dict(self):
         """ Override the dict function
         """
@@ -416,18 +405,6 @@ class BudgetGroup(Node):
             budgetitemslist += child.getBudgetItems()
         return budgetitemslist
 
-    def getBudgetGroups(self):
-        """ Returns a list of all the budgetgroups that contained in this
-            budgetgroup.
-        """
-        budgetgrouplist = []
-        if len(self.Children) == 0:
-            return [self]
-        for child in self.Children:
-            if child.type == 'BudgetGroup':
-                budgetgrouplist.append(child)
-        return sorted(budgetgrouplist, key=lambda k: k.Name.upper())
-
     def dict(self):
         """ Override the dict function
         """
@@ -446,6 +423,24 @@ class BudgetGroup(Node):
                 'Invoiced': str(self.Invoiced),
                 'NodeType': self.type,
                 'NodeTypeAbbr' : 'G'}
+
+    def valuation(self, level='1'):
+        """ The data returned when performing a valuation on a budget group
+        """
+        prepend = ''
+        if level == '2':
+            prepend = ' - '
+        return {'Name': prepend + self.Name,
+                'Description': self.Description,
+                'ID': self.ID,
+                'id': self.ID,
+                'ParentID': self.ParentID,
+                'Total': str(self.Total),
+                'TotalBudget': str(self.Total),
+                'PercentageComplete': 0,
+                'level': level,
+                'expanded': False,
+                'NodeType': 'ValuationItem'}
 
     def updateOrdered(self, ordered):
         """ Updates the Ordered amount for all the children of this node
@@ -1844,8 +1839,11 @@ class ValuationItem(Base):
     BudgetGroupID = Column(Integer, ForeignKey('BudgetGroup.ID'))
     BudgetGroupTotal = Column(Numeric, default=Decimal(0.00)) # stores snapshot of
                                                            #a budgetgroups total
-    PercentageComplete = Column(Numeric, default=Decimal(0.00))
+    PercentageComplete = Column(Numeric, default=Decimal(0.00)) # fixme - PercentageComplete
+                                                                # to float type
 
+    # fixme - when rebuilding the table change the backref from 'BudgetGroups'
+    # to 'ValuationItems'
     BudgetGroup = relationship('BudgetGroup',
                               backref=backref('BudgetGroups'))
     Valuation = relationship('Valuation',

@@ -1006,6 +1006,21 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                 item.AmountComplete = (item.TotalBudget/100) * item.PercentageComplete;
                 item.AmountComplete = item.AmountComplete.toFixed(2);
                 dataView.updateItem(item.id, item);
+
+                // if this is a level two item, update the total of the parent
+                if (item.level == '2'){
+                    var rowindex = ctx.row;
+                    var level = item.level;
+                    while ((rowindex > 0) && level == '2'){
+                        rowindex-=1;
+                        parent = dataView.getItem(rowindex);
+                        level = parent.level;
+                    }
+                    parent.AmountComplete = parent.AmountComplete ? parent.AmountComplete : 0;
+                    parent.AmountComplete = (parseFloat(parent.AmountComplete) +
+                                            parseFloat(item.AmountComplete)).toFixed(2);
+                    dataView.updateItem(parent.id, parent);
+                }
             });
 
             // reload the valuation slickgrid
@@ -1047,9 +1062,11 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
             });
 
             grid.onBeforeEditCell.subscribe(function(e,args) {
-                // cant edit an expanded row
-                if (args.item.expanded) {
-                    return false;
+                if (args.item){
+                    // cant edit an expanded row
+                    if (args.item.expanded) {
+                        return false;
+                    }
                 }
             });
 

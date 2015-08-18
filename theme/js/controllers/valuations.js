@@ -46,11 +46,7 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
                         'end': end}
             };
             $http(req).success(function(response) {
-                var length = response.pop();
                 $scope.jsonvaluations = response;
-                if (length) {
-                    $scope.valuationListLength = length;
-                }
                 console.log("Valuations loaded");
             });
         }

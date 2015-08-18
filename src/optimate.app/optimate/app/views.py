@@ -557,13 +557,9 @@ def node_budgetitems(request):
 
 @view_config(route_name="node_budgetgroups", renderer='json', permission='view')
 def node_budgetgroups(request):
-    """ Retrieves and returns all the budgetgroups in a node
+    """ Returns a list of the first level budget groups in a node
     """
     proj_id = request.matchdict['id']
-    project = DBSession.query(Node).filter_by(ID=proj_id).first()
-    if project == None:
-        return []
-    budgetgrouplist = project.getBudgetGroups()
     itemlist = []
 
     recent_valuation_exists = False
@@ -578,39 +574,45 @@ def node_budgetgroups(request):
         recent_valuation_exists = True
 
     if not recent_valuation_exists:
-        for bg in budgetgrouplist:
-            # for the valuations slickgrid, the budgetgroup type
-            # needs to be ValuationItem
-            data = bg.dict()
-            data['NodeType'] = 'ValuationItem'
-            data['PercentageComplete'] = 0
-            data['level'] = '1'
-            data['expanded'] = False
-            itemlist.append(data)
+        # add the project's budgetgroup children to the list
+        project = DBSession.query(Project).filter_by(ID=proj_id).first()
+        for child in project.Children:
+            if child.type == 'BudgetGroup':
+                itemlist.append(child.valuation())
+        itemlist = sorted(itemlist, key=lambda k: k['Name'].upper())
     else:
         # get the data from an existing & most recent valuation for this project
+        parentlist = []
+        childrenlist = []
         for vi in most_recent_valuation.ValuationItems:
-            bg = DBSession.query(Node).filter_by(ID=vi.BudgetGroupID).first()
-            data = bg.dict()
-            data['ID'] = vi.BudgetGroupID
-            data['id'] = vi.BudgetGroupID
-            data['NodeType'] = 'ValuationItem'
-            data['expanded'] = False
-            # recalculate the amount complete
-            # get the latest 'budgetgroup total' from project's budgetgroup data
-            total = (bg.Total / 100) * vi.PercentageComplete
-            total_str = str(total.quantize(Decimal('.01')))
-            data['AmountComplete'] = total_str
-            data['PercentageComplete'] = str(vi.PercentageComplete)
-            parent = DBSession.query(Node).filter_by(ID=bg.ParentID).first()
-            if parent.type == 'Project':
-                data['level'] = '1'
-                itemlist.append(data)
+            bg = vi.BudgetGroup
+            total = str(Decimal((bg.Total/100)*vi.PercentageComplete
+                            ).quantize(Decimal('.01')))
+            # get data and append children valuation items to children list
+            if vi.ParentID != 0:
+                data = bg.valuation('2')
+                data['AmountComplete'] = total
+                data['PercentageComplete'] = str(vi.PercentageComplete)
+                childrenlist.append(data)
+            # get data and append parents valuation items to parent list
             else:
-                # at the moment, do not include level two items,
-                # let user see them by expanding the parent node
-                data['level'] = '2'
+                data = bg.valuation()
+                if len(vi.Children) > 0:
+                    data['expanded'] = True
+                data['AmountComplete'] = total
+                data['PercentageComplete'] = str(vi.PercentageComplete)
+                parentlist.append(data)
 
+        # sort the list, place children after parents
+        parentlist = sorted(parentlist, key=lambda k: k['Name'].upper())
+        for parent in parentlist:
+            if parent['expanded']:
+                dc = [x for x in childrenlist if x['ParentID'] == parent['ID']]
+                dc = sorted(dc, key=lambda k: k['Name'].upper())
+                itemlist.append(parent)
+                itemlist+=dc
+            else:
+                itemlist.append(parent)
     return itemlist
 
 
@@ -623,43 +625,39 @@ def node_expand_budgetgroup(request):
         in the list, the position of the children in the list is following the
         parent (target)
     """
-    proj_id = request.matchdict['id']
-    bg_id = request.matchdict['bg_id']
+    bg_id = int(request.matchdict['bg_id'])
     blist = request.json_body.get('budgetgroupList', '')
-    project = DBSession.query(Node).filter_by(ID=proj_id).first()
-    parent = DBSession.query(Node).filter_by(ID=bg_id).first()
 
     if blist[[x['ID'] for x in blist].index(int(bg_id))]['level'] != '1':
         # only allow expansion of top level nodes
         print "EXPANSION OF INNER NODES NOT ALLOWED"
         return blist
-    bgroups = parent.Children
+
+    bgroups = DBSession.query(BudgetGroup).filter_by(ParentID=bg_id).all()
     if not bgroups:
         return blist
 
-    sorted_bgroups = sorted(bgroups, key=lambda k: k.Name.upper())
-    if int(sorted_bgroups[0].dict()['ID']) in [x['ID'] for x in blist]:
+    bgroups = sorted(bgroups, key=lambda k: k.Name.upper())
+    if int(bgroups[0].dict()['ID']) in [x['ID'] for x in blist]:
         # make sure we are not trying to expand an expanded node
         print "DONT EXPAND AGAIN!"
         return blist
     children = []
-    for bg in sorted_bgroups:
-        x = bg.dict()
-        x['level'] = u'2'
-        x['Name'] = ' - ' + x['Name']
-        x['NodeType'] = 'ValuationItem'
-        x['expanded'] = False
+    for bg in bgroups:
+        data = bg.valuation('2')
+
+        # fixme - make sure this is the same valuation item we are editing
         vi = DBSession.query(ValuationItem).filter_by(BudgetGroupID=bg.ID).first()
         if vi:
             # recalculate the amount complete
             # get the latest 'budgetgroup total' from project's budgetgroup data
-            total = (bg.Total / 100) * vi.PercentageComplete
-            total_str = str(total.quantize(Decimal('.01')))
-            x['AmountComplete'] = total_str
-            x['PercentageComplete'] = str(vi.PercentageComplete)
+            data['AmountComplete'] = str(Decimal((bg.Total / 100) * vi.PercentageComplete
+                                        ).quantize(Decimal('.01')))
+            data['PercentageComplete'] = str(vi.PercentageComplete)
         else:
-            x['PercentageComplete'] = 0
-        children.append(x)
+            data['AmountComplete'] = 0
+            data['PercentageComplete'] = 0
+        children.append(data)
 
     index_to_insert_after = [x['ID'] for x in blist].index(int(bg_id))
     # inject bgroups into blist after the parent node that was expanded
@@ -674,25 +672,24 @@ def node_expand_budgetgroup(request):
 
 @view_config(route_name="node_collapse_budgetgroup", renderer='json', permission='view')
 def node_collapse_budgetgroup(request):
+    """ Get the list of budget groups and the id of the node to collapse.
+        The children of the node are removed from the list,
+        the parent flagged as collapsed and the list returned.
     """
-    """
-    proj_id = request.matchdict['id']
     bg_id = request.matchdict['bg_id']
     blist = request.json_body.get('budgetgroupList', '')
-    project = DBSession.query(Node).filter_by(ID=proj_id).first()
-    parent = DBSession.query(Node).filter_by(ID=bg_id).first()
     if blist[[x['ID'] for x in blist].index(int(bg_id))]['level'] != '1':
         # only allow collapse of top level nodes
         print "COLLAPSE OF INNER NODES NOT ALLOWED"
         return blist
 
-    bgroups = parent.Children
+    bgroups = DBSession.query(BudgetGroup).filter_by(ParentID=bg_id).all()
     if not bgroups:
         # level1 node didnt have any children to collapse
         return blist
 
-    sorted_bgroups = sorted(bgroups, key=lambda k: k.Name.upper())
-    bgroups_dicts = [x.dict() for x in sorted_bgroups]
+    bgroups = sorted(bgroups, key=lambda k: k.Name.upper())
+    bgroups_dicts = [x.dict() for x in bgroups]
 
     if int(bgroups_dicts[0]['ID']) not in [x['ID'] for x in blist]:
         # make sure we are not trying to collapse a collapsed node
@@ -2079,14 +2076,29 @@ def valuationview(request):
         # add the valuation items to the valuation
         newid = newvaluation.ID
         budgetgrouplist = request.json_body.get('BudgetGroupList', [])
+        parentid=0
         for budgetgroup in budgetgrouplist:
             p_complete = float(budgetgroup.get('PercentageComplete', 0))
-            bg = DBSession.query(Node).filter_by(ID=budgetgroup['ID']).first()
-            newvaluationitem = ValuationItem(ValuationID=newid,
-                                             BudgetGroupID=budgetgroup['ID'],
-                                             BudgetGroupTotal=bg.Total,
-                                             PercentageComplete=p_complete)
-            DBSession.add(newvaluationitem)
+            bgid = budgetgroup['ID']
+            level = budgetgroup['level']
+            bg = DBSession.query(BudgetGroup).filter_by(ID=bgid).first()
+            if level == '1':
+                newitem = ValuationItem(ValuationID=newid,
+                                        ParentID=0,
+                                        BudgetGroupID=bgid,
+                                        BudgetGroupTotal=bg.Total,
+                                        PercentageComplete=p_complete)
+                DBSession.add(newitem)
+                DBSession.flush()
+                parentid = newitem.ID
+            # add a second level valuation item using the parent id
+            # that was generated previously
+            elif level == '2':
+                DBSession.add(ValuationItem(ValuationID=newid,
+                                            ParentID=parentid,
+                                            BudgetGroupID=bgid,
+                                            BudgetGroupTotal=bg.Total,
+                                            PercentageComplete=p_complete))
         transaction.commit()
         # return the new valuation
         newvaluation = DBSession.query(Valuation).filter_by(ID=newid).first()
@@ -2096,8 +2108,8 @@ def valuationview(request):
     if request.method == 'PUT':
         if not request.has_permission('edit'):
             return HTTPForbidden()
-        valuation = DBSession.query(
-                       Valuation).filter_by(ID=request.matchdict['id']).first()
+        vid = request.matchdict['id']
+        valuation = DBSession.query(Valuation).filter_by(ID=vid).first()
 
         proj = request.json_body.get('ProjectID', None)
         # convert to date from json format
@@ -2111,33 +2123,28 @@ def valuationview(request):
         iddict = {}
         for valuationitem in valuation.ValuationItems:
             iddict[valuationitem.BudgetGroupID] = valuationitem.ID
-        # get the list of budget groups used in the form
+        # get the list of budget groups used in the slickgrid
         budgetgrouplist = request.json_body.get('BudgetGroupList', [])
         # iterate through the new id's and add any new valuations
         # remove the id from the list if it is there already
         for budgetgroup in budgetgrouplist:
+            bg = DBSession.query(BudgetGroup
+                                    ).filter_by(ID=budgetgroup['ID']).first()
             if budgetgroup['ID'] not in iddict.values():
                 # add the new valuation item
                 p_complete = float(budgetgroup.get('PercentageComplete', 0))
-                bg = DBSession.query(Node).filter_by(ID=budgetgroup['ID']).first()
-                newvaluationitem = ValuationItem(ValuationID=valuation.ID,
-                                               BudgetGroupID=budgetgroup['ID'],
-                                               BudgetGroupTotal=bg.Total,
-                                               PercentageComplete=p_complete)
-                DBSession.add(newvaluationitem)
+                DBSession.add(ValuationItem(ValuationID=vid,
+                                            BudgetGroupID=budgetgroup['ID'],
+                                            BudgetGroupTotal=bg.Total,
+                                            PercentageComplete=p_complete))
             else:
                 # otherwise remove the id from the list and update the
                 # percentage complete & total
-                valuationitemid = iddict[budgetgroup['BudgetGroup']]
-                valuationitem = DBSession.query(ValuationItem).filter_by(
-                                    ID=valuationitemid).first()
-                bg_id = valuationitem.BudgetGroupID
-                # get the budgetgroup total from the referenced budgetgroup
-                bg = DBSession.query(Node).filter_by(ID=bg_id).first()
-                valuationitem.BudgetGroupTotal=bg.Total
-                valuationitem.PercentageComplete = \
-                    float(budgetgroup['PercentageComplete'])
-                del iddict[budgetgroup['BudgetGroup']]
+                item = DBSession.query(ValuationItem).filter_by(
+                                    ID=iddict[budgetgroup['ID']]).first()
+                item.BudgetGroupTotal=bg.Total
+                item.PercentageComplete = float(budgetgroup['PercentageComplete'])
+                del iddict[budgetgroup['ID']]
         # delete the leftover id's
         for oldid in iddict.values():
             deletethis = DBSession.query(
@@ -2146,8 +2153,7 @@ def valuationview(request):
 
         transaction.commit()
         # return the edited valuation
-        valuation = DBSession.query(
-                      Valuation).filter_by(ID=request.matchdict['id']).first()
+        valuation = DBSession.query(Valuation).filter_by(ID=vid).first()
         return valuation.dict()
 
     # otherwise return the selected valuation
@@ -2155,24 +2161,38 @@ def valuationview(request):
     valuation = DBSession.query(Valuation).filter_by(ID=valuationid).first()
     # build a list of the budgetgroups used in the valuation from the valuation
     # items
-    budgetgrouplist = []
-    for valuationitem in valuation.ValuationItems:
-        if valuationitem.BudgetGroup:
-            data = valuationitem.dict()
-            bg = valuationitem.BudgetGroup
-            # the id of the valuationitem used in the slickgrid
-            # needs to be the id of the budgetgroup
-            data['id'] = bg.ID
-            data['ID'] = bg.ID
-#            import pdb; pdb.set_trace()
-            parent = DBSession.query(Node).filter_by(ID=bg.ParentID).first()
-            if parent.type == 'Project':
-                data['level'] = '1'
-                budgetgrouplist.append(data)
-            else:
-                # at the moment, do not include level two items,
-                # let user see them by expanding the parent node
-                data['level'] = '2'
+    itemlist = []
+    parentlist = []
+    childrenlist = []
+    for item in valuation.ValuationItems:
+        bg = item.BudgetGroup
+        total = str(Decimal((bg.Total/100)*item.PercentageComplete
+                        ).quantize(Decimal('.01')))
+        # get data and append children valuation items to children list
+        if item.ParentID != 0:
+            data = bg.valuation('2')
+            data['AmountComplete'] = total
+            data['PercentageComplete'] = str(item.PercentageComplete)
+            childrenlist.append(data)
+        # get data and append parents valuation items to parent list
+        else:
+            data = bg.valuation()
+            if len(item.Children) > 0:
+                data['expanded'] = True
+            data['AmountComplete'] = total
+            data['PercentageComplete'] = str(item.PercentageComplete)
+            parentlist.append(data)
+
+    # sort the list, place children after parents
+    parentlist = sorted(parentlist, key=lambda k: k['Name'].upper())
+    for parent in parentlist:
+        if parent['expanded']:
+            dc = [x for x in childrenlist if x['ParentID'] == parent['ID']]
+            dc = sorted(dc, key=lambda k: k['Name'].upper())
+            itemlist.append(parent)
+            itemlist+=dc
+        else:
+            itemlist.append(parent)
 
     # get the date in json format
     jsondate = None
@@ -2182,7 +2202,7 @@ def valuationview(request):
 
     return {'ID': valuation.ID,
             'ProjectID': valuation.ProjectID,
-            'BudgetGroupList': budgetgrouplist,
+            'BudgetGroupList': itemlist,
             'Date': jsondate}
 
 
