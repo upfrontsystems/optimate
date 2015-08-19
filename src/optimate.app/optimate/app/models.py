@@ -1916,13 +1916,16 @@ class Claim(Base):
             date = self.Date.strftime("%d %B %Y")
         else:
             date = ''
+        total = '{:20,.2f}'.format(0).strip()
+        if self.Total:
+            total = '{:20,.2f}'.format(self.Total).strip()
         return {'ID': self.ID,
                 'id': self.ID,
                 'ProjectID': self.ProjectID,
                 'Project': self.Project.Name,
                 'ValuationID': self.ValuationID,
                 'Date': date,
-                'Total': str(self.Total)}
+                'Total': total}
 
     def __repr__(self):
         """ Return a representation of this Claim
