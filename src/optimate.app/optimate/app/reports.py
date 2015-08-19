@@ -37,10 +37,13 @@ def projectbudget_nodes(node, data, level, level_limit, budgetitem_filter):
                 data.append((child, 'level' + str(level), 'bold'))
             elif leaf:
                 # no filtering selected
+                # XXX FIXME this is going to bite you hard if you ever add
+                # a 6th item. Better to check that the intersection between
+                # the sets is empty. Even simpler to always filter.
                 if len(budgetitem_filter) == 5:
                     data.append((child, 'level' + str(level), 'normal'))
                 # filter by resource type
-                elif child.Resource.Type in budgetitem_filter:
+                elif child.Type in budgetitem_filter:
                     data.append((child, 'level' + str(level), 'normal'))
             else:
                 data.append((child, 'level' + str(level), 'normal'))
