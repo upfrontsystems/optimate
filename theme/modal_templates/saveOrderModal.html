@@ -4,7 +4,7 @@
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"
                         aria-hidden="true" data-ng-show="isCollapsed">&times;</button>
-                <button type="button" class="close" data-ng-click="toggleComponentsGrid()"
+                <button type="button" class="close" data-ng-click="toggleBudgetItemsGrid()"
                         aria-hidden="true" data-ng-show="!isCollapsed">&times;</button>
                 <h3 class="modal-title">{{modalState}} an {{formData.NodeType}}</h3>
             </div>
@@ -133,9 +133,20 @@
                 <button class="btn btn-default"
                         id="addBudgetItemsButton"
                         data-ng-click="toggleBudgetItemsGrid()"
+                        data-ng-show="isCollapsed"
                         tabindex="1"
+                        title="Add items"
                         data-ng-disabled="saveOrderModalForm.inputProject.$invalid">
-                    Add budget items
+                    <i class="fa fa-plus"> </i>
+                </button>
+                <button class="btn btn-default"
+                        id="addBudgetItemsButton"
+                        data-ng-click="toggleBudgetItemsGrid()"
+                        data-ng-show="!isCollapsed"
+                        tabindex="1"
+                        title="Show grid"
+                        data-ng-disabled="saveOrderModalForm.inputProject.$invalid">
+                    <i class="fa fa-list"> </i>
                 </button>
                 <button data-ng-show="isCollapsed && rowsSelected"
                         class="btn btn-default pull-left"

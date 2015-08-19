@@ -16,6 +16,7 @@
       </input>
       <span class="circle {{node.NodeType}}">&nbsp;{{node.NodeTypeAbbr}}&nbsp;</span>
       <span class="order-tree-node"
+          data-ng-click="node.NodeType=='OrderItem'?toggleBudgetItems(node):selectNodeHead(node)"
           id="{{node.ID}}">
           {{node.Name}}
       </span>
