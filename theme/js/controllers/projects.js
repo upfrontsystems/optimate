@@ -1138,7 +1138,8 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
         $scope.loadBudgetItemTypes = function() {
             var bitypes = [];
             for (var i in $scope.restypeList) {
-                bitypes.push({Name: $scope.restypeList[i].Name, selected: true})
+                bitypes.push({ID: $scope.restypeList[i].ID,
+                    Name: $scope.restypeList[i].Name, selected: true})
             }
             $scope.budgetItemTypeList = bitypes;
             $scope.printSelectedBudgetGroups = false;
