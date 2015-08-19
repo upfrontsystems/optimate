@@ -1038,7 +1038,7 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                 var expanded = false;
                 if (selectedrows.length > 0) {
                     var selectedRowIds = dataView.mapRowsToIds(selectedrows);
-                    if ((selectedRowIds.length > 0) && grid.getSelectionModel().ctrlClicked()) {
+                    if (selectedRowIds.length > 0) {
                         selectable = true;
                         var ids = dataView.mapRowsToIds(grid.getSelectedRows());
                         for (var i in ids){

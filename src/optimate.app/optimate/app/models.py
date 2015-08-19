@@ -1843,11 +1843,12 @@ class ValuationItem(Base):
     BudgetGroup = relationship('BudgetGroup',
                               backref=backref('ValuationItems'))
     Valuation = relationship('Valuation',
-                            cascade='all',
-                            backref=backref('ValuationItems'))
+                            backref=backref('ValuationItems',
+                                            cascade='all'))
     Children = relationship('ValuationItem',
                             cascade='all',
-                            backref=backref('Parent', remote_side='ValuationItem.ID'),
+                            backref=backref('Parent',
+                                            remote_side='ValuationItem.ID'),
                             )
 
     @property

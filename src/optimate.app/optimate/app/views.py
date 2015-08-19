@@ -702,6 +702,10 @@ def node_collapse_budgetgroup(request):
 
     parentindex = [x['ID'] for x in blist].index(int(bg_id))
     blist[parentindex]['expanded'] = False
+    # calculate the parent percentage from it's total
+    bgtotal = DBSession.query(BudgetGroup).filter_by(ID=bg_id).first().Total
+    percentage = (float(blist[parentindex]['AmountComplete'])/float(bgtotal))*100
+    blist[parentindex]['PercentageComplete'] = "{0:.3f}".format(percentage)
 
     return blist
 
@@ -2128,14 +2132,24 @@ def valuationview(request):
         # iterate through the new id's and add any new valuations
         # remove the id from the list if it is there already
         for budgetgroup in budgetgrouplist:
-            bg = DBSession.query(BudgetGroup
-                                    ).filter_by(ID=budgetgroup['ID']).first()
             p_complete = budgetgroup.get('PercentageComplete', None)
             if p_complete:
                 p_complete = float(p_complete)
             if budgetgroup['ID'] not in iddict.keys():
                 # add the new valuation item
-                DBSession.add(ValuationItem(ValuationID=vid,
+                if budgetgroup['level'] == '1':
+                    DBSession.add(ValuationItem(ValuationID=vid,
+                                            ParentID=0,
+                                            BudgetGroupID=budgetgroup['ID'],
+                                            PercentageComplete=p_complete))
+                    DBSession.flush()
+                else:
+                    # find the parent of the second level valuation item
+                    parent = DBSession.query(ValuationItem).filter_by(
+                                ValuationID=vid,
+                                BudgetGroupID=budgetgroup['ParentID']).first()
+                    DBSession.add(ValuationItem(ValuationID=vid,
+                                            ParentID=parent.ID,
                                             BudgetGroupID=budgetgroup['ID'],
                                             PercentageComplete=p_complete))
             else:
