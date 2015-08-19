@@ -2284,8 +2284,9 @@ def userrights(request):
     username = request.matchdict['username']
     user = DBSession.query(User).filter(User.username==username).first()
     permissions = {}
-    for right in user.UserRights:
-        permissions[right.Function] = right.Permission
+    if user is not None:
+        for right in user.UserRights:
+            permissions[right.Function] = right.Permission
 
     return permissions
 
