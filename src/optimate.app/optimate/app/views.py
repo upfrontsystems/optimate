@@ -632,11 +632,6 @@ def node_expand_budgetgroup(request):
     if not bgroups:
         return blist
 
-    bgroups = sorted(bgroups, key=lambda k: k.Name.upper())
-    if int(bgroups[0].dict()['ID']) in [x['ID'] for x in blist]:
-        # make sure we are not trying to expand an expanded node
-        print "DONT EXPAND AGAIN!"
-        return blist
     children = []
     for bg in bgroups:
         data = bg.valuation('2')
@@ -670,49 +665,6 @@ def node_expand_budgetgroup(request):
     # inject bgroups into blist after
     result = start + children + end
     return result
-
-
-@view_config(route_name="node_collapse_budgetgroup", renderer='json', permission='view')
-def node_collapse_budgetgroup(request):
-    """ Get the list of budget groups and the id of the node to collapse.
-        The children of the node are removed from the list,
-        the parent flagged as collapsed and the list returned.
-    """
-    bg_id = request.matchdict['bg_id']
-    blist = request.json_body.get('budgetgroupList', '')
-    if blist[[x['ID'] for x in blist].index(int(bg_id))]['level'] != '1':
-        # only allow collapse of top level nodes
-        print "COLLAPSE OF INNER NODES NOT ALLOWED"
-        return blist
-
-    bgroups = DBSession.query(BudgetGroup).filter_by(ParentID=bg_id).all()
-    if not bgroups:
-        # level1 node didnt have any children to collapse
-        return blist
-
-    bgroups = sorted(bgroups, key=lambda k: k.Name.upper())
-    bgroups_dicts = [x.dict() for x in bgroups]
-
-    if int(bgroups_dicts[0]['ID']) not in [x['ID'] for x in blist]:
-        # make sure we are not trying to collapse a collapsed node
-        print "DONT COLLAPSE AGAIN!"
-        return blist
-
-    for bgroup in bgroups_dicts:
-        delete_index = [x['ID'] for x in blist].index(int(bgroup['ID']))
-        del blist[delete_index]
-
-    parentindex = [x['ID'] for x in blist].index(int(bg_id))
-    blist[parentindex]['expanded'] = False
-    # calculate the parent percentage from it's total
-    percentage = '0'
-    bgtotal = DBSession.query(BudgetGroup).filter_by(ID=bg_id).first().Total
-    if bgtotal > 0:
-        percentage = 100*float(blist[parentindex]['AmountComplete'])/float(bgtotal)
-        percentage = "{0:.2f}".format(percentage)
-    blist[parentindex]['PercentageComplete'] = percentage
-    return blist
-
 
 @view_config(route_name="projects", renderer='json', permission='view')
 def projects(request):

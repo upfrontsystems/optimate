@@ -14,7 +14,7 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
             var d = new Date();
             // create a timezone agnostic date by setting time info to 0 and timezone to UTC.
             date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0,0));
-            $scope.date = date;
+            return date;
         };
         $scope.isDisabled = false;
         $scope.jsonvaluations = [];
@@ -116,28 +116,28 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
 
         // Set the selected valuation and change the css
         $scope.showActionsFor = function(obj) {
+            if ($scope.selectedValuation){
+                $scope.selectedValuation.selected = undefined;
+            }
             $scope.selectedValuation = obj;
-            $('#valuation-'+obj.ID).addClass('active').siblings().removeClass('active');
+            $scope.selectedValuation.selected = true;
         };
 
         // When the Add button is pressed change the state and form data
         $scope.addingState = function () {
-            $scope.formData = {'NodeType': 'valuation'};
+            $scope.formData = {'NodeType': 'valuation',
+                                'ID': 0};
             $scope.isDisabled = false;
             $scope.modalState = "Add";
             $scope.rowsSelected = {'selected': false,
                                     'expanded': false};
-            $scope.dateTimeNow();
-            $scope.formData['Date'] = $scope.date;
+            $scope.formData['Date'] = $scope.dateTimeNow();
             $scope.budgetgroupList = [];
             if ($scope.selectedValuation) {
-                $('#valuation-'+$scope.selectedValuation.ID).removeClass('active');
+                $scope.selectedValuation.selected = undefined;
                 $scope.selectedValuation = undefined;
             }
             $scope.saveValuationModalForm.$setPristine();
-            $('#inputProject').on('change', function(e, params) {
-                $scope.loadBudgetItems();
-            });
         }
 
         // When the edit button is pressed change the state and set the data
@@ -152,7 +152,6 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
             }).success(function(response) {
                 $scope.formData = response;
                 $scope.budgetgroupList = $scope.formData['BudgetGroupList'];
-                $scope.date = new Date($scope.formData['Date']);
                 $scope.formData['NodeType'] = 'valuation';
             });
             // set each field dirty
@@ -194,7 +193,29 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
 
         $scope.collapseBudgetGroupsGrid = function() {
             var selectedRows = $scope.getSelectedNodes()
-            $scope.iterateOverRows(selectedRows, 0, 'collapse_budgetgroup')
+            for (var i in selectedRows){
+                // find the index if the selected row in the budget group list
+                var start = $scope.budgetgroupList.map(function(e) {
+                    return e.ID; }).indexOf(selectedRows[i].ID);
+                // find the count of children the expanded budget group has
+                var count = 1;
+                while (selectedRows[i].ID == $scope.budgetgroupList[start + count].ParentID
+                        && (start + count) < $scope.budgetgroupList.length){
+                    count+=1;
+                }
+                // splice the elements out of the array
+                $scope.budgetgroupList.splice(start+1, count-1);
+                // update the parent percentage and expanded flag
+                var percentage = '0';
+                var bgtotal = parseFloat($scope.budgetgroupList[start]['TotalBudget']);
+                if (bgtotal > 0){
+                    percentage = 100.0*parseFloat($scope.budgetgroupList[start]['AmountComplete'])/bgtotal
+                }
+                $scope.budgetgroupList[start]['PercentageComplete'] = percentage;
+                $scope.budgetgroupList[start]['expanded'] = false;
+            }
+            $scope.toggleRowsSelected(true, false);
+            $scope.handleReloadValuationSlickgrid();
         };
 
         // need to recursively call the http post,
@@ -202,13 +223,14 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
         $scope.iterateOverRows = function(rows, index, route){
             $http({
                 method: 'POST',
-                url:globalServerURL + 'node/' + $scope.formData['ProjectID'] + '/' + route + '/' + rows[index].ID,
+                url:globalServerURL + 'node/' + $scope.formData['ID'] + '/' + route + '/' + rows[index].ID,
                 data: {'budgetgroupList': $scope.budgetgroupList},
             }).success(function (response) {
                 $scope.budgetgroupList = response;
                 // on the last loop reload the slickgrid and node
                 if (index == rows.length-1) {
                     // on the last loop reload the slickgrid and node
+                    // $scope.setSelectedRows();
                     $scope.toggleRowsSelected(false, false);
                     $scope.handleReloadValuationSlickgrid();
                 }

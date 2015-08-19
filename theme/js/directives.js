@@ -960,6 +960,12 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
             // Formatter for displaying percentages
             function PercentageFormatter(row, cell, value, columnDef, dataContext) {
                 if (value != undefined) {
+                    var parts = value.toString().split(".");
+                    // if the percentage has a long decimal cut it at 3
+                    if (parts.length > 1 && parts[parts.length-1].length > 3){
+                        parts[parts.length-1] = parts[parts.length-1].slice(0,3);
+                        value = parts.join('.')
+                    }
                     return value + ' %';
                 }
                 else {
@@ -1087,6 +1093,7 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                 }
             });
 
+            // return an array of the selected node data
             $scope.getSelectedNodes = function() {
                 var ids = dataView.mapRowsToIds(grid.getSelectedRows());
                 var selectedNodes = [];
@@ -1097,6 +1104,11 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                     }
                 }
                 return selectedNodes;
+            }
+
+            // take an array of row indices and manually select them in the grid
+            $scope.setSelectedRows = function(rowArray){
+                grid.setSelectedRows(rowArray);
             }
         }
     }

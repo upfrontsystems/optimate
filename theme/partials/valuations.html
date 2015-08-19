@@ -84,7 +84,9 @@
             </thead>
             <tbody>
                 <tr ng-repeat="obj in jsonvaluations"
-                    ng-click="showActionsFor(obj)" id="valuation-{{obj.ID}}">
+                    ng-click="showActionsFor(obj)"
+                    data-ng-class="{active: obj.selected}"
+                    id="valuation-{{obj.ID}}">
                     <td>{{obj.ID}}</td>
                     <td>{{obj.Project}}</td>
                     <td>{{obj.ReadableDate}}</td>
