@@ -18,8 +18,8 @@ angular.module('services', ['config'])
             }).then(
                 function(response){
                     // Success
-                    $window.sessionStorage.token = response.data.access_token;
-                    $window.sessionStorage.username = username;
+                    $window.localStorage.auth_token = response.data.access_token;
+                    $window.localStorage.auth_username = username;
                     userpermissions = undefined;
                     $rootScope.$broadcast('session:changed', username);
                     p.resolve();
@@ -33,28 +33,28 @@ angular.module('services', ['config'])
         };
 
         this.logout = function(){
-            $window.sessionStorage.clear();
+            $window.localStorage.removeItem('auth_token');
+            $window.localStorage.removeItem('auth_username');
             $rootScope.$broadcast('session:changed', null);
         };
 
         this.username = function(){
-            return $window.sessionStorage.username;
+            return $window.localStorage.auth_username;
         };
 
-        this.authenticated = function(test){
-            return Boolean($window.sessionStorage.token);
+        this.authenticated = function(){
+            return Boolean($window.localStorage.auth_token);
         };
 
         this.get_token = function(){
-            return $window.sessionStorage.token;
+            return $window.localStorage.auth_token;
         };
 
         this.permissions = function(){
             var deferred = $q.defer();
             if (userpermissions){
                 deferred.resolve(userpermissions);
-            }
-            else{
+            } else {
                 $http.get(globalServerURL + 'rights/' + this.username() + '/')
                 .success(function(response){
                     userpermissions = response;

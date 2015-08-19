@@ -92,7 +92,7 @@ myApp.config(['$routeProvider', '$httpProvider',
     $httpProvider.interceptors.push(function($window){
         return {
             request: function (config) {
-                var token = $window.sessionStorage.token;
+                var token = $window.localStorage.auth_token;
                 if (token){
                     // I would have preferred SessionService.get_token, but
                     // that causes a circular dependency. Much simpler this way.

@@ -47,20 +47,24 @@ myApp.controller('logoutController', ['$location', 'SessionService',
 myApp.controller('navController', ['$scope', '$rootScope', '$http', 'SessionService',
     function($scope, $rootScope, $http, SessionService) {
         // get the user permissions
-        $scope.user = {'username':SessionService.username()};
+        $scope.user = {'username': SessionService.username()};
         SessionService.permissions().then(function(perm){
             $scope.user.permissions = perm;
         });
 
         // Hide and show the toolbar depending on whether you're logged in.
-        $scope.logged_in = SessionService.authenticated("nav");
+        $scope.logged_in = SessionService.authenticated();
 
         $rootScope.$on('session:changed', function(evt, username) {
-            $scope.logged_in = SessionService.authenticated("changed");
+            $scope.logged_in = SessionService.authenticated();
             // get the user permissions
-            $scope.user = {'username':SessionService.username()};
-            SessionService.permissions().then(function(perm){
-                $scope.user.permissions = perm;
-            });
+            if ($scope.logged_in){
+                $scope.user = {'username': SessionService.username()};
+                SessionService.permissions().then(function(perm){
+                    $scope.user.permissions = perm;
+                });
+            } else {
+                $scope.user = {}
+            }
         });
 }]);
