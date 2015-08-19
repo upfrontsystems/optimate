@@ -1,5 +1,6 @@
 import os
 import time
+import logging
 from datetime import datetime
 from email.Utils import formatdate
 from pyramid.view import view_config
@@ -18,6 +19,8 @@ from optimate.app.models import (
     Supplier,
     Project
 )
+
+logger = logging.getLogger('optimate.app.reports')
 
 def projectbudget_nodes(node, data, level, level_limit, budgetitem_filter):
     level +=1
@@ -74,7 +77,7 @@ def reports_tree_view(request):
 
 @view_config(route_name="projectbudget")
 def projectbudget(request):
-    print "Generating Project Budget Report"
+    logger.info("Generating Project Budget Report")
     nodeid = request.matchdict['id']
     level_limit = request.json_body['LevelLimit']
     bi_typelist = request.json_body['BudgetItemTypeList']
@@ -128,7 +131,7 @@ def projectbudget(request):
                             'print_date' : now.strftime("%d %B %Y - %k:%M")},
                            request=request)
     html = StringIO(template_data.encode('utf-8'))
-    print "template rendered"
+    logging.info("template rendered")
 
     # Generate the pdf
     pdf = StringIO()
@@ -138,7 +141,7 @@ def projectbudget(request):
     pdfcontent = pdf.getvalue()
     pdf.close()
 
-    print "pdf rendered"
+    logging.info("pdf rendered")
     filename = "project_budget_report"
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
     last_modified = formatdate(time.mktime(now.timetuple()))
@@ -178,7 +181,7 @@ def costcomparison_nodes(node, data, level, level_limit):
 
 @view_config(route_name="costcomparison")
 def costcomparison(request):
-    print "Generating Cost Comparison Report"
+    logging.info("Generating Cost Comparison Report")
     nodeid = request.matchdict['id']
     level_limit = request.json_body['LevelLimit']
     print_bgroups = request.json_body['PrintSelectedBudgerGroups']
@@ -225,7 +228,7 @@ def costcomparison(request):
                             'print_date' : now.strftime("%d %B %Y - %k:%M")},
                            request=request)
     html = StringIO(template_data.encode('utf-8'))
-    print "template rendered"
+    logging.info("template rendered")
 
     # Generate the pdf
     pdf = StringIO()
@@ -235,7 +238,7 @@ def costcomparison(request):
     pdfcontent = pdf.getvalue()
     pdf.close()
 
-    print "pdf rendered"
+    logging.info("pdf rendered")
     filename = "cost_comparison_report"
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
     last_modified = formatdate(time.mktime(now.timetuple()))
@@ -301,7 +304,7 @@ def all_resources(node, data, level, supplier_filter):
 
 @view_config(route_name="resourcelist")
 def resourcelist(request):
-    print "Generating Resource List Report"
+    logging.info("Generating Resource List Report")
     nodeid = request.matchdict['id']
     project = DBSession.query(Node).filter_by(ID=nodeid).first()
     filter_by_supplier = request.json_body['FilterBySupplier']
@@ -353,7 +356,7 @@ def resourcelist(request):
 
 @view_config(route_name="order")
 def order(request):
-    print "Generating Order Report"
+    logging.info("Generating Order Report")
     orderid = request.matchdict['id']
     order = DBSession.query(Order).filter_by(ID=orderid).first()
     orderitems = []
@@ -402,7 +405,7 @@ def order(request):
 
 @view_config(route_name="valuation")
 def valuation(request):
-    print "Generating Valuation Report"
+    logging.info("Generating Valuation Report")
     valuationid = request.matchdict['id']
     valuation = DBSession.query(Valuation).filter_by(ID=valuationid).first()
     vitems = []
@@ -488,7 +491,7 @@ def invoices_report_filter(request):
 
 @view_config(route_name="invoices")
 def invoices(request):
-    print "Generating Invoices Report"
+    logging.info("Generating Invoices Report")
     filter_by_project = request.json_body['FilterByProject']
     filter_by_supplier = request.json_body['FilterBySupplier']
     filter_by_paymentdate = request.json_body['FilterByPaymentDate']
