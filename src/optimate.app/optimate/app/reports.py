@@ -410,7 +410,7 @@ def valuation(request):
     for valuationitem in valuation.ValuationItems:
         vitems.append(valuationitem.dict())
         budget_total += valuationitem.BudgetGroup.Total
-    sorted_vitems = sorted(vitems, key=lambda k: k['name'].upper())
+    sorted_vitems = sorted(vitems, key=lambda k: k['Name'].upper())
 
     # inject valuation data into template
     now = datetime.now()
@@ -459,7 +459,7 @@ def invoices_report_filter(request):
     supplierlist = []
     for supplier in qry:
         if supplier.SupplierID:
-            entry = {'Name': supplier.Order.Supplier.Name, 
+            entry = {'Name': supplier.Order.Supplier.Name,
                      'ID': supplier.SupplierID}
             if entry not in supplierlist:
                 supplierlist.append(entry)
@@ -467,7 +467,7 @@ def invoices_report_filter(request):
     projectlist = []
     for project in qry:
         if project.ProjectID:
-            entry = {'Name': project.Order.Project.Name, 
+            entry = {'Name': project.Order.Project.Name,
                      'ID': project.ProjectID}
             if entry not in projectlist:
                 projectlist.append(entry)
@@ -494,7 +494,7 @@ def invoices(request):
     filter_by_paymentdate = request.json_body['FilterByPaymentDate']
     filter_by_status = request.json_body['FilterByStatus']
 
-    qry = DBSession.query(Invoice)    
+    qry = DBSession.query(Invoice)
     invoices = []
     if filter_by_project and 'Project' in request.json_body:
         projectid = request.json_body['Project']
