@@ -30,9 +30,9 @@ def projectbudget_nodes(node, data, level, level_limit, budgetitem_filter):
             nodelist.append(child)
     sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())
     for child in sorted_nodelist:
-        # leaf nodes with no children act as budgetitems
-        leaf = len(child.Children) == 0
         if child.type != 'ResourceCategory':
+            # leaf nodes with no children act as budgetitems
+            leaf = len(child.Children) == 0
             if child.type == 'BudgetGroup':
                 data.append((child, 'level' + str(level), 'bold'))
             elif leaf:
@@ -42,7 +42,7 @@ def projectbudget_nodes(node, data, level, level_limit, budgetitem_filter):
                 data.append((child, 'level' + str(level), 'normal'))
             if not leaf:
                 # restrict level as specified
-                if level != level_limit:
+                if level < level_limit:
                     data += projectbudget_nodes(child, [], level, level_limit,
                         budgetitem_filter)
     return data
