@@ -362,7 +362,7 @@ def order(request):
     orderitems = []
     for orderitem in order.OrderItems:
         orderitems.append(orderitem.dict())
-    sorted_orderitems = sorted(orderitems, key=lambda k: k['name'].upper())
+    sorted_orderitems = sorted(orderitems, key=lambda k: k['Name'].upper())
 
     Vat = 14.0
     Subtotal = float(order.Total)/(1+ Vat/100)
