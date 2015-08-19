@@ -67,7 +67,7 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
             // check if saving is disabled, if not disable it and save
             if (!$scope.isDisabled) {
                 $scope.isDisabled = true;
-                // set the list of checked budgetgroups
+                // set the list of budgetgroups
                 $scope.formData['BudgetGroupList'] = $scope.budgetgroupList;
                 if ($scope.modalState == 'Edit') {
                     $http({
@@ -96,24 +96,8 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
 
         // add a new valuation to the list and sort
         $scope.handleNew = function(newvaluation) {
-            // the new valuation is added to the list
-            if ($scope.jsonvaluations.length > 1) {
-                var high = $scope.jsonvaluations[0].ID + 2;
-                var low = $scope.jsonvaluations[$scope.jsonvaluations.length - 1].ID + 2;
-                // only need to add it if it's id falls in the current section
-                if (newvaluation.ID > low && newvaluation.ID < high) {
-                    $scope.jsonvaluations.push(newvaluation);
-                    // sort by valuation id
-                    $scope.jsonvaluations.sort(function(a, b) {
-                        var idA = a.ID;
-                        var idB = b.ID;
-                        return (idA > idB) ? -1 : (idA < idB) ? 1 : 0;
-                    });
-                }
-            }
-            else {
-                $scope.jsonvaluations.push(newvaluation);
-            }
+            // the new valuation is added to the beginning of the list
+            $scope.jsonvaluations.unshift(newvaluation);
             console.log ("Valuation added");
         }
 

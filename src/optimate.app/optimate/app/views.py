@@ -562,44 +562,31 @@ def node_budgetgroups(request):
     proj_id = request.matchdict['id']
     itemlist = []
 
-    recent_valuation_exists = False
     qry = DBSession.query(Valuation).filter_by(ProjectID=proj_id)
+    # get the data from an existing & most recent valuation for this project
     if qry.first() != None:
         # find the valuation closest to the current date
-        valuation_dates = [x.Date for x in qry]
-        most_recent = max(valuation_dates)
-        idx = valuation_dates.index(max(valuation_dates))
-        most_recent_valuation = [x for x in qry][idx]
-        # new valuation must be in the future of most recent valuation stored
-        recent_valuation_exists = True
+        qry = qry.order_by(Valuation.Date.desc()).all()
+        most_recent_valuation = qry[0]
 
-    if not recent_valuation_exists:
-        # add the project's budgetgroup children to the list
-        project = DBSession.query(Project).filter_by(ID=proj_id).first()
-        for child in project.Children:
-            if child.type == 'BudgetGroup':
-                itemlist.append(child.valuation())
-        itemlist = sorted(itemlist, key=lambda k: k['Name'].upper())
-    else:
-        # get the data from an existing & most recent valuation for this project
         parentlist = []
         childrenlist = []
-        for vi in most_recent_valuation.ValuationItems:
-            bg = vi.BudgetGroup
+        for item in most_recent_valuation.ValuationItems:
+            bg = item.BudgetGroup
 
             # get data and append children valuation items to children list
-            if vi.ParentID != 0:
+            if item.ParentID != 0:
                 data = bg.valuation('2')
                 data['AmountComplete'] = str(item.Total)
-                data['PercentageComplete'] = vi.PercentageComplete
+                data['PercentageComplete'] = item.PercentageComplete
                 childrenlist.append(data)
             # get data and append parents valuation items to parent list
             else:
                 data = bg.valuation()
-                if len(vi.Children) > 0:
+                if len(item.Children) > 0:
                     data['expanded'] = True
                 data['AmountComplete'] = str(item.Total)
-                data['PercentageComplete'] = vi.PercentageComplete
+                data['PercentageComplete'] = item.PercentageComplete
                 parentlist.append(data)
 
         # sort the list, place children after parents
@@ -612,6 +599,15 @@ def node_budgetgroups(request):
                 itemlist+=dc
             else:
                 itemlist.append(parent)
+    # no valuation exists
+    else:
+        # add the project's budgetgroup children to the list
+        project = DBSession.query(Project).filter_by(ID=proj_id).first()
+        for child in project.Children:
+            if child.type == 'BudgetGroup':
+                itemlist.append(child.valuation())
+        itemlist = sorted(itemlist, key=lambda k: k['Name'].upper())
+
     return itemlist
 
 
@@ -645,7 +641,7 @@ def node_expand_budgetgroup(request):
     for bg in bgroups:
         data = bg.valuation('2')
 
-        # fixme - make sure this is the same valuation item we are editing
+        # fixme - make sure this is the most recent valuation
         vi = DBSession.query(ValuationItem).filter_by(BudgetGroupID=bg.ID).first()
         if vi:
             # recalculate the amount complete
