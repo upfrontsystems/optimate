@@ -149,8 +149,7 @@
                         <i class="fa fa-cut"></i>
                     </a>
                 </li>
-                <li data-ng-show="user.permissions.projects == 'edit'"
-                    data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
+                <li data-ng-show="user.permissions.projects == 'edit' && copiedNode" data-ng-switch="copiedNode.NodeType">
                     <a data-ng-switch-when="Records"
                         role="button"
                         data-ng-click="pasteSelectedRecords(currentNode)"
@@ -199,31 +198,26 @@
                     <span role="button" class="separator">|
                     </span>
                 </li>
-                <li data-ng-show="user.permissions.projects == 'edit'"
-                    data-ng-show="currentNode.ParentType != 'BudgetItem'">
+                <li data-ng-show="user.permissions.projects == 'edit' && currentNode.ParentType != 'BudgetItem'">
                     <a role="button" data-toggle="modal" data-target="#addBudgetItem"
                         data-ng-click="editNode(currentNode.ID); loadBudgetItemRelatedList(currentNode.ID)"
                        title="Edit Budget Item">
                         <i class="fa fa-pencil"></i>
                     </a>
                 </li>
-                <li data-ng-show="user.permissions.projects == 'edit'"
-                    data-ng-show="currentNode.ParentType != 'BudgetItem'">
+                <li data-ng-show="user.permissions.projects == 'edit'">
                     <a role="button" data-ng-click="copyThisNode(currentNode)"
                        title="Copy Budget Item">
                         <i class="fa fa-files-o"></i>
                     </a>
                 </li>
-                <li data-ng-show="user.permissions.projects == 'edit'"
-                    data-ng-show="currentNode.ParentType != 'BudgetItem'">
+                <li data-ng-show="user.permissions.projects == 'edit'&& currentNode.ParentType != 'BudgetItem'">
                     <a role="button" data-ng-click="cutThisNode(currentNode)"
                        title="Cut Budget Item">
                         <i class="fa fa-cut"></i>
                     </a>
                 </li>
-                <li data-ng-show="user.permissions.projects == 'edit'"
-                    data-ng-show="currentNode.ParentType != 'BudgetItem'"
-                    data-ng-show="copiedNode"
+                <li data-ng-show="user.permissions.projects == 'edit' && currentNode.ParentType != 'BudgetItem' && copiedNode"
                     data-ng-switch="copiedNode.NodeType">
                     <a data-ng-switch-when="Records"
                         role="button"
@@ -243,8 +237,7 @@
                         <i class="fa fa-clipboard"></i>
                     </a>
                 </li>
-                <li data-ng-show="user.permissions.projects == 'edit'"
-                    data-ng-show="currentNode.ParentType != 'BudgetItem'">
+                <li data-ng-show="user.permissions.projects == 'edit' && currentNode.ParentType != 'BudgetItem'">
                     <a role="button" data-target="#deleteConfirmation" data-toggle="modal"
                        title="Delete Budget Item">
                         <i class="fa fa-trash"></i>
@@ -364,8 +357,7 @@
                         <i class="fa fa-cut"></i>
                     </a>
                 </li>
-                <li data-ng-show="user.permissions.projects == 'edit'"
-                    data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
+                <li data-ng-show="user.permissions.projects == 'edit' && copiedNode" data-ng-switch="copiedNode.NodeType">
                     <a data-ng-switch-when="Records"
                         role="button"
                         data-ng-click="pasteSelectedRecords(currentNode)"
@@ -447,8 +439,7 @@
                         <i class="fa fa-cut"></i>
                     </a>
                 </li>
-                <li data-ng-show="user.permissions.projects == 'edit'"
-                    data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
+                <li data-ng-show="user.permissions.projects == 'edit' && copiedNode" data-ng-switch="copiedNode.NodeType">
                     <a data-ng-switch-when="Project"
                         role="button"
                         data-ng-click="pasteThisNode(projectsRoot)"
@@ -509,8 +500,7 @@
                         <i class="fa fa-cut"></i>
                     </a>
                 </li>
-                <li data-ng-show="user.permissions.projects == 'edit'"
-                    data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
+                <li data-ng-show="user.permissions.projects == 'edit' && copiedNode" data-ng-switch="copiedNode.NodeType">
                     <a data-ng-switch-when="Project"
                         role="button"
                         data-ng-click="pasteThisNode(projectsRoot)"
@@ -566,8 +556,7 @@
                         <i class="fa fa-cut"></i>
                     </a>
                 </li>
-                <li data-ng-show="user.permissions.projects == 'edit'"
-                    data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
+                <li data-ng-show="user.permissions.projects == 'edit' && copiedNode" data-ng-switch="copiedNode.NodeType">
                     <a data-ng-switch-default
                         role="button" style="color: gray;">
                         <i class="fa fa-clipboard"></i>
