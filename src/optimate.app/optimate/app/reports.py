@@ -30,23 +30,19 @@ def projectbudget_nodes(node, data, level, level_limit, budgetitem_filter):
             nodelist.append(child)
     sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())
     for child in sorted_nodelist:
-        # leaf nodes with no children act as budgetitems
-        leaf = len(child.Children) == 0
         if child.type != 'ResourceCategory':
+            # leaf nodes with no children act as budgetitems
+            leaf = len(child.Children) == 0
             if child.type == 'BudgetGroup':
                 data.append((child, 'level' + str(level), 'bold'))
             elif leaf:
-                # no filtering selected
-                if len(budgetitem_filter) == 5:
-                    data.append((child, 'level' + str(level), 'normal'))
-                # filter by resource type
-                elif child.Resource.Type in budgetitem_filter:
+                if child.Type in budgetitem_filter:
                     data.append((child, 'level' + str(level), 'normal'))
             else:
                 data.append((child, 'level' + str(level), 'normal'))
             if not leaf:
                 # restrict level as specified
-                if level != level_limit:
+                if level < level_limit:
                     data += projectbudget_nodes(child, [], level, level_limit,
                         budgetitem_filter)
     return data
@@ -84,10 +80,8 @@ def projectbudget(request):
     print_bgroups = request.json_body['PrintSelectedBudgerGroups']
     bgroup_list = request.json_body['BudgetGroupList']
 
-    budgetitem_filter = []
-    for record in bi_typelist:
-        if record['selected']:
-            budgetitem_filter.append(record['Name'])
+    budgetitem_filter = [record['ID'] for record in bi_typelist \
+        if record['selected']]
 
     project = DBSession.query(Node).filter_by(ID=nodeid).first()
 
