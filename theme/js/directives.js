@@ -478,8 +478,19 @@ myApp.directive('projectslickgridjs', ['globalServerURL', '$http',
 
             // if the user does not have edit permissions the cell can't be edited
             grid.onBeforeEditCell.subscribe(function(e,args) {
+                // users without permission can't edit
                 if ($scope.user.permissions.projects != 'edit') {
                     return false;
+                }
+                if (args.item){
+                    // can't edit budgetitems that are children of budget items
+                    if (args.item.NodeType == 'BudgetItem' && args.item.ParentType == 'BudgetItem') {
+                        return false;
+                    }
+                    // can't edit resource unit
+                    if (args.item.NodeType == 'ResourceUnit'){
+                        return false;
+                    }
                 }
             });
 
