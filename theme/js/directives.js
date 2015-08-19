@@ -1017,7 +1017,7 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                 }
                 // sometimes total budget is undefined
                 item.TotalBudget = item.TotalBudget ? item.TotalBudget : 0;
-
+                var oldamount = item.AmountComplete;
                 item.AmountComplete = (item.TotalBudget/100) * item.PercentageComplete;
                 item.AmountComplete = item.AmountComplete.toFixed(2);
                 dataView.updateItem(item.id, item);
@@ -1032,8 +1032,9 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                         level = parent.level;
                     }
                     parent.AmountComplete = parent.AmountComplete ? parent.AmountComplete : 0;
+                    var difference = item.AmountComplete - oldamount;
                     parent.AmountComplete = (parseFloat(parent.AmountComplete) +
-                                            parseFloat(item.AmountComplete)).toFixed(2);
+                                            difference).toFixed(2);
                     dataView.updateItem(parent.id, parent);
                 }
             });
