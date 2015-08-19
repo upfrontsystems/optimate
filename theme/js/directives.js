@@ -869,6 +869,7 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
             $scope.preloadWidths = function () {
                 if (hasStorage) {
                     valuations_column_width = {'Name': 270,
+                                                'TotalBudget': 150,
                                                'PercentageComplete': 80,
                                                 'AmountComplete': 65};
                     try {
@@ -887,13 +888,18 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
 
             var columns = [
                     {id: "Name", name: "Budget Group", field: "Name",
-                     width: valuations_column_width.Name,
-                     cssClass: "cell-title non-editable-column"},
+                        width: valuations_column_width.Name,
+                        cssClass: "cell-title non-editable-column"},
+                    {id: "TotalBudget", name: "Budget Total", field: "TotalBudget",
+                        width: valuations_column_width.TotalBudget, formatter: CurrencyFormatter,
+                        cssClass: "cell-title non-editable-column"},
                     {id: "PercentageComplete", name: "% Complete", field: "PercentageComplete",
-                     cssClass: "cell editable-column", formatter: PercentageFormatter,
-                     editor: Slick.Editors.CustomEditor},
-                    {id: "AmountComplete", name: "Total", field: "AmountComplete", cssClass: "cell non-editable-column",
-                      formatter: CurrencyFormatter, width: valuations_column_width.AmountComplete}
+                        width: valuations_column_width.PercentageComplete,
+                        cssClass: "cell editable-column", formatter: PercentageFormatter,
+                    editor: Slick.Editors.CustomEditor},
+                    {id: "AmountComplete", name: "Total", field: "AmountComplete",
+                        width: valuations_column_width.AmountComplete,
+                        cssClass: "cell non-editable-column", formatter: CurrencyFormatter}
                 ];
 
             var options = {
@@ -914,10 +920,8 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
             // resize the slickgrid when modal is shown
             $('#saveValuationModal').on('shown.bs.modal', function() {
                  grid.init();
+                 grid.setSelectedRows([]);
                  grid.resizeCanvas();
-                 $('#valuation_budgetgroups .active').removeClass('active');
-                 $('#valuation_budgetgroups .editable').removeClass('editable');
-                 $('#valuation_budgetgroups .selected').removeClass('selected');
             });
 
             // when a column is resized change the default size of that column
