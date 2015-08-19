@@ -659,8 +659,12 @@ def node_expand_budgetgroup(request):
     end = blist[index_to_insert_after+1:]
     # set the parent expanded and set the percentage to 0
     start[len(start)-1]['expanded'] = True
-    start[len(start)-1]['AmountComplete'] = '0.00'
     start[len(start)-1]['PercentageComplete'] = None
+    # set the parent amount to the sum of its children
+    total = Decimal(0.00)
+    for child in children:
+        total += Decimal(child['AmountComplete']).quatize(Decimal('.01'))
+    start[len(start)-1]['AmountComplete'] = str(total)
     # inject bgroups into blist after
     result = start + children + end
     return result
