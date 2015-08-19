@@ -641,13 +641,15 @@ def node_expand_budgetgroup(request):
     for bg in bgroups:
         data = bg.valuation('2')
 
-        # fixme - make sure this is the most recent valuation
-        vi = DBSession.query(ValuationItem).filter_by(BudgetGroupID=bg.ID).first()
-        if vi:
-            # recalculate the amount complete
-            # get the latest 'budgetgroup total' from project's budgetgroup data
-            data['AmountComplete'] = str(vi.Total)
-            data['PercentageComplete'] = vi.PercentageComplete
+        # get the most recent valuation item
+        item = (DBSession.query(ValuationItem).
+                    filter_by(BudgetGroupID = bg.ID).
+                    join(Valuation, ValuationItem.Valuation).
+                    order_by(Valuation.Date.desc()).first())
+        if item:
+            # recalculate the amount complete from the valuation item total
+            data['AmountComplete'] = str(item.Total)
+            data['PercentageComplete'] = item.PercentageComplete
         else:
             data['AmountComplete'] = '0.00'
             data['PercentageComplete'] = '0'
@@ -663,7 +665,7 @@ def node_expand_budgetgroup(request):
     # set the parent amount to the sum of its children
     total = Decimal(0.00)
     for child in children:
-        total += Decimal(child['AmountComplete']).quatize(Decimal('.01'))
+        total += Decimal(child['AmountComplete']).quantize(Decimal('.01'))
     start[len(start)-1]['AmountComplete'] = str(total)
     # inject bgroups into blist after
     result = start + children + end
@@ -703,10 +705,12 @@ def node_collapse_budgetgroup(request):
     parentindex = [x['ID'] for x in blist].index(int(bg_id))
     blist[parentindex]['expanded'] = False
     # calculate the parent percentage from it's total
+    percentage = '0'
     bgtotal = DBSession.query(BudgetGroup).filter_by(ID=bg_id).first().Total
-    percentage = (float(blist[parentindex]['AmountComplete'])/float(bgtotal))*100
-    blist[parentindex]['PercentageComplete'] = "{0:.3f}".format(percentage)
-
+    if bgtotal > 0:
+        percentage = 100*float(blist[parentindex]['AmountComplete'])/float(bgtotal)
+        percentage = "{0:.2f}".format(percentage)
+    blist[parentindex]['PercentageComplete'] = percentage
     return blist
 
 
