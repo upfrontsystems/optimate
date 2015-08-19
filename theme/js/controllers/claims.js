@@ -15,6 +15,13 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
             $scope.user.permissions = perm;
         });
 
+        $scope.dateTimeNow = function() {
+            var d = new Date();
+            // create a timezone agnostic date by setting time info to 0 and timezone to UTC.
+            date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0,0));
+            $scope.date = date;
+        };
+
         // loading the project list
         $scope.clearFilters = function() {
             $scope.filters = [];
@@ -137,6 +144,8 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
             $scope.isDisabled = false;
             $scope.modalState = "Add";
             $scope.valuationsList = [];
+            $scope.dateTimeNow();
+            $scope.formData['Date'] = $scope.date;
             if ($scope.selectedClaim) {
                 $('#claim-'+$scope.selectedClaim.id).removeClass('active');
                 $scope.selectedClaim = undefined;
