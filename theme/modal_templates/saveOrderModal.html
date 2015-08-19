@@ -133,9 +133,20 @@
                 <button class="btn btn-default"
                         id="addBudgetItemsButton"
                         data-ng-click="toggleBudgetItemsGrid()"
+                        data-ng-show="isCollapsed"
                         tabindex="1"
+                        title="Add items"
                         data-ng-disabled="saveOrderModalForm.inputProject.$invalid">
-                    Add budget items
+                    <i class="fa fa-plus"> </i>
+                </button>
+                <button class="btn btn-default"
+                        id="addBudgetItemsButton"
+                        data-ng-click="toggleBudgetItemsGrid()"
+                        data-ng-show="!isCollapsed"
+                        tabindex="1"
+                        title="Show grid"
+                        data-ng-disabled="saveOrderModalForm.inputProject.$invalid">
+                    <i class="fa fa-list"> </i>
                 </button>
                 <button data-ng-show="isCollapsed && rowsSelected"
                         class="btn btn-default pull-left"
