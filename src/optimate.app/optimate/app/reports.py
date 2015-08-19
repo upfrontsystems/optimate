@@ -80,10 +80,10 @@ def projectbudget(request):
     print_bgroups = request.json_body['PrintSelectedBudgerGroups']
     bgroup_list = request.json_body['BudgetGroupList']
 
-    budgetitem_filter = []
-    for record in bi_typelist:
-        if record['selected']:
-            budgetitem_filter.append(record['Name'])
+    # XXX I have my reservations over using the textual names. We have no
+    # unique index on item types.
+    budgetitem_filter = [record['Name'] for record in bi_typelist \
+        if record['selected']]
 
     project = DBSession.query(Node).filter_by(ID=nodeid).first()
 
