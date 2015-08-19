@@ -757,11 +757,11 @@ def project_resources(request):
                     excludedlist.append(bi.Resource)
         # if current node is a budgetitem we are editing a budgetitem
         elif currentnode.type == 'BudgetItem':
-            budgetitems = currentnode.Parent.getBudgetItems()
-            for bi in budgetitems:
-                if bi.ID != currentnode.ID:
-                    if bi.Resource:
-                        excludedlist.append(bi.Resource)
+            siblings = currentnode.Parent.Children
+            for sib in siblings:
+                if sib.type == 'BudgetItem' and sib.ID != currentnode.ID:
+                    if sib.Resource:
+                        excludedlist.append(sib.Resource)
         # if the current node is a resourceunit we are adding a resourcepart
         elif currentnode.type == 'ResourceUnit':
             # add it to the excluded nodes
