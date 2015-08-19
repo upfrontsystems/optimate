@@ -1802,13 +1802,17 @@ class Valuation(Base):
         else:
             date = ''
             readable_date = ''
+        total = '{:20,.2f}'.format(0).strip()
+        if self.Total:
+            total = '{:20,.2f}'.format(self.Total).strip()
+
         return {'ID': self.ID,
                 'id': self.ID,
                 'Project': self.Project.Name,
                 'Date': date,
                 'ReadableDate': readable_date,
                 'PercentageClaimed': str(self.TotalPercentage),
-                'AmountClaimed': str(self.Total)}
+                'AmountClaimed': total}
 
     @property
     def TotalPercentage(self):
