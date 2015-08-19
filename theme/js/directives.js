@@ -948,7 +948,7 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                     return value + ' %';
                 }
                 else {
-                    return "0 %";
+                    return "";
                 }
             }
 
@@ -1027,6 +1027,7 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
             // timeout to wait until the modal has finished rendering
             $scope.handleReloadValuationSlickgrid = function() {
                 $timeout(function() {
+                    grid.invalidate();
                     grid.resizeCanvas();
                 });
             };

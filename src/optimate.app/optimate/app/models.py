@@ -437,7 +437,8 @@ class BudgetGroup(Node):
                 'ParentID': self.ParentID,
                 'Total': str(self.Total),
                 'TotalBudget': str(self.Total),
-                'PercentageComplete': 0,
+                'PercentageComplete': '0',
+                'AmountComplete': '0.00',
                 'level': level,
                 'expanded': False,
                 'NodeType': 'ValuationItem'}
@@ -1837,18 +1838,13 @@ class ValuationItem(Base):
     ParentID = Column(Integer, ForeignKey('ValuationItem.ID'))
     ValuationID = Column(Integer, ForeignKey('Valuation.ID'))
     BudgetGroupID = Column(Integer, ForeignKey('BudgetGroup.ID'))
-    BudgetGroupTotal = Column(Numeric, default=Decimal(0.00)) # stores snapshot of
-                                                           #a budgetgroups total
-    PercentageComplete = Column(Numeric, default=Decimal(0.00)) # fixme - PercentageComplete
-                                                                # to float type
+    PercentageComplete = Column(Float)
 
-    # fixme - when rebuilding the table change the backref from 'BudgetGroups'
-    # to 'ValuationItems'
     BudgetGroup = relationship('BudgetGroup',
-                              backref=backref('BudgetGroups'))
-    Valuation = relationship('Valuation',
                               backref=backref('ValuationItems'))
-
+    Valuation = relationship('Valuation',
+                            cascade='all',
+                            backref=backref('ValuationItems'))
     Children = relationship('ValuationItem',
                             cascade='all',
                             backref=backref('Parent', remote_side='ValuationItem.ID'),
@@ -1856,7 +1852,14 @@ class ValuationItem(Base):
 
     @property
     def Total(self):
-        total = (self.BudgetGroupTotal / 100) * self.PercentageComplete
+        # if the percentage complete is None, return the total of the
+        # children ValuationItems
+        if self.PercentageComplete:
+            total = (float(self.BudgetGroup.Total)/100) * self.PercentageComplete
+        else:
+            total = Decimal(0.00)
+            for child in self.Children:
+                total += child.Total
         return Decimal(total).quantize(Decimal('.01'))
 
     def dict(self):
@@ -1874,8 +1877,8 @@ class ValuationItem(Base):
     def __repr__(self):
         """Return a representation of this valuation item
         """
-        return '<ValuationItem(ID="%s", BudgetGroupID="%s")>' % (
-            self.ID, self.BudgetGroupID)
+        return '<ValuationItem(ID="%s", ParentID="%s", BudgetGroupID="%s")>' % (
+            self.ID, self.ParentID, self.BudgetGroupID)
 
 
 class Claim(Base):

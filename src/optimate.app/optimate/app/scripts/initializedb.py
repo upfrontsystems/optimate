@@ -59,7 +59,7 @@ def main(argv=sys.argv):
 
     Base.metadata.create_all(engine)
 
-    # Initialise used database with an admin user
+    # Initialise user database with an admin user
     try:
         user = DBSession.query(User).filter(User.username==u'admin').one()
     except NoResultFound:

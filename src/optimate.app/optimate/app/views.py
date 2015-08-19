@@ -586,21 +586,20 @@ def node_budgetgroups(request):
         childrenlist = []
         for vi in most_recent_valuation.ValuationItems:
             bg = vi.BudgetGroup
-            total = str(Decimal((bg.Total/100)*vi.PercentageComplete
-                            ).quantize(Decimal('.01')))
+
             # get data and append children valuation items to children list
             if vi.ParentID != 0:
                 data = bg.valuation('2')
-                data['AmountComplete'] = total
-                data['PercentageComplete'] = str(vi.PercentageComplete)
+                data['AmountComplete'] = str(item.Total)
+                data['PercentageComplete'] = vi.PercentageComplete
                 childrenlist.append(data)
             # get data and append parents valuation items to parent list
             else:
                 data = bg.valuation()
                 if len(vi.Children) > 0:
                     data['expanded'] = True
-                data['AmountComplete'] = total
-                data['PercentageComplete'] = str(vi.PercentageComplete)
+                data['AmountComplete'] = str(item.Total)
+                data['PercentageComplete'] = vi.PercentageComplete
                 parentlist.append(data)
 
         # sort the list, place children after parents
@@ -651,20 +650,21 @@ def node_expand_budgetgroup(request):
         if vi:
             # recalculate the amount complete
             # get the latest 'budgetgroup total' from project's budgetgroup data
-            data['AmountComplete'] = str(Decimal((bg.Total / 100) * vi.PercentageComplete
-                                        ).quantize(Decimal('.01')))
-            data['PercentageComplete'] = str(vi.PercentageComplete)
+            data['AmountComplete'] = str(vi.Total)
+            data['PercentageComplete'] = vi.PercentageComplete
         else:
-            data['AmountComplete'] = 0
-            data['PercentageComplete'] = 0
+            data['AmountComplete'] = '0.00'
+            data['PercentageComplete'] = '0'
         children.append(data)
 
     index_to_insert_after = [x['ID'] for x in blist].index(int(bg_id))
     # inject bgroups into blist after the parent node that was expanded
     start = blist[0:index_to_insert_after+1]
     end = blist[index_to_insert_after+1:]
-    # set the parent expanded
+    # set the parent expanded and set the percentage to 0
     start[len(start)-1]['expanded'] = True
+    start[len(start)-1]['AmountComplete'] = '0.00'
+    start[len(start)-1]['PercentageComplete'] = None
     # inject bgroups into blist after
     result = start + children + end
     return result
@@ -2078,7 +2078,9 @@ def valuationview(request):
         budgetgrouplist = request.json_body.get('BudgetGroupList', [])
         parentid=0
         for budgetgroup in budgetgrouplist:
-            p_complete = float(budgetgroup.get('PercentageComplete', 0))
+            p_complete = budgetgroup.get('PercentageComplete', None)
+            if p_complete:
+                p_complete = float(p_complete)
             bgid = budgetgroup['ID']
             level = budgetgroup['level']
             bg = DBSession.query(BudgetGroup).filter_by(ID=bgid).first()
@@ -2086,7 +2088,6 @@ def valuationview(request):
                 newitem = ValuationItem(ValuationID=newid,
                                         ParentID=0,
                                         BudgetGroupID=bgid,
-                                        BudgetGroupTotal=bg.Total,
                                         PercentageComplete=p_complete)
                 DBSession.add(newitem)
                 DBSession.flush()
@@ -2097,7 +2098,6 @@ def valuationview(request):
                 DBSession.add(ValuationItem(ValuationID=newid,
                                             ParentID=parentid,
                                             BudgetGroupID=bgid,
-                                            BudgetGroupTotal=bg.Total,
                                             PercentageComplete=p_complete))
         transaction.commit()
         # return the new valuation
@@ -2130,26 +2130,26 @@ def valuationview(request):
         for budgetgroup in budgetgrouplist:
             bg = DBSession.query(BudgetGroup
                                     ).filter_by(ID=budgetgroup['ID']).first()
-            if budgetgroup['ID'] not in iddict.values():
+            p_complete = budgetgroup.get('PercentageComplete', None)
+            if p_complete:
+                p_complete = float(p_complete)
+            if budgetgroup['ID'] not in iddict.keys():
                 # add the new valuation item
-                p_complete = float(budgetgroup.get('PercentageComplete', 0))
                 DBSession.add(ValuationItem(ValuationID=vid,
                                             BudgetGroupID=budgetgroup['ID'],
-                                            BudgetGroupTotal=bg.Total,
                                             PercentageComplete=p_complete))
             else:
                 # otherwise remove the id from the list and update the
                 # percentage complete & total
                 item = DBSession.query(ValuationItem).filter_by(
                                     ID=iddict[budgetgroup['ID']]).first()
-                item.BudgetGroupTotal=bg.Total
-                item.PercentageComplete = float(budgetgroup['PercentageComplete'])
+                item.PercentageComplete = p_complete
                 del iddict[budgetgroup['ID']]
         # delete the leftover id's
         for oldid in iddict.values():
             deletethis = DBSession.query(
                             ValuationItem).filter_by(ID=oldid).first()
-            qry = DBSession.delete(deletethis)
+            DBSession.delete(deletethis)
 
         transaction.commit()
         # return the edited valuation
@@ -2166,21 +2166,20 @@ def valuationview(request):
     childrenlist = []
     for item in valuation.ValuationItems:
         bg = item.BudgetGroup
-        total = str(Decimal((bg.Total/100)*item.PercentageComplete
-                        ).quantize(Decimal('.01')))
+
         # get data and append children valuation items to children list
         if item.ParentID != 0:
             data = bg.valuation('2')
-            data['AmountComplete'] = total
-            data['PercentageComplete'] = str(item.PercentageComplete)
+            data['AmountComplete'] = str(item.Total)
+            data['PercentageComplete'] = item.PercentageComplete
             childrenlist.append(data)
         # get data and append parents valuation items to parent list
         else:
             data = bg.valuation()
             if len(item.Children) > 0:
                 data['expanded'] = True
-            data['AmountComplete'] = total
-            data['PercentageComplete'] = str(item.PercentageComplete)
+            data['AmountComplete'] = str(item.Total)
+            data['PercentageComplete'] = item.PercentageComplete
             parentlist.append(data)
 
     # sort the list, place children after parents
@@ -2199,7 +2198,6 @@ def valuationview(request):
     if valuation.Date:
         jsondate = valuation.Date.isoformat()
         jsondate = jsondate + '.000Z'
-
     return {'ID': valuation.ID,
             'ProjectID': valuation.ProjectID,
             'BudgetGroupList': itemlist,
