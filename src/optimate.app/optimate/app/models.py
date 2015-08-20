@@ -1379,7 +1379,7 @@ class Supplier(Base):
     """A table containing the data relavent to a supplier of Optimate
     """
     __tablename__ = 'Supplier'
-    ID = Column(Integer, primary_key=True, index=True)
+    ID = Column(Integer, primary_key=True)
     Name = Column(Text(50))
     Address = Column(Text(100))
     CityID = Column(Integer, ForeignKey('City.ID'))
@@ -1440,7 +1440,7 @@ class Order(Base):
     """ A table containing the data relavent to an order of Optimate
     """
     __tablename__ = 'Order'
-    ID = Column(Integer, primary_key=True, index=True)
+    ID = Column(Integer, primary_key=True)
     UserCode = Column(Text(50))
     Authorisation = Column(Text(50))
     ProjectID = Column(Integer, ForeignKey('Project.ID'))
@@ -1508,7 +1508,7 @@ class OrderItem(Base):
     """ A table containing the data relevant to an order item of Optimate
     """
     __tablename__ = 'OrderItem'
-    ID = Column(Integer, primary_key=True, index=True)
+    ID = Column(Integer, primary_key=True)
     OrderID = Column(Integer, ForeignKey('Order.ID'))
     BudgetItemID = Column(Integer, ForeignKey('BudgetItem.ID'))
     VAT = Column(Float)
