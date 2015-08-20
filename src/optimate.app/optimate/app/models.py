@@ -214,6 +214,8 @@ class Project(Node):
                         SiteAddress=self.SiteAddress,
                         FileNumber=self.FileNumber,
                         _Total = self.Total,
+                        Ordered = self.Ordered,
+                        Invoiced = self.Invoiced,
                         OrderCost=self.OrderCost,
                         ClaimedCost=self.ClaimedCost,
                         RunningCost=self.RunningCost,
@@ -379,6 +381,8 @@ class BudgetGroup(Node):
                             Description=self.Description,
                             ParentID=parentid,
                             _Total = self.Total,
+                            _Ordered = self._Ordered,
+                            _Invoiced = self._Invoiced,
                             OrderCost=self.OrderCost,
                             ClaimedCost=self.ClaimedCost,
                             RunningCost=self.RunningCost,
@@ -723,6 +727,8 @@ class BudgetItem(Node):
                             ResourceID = self.ResourceID,
                             _Quantity=self._Quantity,
                             _Total=self._Total,
+                            _Ordered = self._Ordered,
+                            _Invoiced = self._Invoiced,
                             OrderCost=self.OrderCost,
                             ClaimedCost=self.ClaimedCost,
                             RunningCost=self.RunningCost,
@@ -834,6 +840,8 @@ class SimpleBudgetItem(BudgetItem):
                                 Description=self.Description,
                                 _Quantity=self._Quantity,
                                 _Total=self._Total,
+                                _Ordered = self._Ordered,
+                                _Invoiced = self._Invoiced,
                                 Type=self.Type,
                                 _Rate=self._Rate,
                                 OrderCost=self.OrderCost,
@@ -1468,9 +1476,9 @@ class Order(Base):
         clientname = ""
         if self.Client:
             clientname = self.Client.Name
-        total = '{:20,.2f}'.format(0).strip()
+        total = '0.00'
         if self.Total:
-            total = '{:20,.2f}'.format(self.Total).strip()
+            total = str(self.Total)
         date = ''
         if self.Date:
             date = self.Date.strftime("%d %B %Y")
@@ -1802,9 +1810,9 @@ class Valuation(Base):
         else:
             date = ''
             readable_date = ''
-        total = '{:20,.2f}'.format(0).strip()
+        total = '0.00'
         if self.Total:
-            total = '{:20,.2f}'.format(self.Total).strip()
+            total = str(self.Total)
 
         return {'ID': self.ID,
                 'id': self.ID,
@@ -1916,9 +1924,9 @@ class Claim(Base):
             date = self.Date.strftime("%d %B %Y")
         else:
             date = ''
-        total = '{:20,.2f}'.format(0).strip()
+        total = '0.00'
         if self.Total:
-            total = '{:20,.2f}'.format(self.Total).strip()
+            total = str(self.Total)
         return {'ID': self.ID,
                 'id': self.ID,
                 'ProjectID': self.ProjectID,

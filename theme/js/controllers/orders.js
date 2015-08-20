@@ -27,17 +27,20 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
             $scope.user.permissions = perm;
         });
 
+        // need two separate lists of suppliers
+        // one used for filtering, one for adding an order
+        $http.get(globalServerURL + 'suppliers')
+        .success(function(data) {
+            $scope.suppliersList = data;
+            $scope.filteredSuppliersList = data;
+        });
+
         // loading the project, client and supplier list
         $scope.clearFilters = function() {
             $scope.filters = [];
             $http.get(globalServerURL + 'projects/')
             .success(function(data) {
                 $scope.projectsList = data;
-            });
-
-            $http.get(globalServerURL + 'suppliers')
-            .success(function(data) {
-                $scope.suppliersList = data;
             });
 
             $http.get(globalServerURL + 'clients')
@@ -49,8 +52,11 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
             $http.get(globalServerURL + 'orders/length').success(function(data) {
                 $scope.orderListLength = data['length'];
             });
+
+            $scope.filteredSuppliersList = $scope.suppliersList;
         }
         $scope.projectsList = [];
+        $scope.filteredSuppliersList = [];
         $scope.suppliersList = [];
         $scope.clientsList = [];
         $scope.clearFilters();
@@ -92,18 +98,18 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
                         $scope.projectsList = response['projects'];
                     }
                     $scope.clientsList = response['clients'];
-                    $scope.suppliersList = response['suppliers'];
+                    $scope.filteredSuppliersList = response['suppliers'];
                 }
                 else if (selection == 'client') {
                     if ($scope.filters.Client == null) {
                         $scope.clientsList = response['clients'];
                     }
                     $scope.projectsList = response['projects'];
-                    $scope.suppliersList = response['suppliers'];
+                    $scope.filteredSuppliersList = response['suppliers'];
                 }
                 else if (selection == 'supplier') {
                     if ($scope.filters.Supplier == null) {
-                        $scope.suppliersList = response['suppliers'];
+                        $scope.filteredSuppliersList = response['suppliers'];
                     }
                     $scope.clientsList = response['clients'];
                     $scope.projectsList = response['projects'];
@@ -111,7 +117,7 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
                 else {
                     $scope.projectsList = response['projects'];
                     $scope.clientsList = response['clients'];
-                    $scope.suppliersList = response['suppliers'];
+                    $scope.filteredSuppliersList = response['suppliers'];
                 }
             })
         };

@@ -529,9 +529,13 @@ def deleteitemview(request):
         return HTTPInternalServerError("Node not found")
     parent = deletethis.Parent
     parentid = parent.ID
-    # update the total of the parent node
+    # update the parent costs
     if parentid != 0:
         parent.Total = parent.Total - deletethis.Total
+        if hasattr(deletethis, 'Ordered'):
+            parent.Ordered -= deletethis.Ordered
+        if hasattr(deletethis, 'Invoiced'):
+            parent.Invoiced -= deletethis.Invoiced
 
     qry = DBSession.delete(deletethis)
     transaction.commit()
@@ -622,11 +626,6 @@ def node_expand_budgetgroup(request):
     """
     bg_id = int(request.matchdict['bg_id'])
     blist = request.json_body.get('budgetgroupList', '')
-
-    if blist[[x['ID'] for x in blist].index(int(bg_id))]['level'] != '1':
-        # only allow expansion of top level nodes
-        print "EXPANSION OF INNER NODES NOT ALLOWED"
-        return blist
 
     bgroups = DBSession.query(BudgetGroup).filter_by(ParentID=bg_id).all()
     if not bgroups:
@@ -1157,7 +1156,6 @@ def node_paste(request):
                                 ParentID=projectid).first()
                 rescatid = resourcecategory.ID
 
-
                 # Get the budgetitems that were copied
                 sourcebudgetitems = source.getBudgetItems()
                 # copy each unique resource into the new resource category
@@ -1197,16 +1195,21 @@ def node_paste(request):
                     budgetitem.Overheads[:] = []
                     budgetitem.Overheads = newoverheads
 
-            # update parent total
+            # update source parent costs
             sourceparent = source.Parent
+            sourceparent.Ordered -= source.Ordered
+            sourceparent.Invoiced -= source.Invoiced
             if sourceparent._Total:
-                sourceparent.Total = sourceparent.Total - source.Total
+                sourceparent.Total -= source.Total
             else:
                 sourceparent.Total
+
             # set the source parent to the destination parent
             source.ParentID = destinationid
-            # update parent total
-            dest.Total = dest.Total + source.Total
+            # update destination parent costs
+            dest.Ordered += source.Ordered
+            dest.Invoiced += source.Invoiced
+            dest.Total += source.Total
             pasted_id = source.ID
             transaction.commit()
         else:
@@ -1267,8 +1270,10 @@ def node_paste(request):
                             newoverhead = overhead.copy(projectid)
                             budgetitem.Overheads.append(newoverhead)
 
-            # update parent total
-            dest.Total = dest.Total + source.Total
+            # update destination parent costs
+            dest.Ordered += source.Ordered
+            dest.Invoiced += source.Invoiced
+            dest.Total += source.Total
     # when a node is pasted in the same level
     else:
         # can't do this for resources or resource categories
@@ -1289,7 +1294,9 @@ def node_paste(request):
                 nodechildren = source.Children
                 dest.paste(nodecopy, nodechildren)
                 # update parent total
-                dest.Total = dest.Total + source.Total
+                dest.Ordered += source.Ordered
+                dest.Invoiced += source.Invoiced
+                dest.Total += source.Total
                 DBSession.flush()
                 pasted_id = nodecopy.ID
 

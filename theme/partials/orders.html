@@ -59,7 +59,7 @@
                         class="filter-bar"
                         id="supplierFilter"
                         data-ng-model="filters.Supplier"
-                        data-ng-options="supplier.ID as supplier.Name for supplier in suppliersList"
+                        data-ng-options="supplier.ID as supplier.Name for supplier in filteredSuppliersList"
                         data-ng-change="loadOrderSection(); filterBy('supplier')">
                     <option value="">Supplier</option>
                 </select>
