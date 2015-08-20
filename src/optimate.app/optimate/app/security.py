@@ -111,7 +111,21 @@ class Public(object):
 
 class ProtectedFunction(object):
     """ Security context that looks up users and roles that may access a
-        particular function, and whether to allow view and/or edit. """
+        particular function, and whether to allow view and/or edit. This
+        class keeps a cache on the class object itself to avoid
+        repeated database lookups. The cache must be invalidated whenever
+        you modify user credentials. """
+
+    _cache = {}
+
+    @classmethod
+    def cache_acl(klass, function, acl):
+        klass._cache[function] = acl
+
+    @classmethod
+    def invalidate_acls(klass):
+        klass._cache = {}
+
     def __init__(self, request, function=None):
         if function is None:
             function = request.matched_route.name
@@ -119,17 +133,25 @@ class ProtectedFunction(object):
 
     @reify
     def __acl__(self):
+        # This is called on every request. Employ some caching
+        if self.function in self._cache:
+            return self._cache[self.function]
+
         users_with_edit = DBSession.query(User).join(User.UserRights, aliased=True)\
                     .filter_by(Function=self.function, Permission='edit').all()
         users_with_view = DBSession.query(User).join(User.UserRights, aliased=True)\
                     .filter_by(Function=self.function, Permission='view').all()
 
-        # Ensure that editors are also viewers
-        users_with_view = users_with_edit + users_with_view
+        users_with_view = [u.username for u in users_with_view]
+        users_with_edit = [u.username for u in users_with_edit]
 
-        return [(Allow, u'user:{}'.format(u.username), 'view')
+        # Ensure that editors are also viewers
+        users_with_view = dict.fromkeys(
+            users_with_edit + users_with_view).keys()
+
+        acl = [(Allow, u'user:{}'.format(u), 'view')
             for u in users_with_view] + [
-            (Allow, u'user:{}'.format(u.username), 'edit')
+            (Allow, u'user:{}'.format(u), 'edit')
             for u in users_with_edit] + [
             (Allow, Administrator, 'view'), # Always allow Admin and Manager
             (Allow, Manager, 'view'),
@@ -137,6 +159,8 @@ class ProtectedFunction(object):
             (Allow, Manager, 'edit'),
             (Deny, Everyone, 'view') # Catch-all, must be last.
         ]
+        self.cache_acl(self.function, acl)
+        return acl
 
 def makeProtected(*roles):
     """

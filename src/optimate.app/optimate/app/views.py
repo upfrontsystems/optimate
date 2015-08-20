@@ -26,7 +26,7 @@ from pyramid.httpexceptions import (
 )
 
 from optimate.app.security import create_token
-from optimate.app.security import Administrator, Manager
+from optimate.app.security import Administrator, Manager, ProtectedFunction
 from optimate.app.models import (
     DBSession,
     Node,
@@ -2200,6 +2200,7 @@ def usersview(request):
             user.UserRights.append(userright)
 
         DBSession().merge(user)
+        ProtectedFunction.invalidate_acls() # Invalidate cache
 
         return user.dict()
 
@@ -2234,12 +2235,14 @@ def userview(request):
             userright = DBSession.query(UserRight).filter_by(UserID=user.ID,
                                             Function=right['Function']).first()
             userright.Permission = permission
+            ProtectedFunction.invalidate_acls() # Invalidate cache
 
     # delete a user
     elif request.method == 'DELETE':
         if not request.has_permission('edit'):
             return HTTPForbidden()
         session.delete(user)
+        ProtectedFunction.invalidate_acls() # Invalidate cache
         return {}
 
     # return the user
