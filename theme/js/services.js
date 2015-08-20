@@ -5,6 +5,7 @@ angular.module('services', ['config'])
 .service('SessionService', ['$q', '$http', '$window', '$rootScope', 'globalServerURL',
     function($q, $http, $window, $rootScope, globalServerURL){
         var userpermissions = undefined;
+        var currency = undefined;
 
         this.login = function(username, password){
             var p = $q.defer();
@@ -63,5 +64,20 @@ angular.module('services', ['config'])
             }
 
             return deferred.promise
-        }
+        };
+
+        this.get_currency = function(){
+            var deferred = $q.defer();
+            if (currency){
+                deferred.resolve(currency);
+            }
+            else{
+                $http.get(globalServerURL + 'currency')
+                .success(function(response){
+                    currency = response;
+                    deferred.resolve(currency);
+                });
+            }
+            return deferred.promise
+        };
 }]);

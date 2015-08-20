@@ -131,5 +131,9 @@ def main(global_config, **settings):
     # user rights
     config.add_route('userrights', '/rights/{username}/')
 
+    # currencies
+    config.add_route('currenciesview', '/currencies', factory=makeProtectedFunction('setup'))
+    config.add_route('currencyview', '/currency', factory=makeProtectedFunction('setup'))
+
     config.scan()
     return config.make_wsgi_app()

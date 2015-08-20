@@ -14,6 +14,10 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
         SessionService.permissions().then(function(perm){
             $scope.user.permissions = perm;
         });
+        // get the currency
+        SessionService.get_currency().then(function(c){
+            $scope.currency = c;
+        })
 
         $scope.dateTimeNow = function() {
             var d = new Date();

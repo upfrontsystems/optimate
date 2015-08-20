@@ -26,6 +26,10 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
         SessionService.permissions().then(function(perm){
             $scope.user.permissions = perm;
         });
+        // get the currency
+        SessionService.get_currency().then(function(c){
+            $scope.currency = c;
+        })
 
         // need two separate lists of suppliers
         // one used for filtering, one for adding an order

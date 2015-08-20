@@ -4,6 +4,19 @@ myApp.controller('companyinformationController', ['$scope', '$http', '$modal', '
 
         toggleMenu('setup');
 
+        $scope.currencies = [
+            ['BBD','Barbados','Dollars','$'],
+            ['BMD','Bermuda','Dollars','$'],
+            ['HKD','Hong Kong','Dollars','HK$'],
+            ['NAD','Namibia','Dollars','N$'],
+            ['SGD','Singapore','Dollars','S$'],
+            ['TVD','Tuvalu','Tuvalu Dollars','$'],
+            ['TWD','Taiwan','New Dollars','NT$'],
+            ['USD','United States of America','Dollars','$'],
+            ['ZAR','South Africa','Rand','R'],
+            ['ZWD','Zimbabwe','Zimbabwe Dollars','$']
+        ]
+
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
         SessionService.permissions().then(function(perm){

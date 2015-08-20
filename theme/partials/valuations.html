@@ -91,7 +91,7 @@
                     <td>{{obj.Project}}</td>
                     <td>{{obj.ReadableDate}}</td>
                     <td class="currency">{{obj.PercentageClaimed}}</td>
-                    <td class="currency">{{obj.AmountClaimed}}</td>
+                    <td class="currency" ng-bind-html="obj.AmountClaimed | currency:currency"></td>
                 </tr>
             </tbody>
         </table>

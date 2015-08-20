@@ -12,6 +12,7 @@ from decimal import Decimal
 from sqlalchemy.sql import collate
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import func
+# from Products.FinanceFields.Currency import CURRENCIES
 
 from pyramid.httpexceptions import (
     HTTPOk,
@@ -1508,6 +1509,7 @@ def company_information(request):
         company_information.AccountNo=request.json_body.get('AccountNo', '')
         company_information.AccountName=request.json_body.get('AccountName', '')
         company_information.DefaultTaxrate=request.json_body.get('DefaultTaxrate', '')
+        company_information.Currency=request.json_body.get('Currency', 'R')
 
         DBSession.flush()
         transaction.commit()
@@ -1532,7 +1534,7 @@ def company_information(request):
         DBSession.flush()
         qry = DBSession.query(CompanyInformation).first()
 
-    data = {'Name': qry.Name,
+    return {'Name': qry.Name,
             'Address': qry.Address,
             'Tel': qry.Tel,
             'Fax': qry.Fax,
@@ -1541,8 +1543,8 @@ def company_information(request):
             'BranchCode': qry.BranchCode,
             'AccountNo': qry.AccountNo,
             'AccountName': qry.AccountName,
-            'DefaultTaxrate': qry.DefaultTaxrate}
-    return data
+            'DefaultTaxrate': qry.DefaultTaxrate,
+            'Currency': qry.Currency}
 
 
 @view_config(route_name='unitsview', renderer='json', permission='view')
@@ -2638,3 +2640,17 @@ def paymentview(request):
     payment = DBSession.query(Payment).filter_by(ID=paymentid).first()
 
     return payment.dict()
+
+@view_config(route_name='currenciesview', renderer='json', permission='view')
+def currenciesview(request):
+    """ The currenciesview returns a json list of all currencies
+    """
+    print "returning currencies"
+    # return CURRENCIES
+
+@view_config(route_name='currencyview', renderer='json', permission='view')
+def currenciesview(request):
+    """ The currencyview returns the currency specified in company information
+    """
+    return DBSession.query(CompanyInformation).first().Currency
+

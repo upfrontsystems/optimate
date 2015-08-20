@@ -124,7 +124,7 @@
                                 <tbody>
                                     <tr ng-repeat="amount in calculatedAmounts">
                                         <td>{{amount.name}}</td>
-                                        <td class="currency">{{amount.amount}}</td>
+                                        <td class="currency" ng-bind-html="amount.amount | currency:currency"></td>
                                     </tr>
                                 </tbody>
                             </table>

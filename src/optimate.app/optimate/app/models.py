@@ -1428,6 +1428,7 @@ class CompanyInformation(Base):
     AccountNo = Column(Text(50))
     AccountName = Column(Text(50))
     DefaultTaxrate = Column(Float)
+    Currency = Column(Unicode(length=20), default=u'R')
 
     def __repr__(self):
         """Return a representation of this company information

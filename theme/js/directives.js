@@ -903,14 +903,14 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                         cssClass: "cell-title non-editable-column"},
                     {id: "TotalBudget", name: "Budget Total", field: "TotalBudget",
                         width: valuations_column_width.TotalBudget, formatter: CurrencyFormatter,
-                        cssClass: "cell-title non-editable-column"},
+                        cssClass: "cell non-editable-column"},
                     {id: "PercentageComplete", name: "% Complete", field: "PercentageComplete",
                         width: valuations_column_width.PercentageComplete,
                         cssClass: "cell editable-column", formatter: PercentageFormatter,
                     editor: Slick.Editors.CustomEditor},
                     {id: "AmountComplete", name: "Total", field: "AmountComplete",
-                        width: valuations_column_width.AmountComplete,
-                        cssClass: "cell non-editable-column", formatter: CurrencyFormatter}
+                        width: valuations_column_width.AmountComplete, formatter: CurrencyFormatter,
+                        cssClass: "cell non-editable-column"}
                 ];
 
             var options = {

@@ -127,7 +127,7 @@
                     <td>{{obj.Project}}</td>
                     <td>{{obj.Supplier}}</td>
                     <td>{{obj.Client}}</td>
-                    <td class="currency">{{obj.Total}}</td>
+                    <td class="currency" ng-bind-html="obj.Total | currency:currency"></td>
                     <td>{{obj.Status}}</td>
                 </tr>
             </tbody>

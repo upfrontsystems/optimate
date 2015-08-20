@@ -114,7 +114,7 @@
                     <td>{{obj.ID}}</td>
                     <td>{{obj.Date}}</td>
                     <td>{{obj.Project}}</td>
-                    <td class="currency">{{obj.Total}}</td>
+                    <td class="currency" ng-bind-html="obj.Total | currency:currency"></td>
                 </tr>
             </tbody>
         </table>
