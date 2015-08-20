@@ -1106,10 +1106,17 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                 return selectedNodes;
             }
 
-            // take an array of row indices and manually select them in the grid
-            $scope.setSelectedRows = function(rowArray){
+            // select another row, including the current selected rows
+            $scope.selectRow = function(rowIndex){
+                var rowArray = grid.getSelectedRows();
+                rowArray.push(rowIndex);
                 grid.setSelectedRows(rowArray);
             }
+
+            $scope.clearSelectedRows = function(){
+                grid.setSelectedRows([]);
+                grid.render();
+            };
         }
     }
 }]);

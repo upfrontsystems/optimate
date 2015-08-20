@@ -192,19 +192,50 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
 
         $scope.expandBudgetGroupsGrid = function() {
             var selectedRows = $scope.getSelectedNodes();
-            $scope.iterateOverRows(selectedRows, 0, 'expand_budgetgroup')
+            $scope.clearSelectedRows();
+            $scope.iterateOverRows(selectedRows, 0)
         };
+
+        // need to recursively call the http post,
+        // otherwise it reaches the end of the list before it has finished loading
+        $scope.iterateOverRows = function(rows, index){
+            $http({
+                method: 'POST',
+                url:globalServerURL + 'expand_budgetgroup/' + rows[index].ID
+            }).success(function (response) {
+                // get the index of the current node
+                var start = $scope.budgetgroupList.map(function(e) {
+                    return e.ID; }).indexOf(rows[index].ID);
+                $scope.budgetgroupList.splice(start, 1);
+                // insert the children, and the updated parent, in the list
+                Array.prototype.splice.apply($scope.budgetgroupList,
+                                            [start, 0].concat(response));
+                $scope.selectRow(start);
+                // on the last loop reload the slickgrid and node
+                if (index == rows.length-1) {
+                    // on the last loop reload the slickgrid and node
+                    // $scope.setSelectedRows();
+                    $scope.toggleRowsSelected(true, true);
+                    $scope.handleReloadValuationSlickgrid();
+                }
+                else{
+                    index+=1;
+                    $scope.iterateOverRows(rows, index);
+                }
+            });
+        }
 
         $scope.collapseBudgetGroupsGrid = function() {
             var selectedRows = $scope.getSelectedNodes()
+            $scope.clearSelectedRows();
             for (var i in selectedRows){
                 // find the index if the selected row in the budget group list
                 var start = $scope.budgetgroupList.map(function(e) {
                     return e.ID; }).indexOf(selectedRows[i].ID);
                 // find the count of children the expanded budget group has
                 var count = 1;
-                while (selectedRows[i].ID == $scope.budgetgroupList[start + count].ParentID
-                        && (start + count) < $scope.budgetgroupList.length){
+                while ((start + count) < $scope.budgetgroupList.length
+                        && selectedRows[i].ID == $scope.budgetgroupList[start + count].ParentID){
                     count+=1;
                 }
                 // splice the elements out of the array
@@ -217,33 +248,11 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
                 }
                 $scope.budgetgroupList[start]['PercentageComplete'] = percentage;
                 $scope.budgetgroupList[start]['expanded'] = false;
+                $scope.selectRow(start);
             }
             $scope.toggleRowsSelected(true, false);
             $scope.handleReloadValuationSlickgrid();
         };
-
-        // need to recursively call the http post,
-        // otherwise it reaches the end of the list before it has finished loading
-        $scope.iterateOverRows = function(rows, index, route){
-            $http({
-                method: 'POST',
-                url:globalServerURL + 'node/' + $scope.formData['ID'] + '/' + route + '/' + rows[index].ID,
-                data: {'budgetgroupList': $scope.budgetgroupList},
-            }).success(function (response) {
-                $scope.budgetgroupList = response;
-                // on the last loop reload the slickgrid and node
-                if (index == rows.length-1) {
-                    // on the last loop reload the slickgrid and node
-                    // $scope.setSelectedRows();
-                    $scope.toggleRowsSelected(false, false);
-                    $scope.handleReloadValuationSlickgrid();
-                }
-                else{
-                    index+=1;
-                    $scope.iterateOverRows(rows, index, route);
-                }
-            });
-        }
 
         $scope.getReport = function (report) {
             if ( report == 'valuation' ) {

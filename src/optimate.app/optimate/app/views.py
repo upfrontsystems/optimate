@@ -626,11 +626,14 @@ def node_expand_budgetgroup(request):
         parent (target)
     """
     bg_id = int(request.matchdict['bg_id'])
-    blist = request.json_body.get('budgetgroupList', '')
 
     bgroups = DBSession.query(BudgetGroup).filter_by(ParentID=bg_id).all()
+    parentnode = DBSession.query(BudgetGroup).filter_by(ID=bg_id).first()
+    parent = parentnode.valuation()
     if not bgroups:
-        return blist
+        parent['expanded'] = True
+        parent['PercentageComplete'] = None
+        return parent
 
     children = []
     for bg in bgroups:
@@ -650,21 +653,16 @@ def node_expand_budgetgroup(request):
             data['PercentageComplete'] = '0'
         children.append(data)
 
-    index_to_insert_after = [x['ID'] for x in blist].index(int(bg_id))
-    # inject bgroups into blist after the parent node that was expanded
-    start = blist[0:index_to_insert_after+1]
-    end = blist[index_to_insert_after+1:]
     # set the parent expanded and set the percentage to 0
-    start[len(start)-1]['expanded'] = True
-    start[len(start)-1]['PercentageComplete'] = None
+    parent['expanded'] = True
+    parent['PercentageComplete'] = None
     # set the parent amount to the sum of its children
     total = Decimal(0.00)
     for child in children:
         total += Decimal(child['AmountComplete']).quantize(Decimal('.01'))
-    start[len(start)-1]['AmountComplete'] = str(total)
-    # inject bgroups into blist after
-    result = start + children + end
-    return result
+    parent['AmountComplete'] = str(total)
+    # return the data
+    return [parent] + children
 
 @view_config(route_name="projects", renderer='json', permission='view')
 def projects(request):

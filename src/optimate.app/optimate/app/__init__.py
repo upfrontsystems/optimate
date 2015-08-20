@@ -78,7 +78,7 @@ def main(global_config, **settings):
     config.add_route('node_cost', 'node/{id}/cost/', factory=makeProtectedFunction('projects'))
     config.add_route('node_budgetitems', 'node/{id}/budgetitems/', factory=makeProtectedFunction('projects'))
     config.add_route('node_budgetgroups', 'node/{id}/budgetgroups/', factory=makeProtectedFunction('projects'))
-    config.add_route('node_expand_budgetgroup', 'node/{id}/expand_budgetgroup/{bg_id}', factory=makeProtectedFunction('projects'))
+    config.add_route('node_expand_budgetgroup', 'expand_budgetgroup/{bg_id}', factory=makeProtectedFunction('projects'))
     config.add_route('resourcecategory_allresources', 'resourcecategory/{id}/allresources/', factory=makeProtectedFunction('projects'))
     config.add_route('resourcecategory_resources', 'resourcecategory/{id}/resources/', factory=makeProtectedFunction('projects'))
 
