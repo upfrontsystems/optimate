@@ -38,6 +38,11 @@ myApp.directive('projectslickgridjs', ['globalServerURL', '$http',
         link: function($scope, element, attrs) {
 
             var grid;
+
+            $scope.$on('$destroy', function(){
+                if (grid){ grid.destroy(); grid = null; }
+            });
+
             var data = [];
             // set the default column sizes
             var projects_column_width= {};
@@ -210,7 +215,7 @@ myApp.directive('projectslickgridjs', ['globalServerURL', '$http',
                 };
 
             data = []
-            dataView = new Slick.Data.DataView();
+            var dataView = new Slick.Data.DataView();
             dataView.getItemMetadata = getItemMetaData;
             grid = new Slick.Grid("#optimate-data-grid", dataView, columns, options);
             grid.setSelectionModel(new Slick.ProjectsSelectionModel());
@@ -561,6 +566,10 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
         link: function($scope, element, attrs) {
 
             var grid;
+            $scope.$on('$destroy', function(){
+                if (grid){ grid.destroy(); grid = null; }
+            });
+
             var data = [];
             var columns_widths= {};
             // aux function to test if we can support localstorage
@@ -669,7 +678,7 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                 };
 
             data = []
-            dataView = new Slick.Data.DataView();
+            var dataView = new Slick.Data.DataView();
             dataView.getItemMetadata = getItemMetaData;
             grid = new Slick.Grid("#budgetitem-data-grid", dataView, columns, options);
             grid.setSelectionModel(new Slick.OrdersSelectionModel());
@@ -860,6 +869,10 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
         link: function($scope, element, attrs) {
 
             var grid;
+            $scope.$on('$destroy', function(){
+                if (grid){ grid.destroy(); grid = null; }
+            });
+
             var data = [];
             var valuations_column_width= {};
 
@@ -925,7 +938,7 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                 };
 
             data = []
-            dataView = new Slick.Data.DataView();
+            var dataView = new Slick.Data.DataView();
             grid = new Slick.Grid("#budgetgroup-data-grid", dataView, columns, options);
             grid.setSelectionModel(new Slick.OrdersSelectionModel());
             // resize the slickgrid when modal is shown
