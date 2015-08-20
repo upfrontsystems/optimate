@@ -38,6 +38,11 @@ myApp.directive('projectslickgridjs', ['globalServerURL', '$http',
         link: function($scope, element, attrs) {
 
             var grid;
+
+            $scope.$on('$destroy', function(){
+                if (grid){ grid.destroy(); }
+            });
+
             var data = [];
             // set the default column sizes
             var projects_column_width= {};
@@ -561,6 +566,10 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
         link: function($scope, element, attrs) {
 
             var grid;
+            $scope.$on('$destroy', function(){
+                if (grid){ grid.destroy(); }
+            });
+
             var data = [];
             var columns_widths= {};
             // aux function to test if we can support localstorage
@@ -860,6 +869,10 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
         link: function($scope, element, attrs) {
 
             var grid;
+            $scope.$on('$destroy', function(){
+                if (grid){ grid.destroy(); }
+            });
+
             var data = [];
             var valuations_column_width= {};
 
