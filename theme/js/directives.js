@@ -40,7 +40,7 @@ myApp.directive('projectslickgridjs', ['globalServerURL', '$http',
             var grid;
 
             $scope.$on('$destroy', function(){
-                if (grid){ grid.destroy(); }
+                if (grid){ grid.destroy(); grid = null; }
             });
 
             var data = [];
@@ -215,7 +215,7 @@ myApp.directive('projectslickgridjs', ['globalServerURL', '$http',
                 };
 
             data = []
-            dataView = new Slick.Data.DataView();
+            var dataView = new Slick.Data.DataView();
             dataView.getItemMetadata = getItemMetaData;
             grid = new Slick.Grid("#optimate-data-grid", dataView, columns, options);
             grid.setSelectionModel(new Slick.ProjectsSelectionModel());
@@ -567,7 +567,7 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
 
             var grid;
             $scope.$on('$destroy', function(){
-                if (grid){ grid.destroy(); }
+                if (grid){ grid.destroy(); grid = null; }
             });
 
             var data = [];
@@ -678,7 +678,7 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                 };
 
             data = []
-            dataView = new Slick.Data.DataView();
+            var dataView = new Slick.Data.DataView();
             dataView.getItemMetadata = getItemMetaData;
             grid = new Slick.Grid("#budgetitem-data-grid", dataView, columns, options);
             grid.setSelectionModel(new Slick.OrdersSelectionModel());
@@ -870,7 +870,7 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
 
             var grid;
             $scope.$on('$destroy', function(){
-                if (grid){ grid.destroy(); }
+                if (grid){ grid.destroy(); grid = null; }
             });
 
             var data = [];
@@ -938,7 +938,7 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                 };
 
             data = []
-            dataView = new Slick.Data.DataView();
+            var dataView = new Slick.Data.DataView();
             grid = new Slick.Grid("#budgetgroup-data-grid", dataView, columns, options);
             grid.setSelectionModel(new Slick.OrdersSelectionModel());
             // resize the slickgrid when modal is shown
