@@ -546,7 +546,7 @@ myApp.directive('projectslickgridjs', ['globalServerURL', '$http',
                     if (parts.length > 1) {
                         parts[parts.length-1] = parts[parts.length-1].slice(0,2);
                     }
-                    return parts.join(".");
+                    return $scope.currency + parts.join(".");
                 }
                 else {
                     return "";
@@ -723,7 +723,7 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                     if (parts.length > 1) {
                         parts[parts.length-1] = parts[parts.length-1].slice(0,2);
                     }
-                    return parts.join(".");
+                    return $scope.currency + parts.join(".");
                 }
                 else {
                     return "";
@@ -991,7 +991,7 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                 if (value != undefined) {
                     var parts = value.toString().split(".");
                     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                    return parts.join(".");
+                    return $scope.currency + parts.join(".");
                 }
                 else {
                     return "";

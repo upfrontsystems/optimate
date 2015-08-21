@@ -35,6 +35,10 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
         SessionService.permissions().then(function(perm){
             $scope.user.permissions = perm;
         });
+        // get the currency
+        SessionService.get_currency().then(function(c){
+            $scope.currency = c;
+        })
 
         // aux function to test if we can support localstorage
         var hasStorage = (function() {

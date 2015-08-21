@@ -68,16 +68,11 @@ angular.module('services', ['config'])
 
         this.get_currency = function(){
             var deferred = $q.defer();
-            if (currency){
+            $http.get(globalServerURL + 'currency')
+            .success(function(response){
+                currency = response;
                 deferred.resolve(currency);
-            }
-            else{
-                $http.get(globalServerURL + 'currency')
-                .success(function(response){
-                    currency = response;
-                    deferred.resolve(currency);
-                });
-            }
+            });
             return deferred.promise
         };
 }]);

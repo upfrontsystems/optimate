@@ -12,7 +12,7 @@
                 -pdf-frame-content: headerContent;
                 top :1cm;
                 margin-left: 2cm;
-                margin-right: 2cm; 
+                margin-right: 2cm;
                 height: 4.2cm;
             }
             @frame footer {
@@ -54,7 +54,7 @@
             </tr>
             <tr style="border-bottom: 1px solid #000;">
                 <th class="bold" style="width: 450px; text-align:left">Description</th>
-                <th class="bold" style="width: 70px; text-align:right">Unit</th> 
+                <th class="bold" style="width: 70px; text-align:right">Unit</th>
                 <th class="bold" style="width: 90px; text-align:right">Quantity</th>
                 <th class="bold" style="width: 80px; text-align:right">Rate</th>
                 <th class="bold" style="width: 120px; text-align:right">Total</th>
@@ -66,8 +66,8 @@
             <td style="width: 450px" tal:content="order_item['Name']"></td>
             <td style="width: 70px; text-align:right" tal:content="order_item['Unit']" ></td>
             <td style="width: 90px; text-align:right" tal:content="order_item['Quantity']" ></td>
-            <td style="width: 80px; text-align:right" tal:content="order_item['Rate']" ></td>
-            <td style="width: 120px; text-align:right" tal:content="order_item['Total']" ></td>            
+            <td style="width: 80px; text-align:right" tal:content="currency + '{:20,.2f}'.format(float(order_item['Rate'])).strip()" ></td>
+            <td style="width: 120px; text-align:right" tal:content="currency + '{:20,.2f}'.format(float(order_item['Total'])).strip()" ></td>
         </tr>
         <tr style="border-bottom: 1px solid #000;">
             <td></td>
@@ -79,7 +79,7 @@
             <td style="width: 200px">Authorisation</td>
             <td style="width: 400px; text-align:left">Signature: __________________________</td>
             <td style="width: 100px; text-align:left">Subtotal</td>
-            <td style="width: 100px; text-align:right">${totals[0]}</td>
+            <td style="width: 100px; text-align:right">${currency + '{:20,.2f}'.format(totals[0]).strip()}</td>
         </tr>
         <tr>
             <td style="width: 200px"></td>
@@ -91,7 +91,7 @@
             <td style="width: 200px"></td>
             <td style="width: 400px; text-align:left"></td>
             <td style="width: 100px; text-align:left">Total Cost</td>
-            <td class="bold" style="width: 100px; text-align:right">${totals[2]}</td>
+            <td class="bold" style="width: 100px; text-align:right">${currency + '{:20,.2f}'.format(totals[2]).strip()}</td>
         </tr>
     </table>
 

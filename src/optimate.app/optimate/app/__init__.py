@@ -132,7 +132,6 @@ def main(global_config, **settings):
     config.add_route('userrights', '/rights/{username}/')
 
     # currencies
-    config.add_route('currenciesview', '/currencies', factory=makeProtectedFunction('setup'))
     config.add_route('currencyview', '/currency', factory=makeProtectedFunction('setup'))
 
     config.scan()

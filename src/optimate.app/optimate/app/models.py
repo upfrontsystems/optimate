@@ -1428,7 +1428,7 @@ class CompanyInformation(Base):
     AccountNo = Column(Text(50))
     AccountName = Column(Text(50))
     DefaultTaxrate = Column(Float)
-    Currency = Column(Unicode(length=20), default=u'R')
+    Currency = Column(Text(50), default='ZAR')
 
     def __repr__(self):
         """Return a representation of this company information
@@ -1745,13 +1745,15 @@ class Invoice(Base):
         """
         # get the date in json format
         jsonindate = None
+        readable_invoice_date = None
         if self.InvoiceDate:
             jsonindate = self.InvoiceDate.isoformat() + '.000Z'
+            readable_invoice_date = self.InvoiceDate.strftime("%d %B %Y")
         jsonpaydate = None
         readable_date= None
         if self.PaymentDate:
             jsonpaydate = self.PaymentDate.isoformat() + '.000Z'
-            readable_date = self.PaymentDate.strftime("%d %B %Y")
+            readable_pay_date = self.PaymentDate.strftime("%d %B %Y")
         return {'ID':self.ID,
                 'id':self.ID,
                 'OrderID': self.OrderID,
@@ -1762,27 +1764,10 @@ class Invoice(Base):
                 'Total': str(self.Total),
                 'Paymentdate': jsonpaydate,
                 'Invoicedate': jsonindate,
-                'ReadablePaymentdate': readable_date,
+                'ReadablePaymentdate': readable_pay_date,
+                'ReadableInvoicedate': readable_invoice_date,
                 'Ordertotal': str(self.Order.Total),
                 'Status': self.Status}
-
-    def toReportDict(self):
-        """ Returns a dictionary of this Invoice for the invoice report
-        """
-        paydate = None
-        if self.PaymentDate:
-            paydate = self.PaymentDate.strftime("%d %B %Y")
-        invoicedate = None
-        if self.InvoiceDate:
-            invoicedate = self.InvoiceDate.strftime("%d %B %Y")
-        return {'id': self.ID,
-                'orderid': self.OrderID,
-                'project': self.Order.Project.Name,
-                'supplier': self.Order.Supplier.Name,
-                'invoicedate': invoicedate,
-                'paymentdate': paydate,
-                'total': str(self.Total),
-                'status': self.Status}
 
     def __repr__(self):
         """ Return a representation of this invoice

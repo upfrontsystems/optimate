@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import time
 import logging
@@ -17,8 +18,184 @@ from optimate.app.models import (
     Client,
     Invoice,
     Supplier,
-    Project
+    Project,
+    CompanyInformation
 )
+
+currencies = {
+            'AED':'',
+            'AFA':'',
+            'ALL':'',
+            'AMD':'',
+            'ANG':'',
+            'AOA':'',
+            'ARS':'',
+            'AUD':'$',
+            'AWG':'',
+            'AZM':'',
+            'BAM':'',
+            'BBD':'$',
+            'BDT':'',
+            'BGN':'',
+            'BHD':'',
+            'BIF':'',
+            'BMD':'$',
+            'BND':'$',
+            'BOB':'',
+            'BRL':'',
+            'BSD':'$',
+            'BTN':'',
+            'BWP':'',
+            'BYR':'',
+            'BZD':'$',
+            'CAD':'$',
+            'CDF':'',
+            'CHF':'',
+            'CLP':'',
+            'CNY':'',
+            'COP':'',
+            'CRC':'₡',
+            'CUP':'',
+            'CVE':'',
+            'CYP':'',
+            'CZK':'',
+            'DJF':'',
+            'DKK':'',
+            'DOP':'',
+            'DZD':'',
+            'EEK':'',
+            'EGP':'',
+            'ERN':'',
+            'ETB':'',
+            'EUR':'€',
+            'FJD':'$',
+            'FKP':'',
+            'GBP':'£',
+            'GEL':'',
+            'GGP':'',
+            'GHC':'',
+            'GIP':'',
+            'GMD':'',
+            'GNF':'',
+            'GTQ':'',
+            'GYD':'$',
+            'HKD':'HK$',
+            'HNL':'',
+            'HRK':'',
+            'HTG':'',
+            'HUF':'',
+            'IDR':'',
+            'ILS':'₪',
+            'IMP':'',
+            'INR':'₹',
+            'IQD':'',
+            'IRR':'',
+            'ISK':'',
+            'JEP':'',
+            'JMD':'$',
+            'JOD':'',
+            'JPY':'¥',
+            'KES':'',
+            'KGS':'',
+            'KHR':'',
+            'KMF':'',
+            'KPW': '₩',
+            'KRW':'₩',
+            'KWD':'',
+            'KYD':'$',
+            'KZT':'',
+            'LAK':'',
+            'LBP':'',
+            'LKR':'₹',
+            'LRD':'L$',
+            'LSL':'',
+            'LTL':'',
+            'LVL':'',
+            'LYD':'',
+            'MAD':'',
+            'MDL':'',
+            'MGA':'',
+            'MKD':'',
+            'MMK':'',
+            'MNT':'',
+            'MOP':'',
+            'MRO':'',
+            'MTL':'',
+            'MUR':'₹',
+            'MVR':'',
+            'MWK':'',
+            'MXN':'',
+            'MYR':'',
+            'MZM':'',
+            'NAD':'N$',
+            'NGN':'₦',
+            'NIO':'',
+            'NOK':'',
+            'NPR':'₹',
+            'NZD':'$',
+            'OMR':'',
+            'PAB':'',
+            'PEN':'',
+            'PGK':'',
+            'PHP':'₱',
+            'PKR':'₹',
+            'PLN':'zł',
+            'PYG':'₲',
+            'QAR':'',
+            'ROL':'',
+            'RUR':'',
+            'RWF':'',
+            'SAR':'',
+            'SBD':'SI$',
+            'SCR':'₹',
+            'SDD':'',
+            'SEK':'',
+            'SGD':'S$',
+            'SHP':'',
+            'SIT':'',
+            'SKK':'',
+            'SLL':'',
+            'SOS':'',
+            'SPL':'',
+            'SRG':'',
+            'STD':'',
+            'SVC':'',
+            'SYP':'',
+            'SZL':'',
+            'THB':'฿',
+            'TJS':'',
+            'TMM':'',
+            'TND':'',
+            'TOP':'',
+            'TRL':'₺',
+            'TTD':'$',
+            'TVD':'$',
+            'TWD':'NT$',
+            'TZS':'',
+            'UAH':'₴',
+            'UGX':'',
+            'USD':'$',
+            'UYU':'',
+            'UZS':'',
+            'VEB':'',
+            'VND':'₫',
+            'VUV':'',
+            'WST':'',
+            'XAF':'',
+            'XAG':'',
+            'XAU':'',
+            'XCD':'$',
+            'XDR':'',
+            'XOF':'',
+            'XPD':'',
+            'XPF':'',
+            'XPT':'',
+            'YER':'',
+            'YUM':'',
+            'ZAR':'R',
+            'ZMK':'',
+            'ZWD':'$'
+        }
 
 logger = logging.getLogger('optimate.app.reports')
 
@@ -84,6 +261,7 @@ def projectbudget(request):
         if record['selected']]
 
     project = DBSession.query(Node).filter_by(ID=nodeid).first()
+    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
 
     # inject node data into template
     nodes = []
@@ -122,7 +300,8 @@ def projectbudget(request):
     template_data = render('templates/projectbudgetreport.pt',
                            {'nodes': nodes,
                             'project_name': project.Name,
-                            'print_date' : now.strftime("%d %B %Y - %k:%M")},
+                            'print_date' : now.strftime("%d %B %Y - %k:%M"),
+                            'currency': currency},
                            request=request)
     html = StringIO(template_data.encode('utf-8'))
     logging.info("template rendered")
@@ -182,6 +361,7 @@ def costcomparison(request):
     bgroup_list = request.json_body['BudgetGroupList']
 
     project = DBSession.query(Node).filter_by(ID=nodeid).first()
+    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
 
     # inject node data into template
     nodes = []
@@ -219,7 +399,8 @@ def costcomparison(request):
     template_data = render('templates/costcomparisonreport.pt',
                            {'nodes': nodes_colour,
                             'project_name': project.Name,
-                            'print_date' : now.strftime("%d %B %Y - %k:%M")},
+                            'print_date' : now.strftime("%d %B %Y - %k:%M"),
+                            'currency': currency},
                            request=request)
     html = StringIO(template_data.encode('utf-8'))
     logging.info("template rendered")
@@ -303,6 +484,8 @@ def resourcelist(request):
     project = DBSession.query(Node).filter_by(ID=nodeid).first()
     filter_by_supplier = request.json_body['FilterBySupplier']
 
+    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
+
     # inject node data into template
     nodes = []
     filtered_by = ''
@@ -320,7 +503,8 @@ def resourcelist(request):
                            {'nodes': nodes,
                             'filtered_by_string': filtered_by,
                             'project_name': project.Name,
-                            'print_date' : now.strftime("%d %B %Y - %k:%M")},
+                            'print_date' : now.strftime("%d %B %Y - %k:%M"),
+                            'currency': currency},
                            request=request)
     html = StringIO(template_data.encode('utf-8'))
 
@@ -353,6 +537,8 @@ def order(request):
     logging.info("Generating Order Report")
     orderid = request.matchdict['id']
     order = DBSession.query(Order).filter_by(ID=orderid).first()
+    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
+
     orderitems = []
     for orderitem in order.OrderItems:
         orderitems.append(orderitem.dict())
@@ -367,7 +553,8 @@ def order(request):
                            {'order': order,
                             'order_items': sorted_orderitems,
                             'order_date': order.Date.strftime("%d %B %Y"),
-                            'totals': totals},
+                            'totals': totals,
+                            'currency': currency},
                             request=request)
     # render template
     html = StringIO(template_data.encode('utf-8'))
@@ -402,6 +589,8 @@ def valuation(request):
     logging.info("Generating Valuation Report")
     valuationid = request.matchdict['id']
     valuation = DBSession.query(Valuation).filter_by(ID=valuationid).first()
+    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
+
     vitems = []
     budget_total = 0
     for valuationitem in valuation.ValuationItems:
@@ -419,7 +608,8 @@ def valuation(request):
                             'valuation_items': sorted_vitems,
                             'client': client,
                             'budget_total': budget_total,
-                            'valuation_date': vdate},
+                            'valuation_date': vdate,
+                            'currency': currency},
                             request=request)
     # render template
     html = StringIO(template_data.encode('utf-8'))
@@ -490,6 +680,7 @@ def invoices(request):
     filter_by_supplier = request.json_body['FilterBySupplier']
     filter_by_paymentdate = request.json_body['FilterByPaymentDate']
     filter_by_status = request.json_body['FilterByStatus']
+    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
 
     qry = DBSession.query(Invoice)
     invoices = []
@@ -499,8 +690,8 @@ def invoices(request):
         heading = node.Name
         filter_type = 'project'
         for invoice in qry:
-            invoice_data = invoice.toReportDict()
-            if invoice_data['project'] == heading:
+            invoice_data = invoice.dict()
+            if invoice_data['Project'] == heading:
                 invoices.append(invoice_data)
 
     elif filter_by_supplier and 'Supplier' in request.json_body:
@@ -509,30 +700,30 @@ def invoices(request):
         heading = node.Name
         filter_type = 'supplier'
         for invoice in qry:
-            invoice_data = invoice.toReportDict()
-            if invoice_data['supplier'] == heading:
+            invoice_data = invoice.dict()
+            if invoice_data['Supplier'] == heading:
                 invoices.append(invoice_data)
 
     elif filter_by_paymentdate and 'PaymentDate' in request.json_body:
         heading = request.json_body['PaymentDate']
         filter_type = 'paymentdate'
         for invoice in qry:
-            invoice_data = invoice.toReportDict()
-            if invoice_data['paymentdate'] == heading:
+            invoice_data = invoice.dict()
+            if invoice_data['ReadablePaymentdate'] == heading:
                 invoices.append(invoice_data)
 
     elif filter_by_status and 'Status' in request.json_body:
         heading = request.json_body['Status']
         filter_type = 'status'
         for invoice in qry:
-            invoice_data = invoice.toReportDict()
-            if invoice_data['status'] == heading:
+            invoice_data = invoice.dict()
+            if invoice_data['Status'] == heading:
                 invoices.append(invoice_data)
     else:
         filter_type = 'none'
         heading = ''
         for invoice in qry:
-            invoices.append(invoice.toReportDict())
+            invoices.append(invoice.dict())
 
     sorted_invoices = sorted(invoices, key=lambda k: k['id'])
 
@@ -540,7 +731,8 @@ def invoices(request):
     template_data = render('templates/invoicesreport.pt',
                            {'invoices': sorted_invoices,
                             'filter': filter_type,
-                            'report_heading': heading},
+                            'report_heading': heading,
+                            'currency': currency},
                             request=request)
     # render template
     html = StringIO(template_data.encode('utf-8'))

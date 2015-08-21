@@ -59,18 +59,18 @@
     <table class="order-font">
         <tr tal:repeat="valuation_item valuation_items">
             <td style="width: 300px" tal:content="valuation_item['Name']|nothing"></td>
-            <td style="width: 200px; text-align:right">R${valuation_item['TotalBudget']|nothing}</td>
+            <td style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(float(valuation_item['TotalBudget'])).strip()|nothing}</td>
             <td style="width: 80px; text-align:right" tal:content="valuation_item['PercentageComplete']|nothing"></td>
-            <td style="width: 200px; text-align:right">R${valuation_item['AmountComplete']|nothing}</td>
+            <td style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(float(valuation_item['AmountComplete'])).strip()|nothing}</td>
         </tr>
         <tr style="border-bottom: 1px solid #000;">
             <td></td>
         </tr>
         <tr style="padding-top: 6px;">
             <td style="width: 300px; text-align:right">Total</td>
-            <td style="width: 200px; text-align:right">R${budget_total|nothing}</td>
+            <td style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(budget_total).strip()|nothing}</td>
             <td style="width: 80px; text-align:right"></td>
-            <td style="width: 200px; text-align:right">R${valuation.Total|nothing}</td>
+            <td style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(valuation.Total).strip()|nothing}</td>
         </tr>
         <tr style="border-top: 1px solid #000;">
             <td></td>

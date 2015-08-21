@@ -13,7 +13,7 @@
                 -pdf-frame-content: headerContent;
                 top :2cm;
                 margin-left: 2cm;
-                margin-right: 2cm; 
+                margin-right: 2cm;
                 height: 2cm;
             }
             @frame footer {
@@ -41,7 +41,7 @@
         <tr tal:repeat="node nodes">
             <td class="${node[1]} ${node[2]}" style="width: 600px">${node[0].Name}
             </td>
-            <td style="width: 70px; text-align:right" tal:content="node[0].Rate|nothing" ></td>
+            <td style="width: 70px; text-align:right" tal:content="currency + '{:20,.2f}'.format(node[0].Rate).strip()|nothing" ></td>
             <td style="width: 70px; text-align:right" tal:content="node[3]|nothing" ></td>
         </tr>
         <tr tal:condition="nodes == []">

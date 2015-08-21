@@ -13,7 +13,7 @@
                 -pdf-frame-content: headerContent;
                 top :2cm;
                 margin-left: 2cm;
-                margin-right: 2cm; 
+                margin-right: 2cm;
                 height: 2.5cm;
             }
             @frame footer {
@@ -39,7 +39,7 @@
             </tr>
         </table>
     </div>
-    
+
     <table>
         <tal:repeat tal:repeat="node nodes">
             <tal:entry tal:condition="node">
@@ -50,7 +50,7 @@
                     <td class="${node[2]}" style="width: 70px; text-align:right"></td>
                     <td class="${node[2]}" style="width: 70px; text-align:right"></td>
                     <td class="${node[2]}" style="width: 70px; text-align:right"></td>
-                    <td class="${node[2]}" style="width: 70px; text-align:right" tal:content="node[0].Total"></td>
+                    <td class="${node[2]}" style="width: 70px; text-align:right" tal:content="currency + '{:20,.2f}'.format(node[0].Total).strip()"></td>
                 </tr>
                 </tal:bg>
                 <tal:bg tal:condition="node[0].type != 'BudgetGroup'">
@@ -64,8 +64,8 @@
                         </tal:seperator>
                         <td class="${node[2]}" style="width: 70px; text-align:right" tal:content="node[0].Unit"></td>
                         <td class="${node[2]}" style="width: 70px; text-align:right" tal:content="node[0].Quantity"></td>
-                        <td class="${node[2]}" style="width: 70px; text-align:right" tal:content="node[0].Rate"></td>
-                        <td class="${node[2]}" style="width: 70px; text-align:right" tal:content="node[0].Total"></td>
+                        <td class="${node[2]}" style="width: 70px; text-align:right" tal:content="currency + '{:20,.2f}'.format(node[0].Rate).strip()"></td>
+                        <td class="${node[2]}" style="width: 70px; text-align:right" tal:content="currency + '{:20,.2f}'.format(node[0].Total).strip()"></td>
                     </tr>
                 </tal:bg>
             </tal:entry>
