@@ -21,6 +21,7 @@ from optimate.app.models import (
     Project,
     BudgetGroup,
     BudgetItem,
+    Overhead,
     Unit,
     City,
     ResourceType,

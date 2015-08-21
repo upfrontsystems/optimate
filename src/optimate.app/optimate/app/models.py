@@ -867,23 +867,26 @@ class Overhead(Base):
     Name = Column(Text(50))
     Percentage = Column(Float, default=0.0)
     ProjectID = Column(Integer, ForeignKey('Project.ID'))
+    Type = Column(Text(50))
 
     def copy(self, projectid):
         """ Return a copy of this Overhead but with the ProjectID specified
         """
         return Overhead(Name=self.Name,
                         Percentage=self.Percentage,
-                        ProjectID=projectid)
+                        ProjectID=projectid,
+                        Type=self.Type)
 
     def dict(self):
         """ Override the dict function
         """
         return {'ID': self.ID,
                 'Name': self.Name,
-                'Percentage': str(self.Percentage)}
+                'Percentage': str(self.Percentage),
+                'Type': self.Type}
 
     def __eq__(self, other):
-        """ Test ifthis Overheadis equal to another Overhead by Name and
+        """ Test if this Overhead is equal to another Overhead by Name and
             Percentage
         """
         return ((self.Name == other.Name) and
@@ -892,8 +895,8 @@ class Overhead(Base):
     def __repr__(self):
         """Return a representation of this overhead
         """
-        return '<Overhead(Name="%s", Percentage="%f", ID="%s")>' % (
-            self.Name, self.Percentage, self.ID)
+        return '<Overhead(Name="%s", Percentage="%f", Type="%s", ID="%s")>' % (
+            self.Name, self.Percentage, self.Type, self.ID)
 
 
 class ResourceCategory(Node):

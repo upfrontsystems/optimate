@@ -465,6 +465,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 $scope.overheadList = data;
                 console.log("Overhead list loaded");
             });
+            $scope.newOverhead = {'Type': 'BudgetItem'};
         };
 
         // load the overheads a budgetitem can use
@@ -499,16 +500,17 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
 
         // add an overhead with the project id
         $scope.addOverhead = function() {
-            if ($scope.newOverhead) {
+            if ($scope.newOverhead.Name) {
                 $scope.overheadList.push({'Name': $scope.newOverhead.Name,
-                                        'Percentage': $scope.newOverhead.Percentage})
-                $scope.newOverhead = undefined;
+                                        'Percentage': $scope.newOverhead.Percentage,
+                                        'Type': $scope.newOverhead.Type})
+                $scope.newOverhead = {'Type': 'BudgetItem'};
             }
         }
 
         // post the edited overheadlist to the server
         $scope.updateOverheads = function(projectid) {
-            if ($scope.newOverhead) {
+            if ($scope.newOverhead.Name) {
                 $scope.addOverhead();
             }
             var req = {
@@ -519,7 +521,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             $http(req).success(function() {
                 console.log("Overheads updated");
             });
-            $scope.newOverhead = undefined;
+            $scope.newOverhead = {'Type': 'BudgetItem'};
         }
 
         // transform the tag to a new resource-like object
@@ -782,10 +784,13 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                     .success(function(data) {
                         $scope.budgetItemOverheadList = data;
                         var overheadlist = response['OverheadList'];
-                        var arrayLength = $scope.budgetItemOverheadList.length;
+                        var arrayLength = overheadlist.length;
+
                         for (var i = 0; i < arrayLength; i++) {
-                            if (overheadlist.indexOf($scope.budgetItemOverheadList[i].ID) != -1) {
-                                $scope.budgetItemOverheadList[i].selected = true;
+                            var index = $scope.budgetItemOverheadList.map(function(e) {
+                                return e.ID; }).indexOf(overheadlist[i].ID);
+                            if (index > -1) {
+                                $scope.budgetItemOverheadList[index].selected = true;
                             }
                         }
                         $scope.formData['OverheadList'] = $scope.budgetItemOverheadList;

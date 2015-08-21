@@ -795,7 +795,7 @@ def budgetitem_overheads(request):
     currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
     projectid = currentnode.getProjectID()
     overheads = DBSession.query(
-                Overhead).filter_by(ProjectID=projectid).all()
+                Overhead).filter_by(ProjectID=projectid, Type='BudgetItem').all()
     overheadlist = []
     for overhead in overheads:
         overheadlist.append({'Name': overhead.Name,
@@ -816,9 +816,7 @@ def project_overheads(request):
         qry = DBSession.query(Overhead).filter_by(ProjectID=projectid)
         # build the list and only get the neccesary values
         for overhead in qry:
-            overheadlist.append({'Name': overhead.Name,
-                            'Percentage': str(overhead.Percentage),
-                            'ID': overhead.ID})
+            overheadlist.append(overhead.dict())
         return sorted(overheadlist, key=lambda k: k['Name'].upper())
     elif request.method == 'POST':
         if not request.has_permission('edit'):
@@ -835,10 +833,12 @@ def project_overheads(request):
                     if editing:
                         editing.Name = overhead['Name']
                         editing.Percentage = float(overhead['Percentage'])
+                        editing.Type = overhead['Type']
             else:
                 # Build a new overhead with the data
                 newoverhead = Overhead(Name = overhead['Name'],
                                     Percentage = float(overhead['Percentage']),
+                                    Type=overhead['Type'],
                                     ProjectID = projectid)
                 DBSession.add(newoverhead)
         transaction.commit()
