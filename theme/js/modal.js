@@ -12,10 +12,6 @@ $(document).on('shown.bs.modal', function() {
      if ( $('#costComparisonReport.in').length != 0 ) {
          $('input#inputLevelLimit').focus();
      }
-     if ( $('#saveValuationModal.in').length != 0 ) {
-         // disable the 'disabled version' of the project select
-         $('.valuation-edit .chosen-container').off()
-     }
      if ( $('#saveOrderModal.in').length != 0 ) {
          $('#addComponentsButton').focus();
          // disable the 'disabled version' of the project select

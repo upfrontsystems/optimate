@@ -1799,24 +1799,21 @@ class Valuation(Base):
         else:
             date = ''
             readable_date = ''
-        total = '0.00'
-        if self.Total:
-            total = str(self.Total)
 
         return {'ID': self.ID,
                 'id': self.ID,
                 'Project': self.Project.Name,
                 'Date': date,
                 'ReadableDate': readable_date,
-                'PercentageClaimed': str(self.TotalPercentage),
-                'AmountClaimed': total}
+                'PercentageClaimed': self.TotalPercentage,
+                'AmountClaimed': str(self.Total)}
 
     @property
     def TotalPercentage(self):
         if self.Project.Total == 0:
-            return Decimal(0.00)
+            return 0.0
         totalp = (self.Total/self.Project.Total)*100
-        return Decimal(totalp).quantize(Decimal('.01'))
+        return '{:20,.2f}'.format(float(totalp)).strip()
 
     @property
     def Total(self):
@@ -1839,6 +1836,7 @@ class ValuationItem(Base):
     ParentID = Column(Integer, ForeignKey('ValuationItem.ID'))
     ValuationID = Column(Integer, ForeignKey('Valuation.ID'))
     BudgetGroupID = Column(Integer, ForeignKey('BudgetGroup.ID'))
+    BudgetGroupTotal = Column(Numeric)
     PercentageComplete = Column(Float)
 
     BudgetGroup = relationship('BudgetGroup',
@@ -1856,8 +1854,11 @@ class ValuationItem(Base):
     def Total(self):
         # if the percentage complete is None, return the total of the
         # children ValuationItems
-        if self.PercentageComplete:
-            total = (float(self.BudgetGroup.Total)/100) * self.PercentageComplete
+        bgtotal = Decimal(0.00)
+        if self.BudgetGroupTotal is not None:
+            bgtotal = self.BudgetGroupTotal
+        if self.PercentageComplete is not None:
+            total = (float(bgtotal)/100) * self.PercentageComplete
         else:
             total = Decimal(0.00)
             for child in self.Children:
@@ -1867,13 +1868,20 @@ class ValuationItem(Base):
     def dict(self):
         """ Returns a dictionary of this ValuationItem
         """
+        bgtotal = Decimal(0.00)
+        if self.BudgetGroupTotal is not None:
+            bgtotal = self.BudgetGroupTotal
+        print "\n"
+        print self.BudgetGroup.Name
+        print self.BudgetGroupTotal
+        print bgtotal
         return {'ID': self.ID,
                 'id': self.ID,
                 'BudgetGroup': self.BudgetGroupID,
                 'Name': self.BudgetGroup.Name,
                 'PercentageComplete': str(self.PercentageComplete),
                 'AmountComplete': str(self.Total),
-                'TotalBudget': str(self.BudgetGroup.Total),
+                'TotalBudget': str(bgtotal),
                 'NodeType': 'ValuationItem'}
 
     def __repr__(self):

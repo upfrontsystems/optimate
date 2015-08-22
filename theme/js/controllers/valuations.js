@@ -56,13 +56,13 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
         }
         $scope.loadValuationSection();
 
-        $scope.loadBudgetItems = function() {
+        $scope.loadBudgetGroups = function() {
             $http({
                 method: 'GET',
                 url: globalServerURL + 'node/' + $scope.formData['ProjectID'] + '/budgetgroups/'
             }).success(function(response) {
                 $scope.budgetgroupList = response;
-                console.log("BudgetItems loaded");
+                console.log("BudgetGroups loaded");
             });
         }
 
@@ -238,16 +238,24 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
                         && selectedRows[i].ID == $scope.budgetgroupList[start + count].ParentID){
                     count+=1;
                 }
-                // splice the elements out of the array
-                $scope.budgetgroupList.splice(start+1, count-1);
                 // update the parent percentage and expanded flag
                 var percentage = '0';
-                var bgtotal = parseFloat($scope.budgetgroupList[start]['TotalBudget']);
-                if (bgtotal > 0){
-                    percentage = 100.0*parseFloat($scope.budgetgroupList[start]['AmountComplete'])/bgtotal
+                var bgtotal = 0
+                if (start < (start + count-1)){
+                    // set the budget group total as the sum of the children
+                    for (var c = start+1; c < (start+count); c++){
+                        bgtotal += parseFloat($scope.budgetgroupList[c]['TotalBudget']);
+                    }
+                    if (bgtotal > 0){
+                        percentage = 100.0*parseFloat(
+                            $scope.budgetgroupList[start]['AmountComplete'])/bgtotal;
+                    }
                 }
+                $scope.budgetgroupList[start]['TotalBudget'] = bgtotal;
                 $scope.budgetgroupList[start]['PercentageComplete'] = percentage;
                 $scope.budgetgroupList[start]['expanded'] = false;
+                // splice the elements out of the array
+                $scope.budgetgroupList.splice(start+1, count-1);
                 $scope.selectRow(start);
             }
             $scope.toggleRowsSelected(true, false);

@@ -18,30 +18,17 @@
                     </div>
                     <div class="form-group">
                         <label for="inputProject" class="col-sm-2 control-label">Project:</label>
-                        <div data-ng-show="modalState == 'Add'">
-                            <select chosen
-                                    class="col-sm-7"
-                                    id="inputProject"
-                                    name="inputProject"
-                                    data-ng-model="formData['ProjectID']"
-                                    data-ng-options="project.ID as project.Name for project in projectsList"
-                                    data-ng-change="loadBudgetItems()"
-                                    required>
-                                <option value="">Select a project</option>
-                            </select>
-                        </div>
-                        <div class="valuation-edit" data-ng-show="modalState == 'Edit'"> <!-- will be disabled in modal.js -->
-                            <select chosen
-                                    class="col-sm-7"
-                                    id="inputProject"
-                                    name="inputProject"
-                                    data-ng-model="formData['ProjectID']"
-                                    data-ng-options="project.ID as project.Name for project in projectsList"
-                                    data-ng-change="loadBudgetItems()"
-                                    required>
-                                <option value="">Select a project</option>
-                            </select>
-                        </div>
+                        <select chosen
+                                class="col-sm-7"
+                                id="inputProject"
+                                name="inputProject"
+                                data-ng-disabled="modalState == 'Edit'"
+                                data-ng-model="formData['ProjectID']"
+                                data-ng-options="project.ID as project.Name for project in projectsList"
+                                data-ng-change="loadBudgetGroups()"
+                                required>
+                            <option value="">Select a project</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="inputDate" class="col-sm-2 control-label">Date:</label>

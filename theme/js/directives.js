@@ -915,12 +915,13 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                         width: valuations_column_width.Name,
                         cssClass: "cell-title non-editable-column"},
                     {id: "TotalBudget", name: "Budget Total", field: "TotalBudget",
-                        width: valuations_column_width.TotalBudget, formatter: CurrencyFormatter,
-                        cssClass: "cell non-editable-column"},
+                        width: valuations_column_width.TotalBudget,
+                        cssClass: "cell editable-column", formatter: CurrencyFormatter,
+                        editor: Slick.Editors.CustomEditor},
                     {id: "PercentageComplete", name: "% Complete", field: "PercentageComplete",
                         width: valuations_column_width.PercentageComplete,
                         cssClass: "cell editable-column", formatter: PercentageFormatter,
-                    editor: Slick.Editors.CustomEditor},
+                        editor: Slick.Editors.CustomEditor},
                     {id: "AmountComplete", name: "Total", field: "AmountComplete",
                         width: valuations_column_width.AmountComplete, formatter: CurrencyFormatter,
                         cssClass: "cell non-editable-column"}
@@ -991,6 +992,9 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                 if (value != undefined) {
                     var parts = value.toString().split(".");
                     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    if (parts.length == 1){
+                        parts.push('00');
+                    }
                     return $scope.currency + parts.join(".");
                 }
                 else {
@@ -1026,7 +1030,6 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
 
             // on cell change update the totals
             grid.onCellChange.subscribe(function (e, ctx) {
-                $scope.cellSelected = true;
                 var item = ctx.item
                 if (item.PercentageComplete > 100) {
                     item.PercentageComplete = 100;

@@ -654,9 +654,10 @@ def node_expand_budgetgroup(request):
             data['PercentageComplete'] = '0'
         children.append(data)
 
-    # set the parent expanded and set the percentage to 0
+    # set the parent expanded and set the percentage and total to 0
     parent['expanded'] = True
     parent['PercentageComplete'] = None
+    parent['TotalBudget'] = None
     # set the parent amount to the sum of its children
     total = Decimal(0.00)
     for child in children:
@@ -2051,11 +2052,15 @@ def valuationview(request):
                 p_complete = float(p_complete)
             bgid = budgetgroup['ID']
             level = budgetgroup['level']
+            total = budgetgroup.get('TotalBudget', None)
+            if total is not None:
+                total = Decimal(total).quantize(Decimal('01'))
             bg = DBSession.query(BudgetGroup).filter_by(ID=bgid).first()
             if level == '1':
                 newitem = ValuationItem(ValuationID=newid,
                                         ParentID=0,
                                         BudgetGroupID=bgid,
+                                        BudgetGroupTotal=total,
                                         PercentageComplete=p_complete)
                 DBSession.add(newitem)
                 DBSession.flush()
@@ -2066,6 +2071,7 @@ def valuationview(request):
                 DBSession.add(ValuationItem(ValuationID=newid,
                                             ParentID=parentid,
                                             BudgetGroupID=bgid,
+                                            BudgetGroupTotal=total,
                                             PercentageComplete=p_complete))
         transaction.commit()
         # return the new valuation
@@ -2099,12 +2105,16 @@ def valuationview(request):
             p_complete = budgetgroup.get('PercentageComplete', None)
             if p_complete:
                 p_complete = float(p_complete)
+            total = budgetgroup.get('TotalBudget', None)
+            if total is not None:
+                total = Decimal(total).quantize(Decimal('01'))
             if budgetgroup['ID'] not in iddict.keys():
                 # add the new valuation item
                 if budgetgroup['level'] == '1':
                     DBSession.add(ValuationItem(ValuationID=vid,
                                             ParentID=0,
                                             BudgetGroupID=budgetgroup['ID'],
+                                            BudgetGroupTotal=total,
                                             PercentageComplete=p_complete))
                     DBSession.flush()
                 else:
@@ -2115,6 +2125,7 @@ def valuationview(request):
                     DBSession.add(ValuationItem(ValuationID=vid,
                                             ParentID=parent.ID,
                                             BudgetGroupID=budgetgroup['ID'],
+                                            BudgetGroupTotal=total,
                                             PercentageComplete=p_complete))
             else:
                 # otherwise remove the id from the list and update the
@@ -2122,6 +2133,7 @@ def valuationview(request):
                 item = DBSession.query(ValuationItem).filter_by(
                                     ID=iddict[budgetgroup['ID']]).first()
                 item.PercentageComplete = p_complete
+                item.BudgetGroupTotal = total
                 del iddict[budgetgroup['ID']]
         # delete the leftover id's
         for oldid in iddict.values():
@@ -2142,12 +2154,17 @@ def valuationview(request):
     itemlist = []
     parentlist = []
     childrenlist = []
+
     for item in valuation.ValuationItems:
         bg = item.BudgetGroup
 
         # get data and append children valuation items to children list
         if item.ParentID != 0:
             data = bg.valuation('2')
+            totalbudget = item.BudgetGroupTotal
+            if totalbudget is not None:
+                totalbudget = str(totalbudget)
+            data['TotalBudget'] = totalbudget
             data['AmountComplete'] = str(item.Total)
             data['PercentageComplete'] = item.PercentageComplete
             childrenlist.append(data)
@@ -2158,6 +2175,10 @@ def valuationview(request):
                 data['expanded'] = True
             data['AmountComplete'] = str(item.Total)
             data['PercentageComplete'] = item.PercentageComplete
+            totalbudget = item.BudgetGroupTotal
+            if totalbudget is not None:
+                totalbudget = str(totalbudget)
+            data['TotalBudget'] = totalbudget
             parentlist.append(data)
 
     # sort the list, place children after parents
