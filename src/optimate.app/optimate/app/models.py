@@ -70,10 +70,8 @@ class Node(Base):
 
     __tablename__ = 'Node'
     ID = Column(Integer, primary_key=True)
-    ParentID = Column(
-                    Integer,
-                    ForeignKey('Node.ID', ondelete='CASCADE'),
-                    index=True)
+    ParentID = Column(Integer, ForeignKey('Node.ID', ondelete='CASCADE'),
+                        index=True)
     OrderCost = Column(Numeric(12, 2), default=Decimal(0.00))
     ClaimedCost = Column(Numeric(12, 2), default=Decimal(0.00))
     RunningCost=Column(Numeric(12, 2), default=Decimal(0.00))
@@ -161,6 +159,7 @@ class Project(Node):
     FileNumber = Column(Text(50))
     Ordered = Column(Numeric(12, 2), default=Decimal(0.00))
     Invoiced = Column(Numeric(12, 2), default=Decimal(0.00))
+    Status = Column(Text(50), default='Draft')
     _Total = Column('Total', Numeric)
 
     Clients = relationship('Client',
@@ -246,7 +245,7 @@ class Project(Node):
         return budgetitemslist
 
     def dict(self):
-        """ Override the dict function
+        """ Override the dict function for a project
         """
         subitem = []
         if len(self.Children) > 0:
@@ -265,7 +264,8 @@ class Project(Node):
                 'Ordered': str(self.Ordered.quantize(Decimal('.01'))),
                 'Invoiced': str(self.Invoiced.quantize(Decimal('.01'))),
                 'NodeType': self.type,
-                'NodeTypeAbbr' : 'P'}
+                'NodeTypeAbbr' : 'P',
+                'Status': self.Status}
 
     def __repr__(self):
         """ Return a representation of this project
@@ -1340,7 +1340,7 @@ class Client(Base):
     """ A table containing the data relevant to a client of Optimate
     """
     __tablename__ = 'Client'
-    ID = Column(Integer, primary_key=True, index=True)
+    ID = Column(Integer, primary_key=True)
     Name = Column(Text(50))
     Address = Column(Text(100))
     CityID = Column(Integer, ForeignKey('City.ID'))
@@ -1453,7 +1453,7 @@ class Order(Base):
     Total = Column(Numeric)
     DeliveryAddress = Column(Text(100))
     Date = Column(DateTime)
-    Status = Column(Text(10))
+    Status = Column(Text(50), default='Draft')
 
     Project = relationship('Project',
                               backref=backref('Orders'))
@@ -1472,7 +1472,7 @@ class Order(Base):
         self.Total = Decimal(total).quantize(Decimal('.01'))
 
     def dict(self):
-        """ Override the dict function
+        """ Override the dict function for an order
         """
         suppname = ""
         if self.Supplier:
@@ -1675,6 +1675,7 @@ class Invoice(Base):
     PaymentDate = Column(DateTime)
     VAT = Column(Numeric)
     Amount = Column(Numeric)
+    Status = Column(Text(50), default='Draft')
 
     Order = relationship('Order',
                               backref=backref('Invoices'))
@@ -1715,26 +1716,6 @@ class Invoice(Base):
         """
         return select([Order.SupplierID]).where(cls.OrderID == Order.ID).as_scalar()
 
-    @hybrid_property
-    def Status(self):
-        """ Return paid if the payment date is in the past, otherwise unpaid
-        """
-        if self.PaymentDate:
-            if self.PaymentDate < datetime.now():
-                return 'Paid'
-            else:
-                return 'Unpaid'
-        else:
-            return 'Unpaid'
-
-    @Status.expression
-    def Status(cls):
-        """ Expression to filter Invoice by Status
-        """
-        return case([(cls.PaymentDate == None, "Unpaid"),
-                    (cls.PaymentDate > func.now(), "Unpaid")],
-                    else_="Paid")
-
     @property
     def Subtotal(self):
         return self.Amount
@@ -1744,7 +1725,7 @@ class Invoice(Base):
         return Decimal(self.Amount + self.VAT).quantize(Decimal('.01'))
 
     def dict(self):
-        """ Override the dict function
+        """ Override the dict function for an invoice
         """
         # get the date in json format
         jsonindate = None
