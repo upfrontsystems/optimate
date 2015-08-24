@@ -61,7 +61,7 @@
                                   rows="5" cols="40">
                         </textarea>
                     </div>
-                    <div class="form-group">
+                    <div data-ng-show="modalState == 'Edit'" class="form-group">
                         <label for="inputFileNumber" class="col-sm-2 control-label">File Number:</label>
                         <input type="text"
                                class="col-sm-7"
@@ -69,8 +69,21 @@
                                name="inputFileNumber"
                                data-ng-model="formData.FileNumber">
                     </div>
+                    <div data-ng-show="modalState='Edit'" class="form-group">
+                        <label class="col-sm-2 control-label" style="display: block;" >Status:
+                        </label>
+                          <div class="col-sm-7">
+                            <div data-ng-repeat="status in projectStates">
+                            <label>
+                                <input type="radio" data-ng-model="formData.Status" value="{{status}}">
+                                {{status}}
+                            </label>
+                          </div>
+                        </div>
+                    </div>
                 </form>
             </div>
+            <span>{{modalState}}</span>
             <div class="modal-footer">
             <span>
                 <button data-ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal"

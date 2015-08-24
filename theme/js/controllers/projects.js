@@ -29,6 +29,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
         $scope.isDisabled = false;
         $scope.calculatorHidden = true; // set calculator to be hidden by default
         $scope.rowsSelected = false;    // set selected rows false
+        $scope.projectStates = ['Draft', 'Approved', 'Completed'];
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
