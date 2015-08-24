@@ -9,6 +9,8 @@ from pyramid.config import Configurator
 from pyramid.authorization import ACLAuthorizationPolicy
 from sqlalchemy import engine_from_config
 
+import optimate.app.patches
+
 from optimate.app.security import (
     OAuthPolicy,
     makePublic,
