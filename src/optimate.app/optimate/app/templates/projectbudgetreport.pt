@@ -1,6 +1,4 @@
 <html>
-
-    <link rel="stylesheet" tal:attributes="href string:${request.application_url}/static/css/reports.css">
     <span tal:replace='structure string:<style>'/>
         /* The default style */
         @page {
@@ -24,6 +22,68 @@
                 margin-right: 2cm;
             }
         }
+        td {
+            height: 20px;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+        .normal {
+            font-weight: normal;
+        }
+
+        .normal-space {
+            font-weight: normal;
+            padding-top: 4px;
+        }
+
+        td.level2 {
+            padding-left: 8px;
+        }
+        td.level3 {
+            padding-left: 16px;
+        }
+        td.level4 {
+            padding-left: 24px;
+        }
+        td.level5 {
+            padding-left: 32px;
+        }
+        td.level6 {
+            padding-left: 40px;
+        }
+        td.level7 {
+            padding-left: 48px;
+        }
+        td.level8 {
+            padding-left: 56px;
+        }
+
+        div#pageNumber {
+            text-align: center;
+        }
+
+        .order-font {
+            font-size: 14px;
+        }
+
+        .project-heading-font {
+            font-size: 13px;
+        }
+
+        .resourcelist-heading-font {
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .red {
+            color: #f00;
+        }
+
+        .black {
+            color: #000;
+        }
     <span tal:replace='structure string:</style>'/>
 
 <body>
@@ -44,7 +104,7 @@
         <tal:repeat tal:repeat="node nodes">
             <tal:entry tal:condition="node">
                 <tal:bg tal:condition="node[0].type == 'BudgetGroup'">
-                <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding-top: 6px; padding-bottom: 3px;">
+                <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000">
                     <td class="${node[1]} ${node[2]}" style="width: 450px" tal:content="node[0].Name">
                     </td>
                     <td class="${node[2]}" style="width: 70px; text-align:right"></td>
