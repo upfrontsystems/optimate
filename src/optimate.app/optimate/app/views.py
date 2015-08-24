@@ -1728,6 +1728,9 @@ def ordersview(request):
     if 'OrderNumber' in paramkeys:
         setLength = True
         qry = qry.filter(Order.ID.like(paramsdict['OrderNumber'][0]+'%'))
+    if 'Status' in paramkeys:
+        setLength = True
+        qry = qry.filter_by(Status=paramsdict['Status'][0])
 
     # cut the section
     if 'start' not in paramkeys:
@@ -1765,6 +1768,8 @@ def orders_filter(request):
         qry = qry.filter_by(SupplierID=paramsdict['Supplier'][0])
     if 'OrderNumber' in paramkeys:
         qry = qry.filter(Order.ID.like(paramsdict['OrderNumber'][0]+'%'))
+    if 'Status' in paramkeys:
+        qry = qry.filter_by(Status=paramsdict['Status'][0])
     # get the unique values the other filters are to be updated with
     clients = qry.distinct(Order.ClientID).group_by(Order.ClientID)
     clientlist = []
@@ -1973,6 +1978,17 @@ def orderview(request):
             'BudgetItemsList': budgetitemslist,
             'Date': jsondate}
 
+
+@view_config(route_name='orderstatus', renderer='json', permission='edit')
+def orderstatus(request):
+    """ Perform operations on the status of an order
+    """
+    if request.method == 'POST':
+        order = DBSession.query(Order).filter_by(
+                                            ID=request.matchdict['id']).first()
+        order.Status = request.json_body['status']
+        transaction.commit()
+        return HTTPOk()
 
 @view_config(route_name='valuationsview', renderer='json', permission='view')
 def valuationsview(request):
@@ -2480,6 +2496,18 @@ def invoiceview(request):
     invoice = DBSession.query(Invoice).filter_by(ID=invoiceid).first()
 
     return invoice.dict()
+
+
+@view_config(route_name='invoicestatus', renderer='json', permission='edit')
+def invoicestatus(request):
+    """ Perform operations on the status of an invoice
+    """
+    if request.method == 'POST':
+        invoice = DBSession.query(Invoice).filter_by(
+                                            ID=request.matchdict['id']).first()
+        invoice.Status = request.json_body['status']
+        transaction.commit()
+        return HTTPOk()
 
 
 @view_config(route_name='claimsview', renderer='json', permission='view')

@@ -76,7 +76,8 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
                         'Project': $scope.filters.Project,
                         'Client': $scope.filters.Client,
                         'Supplier': $scope.filters.Supplier,
-                        'OrderNumber': $scope.filters.OrderNumber}
+                        'OrderNumber': $scope.filters.OrderNumber,
+                        'Status': $scope.filters.Status}
             };
             $http(req).success(function(response) {
                 var length = response.pop();
@@ -89,7 +90,7 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
         }
         $scope.loadOrderSection();
 
-        // filter the other filter options by project
+        // filter the other filter options by selection
         $scope.filterBy = function(selection) {
             var req = {
                 method: 'GET',
@@ -488,6 +489,18 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
                 $scope.clearSelectedRows();
             }
         };
+
+        // process an order
+        $scope.toggleOrderStatus = function(status){
+            $http({
+                method: 'POST',
+                url: globalServerURL + 'order/' + $scope.selectedOrder.ID + '/status',
+                data: {'status':status}
+            }).success(function(){
+                $scope.selectedOrder.Status = status;
+                console.log("Order status to " + status);
+            })
+        }
 
         $scope.getReport = function (report) {
             if ( report == 'order' ) {

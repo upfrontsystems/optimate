@@ -1,0 +1,63 @@
+<div id="viewOrderModal" class="modal fade">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true" data-ng-show="isCollapsed">&times;</button>
+                <button type="button" class="close" data-ng-click="toggleBudgetItemsGrid()"
+                        aria-hidden="true" data-ng-show="!isCollapsed">&times;</button>
+                <h3 class="modal-title">Order {{selectedOrder.ID}}</h3>
+            </div>
+            <div class="order-modal-body">
+                <form class="form-horizontal" name="viewOrderModalForm">
+                    <div class="form-group">
+                        <label for="viewOrderNumber" class="col-sm-2 control-label">Order Number:</label>
+                        <p class="col-sm-7"
+                                id="viewOrderNumber"
+                                name="viewOrderNumber">
+                                {{selectedOrder.ID}}
+                        </p>
+                    </div>
+                    <div class="form-group">
+                        <label for="viewOrderProject" class="col-sm-2 control-label">Project:</label>
+                        <select data-ng-disabled="true"
+                                class="col-sm-7"
+                                id="viewOrderProject"
+                                name="viewOrderProject"
+                                data-ng-model="formData['ProjectID']"
+                                data-ng-options="project.ID as project.Name for project in projectsList">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="viewOrderSupplier" class="col-sm-2 control-label">Supplier:</label>
+                        <select data-ng-disabled="true"
+                                class="col-sm-7"
+                                id="viewOrderSupplier"
+                                name="viewOrderSupplier"
+                                data-ng-model="formData['SupplierID']"
+                                data-ng-options="supplier.ID as supplier.Name for supplier in suppliersList">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="viewOrderDate" class="col-sm-2 control-label">Date:</label>
+                        <p id="viewOrderDate">{{formData.Date}}</p>
+                    </div>
+                    <div class="form-group">
+                        <div id="order_budgetitems" class="row form-group">
+                            <div id="budgetitem-data-grid-outer">
+                                <budgetitemslickgridjs id="budgetitem-data-grid"
+                                                    budgetitems="budgetItemsList">
+                                </budgetitemslickgridjs>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -331,6 +331,18 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
             })
         };
 
+        // process an order
+        $scope.toggleInvoiceStatus = function(status){
+            $http({
+                method: 'POST',
+                url: globalServerURL + 'invoice/' + $scope.selectedInvoice.ID + '/status',
+                data: {'status':status}
+            }).success(function(){
+                $scope.selectedInvoice.Status = status;
+                console.log("Invoice status to " + status);
+            })
+        }
+
         $scope.getReport = function (report) {
             if ( report == 'invoices' ) {
                 var target = document.getElementsByClassName('pdf_download');

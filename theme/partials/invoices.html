@@ -26,6 +26,32 @@
                         <i class="fa fa-trash"></i>
                 </a>
             </li>
+            <li data-ng-switch="selectedInvoice.Status" data-ng-show="user.permissions.invoices == 'edit'">
+                <a data-ng-switch-when="Draft" style="color: gray;">
+                    <i class="fa fa-arrow-left"></i>
+                </a>
+                <a data-ng-switch-when="Due" title="Revert"
+                    data-ng-click="toggleInvoiceStatus('Draft')">
+                    <i class="fa fa-arrow-left"></i>
+                </a>
+                <a data-ng-switch-when="Paid" title="Revert"
+                    data-ng-click="toggleInvoiceStatus('Due')">
+                    <i class="fa fa-arrow-left"></i>
+                </a>
+            </li>
+            <li data-ng-switch="selectedInvoice.Status" data-ng-show="user.permissions.invoices == 'edit'">
+                <a data-ng-switch-when="Draft" title="Submit for Payment"
+                    data-ng-click="toggleInvoiceStatus('Due')">
+                        <i class="fa fa-arrow-right"></i>
+                </a>
+                <a data-ng-switch-when="Due" title="Mark as Paid"
+                    data-ng-click="toggleInvoiceStatus('Paid')">
+                        <i class="fa fa-arrow-right"></i>
+                </a>
+                <a data-ng-switch-when="Paid" style="color: gray;">
+                    <i class="fa fa-arrow-right"></i>
+                </a>
+            </li>
             <li ng-show="invoicesReportEnabled">
                 <a title="Invoices Report" data-target="#invoicesReport"
                 data-toggle="modal" data-ng-click="filterReportBy()"

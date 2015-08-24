@@ -93,13 +93,17 @@ def main(global_config, **settings):
     config.add_route('citiesview', '/cities', factory=makeProtectedFunction('setup'))
     config.add_route('cityview', '/city/{id}/', factory=makeProtectedFunction('setup'))
 
-    # orders and invoices
+    # orders
     config.add_route('ordersview', '/orders', factory=makeProtectedFunction('orders'))
     config.add_route('orderview', '/order/{id}/', factory=makeProtectedFunction('orders'))
+    config.add_route('orderstatus', '/order/{id}/status', factory=makeProtectedFunction('orders'))
     config.add_route('orders_length', '/orders/length', factory=makeProtectedFunction('orders'))
     config.add_route('orders_filter', '/orders/filter', factory=makeProtectedFunction('orders'))
     config.add_route('orders_tree_view', '/orders/tree/{id}/', factory=makeProtectedFunction('invoices'))
+
+    # invoices
     config.add_route('invoicesview', '/invoices', factory=makeProtectedFunction('invoices'))
+    config.add_route('invoicestatus', '/invoice/{id}/status', factory=makeProtectedFunction('orders'))
     config.add_route('invoices_filter', '/invoices/filter', factory=makeProtectedFunction('invoices'))
     config.add_route('invoiceview', '/invoice/{id}/', factory=makeProtectedFunction('invoices'))
 

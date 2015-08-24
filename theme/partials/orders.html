@@ -11,11 +11,20 @@
             </li>
             <li data-ng-show="user.permissions.orders == 'edit'">
                 <a title="Edit Order"
-                    data-ng-show="selectedOrder"
+                    data-ng-show="selectedOrder && selectedOrder.Status != 'Processed'"
                     data-ng-click="editingState()"
                     data-target="#saveOrderModal"
                     data-toggle="modal">
                         <i class="fa fa-pencil"></i>
+                </a>
+            </li>
+            <li data-ng-show="user.permissions.orders == 'edit'">
+                <a title="View"
+                    data-ng-show="selectedOrder && selectedOrder.Status == 'Processed'"
+                    data-ng-click="editingState()"
+                    data-target="#viewOrderModal"
+                    data-toggle="modal">
+                        <i class="fa fa-square-o"></i>
                 </a>
             </li>
             <li data-ng-show="user.permissions.orders == 'edit'">
@@ -24,6 +33,20 @@
                     data-target="#deleteOrderModal"
                     data-toggle="modal">
                         <i class="fa fa-trash"></i>
+                </a>
+            </li>
+            <li data-ng-show="user.permissions.orders == 'edit'">
+                <a title="Process"
+                    data-ng-show="selectedOrder.Status == 'Draft'"
+                    data-ng-click="toggleOrderStatus('Processed')">
+                        <i class="fa fa-arrow-right"></i>
+                </a>
+            </li>
+            <li data-ng-show="user.permissions.orders == 'edit'">
+                <a title="Retract"
+                    data-ng-show="selectedOrder.Status == 'Processed'"
+                    data-ng-click="toggleOrderStatus('Draft')">
+                        <i class="fa fa-arrow-left"></i>
                 </a>
             </li>
             <li data-ng-show="selectedOrder">
@@ -63,6 +86,15 @@
                         data-ng-change="loadOrderSection(); filterBy('supplier')">
                     <option value="">Supplier</option>
                 </select>
+                <select chosen
+                        class="filter-bar"
+                        id="statusFilter"
+                        data-ng-model="filters.Status"
+                        data-ng-change="loadOrderSection(); filterBy('status')">
+                    <option value="">Status</option>
+                    <option value="Draft">Draft</option>
+                    <option value="Processed">Processed</option>
+                </select>
                 <a href=""
                         data-ng-click="clearFilters(); loadOrderSection()">
                     Clear
@@ -90,6 +122,11 @@
 <div custom-modals modal-id="saveOrderModal"
     modal-type="order"
     modal-src="modal_templates/saveOrderModal.html">
+</div>
+
+<div custom-modals modal-id="viewOrderModal"
+    modal-type="order"
+    modal-src="modal_templates/viewOrderModal.html">
 </div>
 
 <div id="deleteOrderModal" class="modal" tabindex='-1'>
