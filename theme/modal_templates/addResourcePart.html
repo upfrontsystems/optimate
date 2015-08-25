@@ -9,11 +9,11 @@
             <div class="modal-body">
                 <form class="form-horizontal" name="addResourcePartForm" novalidate>
                     <div class="form-group">
-                        <label for="inputResources"
+                        <label for="inputName"
                                class="col-sm-2 control-label">Resource:
                         </label>
                         <ui-select data-ng-model="formData.selected"
-                                    id="inputResources"
+                                    id="inputName"
                                     on-select="resourceSelected($item, formData.NodeType)"
                                     theme="bootstrap"
                                     ng-disabled="disabled"

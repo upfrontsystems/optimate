@@ -575,7 +575,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
         // When the addNode button is clicked on the modal a new node
         // is added to the database
         $scope.addNode = function () {
-            console.log($scope.modalState);
             // check if adding is disabled, if not disable it and add the node
             if (!$scope.isDisabled) {
                 $scope.isDisabled = true;
@@ -634,7 +633,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
 
         // Add a project to the tree and reload the projectlist
         $scope.addProject = function() {
-            $scope.modalState = "Add"
             // check if adding is disabled, if not disable it and add the node
             if (!$scope.isDisabled) {
                 $scope.isDisabled = true;
@@ -687,7 +685,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
 
         // save changes made to the node's properties
         $scope.saveNodeEdits = function() {
-            console.log($scope.modalState);
             if (!$scope.isDisabled) {
                 $scope.isDisabled = true;
                 // if the node is a budgetitem set the selected data to the form
