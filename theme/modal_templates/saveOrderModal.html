@@ -6,110 +6,119 @@
                         aria-hidden="true" data-ng-show="isCollapsed">&times;</button>
                 <button type="button" class="close" data-ng-click="toggleBudgetItemsGrid()"
                         aria-hidden="true" data-ng-show="!isCollapsed">&times;</button>
-                <h3 class="modal-title">{{modalState}} an {{formData.NodeType}}</h3>
+                <h3 data-ng-show="selectedOrder.Status != 'Processed'"
+                    class="modal-title">{{modalState}} an {{formData.NodeType}}</h3>
+                <h3 data-ng-show="selectedOrder.Status == 'Processed'"
+                    class="modal-title">Order {{selectedOrder.ID}}</h3>
             </div>
             <div class="order-modal-body">
                 <div data-ng-show="isCollapsed">
+                    <div data-ng-show="selectedOrder.Status == 'Processed'">
+                        <div data-ng-include="'modal_templates/viewOrderModal.html'">
+                        </div>
+                    </div>
                     <form class="form-horizontal"  name="saveOrderModalForm" novalidate>
-                        <div class="form-group" data-ng-show="modalState == 'Edit'">
-                            <label for="orderNumber" class="col-sm-2 control-label">Order Number:</label>
-                            <p class="col-sm-7"
-                                    id="orderNumber"
-                                    name="orderNumber">
-                                    {{selectedOrder.ID}}
-                            </p>
-                        </div>
-                        <div data-ng-show="modalState == 'Add'">
-                            <div class="form-group" data-ng-show="!orderFormProjectsDisabled">
-                                <label for="inputProject" class="col-sm-2 control-label">Project:</label>
+                        <div data-ng-show="selectedOrder.Status != 'Processed'">
+                            <div class="form-group" data-ng-show="modalState == 'Edit'">
+                                <label for="orderNumber" class="col-sm-2 control-label">Order Number:</label>
+                                <p class="col-sm-7"
+                                        id="orderNumber"
+                                        name="orderNumber">
+                                        {{selectedOrder.ID}}
+                                </p>
+                            </div>
+                            <div data-ng-show="modalState == 'Add'">
+                                <div class="form-group" data-ng-show="!orderFormProjectsDisabled">
+                                    <label for="inputProject" class="col-sm-2 control-label">Project:</label>
+                                    <select chosen
+                                            class="col-sm-7"
+                                            id="inputProject"
+                                            name="inputProject"
+                                            data-ng-model="formData['ProjectID']"
+                                            data-ng-options="project.ID as project.Name for project in projectsList"
+                                            data-ng-change="loadProject()"
+                                            required>
+                                        <option value="">Select a project</option>
+                                    </select>
+                                </div>
+                                <div class="form-group project-dropdown-disabled" data-ng-show="orderFormProjectsDisabled">
+                                    <label for="inputProject" class="col-sm-2 control-label">Project:</label>
+                                    <select chosen
+                                            class="col-sm-7"
+                                            id="inputProject"
+                                            name="inputProject"
+                                            data-ng-model="formData['ProjectID']"
+                                            data-ng-options="project.ID as project.Name for project in projectsList"
+                                            data-ng-change="loadProject()"
+                                            required>
+                                        <option value="">Select a project</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div data-ng-show="modalState == 'Edit'">
+                                <div class="form-group" data-ng-show="!orderFormProjectsDisabled">
+                                    <label for="inputProject" class="col-sm-2 control-label">Project:</label>
+                                    <select chosen
+                                            class="col-sm-7"
+                                            id="inputProject"
+                                            name="inputProject"
+                                            data-ng-model="formData['ProjectID']"
+                                            data-ng-options="project.ID as project.Name for project in projectsList"
+                                            data-ng-change="loadProject()"
+                                            required>
+                                        <option value="">Select a project</option>
+                                    </select>
+                                </div>
+                                <div class="form-group project-dropdown-disabled" data-ng-show="orderFormProjectsDisabled">
+                                    <label for="inputProject" class="col-sm-2 control-label">Project:</label>
+                                    <select chosen
+                                            class="col-sm-7"
+                                            id="inputProject"
+                                            name="inputProject"
+                                            data-ng-model="formData['ProjectID']"
+                                            data-ng-options="project.ID as project.Name for project in projectsList"
+                                            data-ng-change="loadProject()"
+                                            required>
+                                        <option value="">Select a project</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="inputSupplier" class="col-sm-2 control-label">Supplier:</label>
                                 <select chosen
                                         class="col-sm-7"
-                                        id="inputProject"
-                                        name="inputProject"
-                                        data-ng-model="formData['ProjectID']"
-                                        data-ng-options="project.ID as project.Name for project in projectsList"
-                                        data-ng-change="loadProject()"
+                                        id="inputSupplier"
+                                        name="inputSupplier"
+                                        data-ng-model="formData['SupplierID']"
+                                        data-ng-options="supplier.ID as supplier.Name for supplier in suppliersList"
                                         required>
-                                    <option value="">Select a project</option>
+                                    <option value="">Select a supplier</option>
                                 </select>
                             </div>
-                            <div class="form-group project-dropdown-disabled" data-ng-show="orderFormProjectsDisabled">
-                                <label for="inputProject" class="col-sm-2 control-label">Project:</label>
-                                <select chosen
-                                        class="col-sm-7"
-                                        id="inputProject"
-                                        name="inputProject"
-                                        data-ng-model="formData['ProjectID']"
-                                        data-ng-options="project.ID as project.Name for project in projectsList"
-                                        data-ng-change="loadProject()"
-                                        required>
-                                    <option value="">Select a project</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div data-ng-show="modalState == 'Edit'">
-                            <div class="form-group" data-ng-show="!orderFormProjectsDisabled">
-                                <label for="inputProject" class="col-sm-2 control-label">Project:</label>
-                                <select chosen
-                                        class="col-sm-7"
-                                        id="inputProject"
-                                        name="inputProject"
-                                        data-ng-model="formData['ProjectID']"
-                                        data-ng-options="project.ID as project.Name for project in projectsList"
-                                        data-ng-change="loadProject()"
-                                        required>
-                                    <option value="">Select a project</option>
-                                </select>
-                            </div>
-                            <div class="form-group project-dropdown-disabled" data-ng-show="orderFormProjectsDisabled">
-                                <label for="inputProject" class="col-sm-2 control-label">Project:</label>
-                                <select chosen
-                                        class="col-sm-7"
-                                        id="inputProject"
-                                        name="inputProject"
-                                        data-ng-model="formData['ProjectID']"
-                                        data-ng-options="project.ID as project.Name for project in projectsList"
-                                        data-ng-change="loadProject()"
-                                        required>
-                                    <option value="">Select a project</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="inputSupplier" class="col-sm-2 control-label">Supplier:</label>
-                            <select chosen
-                                    class="col-sm-7"
-                                    id="inputSupplier"
-                                    name="inputSupplier"
-                                    data-ng-model="formData['SupplierID']"
-                                    data-ng-options="supplier.ID as supplier.Name for supplier in suppliersList"
-                                    required>
-                                <option value="">Select a supplier</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="inputDate" class="col-sm-2 control-label">Date:</label>
-                            <div id="inputDate"
-                                class="dropdown">
-                                <a class="dropdown-toggle"
-                                    id="dateDropdown"
-                                    role="button"
-                                    data-toggle="dropdown" href="">
-                                    <div class="input-group">
-                                        <input type="text"
-                                                date-parser="DD/MM/YYYY"
-                                                class="col-sm-7 form-control custom-datepicker"
-                                                data-ng-model="formData.Date">
-                                        <span class="input-group-addon">
-                                            <i class="fa fa-calendar"></i>
-                                        </span>
-                                    </div>
-                                </a>
-                                <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-                                    <datetimepicker data-ng-model="formData.Date"
-                                        data-datetimepicker-config="{ dropdownSelector: '#dateDropdown' ,
-                                                                        minView:'day'}"/>
-                                </ul>
+                            <div class="form-group">
+                                <label for="inputDate" class="col-sm-2 control-label">Date:</label>
+                                <div id="inputDate"
+                                    class="dropdown">
+                                    <a class="dropdown-toggle"
+                                        id="dateDropdown"
+                                        role="button"
+                                        data-toggle="dropdown" href="">
+                                        <div class="input-group">
+                                            <input type="text"
+                                                    date-parser="DD MMMM YYYY"
+                                                    class="col-sm-7 form-control custom-datepicker"
+                                                    data-ng-model="formData.Date">
+                                            <span class="input-group-addon">
+                                                <i class="fa fa-calendar"></i>
+                                            </span>
+                                        </div>
+                                    </a>
+                                    <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                                        <datetimepicker data-ng-model="formData.Date"
+                                            data-datetimepicker-config="{ dropdownSelector: '#dateDropdown' ,
+                                                                            minView:'day'}"/>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                         <div class="form-group">
@@ -130,41 +139,48 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-default"
-                        id="addBudgetItemsButton"
-                        data-ng-click="toggleBudgetItemsGrid()"
-                        data-ng-show="isCollapsed"
-                        tabindex="1"
-                        title="Add items"
-                        data-ng-disabled="saveOrderModalForm.inputProject.$invalid">
-                    <i class="fa fa-plus"> </i>
-                </button>
-                <button class="btn btn-default"
-                        id="addBudgetItemsButton"
-                        data-ng-click="toggleBudgetItemsGrid()"
-                        data-ng-show="!isCollapsed"
-                        tabindex="1"
-                        title="Show grid"
-                        data-ng-disabled="saveOrderModalForm.inputProject.$invalid">
-                    <i class="fa fa-list"> </i>
-                </button>
-                <button data-ng-show="isCollapsed && rowsSelected"
-                        class="btn btn-default pull-left"
-                        data-ng-click="deleteSelectedRecords()"
-                        title="Delete records">
-                    <i class="fa fa-trash"></i>
-                </button>
-                <div data-ng-show="isCollapsed">
-                    <button data-ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal"
-                     data-ng-disabled="!saveOrderModalForm.$valid" data-ng-click="save()">
-                        Save
+                <div data-ng-show="selectedOrder.Status != 'Processed'">
+                    <button class="btn btn-default"
+                            id="addBudgetItemsButton"
+                            data-ng-click="toggleBudgetItemsGrid()"
+                            data-ng-show="isCollapsed"
+                            tabindex="1"
+                            title="Add items"
+                            data-ng-disabled="saveOrderModalForm.inputProject.$invalid">
+                        <i class="fa fa-plus"> </i>
                     </button>
-                    <button data-ng-show="modalState == 'Edit'" class="btn btn-primary" data-dismiss="modal"
-                     data-ng-disabled="!saveOrderModalForm.$valid" data-ng-click="save()">
-                        Update
+                    <button class="btn btn-default"
+                            id="addBudgetItemsButton"
+                            data-ng-click="toggleBudgetItemsGrid()"
+                            data-ng-show="!isCollapsed"
+                            tabindex="1"
+                            title="Show grid"
+                            data-ng-disabled="saveOrderModalForm.inputProject.$invalid">
+                        <i class="fa fa-list"> </i>
                     </button>
+                    <button data-ng-show="isCollapsed && rowsSelected"
+                            class="btn btn-default pull-left"
+                            data-ng-click="deleteSelectedRecords()"
+                            title="Delete records">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                    <div data-ng-show="isCollapsed">
+                        <button data-ng-show="modalState == 'Add'" class="btn btn-primary" data-dismiss="modal"
+                         data-ng-disabled="!saveOrderModalForm.$valid" data-ng-click="save()">
+                            Save
+                        </button>
+                        <button data-ng-show="modalState == 'Edit'" class="btn btn-primary" data-dismiss="modal"
+                         data-ng-disabled="!saveOrderModalForm.$valid" data-ng-click="save()">
+                            Update
+                        </button>
+                        <button class="btn btn-default" data-dismiss="modal">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+                <div data-ng-show="selectedOrder.Status == 'Processed'">
                     <button class="btn btn-default" data-dismiss="modal">
-                        Cancel
+                        Close
                     </button>
                 </div>
             </div>

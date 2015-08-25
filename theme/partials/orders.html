@@ -18,11 +18,11 @@
                         <i class="fa fa-pencil"></i>
                 </a>
             </li>
-            <li data-ng-show="user.permissions.orders == 'edit'">
+            <li>
                 <a title="View"
                     data-ng-show="selectedOrder && selectedOrder.Status == 'Processed'"
                     data-ng-click="editingState()"
-                    data-target="#viewOrderModal"
+                    data-target="#saveOrderModal"
                     data-toggle="modal">
                         <i class="fa fa-square-o"></i>
                 </a>
@@ -122,11 +122,6 @@
 <div custom-modals modal-id="saveOrderModal"
     modal-type="order"
     modal-src="modal_templates/saveOrderModal.html">
-</div>
-
-<div custom-modals modal-id="viewOrderModal"
-    modal-type="order"
-    modal-src="modal_templates/viewOrderModal.html">
 </div>
 
 <div id="deleteOrderModal" class="modal" tabindex='-1'>

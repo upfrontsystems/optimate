@@ -1961,22 +1961,11 @@ def orderview(request):
             DBSession.delete(orderitem)
 
     budgetitemslist = sorted(budgetitemslist, key=lambda k: k['Name'].upper())
-    # get the date in json format
-    jsondate = None
-    if order.Date:
-        jsondate = order.Date.isoformat()
-        jsondate = jsondate + '.000Z'
-    total = '0.00'
-    if order.Total:
-        total = order.Total
 
-    return {'ID': order.ID,
-            'ProjectID': order.ProjectID,
-            'SupplierID': order.SupplierID,
-            'ClientID': order.ClientID,
-            'Total': str(total),
-            'BudgetItemsList': budgetitemslist,
-            'Date': jsondate}
+    data = order.dict()
+    data['BudgetItemsList'] = budgetitemslist
+
+    return data
 
 
 @view_config(route_name='orderstatus', renderer='json', permission='edit')

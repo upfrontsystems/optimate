@@ -1,0 +1,75 @@
+<div id="viewInvoiceModal" class="modal fade">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h3 class="modal-title">Invoice {{selectedInvoice.ID}}</h3>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" name="viewInvoiceModalForm">
+                    <div class="form-group">
+                        <label for="viewInvoiceOrderNumber" class="col-sm-2 control-label">Order Number:</label>
+                        <input type="text"
+                                data-ng-disabled="true"
+                                class="col-sm-7"
+                                id="viewInvoiceOrderNumber"
+                                data-ng-model="formData.OrderID">
+                    </div>
+                    <div class="form-group">
+                        <label for="viewInvoiceDate" class="col-sm-2 control-label">Invoice Date:</label>
+                        <input type="text"
+                                class="col-sm-2"
+                                data-ng-disabled="true"
+                                id="viewInvoiceDate"
+                                data-ng-model="formData.ReadableInvoicedate">
+                    </div>
+                    <div class="form-group">
+                        <label for="viewInvoicePaymentDate" class="col-sm-2 control-label">Payment Date:</label>
+                        <input type="text"
+                                class="col-sm-2"
+                                data-ng-disabled="true"
+                                id="viewInvoicePaymentDate"
+                                data-ng-model="formData.ReadablePaymentdate">
+                    </div>
+                    <div class="form-group">
+                        <label for="viewInvoiceAmount" class="col-sm-2 control-label">Amount:</label>
+                        <input type="text"
+                                data-ng-disabled="true"
+                                class="col-sm-7"
+                                id="viewInvoiceAmount"
+                                data-ng-model="formData.Amount"
+                                smart-float>
+                    </div>
+                    <div class="form-group">
+                        <label for="viewInvoiceVAT" class="col-sm-2 control-label">VAT amount:</label>
+                        <input type="text"
+                               class="col-sm-7"
+                               id="viewInvoiceVAT"
+                               data-ng-disabled="true"
+                               data-ng-model="formData.VAT"
+                               smart-float>
+                    </div>
+                    <div class="form-group">
+                        <label for="viewInvoiceAmountsTable" class="col-sm-2 control-label">Amounts:</label>
+                        <div id="viewInvoiceAmountsTable" class="col-sm-7">
+                            <table class="table">
+                                <tbody>
+                                    <tr ng-repeat="amount in calculatedAmounts">
+                                        <td>{{amount.name}}</td>
+                                        <td class="currency" ng-bind-html="amount.amount | currency:currency"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" data-dismiss="modal">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
