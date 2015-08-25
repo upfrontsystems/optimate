@@ -19,7 +19,8 @@ from optimate.app.models import (
     Invoice,
     Supplier,
     Project,
-    CompanyInformation
+    CompanyInformation,
+    Claim
 )
 
 currencies = {
@@ -595,7 +596,7 @@ def valuation(request):
     budget_total = 0
     for valuationitem in valuation.ValuationItems:
         vitems.append(valuationitem.dict())
-        budget_total += valuationitem.BudgetGroup.Total
+        budget_total += valuationitem.BudgetGroupTotal
     sorted_vitems = sorted(vitems, key=lambda k: k['Name'].upper())
 
     # inject valuation data into template
@@ -747,6 +748,74 @@ def invoices(request):
 
     filename = "invoice_report"
     now = datetime.now()
+    nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
+    last_modified = formatdate(time.mktime(now.timetuple()))
+    response = Response(content_type='application/pdf',
+                        body=pdfcontent)
+    response.headers.add('Content-Disposition',
+                         "attachment; filename=%s.pdf" % nice_filename)
+    # needed so that in a cross-domain situation the header is visible
+    response.headers.add('Access-Control-Expose-Headers','Content-Disposition')
+    response.headers.add("Content-Length", str(len(pdfcontent)))
+    response.headers.add('Last-Modified', last_modified)
+    response.headers.add("Cache-Control", "no-store")
+    response.headers.add("Pragma", "no-cache")
+    return response
+
+@view_config(route_name="claim")
+def claim(request):
+    logging.info("Generating Claim Report")
+    claimid = request.matchdict['id']
+
+    claim = DBSession.query(Claim).filter_by(ID=claimid).first()
+    valuation = claim.Valuation
+    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
+
+    budget_total = 0
+    for valuationitem in valuation.ValuationItems:
+        budget_total += valuationitem.BudgetGroupTotal
+
+    percentage = '{0:.2f}'.format(float(claim.Total/budget_total)*100).strip()
+
+    payments = []
+    due = claim.Total
+    paymenttotal = 0
+    for payment in claim.Project.Payments:
+        due -= payment.Amount
+        paymenttotal += payment.Amount
+        payments.append(payment)
+
+    vatamount = float(due) * 0.14
+
+    # inject claim data into template
+    now = datetime.now()
+    date = claim.Date.strftime("%d %B %Y")
+    clientid = claim.Project.ClientID
+    client = DBSession.query(Client).filter_by(ID=clientid).first()
+    template_data = render('templates/claimreport.pt',
+                           {'claim': claim,
+                            'client': client,
+                            'budget_total': budget_total,
+                            'date': date,
+                            'percentage': percentage,
+                            'payments': payments,
+                            'due': due,
+                            'paymenttotal': paymenttotal,
+                            'vatamount': vatamount,
+                            'currency': currency},
+                            request=request)
+    # render template
+    html = StringIO(template_data.encode('utf-8'))
+
+    # Generate the pdf
+    pdf = StringIO()
+    pisadoc = pisa.CreatePDF(html, pdf, raise_exception=False)
+    assert pdf.len != 0, 'Pisa PDF generation returned empty PDF!'
+    html.close()
+    pdfcontent = pdf.getvalue()
+    pdf.close()
+
+    filename = "claim_report"
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
     last_modified = formatdate(time.mktime(now.timetuple()))
     response = Response(content_type='application/pdf',

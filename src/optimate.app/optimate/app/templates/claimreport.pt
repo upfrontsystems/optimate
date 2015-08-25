@@ -1,0 +1,123 @@
+<html>
+
+    <link rel="stylesheet" tal:attributes="href string:${request.application_url}/static/css/reports.css">
+    <span tal:replace='structure string:<style>'/>
+        /* The default style */
+        @page {
+            @frame {
+                margin: 2cm;
+                top :4.6cm;
+            }
+            @frame header {
+                -pdf-frame-content: headerContent;
+                top :1cm;
+                margin-left: 2cm;
+                margin-right: 2cm;
+                height: 5.2cm;
+            }
+            @frame footer {
+                -pdf-frame-content: pageNumber;
+                height: 1cm;
+                bottom: 1cm;
+                margin-left: 2cm;
+                margin-right: 2cm;
+            }
+        }
+    <span tal:replace='structure string:</style>'/>
+
+<body>
+    <div id="headerContent">
+        <h1>Pro Forma Claim</h1>
+        <table class="order-font">
+            <tr></tr>
+            <tr>
+                <td style="width: 60px">To:</td>
+                <td class="bold" style="width: 400px; text-align:left" tal:content="client.Name|nothing"></td>
+            </tr>
+            <tr>
+                <td style="width: 60px">Date</td>
+                <td class="bold" style="width: 400px; text-align:left">${date}</td>
+            </tr>
+            <tr>
+                <td style="width: 60px">Project</td>
+                <td class="bold" style="width: 400px; text-align:left">${claim.Project.Name}</td>
+            </tr>
+        </table>
+        <div>&nbsp;</div>
+        <table class="order-font">
+            <tr>
+                <td>Details of this payment certificate</td>
+            </tr>
+            <tr style="border-top: 1px solid #000;">
+                <td></td>
+            </tr>
+            <tr style="border-bottom: 1px solid #000;">
+                <th class="bold" style="width: 300px; text-align:left">ITEM</th>
+                <th class="bold" style="width: 80px; text-align:right">QUANTITY</th>
+                <th class="bold" style="width: 80px; text-align:right">RATE</th>
+                <th class="bold" style="width: 200px; text-align:right">TOTALS</th>
+            </tr>
+        </table>
+    </div>
+    <table class="order-font">
+        <tr>
+            <td style="width: 300px">Progress Payment</td>
+            <td style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(budget_total).strip()}</td>
+            <td style="width: 80px; text-align:right">${percentage + '%'}</td>
+            <td style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(float(claim.Total)).strip()}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #000;">
+            <td></td>
+        </tr>
+        <tr style="border-bottom: 1px solid #000; padding-top: 2px;">
+            <td>SUBTOTAL: This claim</td>
+            <td></td>
+            <td></td>
+            <td style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(float(claim.Total)).strip()}</td>
+        </tr>
+        <tr style="padding-top: 2px;">
+            <td>Amounts of previous certificates excluding tax</td>
+        </tr>
+        <tr tal:repeat="payment payments">
+            <td style="width: 300px; text-align:right">${'Payment ' + str(payment.ID)}</td>
+            <td style="width: 200px; text-align:right">${'-1'}</td>
+            <td style="width: 80px; text-align:right">${currency + '{:20,.2f}'.format(float(payment.Amount)).strip()}</td>
+            <td style="width: 200px; text-align:right">${'- ' + currency + '{:20,.2f}'.format(float(payment.Amount)).strip()}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #000;">
+            <td></td>
+        </tr>
+        <tr style="border-bottom: 1px solid #000; padding-top: 2px;">
+            <td>SUBTOTAL: Previous claims</td>
+            <td></td>
+            <td></td>
+            <td style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(float(paymenttotal)).strip()}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #000; padding-top: 2px;">
+            <td>SUBTOTAL: This claim LESS Previous claims</td>
+            <td></td>
+            <td></td>
+            <td style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(float(due)).strip()}</td>
+        </tr>
+        <tr style="padding-top: 2px;">
+            <td style="width: 300px">VALUE ADDED TAX</td>
+            <td style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(float(due)).strip()}</td>
+            <td style="width: 80px; text-align:right">${'14%'}</td>
+            <td style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(vatamount).strip()}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #000;">
+            <td></td>
+        </tr>
+        <tr style="border-bottom: 1px solid #000; padding-top: 2px;">
+            <td>TOTAL DUE AS PER THIS CERTIFICATE</td>
+            <td></td>
+            <td></td>
+            <td style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(float(due) + vatamount).strip()}</td>
+        </tr>
+    </table>
+
+    <div id="pageNumber">
+        <pdf:pagenumber>
+    </div>
+</body>
+</html>

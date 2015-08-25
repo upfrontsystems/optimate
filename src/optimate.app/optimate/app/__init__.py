@@ -133,6 +133,7 @@ def main(global_config, **settings):
     config.add_route('valuation', '/valuation_report/{id}/', factory=makeProtectedFunction('valuations'))
     config.add_route('invoices', '/invoices_report', factory=makeProtectedFunction('invoices'))
     config.add_route('invoices_report_filter', '/invoices_report_filter', factory=makeProtectedFunction('invoices'))
+    config.add_route('claim', '/claim_report/{id}/', factory=makeProtectedFunction('valuations'))
 
     # user rights
     config.add_route('userrights', '/rights/{username}/')

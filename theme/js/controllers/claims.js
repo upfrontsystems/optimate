@@ -197,33 +197,14 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
             });
         };
 
-        // fetch the report filter options
-        $scope.filterReportBy = function() {
-            $scope.filterByProject = false;
-            $scope.filterBySupplier = false;
-            $scope.filterByPaymentDate = false;
-            $scope.filterByStatus = false;
-            var req = {
-                method: 'GET',
-                url: globalServerURL + 'claims_report_filter'
-            };
-            $http(req).success(function(response) {
-                $scope.claimReportProjectsList = response['projects'];
-                console.log("Claim report filter options loaded")
-            })
-        };
-
         $scope.getReport = function (report) {
-            if ( report == 'claims' ) {
+            if ( report == 'claim' ) {
+                var claimid = $scope.selectedClaim.ID;
                 var target = document.getElementsByClassName('pdf_download');
                 var spinner = new Spinner().spin(target[0]);
-                $scope.formData['FilterByProject'] = $scope.filterByProject;
-                $scope.formData['FilterBySupplier'] = $scope.filterBySupplier;
-                $scope.formData['FilterByPaymentDate'] = $scope.filterByPaymentDate;
-                $scope.formData['FilterByStatus'] = $scope.filterByStatus;
                 $http({
                     method: 'POST',
-                    url: globalServerURL + 'claims_report',
+                    url: globalServerURL + 'claim_report/' + claimid + '/',
                     data: $scope.formData},
                     {responseType: 'arraybuffer'})
                 .success(function (response, status, headers, config) {

@@ -26,9 +26,9 @@
                         <i class="fa fa-trash"></i>
                 </a>
             </li>
-            <li ng-show="claimsReportEnabled">
-                <a title="Claims Report" data-target="#claimsReport"
-                data-toggle="modal" data-ng-click="filterReportBy()"
+            <li ng-show="selectedClaim">
+                <a title="Claim Report"
+                data-ng-click="getReport('claim')"
                 class="pdf_download">
                 <i class="fa fa-file-pdf-o"></i></a>
                  <!-- hidden anchor for download hook -->
@@ -78,9 +78,6 @@
 <div custom-modals modal-id="saveClaimModal"
     modal-type="claim"
     modal-src="modal_templates/saveClaimModal.html">
-</div>
-<div custom-modals modal-id="claimsReport"
-    modal-src="modal_templates/claimsReport.html">
 </div>
 
 <div id="deleteClaimModal" class="modal" tabindex='-1'>
