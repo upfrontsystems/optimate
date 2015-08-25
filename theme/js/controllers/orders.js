@@ -9,6 +9,7 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
             date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0,0));
             $scope.date = date;
         };
+        $scope.selectedOrders = [];
         $scope.isDisabled = false;
         $scope.isCollapsed = true;
         $scope.orderFormProjectsDisabled = false;
@@ -193,7 +194,6 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
         // Set the selected order and change the css
         $scope.showActionsFor = function(obj) {
             $scope.selectedOrder = obj;
-            $('#order-'+obj.ID).addClass('active').siblings().removeClass('active');
         };
 
         // When the Add button is pressed change the state and form data
@@ -240,21 +240,28 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
             });
         }
 
-        // Delete an order and remove from the orders list
-        $scope.deleteOrder = function() {
-            var deleteid = $scope.selectedOrder.ID;
-            $scope.selectedOrder = undefined;
+        // loop through the selected orders and delete them
+        $scope.deleteOrder = function(index) {
             $http({
                 method: 'DELETE',
-                url: globalServerURL + $scope.formData['NodeType'] + '/' + deleteid + '/'
+                url: globalServerURL + 'order/' + $scope.selectedOrders[index].ID + '/'
             }).success(function () {
-                var result = $.grep($scope.jsonorders, function(e) {
-                    return e.ID == deleteid;
-                });
-                var i = $scope.jsonorders.indexOf(result[0]);
-                if (i>-1) {
-                    $scope.jsonorders.splice(i, 1);
-                    console.log("Deleted order");
+                console.log("Deleted order " + $scope.selectedOrders[index].ID);
+                index+=1;
+                if (index < $scope.selectedOrders.length){
+                    $scope.deleteOrder(index);
+                }
+                else{
+                    $scope.selectedOrder = undefined;
+                    for (var i in $scope.selectedOrders){
+                        var result = $.grep($scope.jsonorders, function(e) {
+                            return e.ID == $scope.selectedOrders[i].ID;
+                        });
+                        var ind = $scope.jsonorders.indexOf(result[0]);
+                        if (ind>-1) {
+                            $scope.jsonorders.splice(ind, 1);
+                        }
+                    }
                 }
             });
         };
@@ -490,15 +497,19 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
             }
         };
 
-        // process an order
-        $scope.toggleOrderStatus = function(status){
+        // process an order recursively for each selected order
+        $scope.toggleOrderStatus = function(status, index){
             $http({
                 method: 'POST',
-                url: globalServerURL + 'order/' + $scope.selectedOrder.ID + '/status',
+                url: globalServerURL + 'order/' + $scope.selectedOrders[index].ID + '/status',
                 data: {'status':status}
             }).success(function(){
-                $scope.selectedOrder.Status = status;
-                console.log("Order status to " + status);
+                $scope.selectedOrders[index].Status = status;
+                console.log("Order " + $scope.selectedOrders[index].ID + " status to " + status);
+                index+=1;
+                if (index < $scope.selectedOrders.length){
+                    $scope.toggleOrderStatus(status, index);
+                }
             })
         }
 

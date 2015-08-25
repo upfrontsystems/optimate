@@ -1,7 +1,8 @@
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div class="container-fluid">
         <ul class="nav nav-pills">
-            <li data-ng-show="user.permissions.invoices == 'edit'">
+            <li data-ng-show="user.permissions.invoices == 'edit'"
+                data-ng-hide="selectedInvoices.length > 1">
                 <a title="Add Invoice"
                     data-ng-click="addingState()"
                     data-target="#saveInvoiceModal"
@@ -9,7 +10,8 @@
                         <i class="fa fa-plus-square"></i>
                 </a>
             </li>
-            <li data-ng-show="user.permissions.invoices == 'edit'">
+            <li data-ng-show="user.permissions.invoices == 'edit'"
+                data-ng-hide="selectedInvoices.length > 1">
                 <a title="Edit Invoice"
                     data-ng-show="selectedInvoice && selectedInvoice.Status == 'Draft'"
                     data-ng-click="editingState()"
@@ -18,7 +20,7 @@
                         <i class="fa fa-pencil"></i>
                 </a>
             </li>
-            <li data-ng-show="selectedInvoice">
+            <li data-ng-show="selectedInvoices.length == 1">
                 <a title="View"
                     data-ng-show="selectedInvoice.Status != 'Draft'"
                     data-ng-click="editingState()"
@@ -40,28 +42,29 @@
                     <i class="fa fa-arrow-left"></i>
                 </a>
                 <a data-ng-switch-when="Due" title="Revert"
-                    data-ng-click="toggleInvoiceStatus('Draft')">
+                    data-ng-click="toggleInvoiceStatus('Draft', 0)">
                     <i class="fa fa-arrow-left"></i>
                 </a>
                 <a data-ng-switch-when="Paid" title="Revert"
-                    data-ng-click="toggleInvoiceStatus('Due')">
+                    data-ng-click="toggleInvoiceStatus('Due', 0)">
                     <i class="fa fa-arrow-left"></i>
                 </a>
             </li>
             <li data-ng-switch="selectedInvoice.Status" data-ng-show="user.permissions.invoices == 'edit'">
                 <a data-ng-switch-when="Draft" title="Submit for Payment"
-                    data-ng-click="toggleInvoiceStatus('Due')">
+                    data-ng-click="toggleInvoiceStatus('Due', 0)">
                         <i class="fa fa-arrow-right"></i>
                 </a>
                 <a data-ng-switch-when="Due" title="Mark as Paid"
-                    data-ng-click="toggleInvoiceStatus('Paid')">
+                    data-ng-click="toggleInvoiceStatus('Paid', 0)">
                         <i class="fa fa-arrow-right"></i>
                 </a>
                 <a data-ng-switch-when="Paid" style="color: gray;">
                     <i class="fa fa-arrow-right"></i>
                 </a>
             </li>
-            <li ng-show="invoicesReportEnabled">
+            <li data-ng-show="invoicesReportEnabled"
+                data-ng-hide="selectedInvoices.length > 1">
                 <a title="Invoices Report" data-target="#invoicesReport"
                 data-toggle="modal" data-ng-click="filterReportBy()"
                 class="pdf_download">
@@ -161,10 +164,15 @@
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-body">
-                <h4>Delete invoice {{selectedInvoice.ID}}</h4>
+                <h4 data-ng-show="selectedOrders.length == 1">
+                    Delete invoice {{selectedInvoice.ID}}
+                </h4>
+                <h4 data-ng-show="selectedInvoices.length > 1">
+                    Delete selected invoices
+                </h4>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-dismiss="modal" data-ng-click="deleteInvoice()">Delete</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" data-ng-click="deleteInvoice(0)">Delete</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
             </div>
         </div>
@@ -186,6 +194,11 @@
             </thead>
             <tbody>
                 <tr ng-repeat="obj in jsoninvoices"
+                    selection-model
+                    selection-model-mode="multiple"
+                    selection-model-selected-class="active"
+                    selection-model-cleanup-strategy="deselect"
+                    selection-model-selected-items="selectedInvoices"
                     ng-click="showActionsFor(obj)" id="invoice-{{obj.ID}}">
                     <td>{{obj.ID}}</td>
                     <td>{{obj.OrderID}}</td>

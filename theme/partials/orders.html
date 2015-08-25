@@ -1,7 +1,8 @@
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div class="container-fluid">
         <ul class="nav nav-pills">
-            <li data-ng-show="user.permissions.orders == 'edit'">
+            <li data-ng-show="user.permissions.orders == 'edit'"
+                data-ng-hide="selectedOrders.length > 1">
                 <a title="Add Order"
                     data-ng-click="addingState()"
                     data-target="#saveOrderModal"
@@ -9,7 +10,8 @@
                         <i class="fa fa-plus-square"></i>
                 </a>
             </li>
-            <li data-ng-show="user.permissions.orders == 'edit'">
+            <li data-ng-show="user.permissions.orders == 'edit'"
+                data-ng-hide="selectedOrders.length > 1">
                 <a title="Edit Order"
                     data-ng-show="selectedOrder && selectedOrder.Status != 'Processed'"
                     data-ng-click="editingState()"
@@ -18,7 +20,7 @@
                         <i class="fa fa-pencil"></i>
                 </a>
             </li>
-            <li>
+            <li data-ng-hide="selectedOrders.length > 1">
                 <a title="View"
                     data-ng-show="selectedOrder && selectedOrder.Status == 'Processed'"
                     data-ng-click="editingState()"
@@ -38,22 +40,23 @@
             <li data-ng-show="user.permissions.orders == 'edit'">
                 <a title="Process"
                     data-ng-show="selectedOrder.Status == 'Draft'"
-                    data-ng-click="toggleOrderStatus('Processed')">
+                    data-ng-click="toggleOrderStatus('Processed', 0)">
                         <i class="fa fa-arrow-right"></i>
                 </a>
             </li>
             <li data-ng-show="user.permissions.orders == 'edit'">
                 <a title="Retract"
                     data-ng-show="selectedOrder.Status == 'Processed'"
-                    data-ng-click="toggleOrderStatus('Draft')">
+                    data-ng-click="toggleOrderStatus('Draft', 0)">
                         <i class="fa fa-arrow-left"></i>
                 </a>
             </li>
-            <li data-ng-show="selectedOrder">
+            <li data-ng-show="selectedOrder && selectedOrders.length == 1">
                 <a title="Order Report"
-                data-ng-click="getReport('order')"
-                class="pdf_download">
-                <i class="fa fa-file-pdf-o"></i></a>
+                    data-ng-click="getReport('order')"
+                    class="pdf_download">
+                    <i class="fa fa-file-pdf-o"></i>
+                </a>
                 <a class="pdf_hidden_download"></a> <!-- hidden anchor for download hook -->
             </li>
             <li class="order-filters-flexbox active">
@@ -128,10 +131,15 @@
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-body">
-                <h4>Delete order {{selectedOrder.ID}}</h4>
+                <h4 data-ng-show="selectedOrders.length == 1">
+                    Delete order {{selectedOrder.ID}}
+                </h4>
+                <h4 data-ng-show="selectedOrders.length > 1">
+                    Delete selected orders
+                </h4>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-dismiss="modal" data-ng-click="deleteOrder()">Delete</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" data-ng-click="deleteOrder(0)">Delete</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
             </div>
         </div>
@@ -153,6 +161,11 @@
             </thead>
             <tbody>
                 <tr ng-repeat="obj in jsonorders"
+                    selection-model
+                    selection-model-mode="multiple"
+                    selection-model-selected-class="active"
+                    selection-model-cleanup-strategy="deselect"
+                    selection-model-selected-items="selectedOrders"
                     ng-click="showActionsFor(obj)" id="order-{{obj.ID}}">
                     <td>{{obj.ID}}</td>
                     <td>{{obj.Date}}</td>

@@ -13,6 +13,7 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
         $scope.isDisabled = false;
         $scope.jsoninvoices = [];
         $scope.invoiceList = [];
+        $scope.selectedInvoices = [];
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
@@ -193,7 +194,6 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
         // Set the selected invoice and change the css
         $scope.showActionsFor = function(obj) {
             $scope.selectedInvoice = obj;
-            $('#invoice-'+obj.id).addClass('active').siblings().removeClass('active');
         };
 
         // When the Add button is pressed change the state and form data
@@ -243,21 +243,28 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
         }
 
         // Delete an invoice and remove from the list
-        $scope.deleteInvoice = function() {
-            var deleteid = $scope.selectedInvoice.id;
-            $scope.selectedInvoice = undefined;
+        $scope.deleteInvoice = function(index) {
             $http({
                 method: 'DELETE',
-                url: globalServerURL + 'invoice' + '/' + deleteid + '/'
+                url: globalServerURL + 'invoice' + '/' + $scope.selectedInvoices[index].ID + '/'
             }).success(function () {
-                var result = $.grep($scope.jsoninvoices, function(e) {
-                    return e.id == deleteid;
-                });
-                var i = $scope.jsoninvoices.indexOf(result[0]);
-                if (i>-1) {
-                    $scope.jsoninvoices.splice(i, 1);
-                    $scope.invoicesLengthCheck();
-                    console.log("Deleted invoice");
+                console.log("Deleted invoice " + $scope.selectedInvoices[index].ID);
+                index+=1;
+                if (index < $scope.selectedInvoices.length){
+                    $scope.deleteInvoice(index);
+                }
+                else{
+                    $scope.selectedInvoice = undefined;
+                    for (var i in $scope.selectedInvoices){
+                        var result = $.grep($scope.jsoninvoices, function(e) {
+                            return e.id == $scope.selectedInvoices[i].ID;
+                        });
+                        var ind = $scope.jsoninvoices.indexOf(result[0]);
+                        if (ind>-1) {
+                            $scope.jsoninvoices.splice(ind, 1);
+                            $scope.invoicesLengthCheck();
+                        }
+                    }
                 }
             });
         };
@@ -332,14 +339,18 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
         };
 
         // process an order
-        $scope.toggleInvoiceStatus = function(status){
+        $scope.toggleInvoiceStatus = function(status, index){
             $http({
                 method: 'POST',
-                url: globalServerURL + 'invoice/' + $scope.selectedInvoice.ID + '/status',
+                url: globalServerURL + 'invoice/' + $scope.selectedInvoices[index].ID + '/status',
                 data: {'status':status}
             }).success(function(){
-                $scope.selectedInvoice.Status = status;
-                console.log("Invoice status to " + status);
+                $scope.selectedInvoices[index].Status = status;
+                console.log("Invoice " + $scope.selectedInvoices[index].ID + " status to " + status);
+                index+=1;
+                if (index < $scope.selectedInvoices.length){
+                    $scope.toggleInvoiceStatus(status, index);
+                }
             })
         }
 
