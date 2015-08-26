@@ -1395,8 +1395,7 @@ if __name__ == '__main__':
                             pass
                         if not tax:
                             tax = 0.0
-                        orderitem = OrderItem(ID=code,
-                                        OrderID=orderid,
+                        orderitem = OrderItem(OrderID=orderid,
                                         BudgetItemID=compid,
                                         _Quantity=quantity,
                                         _Rate=rate,
