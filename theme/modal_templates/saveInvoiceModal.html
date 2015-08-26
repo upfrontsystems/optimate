@@ -9,16 +9,7 @@
                 <form class="form-horizontal" name="saveInvoiceModalForm" novalidate>
                     <div class="form-group">
                         <label for="inputOrderNumber" class="col-sm-2 control-label">Order Number:</label>
-                        <input type="text"
-                                class="col-sm-7"
-                                id="inputOrderNumber"
-                                name="inputOrderNumber"
-                                data-ng-model="formData.OrderID"
-                                data-ng-change="checkOrderNumber()"
-                                data-ng-model-options="{ debounce: 500 }"
-                                required>
-
-                        <!-- <ui-select data-ng-model="formData.selected"
+                        <ui-select data-ng-model="formData.selected"
                                     id="inputOrderNumber"
                                     on-select="orderSelected($item)"
                                     theme="bootstrap"
@@ -32,18 +23,9 @@
                             <ui-select-choices repeat="order in ordersList"
                                              refresh="refreshOrders($select.search)"
                                              refresh-delay="300">
-                                <div ng-bind-html="order.ID | highlight: $select.search"></div>
+                                <div ng-bind-html="''+order.ID | highlight: $select.search"></div>
                             </ui-select-choices>
-                        </ui-select> -->
-
-
-                    </div>
-                    <div class="form-group">
-                        <label for="invalidMessage" class="col-sm-2 control-label"></label>
-                        <p id="invalidMessage" style="color:#A94442;"
-                                ng-show="saveInvoiceModalForm.inputOrderNumber.$invalid">
-                            Please enter an existing order number
-                        </p>
+                        </ui-select>
                     </div>
                     <div class="form-group">
                         <label for="inputInvoiceDate" class="col-sm-2 control-label">Invoice Date:</label>

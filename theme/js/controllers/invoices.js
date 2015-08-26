@@ -124,15 +124,14 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
                 };
                 $http(req).success(function(response) {
                     response.pop();
-                    console.log(response);
                     $scope.ordersList = response;
                 });
             }
         };
 
         $scope.orderSelected = function(item) {
-            console.log(item);
             $scope.formData.OrderID = item.ID;
+            $scope.calculatedAmounts[3].amount = item.Total;
         };
 
         // Adding or editing an invoice
@@ -227,7 +226,7 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
                 url: globalServerURL + 'invoice/' + $scope.selectedInvoice.id + '/'
             }).success(function(response) {
                 $scope.formData = response;
-                $scope.saveInvoiceModalForm.inputOrderNumber.$setValidity('default1', true);
+                $scope.formData.selected = {'ID': response.OrderID};
                 $scope.idate = new Date($scope.formData['Invoicedate']);
                 $scope.pdate = new Date($scope.formData['Paymentdate']);
                 $scope.formData['NodeType'] = 'invoice';
