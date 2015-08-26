@@ -133,6 +133,27 @@
                 <td>&nbsp;</td>
             </tal:seperator>
         </tal:repeat>
+        <tr style="border-bottom: 1px solid #000; border-top: 1px solid #000; padding-top: 2px;">
+            <td style="width: 450px; font-weight:bold;">Subtotal</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td style="width: 70px; text-align:right">${currency + '{:20,.2f}'.format(subtotal).strip()}</td>
+        </tr>
+        <tr tal:repeat="markup markups">
+            <td style="width: 450px">${markup['Name']}</td>
+            <td></td>
+            <td></td>
+            <td style="width: 70px; text-align:right">${str(markup['Percentage']) + '%'}</td>
+            <td style="width: 70px; text-align:right">${currency + '{:20,.2f}'.format(markup['Amount']).strip()}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #000; border-top: 1px solid #000; padding-top: 2px;">
+            <td style="width: 450px; font-weight:bold;">Total</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td style="width: 70px; text-align:right">${currency + '{:20,.2f}'.format(total).strip()}</td>
+        </tr>
     </table>
 
     <div id="pageNumber">

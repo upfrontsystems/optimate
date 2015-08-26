@@ -20,7 +20,8 @@ from optimate.app.models import (
     Supplier,
     Project,
     CompanyInformation,
-    Claim
+    Claim,
+    Overhead
 )
 
 currencies = {
@@ -296,12 +297,27 @@ def projectbudget(request):
                     nodes[count] = (node[0], node[1], 'normal-space')
         count+= 1
 
+    # get all the project markups
+    projectmarkups = DBSession.query(Overhead).filter_by(ProjectID = nodeid,
+                                                        Type='Project').all()
+    projectsubtotal = float(project.Total)
+    projecttotal = projectsubtotal
+    markups = []
+    for markup in projectmarkups:
+        data = markup.dict()
+        data['Amount'] = projecttotal * markup.Percentage / 100.0
+        markups.append(data)
+        projecttotal = projecttotal * (1+(markup.Percentage/100.0))
+
     # render template
     now = datetime.now()
     template_data = render('templates/projectbudgetreport.pt',
                            {'nodes': nodes,
                             'project_name': project.Name,
                             'print_date' : now.strftime("%d %B %Y - %k:%M"),
+                            'markups': markups,
+                            'subtotal': projectsubtotal,
+                            'total': projecttotal,
                             'currency': currency},
                            request=request)
     html = StringIO(template_data.encode('utf-8'))
