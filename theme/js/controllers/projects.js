@@ -460,7 +460,12 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
         };
 
         $scope.loadOverheads = function(projectid) {
-            $http.get(globalServerURL + 'project/' + projectid + '/overheads/')
+            var req = {
+                method: 'GET',
+                url: globalServerURL + projectid + '/overheads/',
+                params: {}
+            }
+            $http(req)
             .success(function(data) {
                 $scope.overheadList = data;
                 console.log("Overhead list loaded");
@@ -472,9 +477,11 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
         $scope.loadBudgetItemOverheads = function(nodeid) {
             var req = {
                 method: 'GET',
-                url: globalServerURL + 'budgetitem/' + nodeid + '/overheads/'
+                url: globalServerURL + nodeid + '/overheads/',
+                params: {'NodeType':'BudgetItem'}
             }
-            $http(req).success(function(data) {
+            $http(req)
+            .success(function(data) {
                 $scope.budgetItemOverheadList = data;
                 console.log("BudgetItem overhead list loaded");
             });
@@ -515,7 +522,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             }
             var req = {
                 method: 'POST',
-                url: globalServerURL + 'project/' + projectid + '/overheads/',
+                url: globalServerURL + projectid + '/overheads/',
                 data: {'overheadlist':$scope.overheadList}
             }
             $http(req).success(function() {
@@ -795,7 +802,9 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                     $scope.formData.NodeType = nodetype;
                     $scope.resourceSelected($scope.formData.selected);
                     // update overheadlist
-                    $http.get(globalServerURL + 'budgetitem/' + nodeid + '/overheads/')
+                    $http.get({
+                        url: globalServerURL + + nodeid + '/overheads/',
+                        data: {'NodeType': 'BudgetItem'}})
                     .success(function(data) {
                         $scope.budgetItemOverheadList = data;
                         var overheadlist = response['OverheadList'];

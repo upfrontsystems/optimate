@@ -1,6 +1,6 @@
 // controller for the Valuation data from the server
-myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', '$timeout', 'SessionService',
-    function($scope, $http, globalServerURL, $timeout, SessionService) {
+myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', '$timeout', 'SessionService', '$q',
+    function($scope, $http, globalServerURL, $timeout, SessionService, $q) {
 
         toggleMenu('valuations');
 
@@ -56,15 +56,39 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
         }
         $scope.loadValuationSection();
 
+        // load the budgetgroups in the project
+        // when the budgetgroups are loaded, load the project markups
         $scope.loadBudgetGroups = function() {
-            $http({
-                method: 'GET',
-                url: globalServerURL + 'node/' + $scope.formData['ProjectID'] + '/budgetgroups/'
-            }).success(function(response) {
-                $scope.budgetgroupList = response;
-                console.log("BudgetGroups loaded");
+            $http.get(globalServerURL + 'node/' + $scope.formData['ProjectID'] + '/budgetgroups/'
+            ).success(function(bgresponse) {
+                $scope.loadMarkup().then(function(overheadsList){
+                    $scope.overheadsList = overheadsList;
+                    $scope.budgetgroupList = bgresponse;
+                });
+                console.log("Items loaded");
             });
         }
+
+        $scope.loadMarkup = function(){
+            var deferred = $q.defer();
+            $http({method: 'GET',
+                    url: globalServerURL + $scope.formData['ProjectID'] + '/overheads/',
+                    params: {'NodeType': 'Project'}
+            }).success(function(oresponse){
+                // convert the overhead data to fit in the slickgrid
+                overheadsList = [];
+                for (var i in oresponse){
+                    var slickdata = {'id': oresponse[i].ID,
+                                    'ID': oresponse[i].ID,
+                                    'Name': oresponse[i].Name,
+                                    'PercentageComplete': oresponse[i].Percentage,
+                                    'NodeType': 'Markup'}
+                    overheadsList.push(slickdata);
+                }
+                deferred.resolve(overheadsList);
+            });
+            return deferred.promise;
+        };
 
         // Adding or editing a valuation
         $scope.save = function() {
@@ -155,8 +179,11 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
                 url: globalServerURL + 'valuation/' + $scope.selectedValuation.ID + '/'
             }).success(function(response) {
                 $scope.formData = response;
-                $scope.budgetgroupList = $scope.formData['BudgetGroupList'];
                 $scope.formData['NodeType'] = 'valuation';
+                $scope.loadMarkup().then(function(overheadsList){
+                    $scope.overheadsList = overheadsList;
+                    $scope.budgetgroupList = $scope.formData['BudgetGroupList'];
+                });
             });
             // set each field dirty
             angular.forEach($scope.saveValuationModalForm.$error.required, function(field) {

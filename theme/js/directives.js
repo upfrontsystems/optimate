@@ -995,6 +995,9 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                     if (parts.length == 1){
                         parts.push('00');
                     }
+                    else if (parts.length > 1) {
+                        parts[parts.length-1] = parts[parts.length-1].slice(0,2);
+                    }
                     return $scope.currency + parts.join(".");
                 }
                 else {
@@ -1015,7 +1018,25 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                 if (budgetgrouplist.length > 0) {
                     grid.setColumns(columns);
                     dataView.beginUpdate();
-                    dataView.setItems(budgetgrouplist);
+                    // append the valuation markup to the end of the budgetgroups
+                    var subtotal = 0;
+                    for (var i in budgetgrouplist){
+                        subtotal += parseFloat(budgetgrouplist[i].AmountComplete);
+                    }
+                    var total = subtotal;
+                    for (var i in $scope.overheadsList){
+                        $scope.overheadsList[i].AmountComplete = subtotal * parseFloat($scope.overheadsList[i].PercentageComplete)/100.0;
+                        total += $scope.overheadsList[i].AmountComplete;
+                    }
+                    var detail = [{'id': 'subtotalrow', 'Name': 'Subtotal',
+                                    'AmountComplete': subtotal, 'NodeType': 'Subtotal'},
+                                    {'id': 'markuprow', 'Name': 'Markup'}];
+                    var totalrow = [{'id': 'totalrow', 'Name': 'Total',
+                                    'AmountComplete': total,'NodeType': 'Total'}]
+
+                    var data = budgetgrouplist.concat(detail, $scope.overheadsList, totalrow);
+
+                    dataView.setItems(data);
                     dataView.endUpdate();
                     grid.render();
                 }
@@ -1031,33 +1052,70 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
             // on cell change update the totals
             grid.onCellChange.subscribe(function (e, ctx) {
                 var item = ctx.item
-                if (item.PercentageComplete > 100) {
-                    item.PercentageComplete = 100;
-                }
-                else if (item.PercentageComplete < 0) {
-                    item.PercentageComplete = 0;
-                }
-                // sometimes total budget is undefined
-                item.TotalBudget = item.TotalBudget ? item.TotalBudget : 0;
-                var oldamount = item.AmountComplete;
-                item.AmountComplete = (item.TotalBudget/100) * item.PercentageComplete;
-                item.AmountComplete = item.AmountComplete.toFixed(2);
-                dataView.updateItem(item.id, item);
-
-                // if this is a level two item, update the total of the parent
-                if (item.level == '2'){
-                    var rowindex = ctx.row;
-                    var level = item.level;
-                    while ((rowindex > 0) && level == '2'){
-                        rowindex-=1;
-                        parent = dataView.getItem(rowindex);
-                        level = parent.level;
+                if (item.NodeType == 'ValuationItem'){
+                    if (item.PercentageComplete > 100) {
+                        item.PercentageComplete = 100;
                     }
-                    parent.AmountComplete = parent.AmountComplete ? parent.AmountComplete : 0;
+                    else if (item.PercentageComplete < 0) {
+                        item.PercentageComplete = 0;
+                    }
+                    // sometimes total budget is undefined
+                    item.TotalBudget = item.TotalBudget ? item.TotalBudget : 0;
+                    var oldamount = item.AmountComplete;
+                    item.AmountComplete = (item.TotalBudget/100) * item.PercentageComplete;
+                    item.AmountComplete = item.AmountComplete.toFixed(2);
                     var difference = item.AmountComplete - oldamount;
-                    parent.AmountComplete = (parseFloat(parent.AmountComplete) +
-                                            difference).toFixed(2);
-                    dataView.updateItem(parent.id, parent);
+                    dataView.updateItem(item.id, item);
+
+                    // if this is a level two item, update the total of the parent
+                    if (item.level == '2'){
+                        var rowindex = ctx.row;
+                        var level = item.level;
+                        while ((rowindex > 0) && level == '2'){
+                            rowindex-=1;
+                            parent = dataView.getItem(rowindex);
+                            level = parent.level;
+                        }
+                        parent.AmountComplete = parent.AmountComplete ? parent.AmountComplete : 0;
+                        var difference = item.AmountComplete - oldamount;
+                        parent.AmountComplete = (parseFloat(parent.AmountComplete) +
+                                                difference).toFixed(2);
+                        dataView.updateItem(parent.id, parent);
+                    }
+                    // update the subtotal
+                    var subtotalrow = dataView.getItemById('subtotalrow');
+                    subtotalrow.AmountComplete = subtotalrow.AmountComplete + difference;
+                    dataView.updateItem('subtotalrow', subtotalrow);
+
+                    // update the markup amounts and total
+                    var total = subtotalrow.AmountComplete;
+                    var index = dataView.getIdxById('markuprow');
+                    index+=1;
+                    var length = dataView.getLength() - 1;
+                    while (index < length){
+                        var markup = dataView.getItem(index);
+                        markup.AmountComplete = subtotalrow.AmountComplete * parseFloat(markup.PercentageComplete)/100.0;
+                        total += markup.AmountComplete;
+                        dataView.updateItem(markup.id, markup);
+                        index+=1;
+                    }
+                    // update the total
+                    var totalrow = dataView.getItemById('totalrow');
+                    totalrow.AmountComplete = total;
+                    dataView.updateItem('totalrow', totalrow);
+
+                }
+                // if the markup percentage has been updated, update the total
+                else if (item.NodeType == 'Markup'){
+                    var subtotal = dataView.getItemById('subtotalrow').AmountComplete;
+                    var oldtotal = item.AmountComplete;
+                    item.AmountComplete = subtotal * parseFloat(item.PercentageComplete)/100.0;
+                    var difference = item.AmountComplete - oldtotal;
+                    // update the total
+                    var totalrow = dataView.getItemById('totalrow');
+                    totalrow.AmountComplete += difference;
+                    dataView.updateItem('totalrow', totalrow);
+
                 }
             });
 

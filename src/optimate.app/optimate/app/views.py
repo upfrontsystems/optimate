@@ -788,43 +788,36 @@ def resourcetypes(request):
     return sorted(restypelist, key=lambda k: k['Name'].upper())
 
 
-@view_config(route_name="budgetitem_overheads", renderer='json', permission='view')
-def budgetitem_overheads(request):
-    """ Get a list of the Overheads a budgetitem can use
-    """
-    nodeid = request.matchdict['id']
-
-    currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
-    projectid = currentnode.getProjectID()
-    overheads = DBSession.query(
-                Overhead).filter_by(ProjectID=projectid, Type='BudgetItem').all()
-    overheadlist = []
-    for overhead in overheads:
-        overheadlist.append({'Name': overhead.Name,
-                            'ID': overhead.ID,
-                            'selected': False})
-    return sorted(overheadlist, key=lambda k: k['Name'].upper())
-
-
-@view_config(route_name="project_overheads", renderer='json', permission='view')
-def project_overheads(request):
+@view_config(route_name="overheadsview", renderer='json', permission='view')
+def overheadsview(request):
     """ Perform operations on the Overheads of a specified Project
         depending on the method
     """
     if request.method == 'GET':
-        projectid = request.matchdict['id']
+        paramsdict = request.params.dict_of_lists()
+        paramkeys = paramsdict.keys()
+        nodeid = request.matchdict['nodeid']
+        currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
+        projectid = currentnode.getProjectID()
+
+        # if the type is specified, filter by it
+        if 'NodeType' in paramkeys:
+            overheads = DBSession.query(
+                    Overhead).filter_by(ProjectID=projectid, Type=paramsdict['NodeType'][0]).all()
+        else:
+            overheads = DBSession.query(
+                    Overhead).filter_by(ProjectID=projectid).all()
+
         overheadlist = []
-        # Get all the overheads used by this project
-        qry = DBSession.query(Overhead).filter_by(ProjectID=projectid)
-        # build the list and only get the neccesary values
-        for overhead in qry:
+        for overhead in overheads:
             overheadlist.append(overhead.dict())
         return sorted(overheadlist, key=lambda k: k['Name'].upper())
+
     elif request.method == 'POST':
         if not request.has_permission('edit'):
             return HTTPForbidden()
 
-        projectid = request.matchdict['id']
+        projectid = request.matchdict['nodeid']
         overheadlist = request.json_body['overheadlist']
         for overhead in overheadlist:
             keys = overhead.keys()
@@ -855,7 +848,7 @@ def overheadview(request):
     if request.method == 'DELETE':
         if not request.has_permission('edit'):
             return HTTPForbidden()
-        deleteid = request.matchdict['id']
+        deleteid = request.matchdict['overheadid']
         # Deleting it from the table deletes the object
         deletethis = DBSession.query(
             Overhead).filter_by(ID=deleteid).first()
