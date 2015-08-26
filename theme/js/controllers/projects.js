@@ -237,20 +237,19 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             var i = $scope.projectsRoot.Subitem.indexOf(result[0]);
             if (i != -1) {
                 $scope.projectsRoot.Subitem.splice(i, 1);
+            }
 
             if (hasStorage) {
                 // remove id of project that we are closing from storage
                 var open_projects = JSON.parse(localStorage["open_projects"])
                 var index = open_projects.indexOf(project_id);
                 if (index > -1) {
-                    console.log("splicing " + project_id);
-                   open_projects.splice(index, 1);
+                    open_projects.splice(index, 1);
                 }
                 localStorage["open_projects"] = JSON.stringify(open_projects);
             }
             else {
                 console.log("LOCAL STORAGE NOT SUPPORTED!")
-            }
             }
         };
 
@@ -728,6 +727,22 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                                 return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
                             });
                         }
+                        // if it is a project, change it in the projects list
+                        if ($scope.currentNode.NodeType == 'Project'){
+                             var result = $.grep($scope.projectsList, function(e) {
+                                return e.ID == $scope.currentNode.ID;
+                            });
+                            var index = $scope.projectsList.indexOf(result[0]);
+                            if (index>-1) {
+                                $scope.projectsList[index].Name = $scope.currentNode.Name;
+                            }
+                            $scope.projectsList.sort(function(a, b) {
+                                var textA = a.Name.toUpperCase();
+                                var textB = b.Name.toUpperCase();
+                                return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+                            });
+                        }
+
                     }
                     $scope.currentNode.Description = $scope.formData.Description
                     $scope.handleReloadSlickgrid($scope.currentNode.ID);
@@ -829,6 +844,14 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 $scope.statusMessage("Deleted " + $scope.currentNode.Name, 2000, 'alert-info');
                 if ($scope.currentNode.NodeType == 'Project') {
                     $scope.closeProject(nodeid);
+                    // remove the project from the projects list
+                    var result = $.grep($scope.projectsList, function(e) {
+                        return e.ID == nodeid;
+                    });
+                    var index = $scope.projectsList.indexOf(result[0]);
+                    if (index>-1) {
+                        $scope.projectsList.splice(index, 1);
+                    }
                 }
                 else {
                     $scope.nodeDeleted();
@@ -890,6 +913,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 }
                 // if a project was pasted into the root
                 if ($scope.copiedNode.NodeType === 'Project') {
+                    $scope.copiedNode.cut = false;
                     var newprojectid = response.newId;
                     $scope.statusMessage($scope.copiedNode.Name + " pasted.", 1000, 'alert-info');
                     // and add it to the open projects
