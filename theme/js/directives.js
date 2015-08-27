@@ -1222,7 +1222,7 @@ function dateParser() {
     function link(scope, element, attrs, ngModel) {
         var moment = window.moment,
             dateFormat = attrs.dateParser,
-            alternativeFormat = dateFormat.replace('DD', 'D').replace('MM', 'M'); //alternative do accept days and months with a single digit
+            alternativeFormat = dateFormat.replace('DD', 'D').replace('MM', 'M'); //alternative to accept days and months with a single digit
         //use push to make sure our parser will be the last to run
         ngModel.$formatters.push(formatter);
         ngModel.$parsers.push(parser);

@@ -186,7 +186,8 @@ def _initTestingDB():
         overhead = Overhead(Name="Overhead",
                         ID=1,
                         ProjectID=project.ID,
-                        Percentage=(overheadperc*100.0))
+                        Percentage=(overheadperc*100.0),
+                        Type='BudgetItem')
         budgetgroup = BudgetGroup(Name='TestBGName',
                         ID=2,
                         Description='TestBGDesc',
@@ -236,7 +237,8 @@ def _initTestingDB():
         overheadb = Overhead(Name="OverheadB",
                         ID=2,
                         ProjectID=projectb.ID,
-                        Percentage=(overheadbperc*100.0))
+                        Percentage=(overheadbperc*100.0),
+                        Type='BudgetItem')
         budgetgroupb = BudgetGroup(Name='TestBBGName',
                         ID=5,
                         Description='BBGDesc',
@@ -283,11 +285,13 @@ def _initTestingDB():
         overheadc = Overhead(Name="OverheadC",
                         ID=3,
                         ProjectID=projectc.ID,
-                        Percentage=(overheadcperc*100.0))
+                        Percentage=(overheadcperc*100.0),
+                        Type='BudgetItem')
         overheadd = Overhead(Name="OverheadD",
                         ID=4,
                         ProjectID=projectc.ID,
-                        Percentage=(overheaddperc*100.0))
+                        Percentage=(overheaddperc*100.0),
+                        Type='BudgetItem')
         budgetgroupc = BudgetGroup(Name='TestCBGName',
                         ID=20,
                         Description='CBGDesc',
@@ -431,8 +435,6 @@ def _registerRoutes(config):
     config.add_route('projects', '/projects/')
     config.add_route('project_resources', '/project/{id}/resources/')
     config.add_route('resources', '/resource/{id}/')
-    config.add_route('project_overheads', '/project/{id}/overheads/')
-    config.add_route('budgetitem_overheads', '/budgetitem/{id}/overheads/')
     config.add_route('overheadview', '/overhead/{id}/')
     config.add_route('resourcetypes', '/resourcetypes')
     config.add_route('node_grid', '/node/{parentid}/grid/')
@@ -584,14 +586,15 @@ class TestProjectOverheadsViewSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def _callFUT(self, request):
-        from optimate.app.views import project_overheads
-        return project_overheads(request)
+        from optimate.app.views import overheadsview
+        return overheadsview(request)
 
     def test_get(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
-        request.matchdict = {'id': 1}
+        request.matchdict = {'nodeid': 1}
         request.method = 'GET'
+        request.params = DummyOverhead()
         response = self._callFUT(request)
 
         # test that a list of the overheads in this project is returned
@@ -609,11 +612,16 @@ class TestProjectOverheadsViewSuccessCondition(unittest.TestCase):
         self.assertEqual(response.code, 200)
 
         request = testing.DummyRequest()
-        request.matchdict = {'id': 1}
+        request.matchdict = {'nodeid': 1}
         request.method = 'GET'
+        request.params = DummyOverhead()
         response = self._callFUT(request)
         # test that a the overheads is now two
         self.assertEqual(len(response), 2)
+
+class DummyOverhead(object):
+    def dict_of_lists(self):
+        return {}
 
 class TestProjectOverheadsViewSuccessCondition(unittest.TestCase):
     """ Test the different methods of the overheads
@@ -634,28 +642,33 @@ class TestProjectOverheadsViewSuccessCondition(unittest.TestCase):
     def test_delete(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
-        request.matchdict = {'id': 19}
+        request.matchdict = {'nodeid': 19}
         request.method = 'GET'
-        from optimate.app.views import project_overheads
-        response = project_overheads(request)
+        request.params = DummyOverhead()
+        from optimate.app.views import overheadsview
+        response = overheadsview(request)
         # first test that there are two overheads
         self.assertEqual(len(response), 2)
 
         request = testing.DummyRequest()
-        request.matchdict = {'id': 3}
+        request.matchdict = {'overheadid': 3}
         request.method = 'DELETE'
         response = self._callFUT(request)
         # first test that there are two overheads
         self.assertEqual(response.code, 200)
 
         request = testing.DummyRequest()
-        request.matchdict = {'id': 19}
+        request.matchdict = {'nodeid': 19}
         request.method = 'GET'
-        from optimate.app.views import project_overheads
-        response = project_overheads(request)
+        request.params = DummyOverhead()
+        from optimate.app.views import overheadsview
+        response = overheadsview(request)
         # now test that there one overhead
         self.assertEqual(len(response), 1)
 
+class DummyBudgetItemOverhead(object):
+    def dict_of_lists(self):
+        return {'NodeType': ['BudgetItem']}
 
 class TestBudgetItemOverheadsViewSuccessCondition(unittest.TestCase):
     """ Test the operations on Overheads of a BudgetItem
@@ -670,13 +683,14 @@ class TestBudgetItemOverheadsViewSuccessCondition(unittest.TestCase):
         testing.tearDown()
 
     def _callFUT(self, request):
-        from optimate.app.views import budgetitem_overheads
-        return budgetitem_overheads(request)
+        from optimate.app.views import overheadsview
+        return overheadsview(request)
 
     def test_it(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
-        request.matchdict['id'] = 22
+        request.matchdict['nodeid'] = 22
+        request.params = DummyBudgetItemOverhead()
         response = self._callFUT(request)
 
         # budgetitem with id 22 can use the two overheads of project id 19
@@ -1450,11 +1464,12 @@ class TestCopySuccessCondition(unittest.TestCase):
     def test_budgetgroup_in_project(self):
         _registerRoutes(self.config)
         # check the destination project overheads
-        from optimate.app.views import project_overheads
+        from optimate.app.views import overheadsview
         request = testing.DummyRequest()
         request.method = 'GET'
-        request.matchdict = {'id': 4}
-        response = project_overheads(request)
+        request.params = DummyOverhead()
+        request.matchdict = {'nodeid': 4}
+        response = overheadsview(request)
         projectoverheads = DBSession.query(Overhead).filter_by(ProjectID=4).all()
         self.assertEqual(len(response), len(projectoverheads))
 
@@ -1475,8 +1490,9 @@ class TestCopySuccessCondition(unittest.TestCase):
         # check the destination project overheads has changed
         request = testing.DummyRequest()
         request.method = 'GET'
-        request.matchdict = {'id': 4}
-        response = project_overheads(request)
+        request.matchdict = {'nodeid': 4}
+        request.params = DummyOverhead()
+        response = overheadsview(request)
         newprojectoverheads = DBSession.query(Overhead).filter_by(ProjectID=4).all()
         self.assertNotEqual(len(newprojectoverheads), len(projectoverheads))
         self.assertEqual(len(response), len(newprojectoverheads))

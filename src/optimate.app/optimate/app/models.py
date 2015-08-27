@@ -1734,7 +1734,7 @@ class Invoice(Base):
             jsonindate = self.InvoiceDate.isoformat() + '.000Z'
             readable_invoice_date = self.InvoiceDate.strftime("%d %B %Y")
         jsonpaydate = None
-        readable_date= None
+        readable_pay_date= None
         if self.PaymentDate:
             jsonpaydate = self.PaymentDate.isoformat() + '.000Z'
             readable_pay_date = self.PaymentDate.strftime("%d %B %Y")
@@ -1817,7 +1817,6 @@ class Valuation(Base):
 class ValuationItem(Base):
     """ A table to hold valuation items. """
     __tablename__ = 'ValuationItem'
-    # ID = Column(Integer, ForeignKey('ValuationDataID.ID'), primary_key=True)
     ID = Column(Integer, primary_key=True)
     ParentID = Column(Integer, ForeignKey('ValuationItem.ID'))
     ValuationID = Column(Integer, ForeignKey('Valuation.ID'))
@@ -1959,7 +1958,6 @@ class ValuationMarkup(Base):
     """
     __tablename__ = 'ValuationMarkup'
     ID = Column(Integer, primary_key=True)
-    # ID = Column(Integer, ForeignKey('ValuationDataID.ID'), primary_key=True)
     Name = Column(Text(50))
     Percentage = Column(Float, default=0.0)
     ValuationID = Column(Integer, ForeignKey('Valuation.ID'))
@@ -1993,10 +1991,3 @@ class ValuationMarkup(Base):
         """
         return '<ValuationMarkup(Name="%s", Percentage="%f", ID="%s", ValuationID="%s")>' % (
             self.Name, self.Percentage, self.Type, self.ID, self.ValuationID)
-
-class ValuationDataID(Base):
-    """ Acts as a primary key id for the data items linked to valuations
-    """
-    __tablename__ = 'ValuationDataID'
-    ID = Column(Integer, primary_key=True)
-

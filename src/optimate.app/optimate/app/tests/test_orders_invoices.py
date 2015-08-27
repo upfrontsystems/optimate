@@ -579,7 +579,7 @@ class DummyMatchProject(object):
 
 class DummyMatchStatus(object):
     def dict_of_lists(self):
-        return {'Status': ['Paid']}
+        return {'Status': ['Draft']}
 
 class DummyMatchNone(object):
     def dict_of_lists(self):
@@ -626,8 +626,8 @@ class TestInvoicesViewSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.params = DummyMatchStatus()
         response = self._callFUT(request)
-        # the number of invoices should be 1
-        self.assertEqual(len(response), 1)
+        # the number of invoices should be 2
+        self.assertEqual(len(response), 2)
 
     def test_no_match(self):
         _registerRoutes(self.config)

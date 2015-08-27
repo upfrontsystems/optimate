@@ -71,8 +71,6 @@ def main(global_config, **settings):
     config.add_route('projects', '/projects/', factory=makeProtectedFunction('projects'))
     config.add_route('project_resources', '/project/{id}/resources/', factory=makeProtectedFunction('projects'))
     config.add_route('project_overheads', '/project/{id}/overheads/', factory=makeProtectedFunction('projects'))
-    config.add_route('overheadsview', '/{nodeid}/overheads/', factory=makeProtectedFunction('projects'))
-    config.add_route('overheadview', '/overhead/{overheadid}/', factory=makeProtectedFunction('projects'))
     config.add_route('resourcetypes', '/resourcetypes', factory=makeProtectedFunction('projects'))
     config.add_route('node_grid', '/node/{parentid}/grid/', factory=makeProtectedFunction('projects'))
     config.add_route('node_update_value', '/node/{id}/update_value/', factory=makeProtectedFunction('projects'))
@@ -83,6 +81,10 @@ def main(global_config, **settings):
     config.add_route('node_expand_budgetgroup', 'expand_budgetgroup/{bg_id}', factory=makeProtectedFunction('projects'))
     config.add_route('resourcecategory_allresources', 'resourcecategory/{id}/allresources/', factory=makeProtectedFunction('projects'))
     config.add_route('resourcecategory_resources', 'resourcecategory/{id}/resources/', factory=makeProtectedFunction('projects'))
+
+    # overheads
+    config.add_route('overheadsview', '/{nodeid}/overheads/', factory=makeProtectedFunction('projects'))
+    config.add_route('overheadview', '/overhead/{overheadid}/', factory=makeProtectedFunction('projects'))
 
     # the setup views
     config.add_route('clientsview', '/clients', factory=makeProtectedFunction('setup'))
