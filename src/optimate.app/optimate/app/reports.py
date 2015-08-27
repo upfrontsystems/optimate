@@ -21,7 +21,8 @@ from optimate.app.models import (
     Project,
     CompanyInformation,
     Claim,
-    Overhead
+    Overhead,
+    ValuationMarkup
 )
 
 currencies = {
@@ -608,12 +609,58 @@ def valuation(request):
     valuation = DBSession.query(Valuation).filter_by(ID=valuationid).first()
     currency = currencies[DBSession.query(CompanyInformation).first().Currency]
 
-    vitems = []
     budget_total = 0
-    for valuationitem in valuation.ValuationItems:
-        vitems.append(valuationitem.dict())
-        budget_total += valuationitem.BudgetGroupTotal
-    sorted_vitems = sorted(vitems, key=lambda k: k['Name'].upper())
+    itemlist = []
+    parentlist = []
+    childrenlist = []
+
+    for item in valuation.ValuationItems:
+        bg = item.BudgetGroup
+        # get data and append children valuation items to children list
+        if item.ParentID != 0:
+            data = bg.valuation('2')
+            totalbudget = item.BudgetGroupTotal
+            if totalbudget is not None:
+                totalbudget = str(totalbudget)
+            data['TotalBudget'] = totalbudget
+            data['AmountComplete'] = str(item.Total)
+            data['PercentageComplete'] = item.PercentageComplete
+            childrenlist.append(data)
+        # get data and append parents valuation items to parent list
+        else:
+            budget_total += float(item.Total)
+            data = bg.valuation()
+            if len(item.Children) > 0:
+                data['expanded'] = True
+            data['AmountComplete'] = str(item.Total)
+            data['PercentageComplete'] = item.PercentageComplete
+            totalbudget = item.BudgetGroupTotal
+            if totalbudget is not None:
+                totalbudget = str(totalbudget)
+            data['TotalBudget'] = totalbudget
+            parentlist.append(data)
+
+    # sort the list, place children after parents
+    parentlist = sorted(parentlist, key=lambda k: k['Name'].upper())
+    for parent in parentlist:
+        if parent['expanded']:
+            dc = [x for x in childrenlist if x['ParentID'] == parent['ID']]
+            dc = sorted(dc, key=lambda k: k['Name'].upper())
+            itemlist.append(parent)
+            itemlist+=dc
+        else:
+            itemlist.append(parent)
+
+    markup_list = []
+    grandtotal = float(valuation.Total)
+    # get the valuation markup
+    for markup in valuation.MarkupList:
+        data = markup.dict()
+        data["Amount"] = float(valuation.Total)*(markup.Percentage/100)
+        grandtotal += data["Amount"]
+        markup_list.append(data)
+
+    markup_list = sorted(markup_list, key=lambda k: k['Name'].upper())
 
     # inject valuation data into template
     now = datetime.now()
@@ -622,10 +669,12 @@ def valuation(request):
     client = DBSession.query(Client).filter_by(ID=clientid).first()
     template_data = render('templates/valuationreport.pt',
                            {'valuation': valuation,
-                            'valuation_items': sorted_vitems,
+                            'valuation_items': itemlist,
                             'client': client,
                             'budget_total': budget_total,
                             'valuation_date': vdate,
+                            'markup_list': markup_list,
+                            'grand_total': grandtotal,
                             'currency': currency},
                             request=request)
     # render template
@@ -789,7 +838,8 @@ def claim(request):
 
     budget_total = 0
     for valuationitem in valuation.ValuationItems:
-        budget_total += valuationitem.BudgetGroupTotal
+        if valuationitem.BudgetGroupTotal:
+            budget_total += valuationitem.BudgetGroupTotal
 
     percentage = '{0:.2f}'.format(float(claim.Total/budget_total)*100).strip()
 

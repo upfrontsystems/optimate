@@ -437,7 +437,7 @@ class BudgetGroup(Node):
         return {'Name': prepend + self.Name,
                 'Description': self.Description,
                 'ID': self.ID,
-                'id': self.ID,
+                'id': 'G' + str(self.ID),
                 'ParentID': self.ParentID,
                 'Total': str(self.Total),
                 'TotalBudget': str(self.Total),
@@ -1770,6 +1770,10 @@ class Valuation(Base):
     Project = relationship('Project',
                               backref=backref('Valuations'))
 
+    MarkupList = relationship('ValuationMarkup',
+                                cascade='all',
+                                backref='Valuation')
+
     def dict(self):
         """ Override the dict function
         """
@@ -1813,6 +1817,7 @@ class Valuation(Base):
 class ValuationItem(Base):
     """ A table to hold valuation items. """
     __tablename__ = 'ValuationItem'
+    # ID = Column(Integer, ForeignKey('ValuationDataID.ID'), primary_key=True)
     ID = Column(Integer, primary_key=True)
     ParentID = Column(Integer, ForeignKey('ValuationItem.ID'))
     ValuationID = Column(Integer, ForeignKey('Valuation.ID'))
@@ -1852,15 +1857,11 @@ class ValuationItem(Base):
         bgtotal = Decimal(0.00)
         if self.BudgetGroupTotal is not None:
             bgtotal = self.BudgetGroupTotal
-        print "\n"
-        print self.BudgetGroup.Name
-        print self.BudgetGroupTotal
-        print bgtotal
         return {'ID': self.ID,
                 'id': self.ID,
                 'BudgetGroup': self.BudgetGroupID,
                 'Name': self.BudgetGroup.Name,
-                'PercentageComplete': str(self.PercentageComplete),
+                'PercentageComplete': self.PercentageComplete,
                 'AmountComplete': str(self.Total),
                 'TotalBudget': str(bgtotal),
                 'NodeType': 'ValuationItem'}
@@ -1952,3 +1953,50 @@ class Payment(Base):
         """
         return '<Payment(ID="%s", ProjectID="%s", Amount="%s")>' % (
             self.ID, self.ProjectID, str(self.Amount))
+
+class ValuationMarkup(Base):
+    """ Markup items for a Valuation
+    """
+    __tablename__ = 'ValuationMarkup'
+    ID = Column(Integer, primary_key=True)
+    # ID = Column(Integer, ForeignKey('ValuationDataID.ID'), primary_key=True)
+    Name = Column(Text(50))
+    Percentage = Column(Float, default=0.0)
+    ValuationID = Column(Integer, ForeignKey('Valuation.ID'))
+
+    def copy(self, valuationid):
+        """ Return a copy of this markup but with the ValuationID specified
+        """
+        return ValuationMarkup(Name=self.Name,
+                            Percentage=self.Percentage,
+                            ValuationID=valuationid)
+
+    def dict(self):
+        """ Override the dict function
+        """
+        return {'ID': self.ID,
+                'id': self.ID,
+                'Name': self.Name,
+                'Percentage': str(self.Percentage),
+                'ValuationID': self.ValuationID,
+                'NodeType': 'ValuationMarkup'}
+
+    def __eq__(self, other):
+        """ Test if this markup is equal to another markup by Name and
+            Percentage
+        """
+        return ((self.Name == other.Name) and
+            (self.Percentage == other.Percentage))
+
+    def __repr__(self):
+        """Return a representation of this markup
+        """
+        return '<ValuationMarkup(Name="%s", Percentage="%f", ID="%s", ValuationID="%s")>' % (
+            self.Name, self.Percentage, self.Type, self.ID, self.ValuationID)
+
+class ValuationDataID(Base):
+    """ Acts as a primary key id for the data items linked to valuations
+    """
+    __tablename__ = 'ValuationDataID'
+    ID = Column(Integer, primary_key=True)
+

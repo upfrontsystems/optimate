@@ -55,7 +55,8 @@ from optimate.app.models import (
     ValuationItem,
     Claim,
     Payment,
-    UserRight
+    UserRight,
+    ValuationMarkup
 )
 
 # the categories the resources fall into
@@ -2072,6 +2073,18 @@ def valuationview(request):
                                             BudgetGroupID=bgid,
                                             BudgetGroupTotal=total,
                                             PercentageComplete=p_complete))
+
+        # add the valuation markups
+        markuplist = request.json_body.get('ValuationMarkups', [])
+        for markup in markuplist:
+            p_complete = markup.get('PercentageComplete', None)
+            if p_complete:
+                p_complete = float(p_complete)
+            name = markup['Name']
+            DBSession.add(ValuationMarkup(ValuationID=newid,
+                                        Percentage=p_complete,
+                                        Name = name))
+
         transaction.commit()
         # return the new valuation
         newvaluation = DBSession.query(Valuation).filter_by(ID=newid).first()
@@ -2140,6 +2153,12 @@ def valuationview(request):
                             ValuationItem).filter_by(ID=oldid).first()
             DBSession.delete(deletethis)
 
+        # go through the markups and update the percentages
+        markuplist = request.json_body.get('ValuationMarkups', [])
+        for markup in markuplist:
+            valuationmarkup = DBSession.query(ValuationMarkup
+                                            ).filter_by(ID=markup['ID']).first()
+            valuationmarkup.Percentage = float(markup['PercentageComplete'])
         transaction.commit()
         # return the edited valuation
         valuation = DBSession.query(Valuation).filter_by(ID=vid).first()
@@ -2148,6 +2167,11 @@ def valuationview(request):
     # otherwise return the selected valuation
     valuationid = request.matchdict['id']
     valuation = DBSession.query(Valuation).filter_by(ID=valuationid).first()
+    # get the date in json format
+    jsondate = None
+    if valuation.Date:
+        jsondate = valuation.Date.isoformat()
+        jsondate = jsondate + '.000Z'
     # build a list of the budgetgroups used in the valuation from the valuation
     # items
     itemlist = []
@@ -2156,7 +2180,6 @@ def valuationview(request):
 
     for item in valuation.ValuationItems:
         bg = item.BudgetGroup
-
         # get data and append children valuation items to children list
         if item.ParentID != 0:
             data = bg.valuation('2')
@@ -2191,14 +2214,18 @@ def valuationview(request):
         else:
             itemlist.append(parent)
 
-    # get the date in json format
-    jsondate = None
-    if valuation.Date:
-        jsondate = valuation.Date.isoformat()
-        jsondate = jsondate + '.000Z'
+    # get a list of valuation markups
+    markuplist = []
+    for markup in valuation.MarkupList:
+        data = markup.dict()
+        data['PercentageComplete'] = markup.Percentage
+        data['AmountComplete'] = float(valuation.Total)*(markup.Percentage/100)
+        markuplist.append(data)
+
     return {'ID': valuation.ID,
             'ProjectID': valuation.ProjectID,
             'BudgetGroupList': itemlist,
+            'ValuationMarkups': markuplist,
             'Date': jsondate}
 
 

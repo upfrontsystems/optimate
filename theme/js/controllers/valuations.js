@@ -82,7 +82,7 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
                                     'ID': oresponse[i].ID,
                                     'Name': oresponse[i].Name,
                                     'PercentageComplete': oresponse[i].Percentage,
-                                    'NodeType': 'Markup'}
+                                    'NodeType': 'ValuationMarkup'}
                     overheadsList.push(slickdata);
                 }
                 deferred.resolve(overheadsList);
@@ -97,6 +97,7 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
                 $scope.isDisabled = true;
                 // set the list of budgetgroups
                 $scope.formData['BudgetGroupList'] = $scope.budgetgroupList;
+                $scope.formData['ValuationMarkups'] = $scope.getMarkupRows();
                 if ($scope.modalState == 'Edit') {
                     $http({
                         method: 'PUT',
@@ -180,10 +181,8 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
             }).success(function(response) {
                 $scope.formData = response;
                 $scope.formData['NodeType'] = 'valuation';
-                $scope.loadMarkup().then(function(overheadsList){
-                    $scope.overheadsList = overheadsList;
-                    $scope.budgetgroupList = $scope.formData['BudgetGroupList'];
-                });
+                $scope.overheadsList = $scope.formData['ValuationMarkups'];
+                $scope.budgetgroupList = $scope.formData['BudgetGroupList'];
             });
             // set each field dirty
             angular.forEach($scope.saveValuationModalForm.$error.required, function(field) {

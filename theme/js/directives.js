@@ -1021,7 +1021,9 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                     // append the valuation markup to the end of the budgetgroups
                     var subtotal = 0;
                     for (var i in budgetgrouplist){
-                        subtotal += parseFloat(budgetgrouplist[i].AmountComplete);
+                        if (budgetgrouplist[i].level == '1'){
+                            subtotal += parseFloat(budgetgrouplist[i].AmountComplete);
+                        }
                     }
                     var total = subtotal;
                     for (var i in $scope.overheadsList){
@@ -1106,10 +1108,11 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
 
                 }
                 // if the markup percentage has been updated, update the total
-                else if (item.NodeType == 'Markup'){
+                else if (item.NodeType == 'ValuationMarkup'){
                     var subtotal = dataView.getItemById('subtotalrow').AmountComplete;
                     var oldtotal = item.AmountComplete;
                     item.AmountComplete = subtotal * parseFloat(item.PercentageComplete)/100.0;
+                    dataView.updateItem(item.id, item);
                     var difference = item.AmountComplete - oldtotal;
                     // update the total
                     var totalrow = dataView.getItemById('totalrow');
@@ -1191,6 +1194,19 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                 grid.setSelectedRows([]);
                 grid.render();
             };
+
+            $scope.getMarkupRows = function(){
+                var start = dataView.getIdxById('markuprow');
+                start +=1;
+                var end = dataView.getIdxById('totalrow');
+                var items = [];
+                if (start < end){
+                    for (var i = start; i < end; i++){
+                        items.push(dataView.getItem(i));
+                    }
+                }
+                return items;
+            }
         }
     }
 }]);

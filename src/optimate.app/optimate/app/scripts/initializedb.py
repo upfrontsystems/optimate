@@ -39,7 +39,8 @@ from optimate.app.models import (
     ValuationItem,
     Claim,
     Payment,
-    UserRight
+    UserRight,
+    ValuationMarkup
 )
 
 def usage(argv):
@@ -57,6 +58,8 @@ def main(argv=sys.argv):
     settings = get_appsettings(config_uri, options=options)
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
+
+    # Valuation.__table__.drop(engine)
 
     Base.metadata.create_all(engine)
 
