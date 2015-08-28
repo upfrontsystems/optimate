@@ -736,68 +736,51 @@ def invoices_report_filter(request):
             'suppliers': sorted(supplierlist, key=lambda k: k['Name'].upper()),
             'paymentdates': sorted(paymentdatelist),
             'paymentdates_exist': paymentdatelist != [],
-            'statuses': ['Paid', 'Unpaid']}
+            'statuses': ['Draft', 'Due', 'Paid']}
 
 
 @view_config(route_name="invoices")
 def invoices(request):
     logging.info("Generating Invoices Report")
-    filter_by_project = request.json_body['FilterByProject']
-    filter_by_supplier = request.json_body['FilterBySupplier']
-    filter_by_paymentdate = request.json_body['FilterByPaymentDate']
-    filter_by_status = request.json_body['FilterByStatus']
+    filter_by_project = request.json_body.get('FilterByProject', False)
+    filter_by_supplier = request.json_body.get('FilterBySupplier', False)
+    filter_by_paymentdate = request.json_body.get('FilterByPaymentDate', False)
+    filter_by_status = request.json_body.get('FilterByStatus', False)
     currency = currencies[DBSession.query(CompanyInformation).first().Currency]
 
     qry = DBSession.query(Invoice)
     invoices = []
+    headings= []
     if filter_by_project and 'Project' in request.json_body:
         projectid = request.json_body['Project']
         node = DBSession.query(Project).filter_by(ID=projectid).first()
-        heading = node.Name
-        filter_type = 'project'
-        for invoice in qry:
-            invoice_data = invoice.dict()
-            if invoice_data['Project'] == heading:
-                invoices.append(invoice_data)
+        headings.append('Project: ' + node.Name)
+        qry = qry.filter_by(ProjectID=projectid)
 
-    elif filter_by_supplier and 'Supplier' in request.json_body:
+    if filter_by_supplier and 'Supplier' in request.json_body:
         supplierid = request.json_body['Supplier']
         node = DBSession.query(Supplier).filter_by(ID=supplierid).first()
-        heading = node.Name
-        filter_type = 'supplier'
-        for invoice in qry:
-            invoice_data = invoice.dict()
-            if invoice_data['Supplier'] == heading:
-                invoices.append(invoice_data)
+        headings.append('Supplier: ' + node.Name)
+        qry = qry.filter_by(SupplierID=supplierid)
 
-    elif filter_by_paymentdate and 'PaymentDate' in request.json_body:
-        heading = request.json_body['PaymentDate']
-        filter_type = 'paymentdate'
-        for invoice in qry:
-            invoice_data = invoice.dict()
-            if invoice_data['ReadablePaymentdate'] == heading:
-                invoices.append(invoice_data)
+    if filter_by_paymentdate and 'PaymentDate' in request.json_body:
+        headings.append('Payment Date: '+ request.json_body['PaymentDate'])
+        date = datetime.strptime(request.json_body['PaymentDate'], "%d %B %Y")
+        qry = qry.filter_by(PaymentDate=date)
 
-    elif filter_by_status and 'Status' in request.json_body:
-        heading = request.json_body['Status']
-        filter_type = 'status'
-        for invoice in qry:
-            invoice_data = invoice.dict()
-            if invoice_data['Status'] == heading:
-                invoices.append(invoice_data)
-    else:
-        filter_type = 'none'
-        heading = ''
-        for invoice in qry:
-            invoices.append(invoice.dict())
+    if filter_by_status and 'Status' in request.json_body:
+        headings.append('Status: ' + request.json_body['Status'])
+        qry = qry.filter_by(Status=request.json_body['Status'])
 
-    sorted_invoices = sorted(invoices, key=lambda k: k['id'])
+    for invoice in qry:
+        invoices.append(invoice.dict())
+
+    sorted_invoices = sorted(invoices, key=lambda k: k['ID'])
 
     # inject invoice data into template
     template_data = render('templates/invoicesreport.pt',
                            {'invoices': sorted_invoices,
-                            'filter': filter_type,
-                            'report_heading': heading,
+                            'report_headings': headings,
                             'currency': currency},
                             request=request)
     # render template

@@ -15,9 +15,9 @@
                         <table>
                             <tr>
                                 <td>
-                                    <button class="custom-checkbox" ng-model="filterByProject"
-                                          data-ng-click="filterByProject = !filterByProject; filterBySupplier = false; filterByPaymentDate = false; filterByStatus = false">
-                                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[filterByProject]">
+                                    <button class="custom-checkbox" ng-model="formData.FilterByProject"
+                                          data-ng-click="formData.FilterByProject = !formData.FilterByProject">
+                                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[formData.FilterByProject]">
                                         </i>
                                     </button>
                                 </td>
@@ -25,9 +25,9 @@
                             </tr>
                             <tr>
                                 <td>
-                                    <button class="custom-checkbox" ng-model="filterBySupplier"
-                                          data-ng-click="filterBySupplier = !filterBySupplier; filterByProject = false; filterByPaymentDate = false; filterByStatus = false">
-                                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[filterBySupplier]">
+                                    <button class="custom-checkbox" ng-model="formData.FilterBySupplier"
+                                          data-ng-click="formData.FilterBySupplier = !formData.FilterBySupplier">
+                                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[formData.FilterBySupplier]">
                                         </i>
                                     </button>
                                 </td>
@@ -35,9 +35,9 @@
                             </tr>
                             <tr data-ng-show="paymentDatesExist">
                                 <td>
-                                    <button class="custom-checkbox" ng-model="filterByPaymentDate"
-                                          data-ng-click="filterByPaymentDate = !filterByPaymentDate; filterByProject = false; filterBySupplier = false; filterByStatus = false">
-                                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[filterByPaymentDate]">
+                                    <button class="custom-checkbox" ng-model="formData.FilterByPaymentDate"
+                                          data-ng-click="formData.FilterByPaymentDate = !formData.FilterByPaymentDate">
+                                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[formData.FilterByPaymentDate]">
                                         </i>
                                     </button>
                                 </td>
@@ -45,9 +45,9 @@
                             </tr>
                             <tr>
                                 <td>
-                                    <button class="custom-checkbox" ng-model="filterByStatus"
-                                          data-ng-click="filterByStatus = !filterByStatus; filterByProject = false; filterBySupplier = false; filterByPaymentDate = false">
-                                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[filterByStatus]">
+                                    <button class="custom-checkbox" ng-model="formData.FilterByStatus"
+                                          data-ng-click="formData.FilterByStatus = !formData.FilterByStatus">
+                                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[formData.FilterByStatus]">
                                         </i>
                                     </button>
                                 </td>
@@ -55,7 +55,7 @@
                             </tr>
                         </table>
                     </div>
-                    <div class="form-group" data-ng-show="filterByProject">
+                    <div class="form-group" data-ng-show="formData.FilterByProject">
                         <label for="inputProject" class="col-sm-3">Project:</label>
                         <select chosen
                                 class="col-sm-7"
@@ -66,7 +66,7 @@
                             <option value="">Select a project</option>
                         </select>
                     </div>
-                    <div class="form-group" data-ng-show="filterBySupplier">
+                    <div class="form-group" data-ng-show="formData.FilterBySupplier">
                         <label for="inputSupplier" class="col-sm-3">Supplier:</label>
                         <select chosen
                                 class="col-sm-7"
@@ -77,7 +77,7 @@
                             <option value="">Select a supplier</option>
                         </select>
                     </div>
-                    <div class="form-group" data-ng-show="filterByPaymentDate">
+                    <div class="form-group" data-ng-show="formData.FilterByPaymentDate">
                         <label for="inputPaymentDate" class="col-sm-3">Payment Date:</label>
                         <select chosen
                                 class="col-sm-7"
@@ -88,7 +88,7 @@
                             <option value="">Select a payment date</option>
                         </select>
                     </div>
-                    <div class="form-group" data-ng-show="filterByStatus">
+                    <div class="form-group" data-ng-show="formData.FilterByStatus">
                         <label for="inputStatus" class="col-sm-3">Status:</label>
                         <select chosen
                                 class="col-sm-7"

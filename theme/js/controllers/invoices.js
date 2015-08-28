@@ -323,10 +323,7 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
 
         // fetch the report filter options
         $scope.filterReportBy = function() {
-            $scope.filterByProject = false;
-            $scope.filterBySupplier = false;
-            $scope.filterByPaymentDate = false;
-            $scope.filterByStatus = false;
+            $scope.formData = {};
             var req = {
                 method: 'GET',
                 url: globalServerURL + 'invoices_report_filter'
@@ -361,10 +358,6 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
             if ( report == 'invoices' ) {
                 var target = document.getElementsByClassName('pdf_download');
                 var spinner = new Spinner().spin(target[0]);
-                $scope.formData['FilterByProject'] = $scope.filterByProject;
-                $scope.formData['FilterBySupplier'] = $scope.filterBySupplier;
-                $scope.formData['FilterByPaymentDate'] = $scope.filterByPaymentDate;
-                $scope.formData['FilterByStatus'] = $scope.filterByStatus;
                 $http({
                     method: 'POST',
                     url: globalServerURL + 'invoices_report',

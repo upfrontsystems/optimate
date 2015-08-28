@@ -1714,7 +1714,7 @@ class Invoice(Base):
 
     @hybrid_property
     def SupplierID(self):
-        """ Return the id   of the Supplier this Invoice's Order uses
+        """ Return the id of the Supplier this Invoice's Order uses
         """
         return self.Order.SupplierID
 
