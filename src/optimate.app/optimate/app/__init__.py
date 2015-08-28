@@ -119,6 +119,7 @@ def main(global_config, **settings):
     # claims and payments
     config.add_route('claimsview', '/claims', factory=makeProtectedFunction('claims'))
     config.add_route('claimview', '/claim/{id}/', factory=makeProtectedFunction('claims'))
+    config.add_route('claimstatus', '/claim/{id}/status', factory=makeProtectedFunction('claims'))
     config.add_route('paymentsview', '/payments', factory=makeProtectedFunction('payments'))
     config.add_route('paymentview', '/payment/{id}/', factory=makeProtectedFunction('payments'))
 

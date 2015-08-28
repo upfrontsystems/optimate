@@ -197,6 +197,18 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
             });
         };
 
+        // process a claim
+        $scope.toggleClaimStatus = function(status, index){
+            $http({
+                method: 'POST',
+                url: globalServerURL + 'claim/' + $scope.selectedClaim.ID + '/status',
+                data: {'status':status}
+            }).success(function(){
+                $scope.selectedClaim.Status = status;
+                console.log("Claim " + $scope.selectedClaim.ID + " status to " + status);
+            })
+        }
+
         $scope.getReport = function (report) {
             if ( report == 'claim' ) {
                 var claimid = $scope.selectedClaim.ID;

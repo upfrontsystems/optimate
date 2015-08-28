@@ -1784,6 +1784,28 @@ class Valuation(Base):
                                 cascade='all',
                                 backref='Valuation')
 
+    @hybrid_property
+    def Status(self):
+        """ Return the Status of the associated Claim
+        """
+        if self.Claim:
+            return self.Claim.Status
+        return 'Draft'
+
+    @property
+    def TotalPercentage(self):
+        if self.Project.Total == 0:
+            return 0.0
+        totalp = (self.Total/self.Project.Total)*100
+        return '{:20,.2f}'.format(float(totalp)).strip()
+
+    @property
+    def Total(self):
+        total = 0
+        for valuationitem in self.ValuationItems:
+            total += valuationitem.Total
+        return Decimal(total).quantize(Decimal('.01'))
+
     def dict(self):
         """ Override the dict function
         """
@@ -1801,21 +1823,8 @@ class Valuation(Base):
                 'Date': date,
                 'ReadableDate': readable_date,
                 'PercentageClaimed': self.TotalPercentage,
-                'AmountClaimed': str(self.Total)}
-
-    @property
-    def TotalPercentage(self):
-        if self.Project.Total == 0:
-            return 0.0
-        totalp = (self.Total/self.Project.Total)*100
-        return '{:20,.2f}'.format(float(totalp)).strip()
-
-    @property
-    def Total(self):
-        total = 0
-        for valuationitem in self.ValuationItems:
-            total += valuationitem.Total
-        return Decimal(total).quantize(Decimal('.01'))
+                'AmountClaimed': str(self.Total),
+                'Status': self.Status}
 
     def __repr__(self):
         """Return a representation of this valuation
@@ -1888,12 +1897,14 @@ class Claim(Base):
     ID = Column(Integer, primary_key=True)
     ProjectID = Column(Integer, ForeignKey('Project.ID'))
     Date = Column(DateTime)
+    Status = Column(Text(50), default='Draft')
     ValuationID = Column(Integer, ForeignKey('Valuation.ID'))
 
     Project = relationship('Project',
                             backref=backref('Claims'))
     Valuation = relationship('Valuation',
-                            backref=backref('Valuations'))
+                            uselist=False,
+                            backref=backref('Claim', uselist=False,))
 
     @property
     def Total(self):
@@ -1921,7 +1932,8 @@ class Claim(Base):
                 'Project': self.Project.Name,
                 'ValuationID': self.ValuationID,
                 'Date': date,
-                'Total': total}
+                'Total': total,
+                'Status': self.Status}
 
     def __repr__(self):
         """ Return a representation of this Claim

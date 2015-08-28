@@ -26,6 +26,20 @@
                         <i class="fa fa-trash"></i>
                 </a>
             </li>
+            <li data-ng-show="user.permissions.orders == 'edit'">
+                <a title="Submit for payment"
+                    data-ng-show="selectedClaim.Status == 'Draft'"
+                    data-ng-click="toggleClaimStatus('Claimed', 0)">
+                        <i class="fa fa-arrow-right"></i>
+                </a>
+            </li>
+            <li data-ng-show="user.permissions.orders == 'edit'">
+                <a title="Retract"
+                    data-ng-show="selectedClaim.Status == 'Claimed'"
+                    data-ng-click="toggleClaimStatus('Draft', 0)">
+                        <i class="fa fa-arrow-left"></i>
+                </a>
+            </li>
             <li ng-show="selectedClaim">
                 <a title="Claim Report"
                 data-ng-click="getReport('claim')"
@@ -103,6 +117,7 @@
                     <th>Claim Date</th>
                     <th>Project</th>
                     <th class="currency">Claim Total</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -112,6 +127,7 @@
                     <td>{{obj.Date}}</td>
                     <td>{{obj.Project}}</td>
                     <td class="currency" ng-bind-html="obj.Total | currency:currency"></td>
+                    <td>{{obj.Status}}</td>
                 </tr>
             </tbody>
         </table>

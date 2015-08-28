@@ -80,6 +80,7 @@
                     <th>Valuation Date</th>
                     <th class="currency">% Claimed</th>
                     <th class="currency">Amount Claimed</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -92,6 +93,7 @@
                     <td>{{obj.ReadableDate}}</td>
                     <td class="currency">{{obj.PercentageClaimed}}</td>
                     <td class="currency" ng-bind-html="obj.AmountClaimed | currency:currency"></td>
+                    <td>{{obj.Status}}</td>
                 </tr>
             </tbody>
         </table>

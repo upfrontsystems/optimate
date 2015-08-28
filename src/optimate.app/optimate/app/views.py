@@ -2541,6 +2541,18 @@ def claimsview(request):
     return claimslist
 
 
+@view_config(route_name='claimstatus', renderer='json', permission='edit')
+def orderstatus(request):
+    """ Perform operations on the status of a claim
+    """
+    if request.method == 'POST':
+        claim = DBSession.query(Claim).filter_by(
+                                            ID=request.matchdict['id']).first()
+        claim.Status = request.json_body['status']
+        transaction.commit()
+        return HTTPOk()
+
+
 @view_config(route_name='claimview', renderer='json', permission='view')
 def claimview(request):
     """ The claimview handles different cases for individual claims
