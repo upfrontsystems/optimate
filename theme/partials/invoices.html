@@ -135,8 +135,9 @@
                         data-ng-model="filters.Status"
                         data-ng-change="loadInvoiceSection(); filterBy('status')">
                     <option value="">Status</option>
+                    <option value="Draft">Draft</option>
+                    <option value="Due">Due</option>
                     <option value="Paid">Paid</option>
-                    <option value="Unpaid">Unpaid</option>
                 </select>
                 <a href=""
                         data-ng-click="clearFilters(); loadInvoiceSection()">

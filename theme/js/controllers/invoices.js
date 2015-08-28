@@ -116,7 +116,7 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
 
         // search for the orders that match the search term
         $scope.refreshOrders = function(searchterm) {
-            if ($scope.modalState) {
+            if (searchterm.length > 0) {
                 var req = {
                     method: 'GET',
                     url: globalServerURL + 'orders',
@@ -213,6 +213,7 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
                 $('#invoice-'+$scope.selectedInvoice.id).removeClass('active');
                 $scope.selectedInvoice = undefined;
             }
+            $scope.ordersList = [];
             $scope.saveInvoiceModalForm.$setPristine();
         }
 
@@ -226,14 +227,17 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
                 url: globalServerURL + 'invoice/' + $scope.selectedInvoice.id + '/'
             }).success(function(response) {
                 $scope.formData = response;
-                $scope.formData.selected = {'ID': response.OrderID};
-                $scope.idate = new Date($scope.formData['Invoicedate']);
-                $scope.pdate = new Date($scope.formData['Paymentdate']);
-                $scope.formData['NodeType'] = 'invoice';
+                $scope.formData.selected = {'ID': response.OrderID,
+                                            'Total': response.Ordertotal};
                 $scope.calculatedAmounts = [{'name': 'Subtotal', 'amount': response.Amount},
                                         {'name': 'VAT', 'amount': response.VAT},
                                         {'name': 'Total', 'amount': response.Total},
                                         {'name': 'Order total', 'amount': response.Ordertotal}];
+                $scope.refreshOrders(response.OrderID.toString());
+                $scope.orderSelected($scope.formData.selected);
+                $scope.idate = new Date($scope.formData['Invoicedate']);
+                $scope.pdate = new Date($scope.formData['Paymentdate']);
+                $scope.formData['NodeType'] = 'invoice';
             });
             // set each field dirty
             angular.forEach($scope.saveInvoiceModalForm.$error.required, function(field) {
