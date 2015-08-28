@@ -2325,7 +2325,7 @@ def invoicesview(request):
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
     if 'InvoiceNumber' in paramkeys:
-        qry = qry.filter(Invoice.ID.like(paramsdict['InvoiceNumber'][0]+'%'))
+        qry = qry.filter(Invoice.InvoiceNumber.like(paramsdict['InvoiceNumber'][0]+'%'))
     if 'OrderNumber' in paramkeys:
         qry = qry.filter(Invoice.OrderID.like(paramsdict['OrderNumber'][0]+'%'))
     if 'Project' in paramkeys:
@@ -2339,7 +2339,7 @@ def invoicesview(request):
         date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
         qry = qry.filter_by(PaymentDate=date)
     if 'Status' in paramkeys:
-        qry = qry.filter_by(Status=paramsdict['Status'][0])
+        qry = qry.filter(Invoice.Status.like(paramsdict['Status'][0]+'%'))
 
     for invoice in qry:
         invoicelist.append(invoice.dict())
@@ -2355,7 +2355,7 @@ def invoices_filter(request):
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
     if 'InvoiceNumber' in paramkeys:
-        qry = qry.filter(Invoice.ID.like(paramsdict['InvoiceNumber'][0]+'%'))
+        qry = qry.filter(Invoice.InvoiceNumber.like(paramsdict['InvoiceNumber'][0]+'%'))
     if 'OrderNumber' in paramkeys:
         qry = qry.filter(Invoice.OrderID.like(paramsdict['OrderNumber'][0]+'%'))
     if 'Project' in paramkeys:
@@ -2369,7 +2369,7 @@ def invoices_filter(request):
         date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
         qry = qry.filter_by(PaymentDate=date)
     if 'Status' in paramkeys:
-        qry = qry.filter_by(Status=paramsdict['Status'][0])
+        qry = qry.filter(Invoice.Status.like(paramsdict['Status'][0]+'%'))
 
     # get the unique values the other filters are to be updated with
     clients = qry.distinct(Invoice.ClientID).group_by(Invoice.ClientID)
@@ -2448,6 +2448,7 @@ def invoiceview(request):
                     orderitem.BudgetItem.Invoiced = 0
 
         newinvoice = Invoice(OrderID=orderid,
+                            InvoiceNumber=request.json_body['InvoiceNumber'],
                             InvoiceDate=indate,
                             PaymentDate=paydate,
                             Amount=amount,
@@ -2483,6 +2484,7 @@ def invoiceview(request):
         if vat:
             vat = Decimal(vat).quantize(Decimal('.01'))
             invoice.VAT = vat
+        invoice.InvoiceNumber = request.json_body['InvoiceNumber'],
         newtotal = invoice.Total
         # if the totals are different update the invoiced amounts
         if oldtotal != newtotal:

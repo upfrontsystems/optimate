@@ -59,7 +59,7 @@ def main(argv=sys.argv):
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
 
-    # Valuation.__table__.drop(engine)
+    # Invoice.__table__.drop(engine)
 
     Base.metadata.create_all(engine)
 

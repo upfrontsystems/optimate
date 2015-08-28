@@ -64,7 +64,7 @@
                 <th class="bold" style="width: 80px; text-align:right">Status</th>
             </tr>
             <tr style="padding-top: 2px;" tal:repeat="invoice invoices">
-                <td style="width: 60px; text-align:right">${invoice['ID']|nothing}</td>
+                <td style="width: 60px; text-align:right">${invoice['InvoiceNumber']|nothing}</td>
                 <td style="width: 3px;"></td>
                 <td style="width: 70px; text-align:right">${invoice['OrderID']|nothing}</td>
                 <td style="width: 30px;"></td>

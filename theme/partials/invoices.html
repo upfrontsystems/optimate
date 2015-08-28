@@ -73,16 +73,16 @@
                 <a class="pdf_hidden_download"></a>
             </li>
             <li class="invoice-filters-flexbox active">
+                <input type="text"
+                       data-ng-model="filters.InvoiceNumber"
+                       data-ng-model-options="{ debounce: 500 }"
+                       placeholder="Invoice number"
+                       data-ng-change="loadInvoiceSection(); filterBy('invoicenumber')">
                 <input type="number"
                        data-ng-model="filters.OrderNumber"
                        data-ng-model-options="{ debounce: 500 }"
                        placeholder="Order number"
                        data-ng-change="loadInvoiceSection(); filterBy('ordernumber')">
-                <input type="number"
-                       data-ng-model="filters.InvoiceNumber"
-                       data-ng-model-options="{ debounce: 500 }"
-                       placeholder="Invoice number"
-                       data-ng-change="loadInvoiceSection(); filterBy('invoicenumber')">
                 <div class="filter-datepicker">
                     <a class="dropdown-toggle"
                         id="filterPaymentDropdown"
@@ -201,7 +201,7 @@
                     selection-model-cleanup-strategy="deselect"
                     selection-model-selected-items="selectedInvoices"
                     ng-click="showActionsFor(obj)" id="invoice-{{obj.ID}}">
-                    <td>{{obj.ID}}</td>
+                    <td>{{obj.InvoiceNumber}}</td>
                     <td>{{obj.OrderID}}</td>
                     <td>{{obj.Project}}</td>
                     <td>{{obj.Supplier}}</td>

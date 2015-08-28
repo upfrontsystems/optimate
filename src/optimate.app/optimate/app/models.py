@@ -1678,6 +1678,7 @@ class Invoice(Base):
     """
     __tablename__ = 'Invoice'
     ID = Column(Integer, primary_key=True)
+    InvoiceNumber = Column(Text(100), index=True)
     OrderID = Column(Integer, ForeignKey('Order.ID'))
     InvoiceDate = Column(DateTime)
     PaymentDate = Column(DateTime)
@@ -1748,6 +1749,7 @@ class Invoice(Base):
             readable_pay_date = self.PaymentDate.strftime("%d %B %Y")
         return {'ID':self.ID,
                 'id':self.ID,
+                'InvoiceNumber': self.InvoiceNumber,
                 'OrderID': self.OrderID,
                 'Project': self.Order.Project.Name,
                 'Supplier': self.Order.Supplier.Name,

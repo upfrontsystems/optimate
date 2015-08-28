@@ -27,7 +27,7 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
 
         // loading the project, client and supplier list
         $scope.clearFilters = function() {
-            $scope.filters = [];
+            $scope.filters = {};
             $http.get(globalServerURL + 'projects/')
             .success(function(data) {
                 $scope.projectsList = data;
@@ -61,13 +61,7 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
             var req = {
                 method: 'GET',
                 url: globalServerURL + 'invoices',
-                params: {'Project': $scope.filters.Project,
-                        'Client': $scope.filters.Client,
-                        'Supplier': $scope.filters.Supplier,
-                        'OrderNumber': $scope.filters.OrderNumber,
-                        'InvoiceNumber': $scope.filters.InvoiceNumber,
-                        'PaymentDate': $scope.filters.PaymentDate,
-                        'Status': $scope.filters.Status}
+                params: $scope.filters
             };
             $http(req).success(function(response) {
                 $scope.jsoninvoices = response;

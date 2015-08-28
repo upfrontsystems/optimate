@@ -8,6 +8,15 @@
             <div class="modal-body">
                 <form class="form-horizontal" name="saveInvoiceModalForm" novalidate>
                     <div class="form-group">
+                        <label for="inputInvoiceNumber" class="col-sm-2 control-label">Invoice Number:</label>
+                        <input type="text"
+                               class="col-sm-7"
+                               id="inputInvoiceNumber"
+                               name="inputInvoiceNumber"
+                               data-ng-model="formData.InvoiceNumber"
+                               required>
+                    </div>
+                    <div class="form-group">
                         <label for="inputOrderNumber" class="col-sm-2 control-label">Order Number:</label>
                         <ui-select data-ng-model="formData.selected"
                                     id="inputOrderNumber"
