@@ -2080,10 +2080,11 @@ def valuationview(request):
             p_complete = markup.get('PercentageComplete', None)
             if p_complete:
                 p_complete = float(p_complete)
-            name = markup['Name']
+            overheadid = markup['ID']
+            budgettotal = markup['TotalBudget']
             DBSession.add(ValuationMarkup(ValuationID=newid,
-                                        Percentage=p_complete,
-                                        Name = name))
+                                        OverheadID=overheadid,
+                                        PercentageComplete=p_complete))
 
         transaction.commit()
         # return the new valuation
@@ -2158,7 +2159,7 @@ def valuationview(request):
         for markup in markuplist:
             valuationmarkup = DBSession.query(ValuationMarkup
                                             ).filter_by(ID=markup['ID']).first()
-            valuationmarkup.Percentage = float(markup['PercentageComplete'])
+            valuationmarkup.PercentageComplete = float(markup['PercentageComplete'])
         transaction.commit()
         # return the edited valuation
         valuation = DBSession.query(Valuation).filter_by(ID=vid).first()
@@ -2218,10 +2219,8 @@ def valuationview(request):
     markuplist = []
     for markup in valuation.MarkupList:
         data = markup.dict()
-        data['PercentageComplete'] = markup.Percentage
-        data['AmountComplete'] = float(valuation.Total)*(markup.Percentage/100)
+        data['AmountComplete'] = float(data['TotalBudget'])*(markup.PercentageComplete/100)
         markuplist.append(data)
-
     return {'ID': valuation.ID,
             'ProjectID': valuation.ProjectID,
             'BudgetGroupList': itemlist,

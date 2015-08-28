@@ -78,12 +78,10 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
                 // convert the overhead data to fit in the slickgrid
                 overheadsList = [];
                 for (var i in oresponse){
-                    var slickdata = {'id': oresponse[i].ID,
-                                    'ID': oresponse[i].ID,
-                                    'Name': oresponse[i].Name,
-                                    'PercentageComplete': oresponse[i].Percentage,
-                                    'NodeType': 'ValuationMarkup'}
-                    overheadsList.push(slickdata);
+                    oresponse[i].PercentageComplete = 0;
+                    oresponse[i].NodeType = 'ValuationMarkup';
+                    oresponse[i].TotalBudget = oresponse[i].Amount;
+                    overheadsList.push(oresponse[i]);
                 }
                 deferred.resolve(overheadsList);
             });

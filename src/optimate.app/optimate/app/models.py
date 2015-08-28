@@ -869,6 +869,12 @@ class Overhead(Base):
     ProjectID = Column(Integer, ForeignKey('Project.ID'))
     Type = Column(Text(50))
 
+    @property
+    def Amount(self):
+        """ Return the overhead percentage of the project total
+        """
+        return float(self.Project.Total) * self.Percentage/100
+
     def copy(self, projectid):
         """ Return a copy of this Overhead but with the ProjectID specified
         """
@@ -881,8 +887,10 @@ class Overhead(Base):
         """ Override the dict function
         """
         return {'ID': self.ID,
+                'id': self.ID,
                 'Name': self.Name,
                 'Percentage': str(self.Percentage),
+                'Amount': self.Amount,
                 'Type': self.Type}
 
     def __eq__(self, other):
@@ -1958,15 +1966,18 @@ class ValuationMarkup(Base):
     """
     __tablename__ = 'ValuationMarkup'
     ID = Column(Integer, primary_key=True)
-    Name = Column(Text(50))
-    Percentage = Column(Float, default=0.0)
+    OverheadID = Column(Integer,ForeignKey('Overhead.ID'))
+    PercentageComplete = Column(Float, default=0.0)
     ValuationID = Column(Integer, ForeignKey('Valuation.ID'))
+
+    Overhead = relationship('Overhead', backref='ValuationMarkups')
 
     def copy(self, valuationid):
         """ Return a copy of this markup but with the ValuationID specified
         """
-        return ValuationMarkup(Name=self.Name,
-                            Percentage=self.Percentage,
+        return ValuationMarkup(PercentageComplete = self.PercentageComplete,
+                            OverheadID=self.OverheadID,
+                            BudgetGroupTotal=self.BudgetGroupTotal,
                             ValuationID=valuationid)
 
     def dict(self):
@@ -1974,14 +1985,16 @@ class ValuationMarkup(Base):
         """
         return {'ID': self.ID,
                 'id': self.ID,
-                'Name': self.Name,
-                'Percentage': str(self.Percentage),
+                'Name': self.Overhead.Name,
+                'Percentage': self.Overhead.Percentage,
+                'TotalBudget': self.Overhead.Amount,
+                'PercentageComplete': self.PercentageComplete,
                 'ValuationID': self.ValuationID,
                 'NodeType': 'ValuationMarkup'}
 
     def __eq__(self, other):
         """ Test if this markup is equal to another markup by Name and
-            Percentage
+            Overhead
         """
         return ((self.Name == other.Name) and
             (self.Percentage == other.Percentage))

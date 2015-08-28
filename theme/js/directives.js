@@ -1027,12 +1027,12 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                     }
                     var total = subtotal;
                     for (var i in $scope.overheadsList){
-                        $scope.overheadsList[i].AmountComplete = subtotal * parseFloat($scope.overheadsList[i].PercentageComplete)/100.0;
+                        $scope.overheadsList[i].AmountComplete = $scope.overheadsList[i].TotalBudget
+                                                                * parseFloat($scope.overheadsList[i].PercentageComplete)/100.0;
                         total += $scope.overheadsList[i].AmountComplete;
                     }
                     var detail = [{'id': 'subtotalrow', 'Name': 'Subtotal',
-                                    'AmountComplete': subtotal, 'NodeType': 'Subtotal'},
-                                    {'id': 'markuprow', 'Name': 'Markup'}];
+                                    'AmountComplete': subtotal, 'NodeType': 'Subtotal'}];
                     var totalrow = [{'id': 'totalrow', 'Name': 'Total',
                                     'AmountComplete': total,'NodeType': 'Total'}]
 
@@ -1091,12 +1091,12 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
 
                     // update the markup amounts and total
                     var total = subtotalrow.AmountComplete;
-                    var index = dataView.getIdxById('markuprow');
+                    var index = dataView.getIdxById('subtotalrow');
                     index+=1;
                     var length = dataView.getLength() - 1;
                     while (index < length){
                         var markup = dataView.getItem(index);
-                        markup.AmountComplete = subtotalrow.AmountComplete * parseFloat(markup.PercentageComplete)/100.0;
+                        markup.AmountComplete = markup.TotalBudget * parseFloat(markup.PercentageComplete)/100.0;
                         total += markup.AmountComplete;
                         dataView.updateItem(markup.id, markup);
                         index+=1;
@@ -1107,18 +1107,17 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                     dataView.updateItem('totalrow', totalrow);
 
                 }
-                // if the markup percentage has been updated, update the total
+                // if the markup has been updated, update the total
                 else if (item.NodeType == 'ValuationMarkup'){
-                    var subtotal = dataView.getItemById('subtotalrow').AmountComplete;
+                    var totalbudget = item.TotalBudget;
                     var oldtotal = item.AmountComplete;
-                    item.AmountComplete = subtotal * parseFloat(item.PercentageComplete)/100.0;
+                    item.AmountComplete = totalbudget * parseFloat(item.PercentageComplete)/100.0;
                     dataView.updateItem(item.id, item);
                     var difference = item.AmountComplete - oldtotal;
                     // update the total
                     var totalrow = dataView.getItemById('totalrow');
                     totalrow.AmountComplete += difference;
                     dataView.updateItem('totalrow', totalrow);
-
                 }
             });
 
@@ -1196,7 +1195,7 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
             };
 
             $scope.getMarkupRows = function(){
-                var start = dataView.getIdxById('markuprow');
+                var start = dataView.getIdxById('subtotalrow');
                 start +=1;
                 var end = dataView.getIdxById('totalrow');
                 var items = [];

@@ -656,7 +656,7 @@ def valuation(request):
     # get the valuation markup
     for markup in valuation.MarkupList:
         data = markup.dict()
-        data["Amount"] = float(valuation.Total)*(markup.Percentage/100)
+        data["Amount"] = float(data['TotalBudget'])*(markup.PercentageComplete/100)
         grandtotal += data["Amount"]
         markup_list.append(data)
 

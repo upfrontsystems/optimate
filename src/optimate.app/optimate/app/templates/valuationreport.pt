@@ -72,16 +72,10 @@
             <td style="width: 80px; text-align:right"></td>
             <td style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(valuation.Total).strip()|nothing}</td>
         </tr>
-        <tr style="padding-top: 6px;">
-            <td class="bold" style="width: 300px;">Markup</td>
-            <td style="width: 200px; text-align:right"></td>
-            <td style="width: 80px; text-align:right"></td>
-            <td style="width: 200px; text-align:right"></td>
-        </tr>
-        <tr tal:repeat="markup markup_list">
+        <tr style="padding-top: 6px;" tal:repeat="markup markup_list">
             <td style="width: 300px" tal:content="markup['Name']|nothing"></td>
-            <td style="width: 200px; text-align:right"></td>
-            <td style="width: 80px; text-align:right" tal:content="markup['Percentage']|nothing"></td>
+            <td style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(float(markup['TotalBudget'])).strip()|nothing}</td>
+            <td style="width: 80px; text-align:right" tal:content="markup['PercentageComplete']|nothing"></td>
             <td style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(float(markup['Amount'])).strip()|nothing}</td>
         </tr>
         <tr style="border-bottom: 1px solid #000;">
