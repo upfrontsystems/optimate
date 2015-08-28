@@ -293,6 +293,7 @@ if __name__ == '__main__':
         clientcostindex = 17
         projprofitindex = 18
         actprofitindex = 19
+        projectids = []
 
         # # build the projects
         # # =====================================================================
@@ -349,6 +350,10 @@ if __name__ == '__main__':
                 cityid = DBSession.query(City).filter_by(Name=city).first().ID
 
             # build the project and add it to the database
+            if code in projectids:
+                continue
+            else:
+                projectids.append(code)
             project = Project(ID=code, Name=name,
                               Description=description,
                               ParentID=0,
@@ -394,6 +399,7 @@ if __name__ == '__main__':
         projprofitindex = 10
         actprofitindex = 11
         changedbgcodes = {}
+        budgetgroupids = []
 
         # correct negative codes and circular dependancies
         next(book)
@@ -474,6 +480,11 @@ if __name__ == '__main__':
                         parentcode = changedbgcodes[parentcode]
 
             # build the budgetgroup and add it
+            if code in budgetgroupids:
+                continue
+            else:
+                budgetgroupids.append(code)
+
             bg = BudgetGroup(ID=code,
                             Name=name,
                             Description=description,
@@ -546,6 +557,7 @@ if __name__ == '__main__':
         counter = 1
         x = 0
         next(book)
+        budgetitemids = []
         for row in book:
             x +=1
             if x == int(percentile * counter):
@@ -555,6 +567,12 @@ if __name__ == '__main__':
                 sleep(1)
             biparent = False
             code = int(row[codeindex])
+
+            if code in budgetitemids:
+                continue
+            else:
+                budgetitemids.append(code)
+
             name = row[nameindex]
             name=name.decode("utf-8")
             name=name.encode("ascii","ignore")
@@ -856,12 +874,14 @@ if __name__ == '__main__':
 
         changedcocodes = {}
         changedcoparentcodes = {}
+        componentids = []
 
         # correct negative codes and circular dependancies
         # negative codes refer to a parent that is a budgetitem
         next(book)
         for row in book:
             code = int(row[codeindex])
+
             try:
                 pid = int(row[parentindex])
             except ValueError, e:
@@ -898,6 +918,12 @@ if __name__ == '__main__':
                 stdout.flush()
                 sleep(1)
             code = int(row[codeindex])
+            
+            if code in componentids:
+                continue
+            else:
+                componentids.append(code)
+
             measureunit = row[unitindex]
             measureunit=measureunit.decode("utf-8")
             measureunit=measureunit.encode("ascii","ignore")
