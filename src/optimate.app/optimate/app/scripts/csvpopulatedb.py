@@ -48,6 +48,7 @@ from sqlalchemy.sql import exists
 from pyramid.scripts.common import parse_vars
 from sqlalchemy import engine_from_config
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import aliased
 import xlrd
 import os
 from sys import stdout
@@ -918,7 +919,7 @@ if __name__ == '__main__':
                 stdout.flush()
                 sleep(1)
             code = int(row[codeindex])
-            
+
             if code in componentids:
                 continue
             else:
@@ -1158,7 +1159,7 @@ if __name__ == '__main__':
             DBSession.query(Node).filter_by(ID=ids).delete()
         transaction.commit()
 
-        print "\nReorganising the Resources"
+        print "Reorganising the Resources"
         # define the categories
         resourcecatlist = {"A-B": ("A-B"),
                             "C-D": ("C-D"),
@@ -1411,22 +1412,33 @@ if __name__ == '__main__':
                     # make sure the component/budgetitem exists
                     comp = DBSession.query(BudgetItem).filter_by(ID=compid).first()
                     if comp:
-                        comp.Ordered = Decimal(quantity * float(rate)
+                        comp.Ordered += Decimal(quantity * float(rate)
                             ).quantize(Decimal('.01'))
                         # set the order tax rate to the order item tax rate
-                        tax = None
+                        tax = 0.0
                         try:
                             tax = ordertaxrate[str(orderid)]
                         except:
                             pass
-                        if not tax:
-                            tax = 0.0
-                        orderitem = OrderItem(OrderID=orderid,
-                                        BudgetItemID=compid,
-                                        _Quantity=quantity,
-                                        _Rate=rate,
-                                        VAT=tax)
-                        DBSession.add(orderitem)
+
+                        # check if an order item already exists on this budgetitem
+                        existingorderitem = None
+                        for orderitem in comp.OrderItems:
+                            if orderitem.OrderID == orderid:
+                                existingorderitem = orderitem
+                                break
+
+                        # if the order item exists add the quantities
+                        if existingorderitem:
+                            existingorderitem._Quantity += quantity
+                        else:
+                            orderitem = OrderItem(OrderID=orderid,
+                                            BudgetItemID=compid,
+                                            _Quantity=quantity,
+                                            _Rate=rate,
+                                            VAT=tax)
+                            DBSession.add(orderitem)
+                            DBSession.flush()
 
         transaction.commit()
 
@@ -1435,6 +1447,24 @@ if __name__ == '__main__':
         for order in orders:
             if not order.Project:
                 DBSession.delete(order)
+
+        print "Deleting duplicate orderitems"
+        item_2 = aliased(OrderItem)
+        dups = DBSession.query(OrderItem
+            ).join(item_2, OrderItem.OrderID == item_2.OrderID).filter(OrderItem.BudgetItemID == item_2.BudgetItemID)
+        deleteids = []
+        for dup in dups:
+            if dup.ID not in deleteids:
+                duplicates = dups.filter_by(OrderID=dup.OrderID, BudgetItemID=dup.BudgetItemID).all()
+                for dupbi in duplicates:
+                    if dupbi.ID != dup.ID:
+                        if dup._Quantity is None:
+                            dup._Quantity = 0
+                        if dupbi._Quantity is None:
+                            dupbi._Quantity = 0
+                        dup._Quantity += dupbi._Quantity
+                        deleteids.append(dupbi.ID)
+                        DBSession.delete(dupbi)
 
         print 'Recalculating Project totals'
         projectlist = DBSession.query(Project).all()
@@ -1454,7 +1484,7 @@ if __name__ == '__main__':
         transaction.commit()
 
 
-        print "Recalculating Order totals"
+        print "\nRecalculating Order totals"
         orders = DBSession.query(Order).all()
         percentile = len(orders) / 100.0
         print 'Percentage done: '

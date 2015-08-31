@@ -224,6 +224,7 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
             }).success(function(response) {
                 $scope.formData = response;
                 $scope.loadProject();
+                console.log(response.BudgetItemsList);
                 $scope.budgetItemsList = $scope.formData.BudgetItemsList;
                 $scope.date = new Date($scope.formData['Date']);
                 $scope.formData.NodeType = 'order';

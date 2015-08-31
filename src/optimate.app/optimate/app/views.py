@@ -13,7 +13,7 @@ from decimal import Decimal
 from sqlalchemy.sql import collate
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import func
-# from Products.FinanceFields.Currency import CURRENCIES
+from sqlalchemy.orm import aliased
 
 from pyramid.httpexceptions import (
     HTTPOk,
@@ -1708,6 +1708,7 @@ def ordersview(request):
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
     qry = DBSession.query(Order).order_by(Order.ID.desc())
+
     # filter the orders
     setLength = False
     if 'Project' in paramkeys:
@@ -1953,11 +1954,11 @@ def orderview(request):
             budgetitemslist.append(orderitem.dict())
         else:
             DBSession.delete(orderitem)
-
     budgetitemslist = sorted(budgetitemslist, key=lambda k: k['Name'].upper())
 
     data = order.dict()
     data['BudgetItemsList'] = budgetitemslist
+    transaction.commit()
 
     return data
 
