@@ -221,6 +221,14 @@ li.claim-filters-flexbox {
     width: 40vw;
 }
 
+li.valuation-filters-flexbox {
+    display: inline-flex;
+    justify-content: flex-end;
+    align-items: center;
+    float: right;
+    width: 40vw;
+}
+
 li.payment-filters-flexbox {
     display: inline-flex;
     justify-content: flex-end;

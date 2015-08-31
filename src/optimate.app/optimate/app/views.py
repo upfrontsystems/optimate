@@ -1984,9 +1984,15 @@ def valuationsview(request):
     paramkeys = paramsdict.keys()
     qry = DBSession.query(Valuation).order_by(Valuation.ID.desc())
 
-    # filter the valuations
+    # filter by filters
     if 'Project' in paramkeys:
         qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
+    if 'Date' in paramkeys:
+        date = ''.join(paramsdict['Date'])
+        date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
+        qry = qry.filter_by(Date=date)
+    if 'Status' in paramkeys:
+        qry = qry.filter_by(Status=paramsdict['Status'][0])
 
     # cut the section
     if 'start' not in paramkeys:
@@ -2000,6 +2006,27 @@ def valuationsview(request):
     for valuation in section:
         valuationlist.append(valuation.dict())
     return valuationlist
+
+
+@view_config(route_name='valuations_filter', renderer='json', permission='view')
+def valuations_filter(request):
+    """ Returns a list of the Projects used by a valuation when filtered
+    """
+    qry = DBSession.query(Valuation)
+    paramsdict = request.params.dict_of_lists()
+    paramkeys = paramsdict.keys()
+    # filter by the selected filters
+    if 'Project' in paramkeys:
+        qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
+    if 'Status' in paramkeys:
+        qry = qry.filter_by(Status=paramsdict['Status'][0])
+    # get the unique values the other filters are to be updated with
+    projects = qry.distinct(Valuation.ProjectID).group_by(Valuation.ProjectID)
+    projectlist = []
+    for project in projects:
+        if project.Project:
+            projectlist.append({'Name': project.Project.Name, 'ID': project.ProjectID})
+    return {'projects': sorted(projectlist, key=lambda k: k['Name'].upper())}
 
 
 @view_config(route_name='valuations_length', renderer='json', permission='view')
@@ -2529,21 +2556,43 @@ def claimsview(request):
     qry = DBSession.query(Claim).order_by(Claim.ID.desc())
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
-
     if 'Project' in paramkeys:
         qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
     if 'Date' in paramkeys:
         date = ''.join(paramsdict['Date'])
         date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
         qry = qry.filter_by(Date=date)
+    if 'Status' in paramkeys:
+        qry =qry.filter_by(Status=paramsdict['Status'][0])
 
     for claim in qry:
         claimslist.append(claim.dict())
     return claimslist
 
 
+@view_config(route_name='claims_filter', renderer='json', permission='view')
+def claims_filter(request):
+    """ Returns a list of the Projects used by a claim when filtered
+    """
+    qry = DBSession.query(Claim)
+    paramsdict = request.params.dict_of_lists()
+    paramkeys = paramsdict.keys()
+    # filter by the selected filters
+    if 'Project' in paramkeys:
+        qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
+    if 'Status' in paramkeys:
+        qry = qry.filter_by(Status=paramsdict['Status'][0])
+    # get the unique values the other filters are to be updated with
+    projects = qry.distinct(Claim.ProjectID).group_by(Claim.ProjectID)
+    projectlist = []
+    for project in projects:
+        if project.Project:
+            projectlist.append({'Name': project.Project.Name, 'ID': project.ProjectID})
+    return {'projects': sorted(projectlist, key=lambda k: k['Name'].upper())}
+
+
 @view_config(route_name='claimstatus', renderer='json', permission='edit')
-def orderstatus(request):
+def claimstatus(request):
     """ Perform operations on the status of a claim
     """
     if request.method == 'POST':

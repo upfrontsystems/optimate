@@ -79,6 +79,14 @@
                                                             minView:'day'}"/>
                     </ul>
                 </div>
+                <select chosen
+                        class="filter-bar"
+                        id="statusFilter"
+                        data-ng-model="filters.Status"
+                        data-ng-options="status as status for status in statusList"
+                        data-ng-change="loadClaimSection(); filterBy('status')">
+                    <option value="">Status</option>
+                </select>
                 <a href=""
                         data-ng-click="clearFilters(); loadClaimSection()">
                     Clear

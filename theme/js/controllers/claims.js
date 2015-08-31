@@ -7,7 +7,8 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
         $scope.isDisabled = false;
         $scope.jsonclaims = [];
         $scope.claimList = [];
-        $scope.valuationsList = []
+        $scope.valuationsList = [];
+        $scope.statusList = ['Draft', 'Claimed'];
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
@@ -26,9 +27,9 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
             $scope.date = date;
         };
 
-        // loading the project list
+        // clear the filters and load the project list
         $scope.clearFilters = function() {
-            $scope.filters = [];
+            $scope.filters = {};
             $http.get(globalServerURL + 'projects/')
             .success(function(data) {
                 $scope.projectsList = data;
@@ -50,8 +51,7 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
             var req = {
                 method: 'GET',
                 url: globalServerURL + 'claims',
-                params: {'Project': $scope.filters.Project,
-                        'Date': $scope.filters.Date}
+                params: $scope.filters
             };
             $http(req).success(function(response) {
                 $scope.jsonclaims = response;
@@ -60,6 +60,25 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
             });
         }
         $scope.loadClaimSection();
+
+        // filter the other filter options by selection
+        $scope.filterBy = function(selection) {
+            var req = {
+                method: 'GET',
+                url: globalServerURL + 'claims/filter',
+                params: $scope.filters
+            };
+            $http(req).success(function(response) {
+                if (selection == 'project') {
+                    if ($scope.filters.Project == null) {
+                        $scope.projectsList = response['projects'];
+                    }
+                }
+                else {
+                    $scope.projectsList = response['projects'];
+                }
+            })
+        };
 
         // load the list of valuations based on a project
         $scope.loadProjectValuations = function(projectid) {

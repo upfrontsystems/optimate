@@ -24,6 +24,7 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
         $scope.jsonvaluations = [];
         $scope.budgetgroupList = [];
         $scope.modalForm = [];
+        $scope.statusList = ['Draft', 'Claimed'];
         // Pagination variables and functions
         $scope.pageSize = 100;
         $scope.currentPage = 1;
@@ -34,11 +35,22 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
         $http.get(globalServerURL + 'valuations/length').success(function(data) {
             $scope.valuationListLength = data['length'];
         });
-
+        // get all the projects
         $http.get(globalServerURL + 'projects/')
         .success(function(data) {
             $scope.projectsList = data;
         });
+
+        // clear the filters and load the project list
+        $scope.clearFilters = function() {
+            $scope.filters = {};
+            $http.get(globalServerURL + 'projects/')
+            .success(function(data) {
+                $scope.filteredProjectsList = data;
+            });
+        }
+        $scope.filteredProjectsList = [];
+        $scope.clearFilters();
 
         $scope.loadValuationSection = function() {
             var start = ($scope.currentPage-1)*$scope.pageSize;
@@ -47,7 +59,10 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
                 method: 'GET',
                 url: globalServerURL + 'valuations',
                 params: {'start': start,
-                        'end': end}
+                        'end': end,
+                        'Project': $scope.filters.Project,
+                        'Date': $scope.filters.Date,
+                        'Status': $scope.filters.Status}
             };
             $http(req).success(function(response) {
                 $scope.jsonvaluations = response;
@@ -55,6 +70,25 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
             });
         }
         $scope.loadValuationSection();
+
+        // filter the other filter options by selection
+        $scope.filterBy = function(selection) {
+            var req = {
+                method: 'GET',
+                url: globalServerURL + 'valuations/filter',
+                params: $scope.filters
+            };
+            $http(req).success(function(response) {
+                if (selection == 'project') {
+                    if ($scope.filters.Project == null) {
+                        $scope.filteredProjectsList = response['projects'];
+                    }
+                }
+                else {
+                    $scope.filteredProjectsList = response['projects'];
+                }
+            })
+        };
 
         // load the budgetgroups in the project
         // when the budgetgroups are loaded, load the project markups
