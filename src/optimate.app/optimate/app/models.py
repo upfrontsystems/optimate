@@ -760,6 +760,7 @@ class BudgetItem(Node):
         total = Decimal(float(subtotal)*(1+vat/100.0)).quantize(Decimal('.01'))
         vatcost = Decimal(float(subtotal)*vat/100.0).quantize(Decimal('.01'))
         return {'Name': self.Name,
+                'ParentName': self.Parent.Name,
                 'ID': self.ID,
                 'ParentID': self.ParentID,
                 'id': self.ID,
@@ -1595,6 +1596,7 @@ class OrderItem(Base):
         vatcost = Decimal(float(self.Subtotal)*(self.VAT/100.0)
                             ).quantize(Decimal('.01'))
         return {'Name': self.BudgetItem.Name,
+                'ParentName': self.BudgetItem.Parent.Name,
                 'ID': self.BudgetItemID,
                 'id': self.BudgetItemID,
                 'Quantity': self.Quantity,

@@ -626,7 +626,8 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
             function initialiseColumns() {
                 name_column = {id: "Name", name: "Name", field: "Name",
                                 width: columns_widths.Name,
-                                cssClass: "cell-title non-editable-column"}
+                                cssClass: "cell-title non-editable-column",
+                                formatter: NameFormatter}
                 quantity_column = {id: "Quantity", name: "Quantity", field: "Quantity",
                                 width: columns_widths.Quantity,
                                 cssClass: "cell editable-column",
@@ -741,6 +742,17 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                 }
             }
 
+            // Formatter for displaying the name with the parent name
+            function NameFormatter(row, cell, value, columnDef, dataContext) {
+                if (value != undefined) {
+                    return value + ' (' + dataContext.ParentName + ')';
+                }
+                else {
+                    return "";
+                }
+            }
+
+
             grid.onAddNewRow.subscribe(function (e, args) {
                 var item = args.item;
                 grid.invalidateRow(dataView.length);
@@ -757,12 +769,12 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                     var ordersubtotal = 0.0
                     var ordervatcost = 0.0
                     var gridlist = [];
+                    gridlist = budgetItemslist.slice(0);
                     for (var i=0;i<budgetItemslist.length; i++) {
                         ordertotal += parseFloat(budgetItemslist[i].Total);
                         ordersubtotal += parseFloat(budgetItemslist[i].Subtotal);
                         ordervatcost += parseFloat(budgetItemslist[i].VATCost);
                     }
-                    gridlist = budgetItemslist.slice(0);
                     var totals = {'id': 'T' + budgetItemslist[0].id,
                                     'Subtotal': ordersubtotal,
                                     'VATCost': ordervatcost,
@@ -779,9 +791,9 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                 else {
                     var gridlist = [];
                     var totals = {'id': 'T1',
-                                'Subtotal': "",
-                                'VATCost': "",
-                                'Total': ""};
+                                'Subtotal': undefined,
+                                'VATCost': undefined,
+                                'Total': undefined};
                     gridlist.push(totals);
                     grid.setColumns(columns);
                     dataView.beginUpdate();

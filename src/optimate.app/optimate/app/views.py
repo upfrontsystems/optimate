@@ -1950,10 +1950,7 @@ def orderview(request):
     # build a list of the budgetitem used in the order from the order items
     budgetitemslist = []
     for orderitem in order.OrderItems:
-        if orderitem.BudgetItem:
-            budgetitemslist.append(orderitem.dict())
-        else:
-            DBSession.delete(orderitem)
+        budgetitemslist.append(orderitem.dict())
     budgetitemslist = sorted(budgetitemslist, key=lambda k: k['Name'].upper())
 
     data = order.dict()
