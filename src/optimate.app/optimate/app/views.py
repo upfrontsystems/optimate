@@ -1881,7 +1881,10 @@ def orderview(request):
         # convert to date from json format
         date = request.json_body.get('Date', None)
         if date:
-            date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
+            try:
+                date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
+            except:
+                date = datetime.strptime(date, "%d %B %Y")
 
         order.UserCode=user
         order.Authorisation=auth

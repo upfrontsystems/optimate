@@ -14,6 +14,7 @@ from optimate.app.models import (
     DBSession,
     Node,
     Order,
+    OrderItem,
     Valuation,
     Client,
     Invoice,
@@ -559,8 +560,51 @@ def order(request):
 
     orderitems = []
     for orderitem in order.OrderItems:
-        orderitems.append(orderitem.dict())
-    sorted_orderitems = sorted(orderitems, key=lambda k: k['Name'].upper())
+        # get the resource id
+        data = orderitem.dict()
+        data['ResourceID'] = orderitem.BudgetItem.ResourceID
+        orderitems.append(data)
+
+    # sort by resourceid
+    orderitems = sorted(orderitems, key=lambda k: k['ResourceID'])
+    consolidated = []
+    if len(orderitems) > 0:
+        consolidated.append(orderitems.pop(0))
+        # loop through the order items that are ordered according to their resource
+        backups = []
+        for orderitem in orderitems:
+            if consolidated[-1]['ResourceID'] == orderitem['ResourceID']:
+                # if it is the same budgetitem and rate add the quantities
+                if consolidated[-1]['Rate'] == orderitem['Rate']:
+                    consolidated[-1]['Quantity'] += orderitem['Quantity']
+                    consolidated[-1]['Total'] = float(consolidated[-1]['Total']
+                                                ) + float(orderitem['Total'])
+                else:
+                    # check if the rate is the same as previous items
+                    added = False
+                    for backup in backups:
+                        if backup['Rate'] == orderitem['Rate']:
+                            added = True
+                            backup['Quantity'] += orderitem['Quantity']
+                            backup['Total'] = float(backup['Total']
+                                            ) + float(orderitem['Total'])
+                            break
+
+                    # if the item doesn't match add it to the backup list
+                    if not added:
+                        backups.append(orderitem)
+            else:
+                # a new set of order items with the same resource
+                # add the backup list
+                for backup in backups:
+                    consolidated.append(backup)
+                backups[:] = []
+                # add the orderitem
+                consolidated.append(orderitem)
+        for backup in backups:
+            consolidated.append(backup)
+
+    orderitems = sorted(consolidated, key=lambda k: k['Name'].upper())
 
     Vat = 14.0
     Subtotal = float(order.Total)/(1+ Vat/100)
@@ -569,7 +613,7 @@ def order(request):
     # inject order data into template
     template_data = render('templates/orderreport.pt',
                            {'order': order,
-                            'order_items': sorted_orderitems,
+                            'order_items': orderitems,
                             'order_date': order.Date.strftime("%d %B %Y"),
                             'totals': totals,
                             'currency': currency},
