@@ -2517,11 +2517,12 @@ def invoiceview(request):
         if vat:
             vat = Decimal(vat).quantize(Decimal('.01'))
             invoice.VAT = vat
-        invoice.InvoiceNumber = request.json_body['InvoiceNumber'],
+        invoice.InvoiceNumber = request.json_body['InvoiceNumber']
         newtotal = invoice.Total
         # if the totals are different update the invoiced amounts
         if oldtotal != newtotal:
-            order = DBSession.query(Order).filter_by(ID=invoice.OrderID).first()
+            orderid = invoice.OrderID
+            order = DBSession.query(Order).filter_by(ID=orderid).first()
             for orderitem in order.OrderItems:
                 if order.Total > 0:
                     proportion = orderitem.Total/order.Total

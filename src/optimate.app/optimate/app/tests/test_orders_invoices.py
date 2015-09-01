@@ -288,6 +288,7 @@ def _initTestingDB():
         futurepaydate= datetime.date(2050, 1, 1)
         invoice = Invoice(ID=1,
                         OrderID=order.ID,
+                        InvoiceNumber='B3000',
                         InvoiceDate = datetime.datetime.now(),
                         PaymentDate = pastpaydate,
                         VAT=20,
@@ -295,6 +296,7 @@ def _initTestingDB():
 
         invoice2 = Invoice(ID=2,
                         OrderID=order2.ID,
+                        InvoiceNumber='A5000',
                         InvoiceDate = datetime.datetime.now(),
                         PaymentDate = futurepaydate,
                         VAT=0,
@@ -699,7 +701,8 @@ class TestInvoiceViewSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.method = 'POST'
         request.matchdict['id'] = 0
-        request.json_body = {'OrderID':1,
+        request.json_body = {'InvoiceNumber': 'B1000',
+                                'OrderID':1,
                                 'Amount': 124,
                                 'VAT': 0}
         response = self._callFUT(request)
@@ -718,7 +721,8 @@ class TestInvoiceViewSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.method = 'PUT'
         request.matchdict['id'] = 1
-        request.json_body= {'Amount':20}
+        request.json_body= {'InvoiceNumber': 'B2000',
+                            'Amount':20}
         response = self._callFUT(request)
 
         request = testing.DummyRequest()

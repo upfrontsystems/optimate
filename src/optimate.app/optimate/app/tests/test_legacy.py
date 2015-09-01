@@ -1876,7 +1876,8 @@ class TestInvoicedAmountViewSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.method = 'POST'
         request.matchdict['id'] = 0
-        request.json_body = {'OrderID':newid,
+        request.json_body = {'InvoiceNumber': 'A1000',
+                                'OrderID':newid,
                                 'Amount': 56}
         response = self._callFUT(request)
         request = testing.DummyRequest()
