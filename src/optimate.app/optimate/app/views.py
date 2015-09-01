@@ -1974,6 +1974,7 @@ def orderstatus(request):
         transaction.commit()
         return HTTPOk()
 
+
 @view_config(route_name='valuationsview', renderer='json', permission='view')
 def valuationsview(request):
     """ The valuationsview returns a list in json format of a section of the
@@ -2550,6 +2551,23 @@ def invoicestatus(request):
         invoice.Status = request.json_body['status']
         transaction.commit()
         return HTTPOk()
+
+
+@view_config(route_name='claim_valuations', renderer='json', permission='view')
+def claim_valuations(request):
+    """ Returns which valuations of a project can still be claimed
+    """
+    qry = DBSession.query(Valuation).filter_by(
+                        ProjectID=request.params.dict_of_lists()['Project'][0]
+                        ).order_by(Valuation.ID.desc()).all()
+
+    # only add valuations that don't have claims
+    vals = []
+    for val in qry:
+        if not val.Claim:
+            vals.append(val.dict())
+
+    return vals
 
 
 @view_config(route_name='claimsview', renderer='json', permission='view')

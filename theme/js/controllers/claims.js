@@ -85,7 +85,7 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
             if (projectid) {
                 var req = {
                     method: 'GET',
-                    url: globalServerURL + 'valuations',
+                    url: globalServerURL + 'claim/valuations',
                     params: {'Project': projectid}
                 };
                 $http(req).success(function(response) {
