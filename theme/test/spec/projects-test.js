@@ -1,8 +1,8 @@
 // run test on the projects page
 describe('Projects Page', function () {
 
-    // login before each test
-    beforeEach(function () {
+    // login
+    it('should log in', function () {
         browser.get('http://127.0.0.1:8000/#/login');
         browser.driver.findElement(protractor.By.id('userName')).sendKeys('admin');
         browser.driver.findElement(protractor.By.id('userPassword')).sendKeys('admin');

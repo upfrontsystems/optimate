@@ -1,10 +1,6 @@
 describe('Orders page', function() {
     beforeEach(function () {
-        browser.get('http://127.0.0.1:8000/#/login');
-        browser.driver.findElement(protractor.By.id('userName')).sendKeys('admin');
-        browser.driver.findElement(protractor.By.id('userPassword')).sendKeys('admin');
-        browser.driver.findElement(protractor.By.id("signinButton")).click();
-        element(by.css('nav ul li.orders a')).click();
+        browser.get('http://127.0.0.1:8000/#/orders');
     });
 
     // tests its on the orders page
@@ -34,11 +30,11 @@ describe('Orders page', function() {
         addOrderModal.element(by.css('#inputDate ul table tbody tr td.day.active')).click()
 
         // add budget items from the tree
-        expect(addOrderModal.element(by.buttonText('Add budget items')).isEnabled()).toBe(true);
-        addOrderModal.element(by.buttonText('Add budget items')).click();
+        expect(addOrderModal.element(by.css('.modal-footer i.fa-plus')).isEnabled()).toBe(true);
+        addOrderModal.element(by.css('.modal-footer i.fa-plus')).click();
         expect(addOrderModal.element(by.id('tree-root')).isDisplayed()).toBe(true);
         addOrderModal.element(by.css('#tree-root ol li ol li [data-ng-show="true"] i.fa-square-o')).click();
-        addOrderModal.element(by.buttonText('Add budget items')).click();
+        addOrderModal.element(by.css('.modal-footer i.fa-list')).click();
         addOrderModal.element(by.buttonText('Save')).click();
 
         // check the order was added

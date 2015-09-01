@@ -4,7 +4,8 @@ exports.config = {
   specs: [
         'spec/login-test.js',
         'spec/projects-test.js',
-        'spec/orders-test.js'
+        'spec/orders-test.js',
+        'spec/invoices-test.js'
         ],
   capabilities: {
     browserName: 'firefox'
