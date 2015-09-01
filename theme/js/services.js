@@ -63,7 +63,7 @@ angular.module('services', ['config'])
                 });
             }
 
-            return deferred.promise
+            return deferred.promise;
         };
 
         this.get_currency = function(){
@@ -73,6 +73,6 @@ angular.module('services', ['config'])
                 currency = response;
                 deferred.resolve(currency);
             });
-            return deferred.promise
+            return deferred.promise;
         };
 }]);

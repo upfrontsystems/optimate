@@ -21,8 +21,8 @@ var duplicateModalController = function ($scope, $modalInstance, selections) {
 angular.module('myApp').controller('duplicateModalController', duplicateModalController);
 
 // Controller for the projects and treeview
-myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'globalServerURL', '$timeout', '$modal', 'SessionService',
-    function($scope, $http, $cacheFactory, globalServerURL, $timeout, $modal, SessionService) {
+myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'globalServerURL', '$timeout', '$modal', 'SessionService', '$q',
+    function($scope, $http, $cacheFactory, globalServerURL, $timeout, $modal, SessionService, $q) {
 
         toggleMenu('projects');
         // variable for disabling submit button after user clicked it
@@ -55,6 +55,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
         }());
         // reopen projects that were previously opened upon page load
         $scope.preloadProjects = function () {
+            var deferred = $q.defer();
             if (hasStorage) {
                 open_projects = []
                 try {
@@ -76,53 +77,65 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                                     return a.Name.localeCompare(b.Name)
                                 });
                             }
+                        }).then(function(){
+                            deferred.resolve();
                         });
                     }
                 }
+                else{
+                    deferred.resolve();
+                }
             }
             else {
-                console.log("LOCAL STORAGE NOT SUPPORTED!")
+                console.log("LOCAL STORAGE NOT SUPPORTED!");
+                deferred.resolve();
             }
+            return deferred.promise;
         };
 
         // build the root for the projects in the tree
         $scope.projectsRoot = {"Name": "Root", "ID": 0, "NodeType":"Root", "Subitem": []};
-        $scope.preloadProjects(); // check if anything is stored in local storage
-
-        // load the projects used in the select project modal
-        $http.get(globalServerURL + 'projects/').success(function(data) {
-            $scope.projectsList = data;
+        // check if anything is stored in local storage
+        $scope.preloadProjects().then(function(){
+            $scope.loadLists()
         });
 
-        // load the unit list
-        $http.get(globalServerURL + 'units').success(function(data) {
-            $scope.unitList = data;
-            console.log("Unit list loaded");
-        });
+        $scope.loadLists = function(){
+            // load the projects used in the select project modal
+            $http.get(globalServerURL + 'projects/').success(function(data) {
+                $scope.projectsList = data;
+            });
 
-        // load the resource types
-        $http.get(globalServerURL + 'resourcetypes').success(function(data) {
-            $scope.restypeList = data;
-            console.log("Resource Type list loaded");
-        });
+            // load the unit list
+            $http.get(globalServerURL + 'units').success(function(data) {
+                $scope.unitList = data;
+                console.log("Unit list loaded");
+            });
 
-        // load the suppliers list
-        $http.get(globalServerURL + 'suppliers').success(function(data) {
-            $scope.supplierList = data;
-            console.log("Resource Supplier list loaded");
-        });
+            // load the resource types
+            $http.get(globalServerURL + 'resourcetypes').success(function(data) {
+                $scope.restypeList = data;
+                console.log("Resource Type list loaded");
+            });
 
-        // load the city list
-        $http.get(globalServerURL + 'cities').success(function(data) {
-            $scope.cityList = data;
-            console.log("City list loaded");
-        });
+            // load the suppliers list
+            $http.get(globalServerURL + 'suppliers').success(function(data) {
+                $scope.supplierList = data;
+                console.log("Resource Supplier list loaded");
+            });
 
-        // load the client list
-        $http.get(globalServerURL + 'clients').success(function(data) {
-            $scope.clientList = data;
-            console.log("Client list loaded");
-        });
+            // load the city list
+            $http.get(globalServerURL + 'cities').success(function(data) {
+                $scope.cityList = data;
+                console.log("City list loaded");
+            });
+
+            // load the client list
+            $http.get(globalServerURL + 'clients').success(function(data) {
+                $scope.clientList = data;
+                console.log("Client list loaded");
+            });
+        };
 
         $scope.statusMessage = function(message, timeout, type) {
             $('#status_message span').text(message);
