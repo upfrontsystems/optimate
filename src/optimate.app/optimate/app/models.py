@@ -1735,6 +1735,30 @@ class Invoice(Base):
     def Total(self):
         return Decimal(self.Amount + self.VAT).quantize(Decimal('.01'))
 
+    @property
+    def SupplierName(self):
+        """ Return the Order Supplier name
+        """
+        if self.Order.Supplier:
+            return self.Order.Supplier.Name
+        return ""
+
+    @property
+    def ClientName(self):
+        """ Return the Order Client name
+        """
+        if self.Order.Client:
+            return self.Order.Client.Name
+        return ""
+
+    @property
+    def ProjectName(self):
+        """ Return the Order Project name
+        """
+        if self.Order.Project:
+            return self.Order.Project.Name
+        return ""
+
     def dict(self):
         """ Override the dict function for an invoice
         """
@@ -1753,8 +1777,8 @@ class Invoice(Base):
                 'id':self.ID,
                 'InvoiceNumber': self.InvoiceNumber,
                 'OrderID': self.OrderID,
-                'Project': self.Order.Project.Name,
-                'Supplier': self.Order.Supplier.Name,
+                'Project': self.ProjectName,
+                'Supplier': self.SupplierName,
                 'Amount': str(self.Amount),
                 'VAT': str(self.VAT),
                 'Total': str(self.Total),

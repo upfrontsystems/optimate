@@ -2364,6 +2364,7 @@ def invoicesview(request):
         qry = qry.filter_by(SupplierID=paramsdict['Supplier'][0])
     if 'PaymentDate' in paramkeys:
         date = ''.join(paramsdict['PaymentDate'])
+        print date
         date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
         qry = qry.filter_by(PaymentDate=date)
     if 'Status' in paramkeys:
@@ -2394,30 +2395,33 @@ def invoices_filter(request):
         qry = qry.filter_by(SupplierID=paramsdict['Supplier'][0])
     if 'PaymentDate' in paramkeys:
         date = ''.join(paramsdict['PaymentDate'])
+        print date
         date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
         qry = qry.filter_by(PaymentDate=date)
     if 'Status' in paramkeys:
         qry = qry.filter(Invoice.Status.like(paramsdict['Status'][0]+'%'))
 
-    # get the unique values the other filters are to be updated with
-    clients = qry.distinct(Invoice.ClientID).group_by(Invoice.ClientID)
-    clientlist = []
-    for client in clients:
-        if client.ClientID:
-            clientlist.append({'Name': client.Order.Client.Name, 'ID': client.ClientID})
-    suppliers = qry.distinct(Invoice.SupplierID).group_by(Invoice.SupplierID)
-    supplierlist = []
-    for supplier in suppliers:
-        if supplier.SupplierID:
-            supplierlist.append({'Name': supplier.Order.Supplier.Name, 'ID': supplier.SupplierID})
-    projects = qry.distinct(Invoice.ProjectID).group_by(Invoice.ProjectID)
-    projectlist = []
-    for project in projects:
-        if project.ProjectID:
-            projectlist.append({'Name': project.Order.Project.Name, 'ID': project.ProjectID})
-    return {'projects': sorted(projectlist, key=lambda k: k['Name'].upper()),
-            'clients': sorted(clientlist, key=lambda k: k['Name'].upper()),
-            'suppliers': sorted(supplierlist, key=lambda k: k['Name'].upper())}
+    # distinct does not work on hybrid expressions, manually filter lists
+    projects = []
+    projectslist = []
+    suppliers = []
+    supplierslist = []
+    clients = []
+    clientslist = []
+    for invoice in qry:
+        if invoice.ProjectID not in projects:
+            projects.append(invoice.ProjectID)
+            projectslist.append({'Name': invoice.ProjectName, 'ID': invoice.ProjectID})
+        if invoice.ClientID not in clients:
+            clients.append(invoice.ClientID)
+            clientslist.append({'Name': invoice.ClientName, 'ID': invoice.ClientID})
+        if invoice.SupplierID not in suppliers:
+            suppliers.append(invoice.SupplierID)
+            supplierslist.append({'Name': invoice.SupplierName, 'ID': invoice.SupplierID})
+
+    return {'projects': sorted(projectslist, key=lambda k: k['Name'].upper()),
+            'clients': sorted(clientslist, key=lambda k: k['Name'].upper()),
+            'suppliers': sorted(supplierslist, key=lambda k: k['Name'].upper())}
 
 
 @view_config(route_name='invoiceview', renderer='json', permission='view')
