@@ -594,7 +594,8 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                                     'Subtotal': 75,
                                     'VAT': 75,
                                     'VATCost': 75,
-                                    'Total': 100};
+                                    'Total': 100,
+                                    'Discount': 75};
                 if (hasStorage) {
                     try {
                         columns_widths = JSON.parse(localStorage["orders_column_width"])
@@ -629,7 +630,7 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
             });
 
             var name_column, quantity_column, rate_column, total_column,
-                subtotal_column, vat_column,vatcost_column;
+                subtotal_column, vat_column,vatcost_column,discount_column;
             function initialiseColumns() {
                 name_column = {id: "Name", name: "Name", field: "Name",
                                 width: columns_widths.Name,
@@ -662,6 +663,11 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                                 width: columns_widths.VATCost,
                                 cssClass: "cell non-editable-column",
                                 formatter: CurrencyFormatter}
+                discount_column = {id: "Discount", name: "Discount", field: "Discount",
+                                width: columns_widths.Discount,
+                                 cssClass: "cell editable-column",
+                                formatter: CurrencyFormatter,
+                                editor: Slick.Editors.CustomEditor}
             }
             initialiseColumns();
 
@@ -672,6 +678,7 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                     subtotal_column,
                     vat_column,
                     vatcost_column,
+                    discount_column,
                     total_column,
                 ];
 
@@ -764,18 +771,21 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
             $scope.$watch(attrs.budgetitems, function(budgetItemslist) {
                 if (budgetItemslist.length > 0) {
                     var ordertotal = 0.0;
-                    var ordersubtotal = 0.0
-                    var ordervatcost = 0.0
+                    var ordersubtotal = 0.0;
+                    var ordervatcost = 0.0;
+                    var orderdiscount = 0.0;
                     var gridlist = [];
                     gridlist = budgetItemslist.slice(0);
                     for (var i=0;i<budgetItemslist.length; i++) {
                         ordertotal += parseFloat(budgetItemslist[i].Total);
                         ordersubtotal += parseFloat(budgetItemslist[i].Subtotal);
                         ordervatcost += parseFloat(budgetItemslist[i].VATCost);
+                        orderdiscount += parseFloat(budgetItemslist[i].Discount);
                     }
                     var totals = {'id': 'totalsrow',
                                     'Subtotal': ordersubtotal,
                                     'VATCost': ordervatcost,
+                                    'Discount': orderdiscount,
                                     'Total': ordertotal,
                                     'cssClasses': 'cell-title non-editable-column'};
 
@@ -791,6 +801,7 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                     var totals = {'id': 'T1',
                                 'Subtotal': undefined,
                                 'VATCost': undefined,
+                                'Discount': undefined,
                                 'Total': undefined};
                     gridlist.push(totals);
                     grid.setColumns(columns);
@@ -808,20 +819,23 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                 var oldtotal = item.Total;
                 var oldsubtotal = item.Subtotal;
                 var oldvatcost = item.VATCost;
+                var olddiscount = item.Discount;
                 console.log(item);
                 console.log(item._checkbox_selector);
                 console.log(item.sel);
                 var vatpercentage = 14;
                 item.Subtotal = item.Quantity*item.Rate;
                 item.VATCost = item.Subtotal * (parseFloat(vatpercentage)/100.0);
-                item.Total = item.Subtotal *(1.0 + parseFloat(vatpercentage)/100.0);
+                item.Total = item.Subtotal *(1.0 + parseFloat(vatpercentage)/100.0
+                                ) - parseFloat(item.Discount);
                 dataView.updateItem(item.id, item);
                 // get the last row and update the values
                 var datalength = dataView.getLength();
                 var lastrow = dataView.getItem(datalength-1);
                 lastrow.Total = lastrow.Total + (item.Total - oldtotal);
-                lastrow.Subtotal = lastrow.Subtotal + (item.Subtotal - oldsubtotal);;
-                lastrow.VATCost = lastrow.VATCost + (item.VATCost - oldvatcost);;
+                lastrow.Subtotal = lastrow.Subtotal + (item.Subtotal - oldsubtotal);
+                lastrow.VATCost = lastrow.VATCost + (item.VATCost - oldvatcost);
+                lastrow.Discount = lastrow.Discount + (item.Discount - olddiscount);
                 dataView.updateItem(lastrow.id, lastrow);
             });
 

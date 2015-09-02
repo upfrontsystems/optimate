@@ -1525,9 +1525,10 @@ class OrderItem(Base):
     OrderID = Column(Integer, ForeignKey('Order.ID'))
     BudgetItemID = Column(Integer, ForeignKey('BudgetItem.ID'))
     VAT = Column(Float)
-    _Quantity = Column(Float, default=0.0)
-    _Rate = Column(Numeric(12, 2), default=Decimal(0.00))
+    _Quantity = Column('Quantity', Float, default=0.0)
+    _Rate = Column('Rate', Numeric(12, 2), default=Decimal(0.00))
     _Total = Column('Total', Numeric(12, 2))
+    _Discount = Column('Discount', Numeric(12, 2), default=Decimal(0.00))
 
     Order = relationship('Order',
                             backref=backref('OrderItems'))
@@ -1541,7 +1542,8 @@ class OrderItem(Base):
         """
         if not self._Total:
             self._Total = Decimal(
-                self.Quantity*float(self.Rate)*(1 + (self.VAT/100.0))
+                self.Quantity*float(self.Rate)*(1 + (self.VAT/100.0)
+                ) - float(self.Discount)
                 ).quantize(Decimal('.01'))
         return self._Total
 
@@ -1554,7 +1556,6 @@ class OrderItem(Base):
     @property
     def Subtotal(self):
         """ Return the subtotal, which is VAT deducted from the Total
-            deducted from it's total
         """
         return Decimal(float(self.Total)/(1.0+(self.VAT/100.0))).quantize(
                         Decimal('.01'))
@@ -1563,8 +1564,6 @@ class OrderItem(Base):
     def Rate(self):
         """ Get the Rate
         """
-        if not self._Rate:
-            self._Rate = Decimal(0.00)
         return self._Rate.quantize(Decimal('.01'))
 
     @Rate.setter
@@ -1573,14 +1572,13 @@ class OrderItem(Base):
         """
         self._Rate = Decimal(rate).quantize(Decimal('.01'))
         # when the rate changes recalculate the total
-        self.Total = self.Quantity * float(self._Rate)
+        self.Total = self.Quantity * float(self.Rate) *(1 + (self.VAT/100.0
+                        ))- float(self.Discount)
 
     @hybrid_property
     def Quantity(self):
         """ Get the Quantity
         """
-        if not self._Quantity:
-            self._Quantity = 0.00
         return self._Quantity
 
     @Quantity.setter
@@ -1588,7 +1586,22 @@ class OrderItem(Base):
         """ Set the Quantity and recalculate the Total
         """
         self._Quantity = quantity
-        self.Total = quantity * float(self._Rate)
+        self.Total = quantity * float(self.Rate) *(1 + (self.VAT/100.0
+                        )) - float(self.Discount)
+
+    @hybrid_property
+    def Discount(self):
+        """ Get the Discount
+        """
+        return self._Discount
+
+    @Discount.setter
+    def Discount(self, discount):
+        """ Set the Discount and recalculate the Total
+        """
+        self._Discount = Decimal(discount).quantize(Decimal('.01'))
+        self.Total = self.Quantity * float(self.Rate) *(1 + (self.VAT/100.0
+                        ))- float(discount)
 
     def dict(self):
         """ Override the dict function
@@ -1607,6 +1620,7 @@ class OrderItem(Base):
                 'Total': str(self.Total),
                 'VATCost': str(vatcost),
                 'NodeTypeAbbr' : 'I',
+                'Discount': str(self.Discount),
                 'NodeType': 'OrderItem'}
 
     def __repr__(self):
