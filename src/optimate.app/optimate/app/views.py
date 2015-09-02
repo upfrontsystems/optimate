@@ -1846,12 +1846,17 @@ def orderview(request):
             quantity = float(budgetitem.get('Quantity', 0))
             rate = budgetitem.get('Rate', 0)
             rate = Decimal(rate).quantize(Decimal('.01'))
-            vat = budgetitem.get('VAT', 0)
+            vat = budgetitem.get('VAT', False)
+            vatpercentage = 0
+            if vat:
+                vatpercentage = DBSession.query(CompanyInformation
+                                ).first().DefaultTaxrate
+
             neworderitem = OrderItem(OrderID=newid,
                                     BudgetItemID=budgetitem['ID'],
                                     _Quantity=quantity,
                                     _Rate = rate,
-                                    VAT=vat)
+                                    VAT=vatpercentage)
             DBSession.add(neworderitem)
         transaction.commit()
         # return the new order
@@ -1908,13 +1913,17 @@ def orderview(request):
                 quantity = float(budgetitem.get('Quantity', 0))
                 rate = budgetitem.get('Rate', 0)
                 rate = Decimal(rate).quantize(Decimal('.01'))
-                vat = budgetitem.get('VAT', 0)
+                vat = budgetitem.get('VAT', False)
+                vatpercentage = 0
+                if vat:
+                    vatpercentage = DBSession.query(CompanyInformation
+                                ).first().DefaultTaxrate
 
                 neworderitem = OrderItem(OrderID=order.ID,
                                         BudgetItemID=budgetitem['ID'],
                                         _Quantity=quantity,
                                         _Rate = rate,
-                                        VAT=vat)
+                                        VAT=vatpercentage)
                 DBSession.add(neworderitem)
             else:
                 # otherwise remove the id from the list and update the
@@ -1925,8 +1934,12 @@ def orderview(request):
                 orderitem.Quantity = float(budgetitem['Quantity'])
                 rate = budgetitem['Rate']
                 orderitem.Rate = Decimal(rate).quantize(Decimal('.01'))
-                vat = budgetitem.get('VAT', 0)
-                orderitem.VAT = vat
+                vat = budgetitem.get('VAT', False)
+                vatpercentage = 0
+                if vat:
+                    vatpercentage = DBSession.query(CompanyInformation
+                                ).first().DefaultTaxrate
+                orderitem.VAT = vatpercentage
                 del iddict[budgetitem['ID']]
         # delete the leftover id's and update the ordered total
         for oldid in iddict.values():
@@ -2365,7 +2378,6 @@ def invoicesview(request):
         qry = qry.filter_by(SupplierID=paramsdict['Supplier'][0])
     if 'PaymentDate' in paramkeys:
         date = ''.join(paramsdict['PaymentDate'])
-        print date
         date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
         qry = qry.filter_by(PaymentDate=date)
     if 'Status' in paramkeys:
@@ -2396,7 +2408,6 @@ def invoices_filter(request):
         qry = qry.filter_by(SupplierID=paramsdict['Supplier'][0])
     if 'PaymentDate' in paramkeys:
         date = ''.join(paramsdict['PaymentDate'])
-        print date
         date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
         qry = qry.filter_by(PaymentDate=date)
     if 'Status' in paramkeys:

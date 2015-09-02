@@ -17,8 +17,14 @@ describe('Invoices page', function() {
 
         addInvoiceModal.element(by.model('formData.InvoiceNumber')).sendKeys('A10000');
         addInvoiceModal.element(by.id('inputOrderNumber')).sendKeys(59);
-        browser.waitForAngular();
-        addInvoiceModal.element(by.css('ul.ui-select-choices ui-select-choices-inner')).click();
+
+        var until = browser.ExpectedConditions;
+        browser.wait(function() {
+          return browser.isElementPresent(addInvoiceModal.element(by.css('ul.ui-select-choices')));
+        }, 30000);
+        // browser.wait(until.presenceOf(addInvoiceModal.element(by.css('ul.ui-select-choices'))), 5000, 'Element taking too long to appear in the DOM');
+        // browser.wait(element(by.id('ui-select-choices-row-2-0')).isPresent);
+        // addInvoiceModal.element(by.id('ui-select-choices-row-2-0')).click();
         addInvoiceModal.element(by.model('formData.Amount')).sendKeys('500');
         addInvoiceModal.element(by.model('formData.VAT')).sendKeys('50');
 

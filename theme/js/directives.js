@@ -621,6 +621,13 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                 }
             }
 
+            var checkboxSelector = new Slick.CheckboxSelectColumn({
+              cssClass: "slick-cell-checkboxsel",
+              toolTip: "VAT on/off for all",
+              id: "VAT",
+              field: "VAT"
+            });
+
             var name_column, quantity_column, rate_column, total_column,
                 subtotal_column, vat_column,vatcost_column;
             function initialiseColumns() {
@@ -645,11 +652,12 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                                 width: columns_widths.Subtotal,
                                 cssClass: "cell non-editable-column",
                                 formatter: CurrencyFormatter}
-                vat_column = {id: "VAT", name: "VAT %", field: "VAT",
-                                width: columns_widths.VAT,
-                                cssClass: "cell editable-column",
-                                formatter: VATFormatter,
-                                editor: Slick.Editors.CustomEditor}
+                vat_column = checkboxSelector.getColumnDefinition();
+                // vat_column = {id: "VAT", name: "VAT %", field: "VAT",
+                //                 width: columns_widths.VAT,
+                //                 cssClass: "cell editable-column",
+                //                 formatter: VATFormatter,
+                //                 editor: Slick.Editors.CustomEditor}
                 vatcost_column = {id: "VATCost", name: "VAT", field: "VATCost",
                                 width: columns_widths.VATCost,
                                 cssClass: "cell non-editable-column",
@@ -683,6 +691,8 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
             dataView.getItemMetadata = getItemMetaData;
             grid = new Slick.Grid("#budgetitem-data-grid", dataView, columns, options);
             grid.setSelectionModel(new Slick.OrdersSelectionModel());
+            grid.registerPlugin(checkboxSelector);
+
             // resize the slickgrid when modal is shown
             $('#saveOrderModal').on('shown.bs.modal', function() {
                  grid.init();
@@ -731,17 +741,6 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                 }
             }
 
-            // Formatter for displaying the vat percentage
-            function VATFormatter(row, cell, value, columnDef, dataContext) {
-                if (value != undefined) {
-                    var percentile = parseFloat(value);
-                    return (percentile.toString() + " %");
-                }
-                else {
-                    return "";
-                }
-            }
-
             // Formatter for displaying the name with the parent name
             function NameFormatter(row, cell, value, columnDef, dataContext) {
                 if (value != undefined) {
@@ -751,7 +750,6 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                     return "";
                 }
             }
-
 
             grid.onAddNewRow.subscribe(function (e, args) {
                 var item = args.item;
@@ -775,7 +773,7 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                         ordersubtotal += parseFloat(budgetItemslist[i].Subtotal);
                         ordervatcost += parseFloat(budgetItemslist[i].VATCost);
                     }
-                    var totals = {'id': 'T' + budgetItemslist[0].id,
+                    var totals = {'id': 'totalsrow',
                                     'Subtotal': ordersubtotal,
                                     'VATCost': ordervatcost,
                                     'Total': ordertotal,
@@ -805,14 +803,18 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
 
             // on cell change update the totals
             grid.onCellChange.subscribe(function (e, ctx) {
+                console.log("cell change");
                 var item = ctx.item
                 var oldtotal = item.Total;
                 var oldsubtotal = item.Subtotal;
                 var oldvatcost = item.VATCost;
-
+                console.log(item);
+                console.log(item._checkbox_selector);
+                console.log(item.sel);
+                var vatpercentage = 14;
                 item.Subtotal = item.Quantity*item.Rate;
-                item.VATCost = item.Subtotal * (parseFloat(item.VAT)/100.0);
-                item.Total = item.Subtotal *(1.0 + parseFloat(item.VAT)/100.0);
+                item.VATCost = item.Subtotal * (parseFloat(vatpercentage)/100.0);
+                item.Total = item.Subtotal *(1.0 + parseFloat(vatpercentage)/100.0);
                 dataView.updateItem(item.id, item);
                 // get the last row and update the values
                 var datalength = dataView.getLength();
