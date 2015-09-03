@@ -770,6 +770,7 @@ class BudgetItem(Node):
                 'VAT': vat,
                 'VATCost': str(vatcost),
                 'Subtotal': str(subtotal),
+                'Discount': '0.00',
                 'NodeType': 'OrderItem',
                 'NodeTypeAbbr' : 'I'}
 
@@ -1538,12 +1539,12 @@ class OrderItem(Base):
 
     @hybrid_property
     def Total(self):
-        """ Return the total. Total is Quantity*Rate*VAT
+        """ Return the total. Total is (Quantity*Rate-Discount)*VAT
         """
         if not self._Total:
             self._Total = Decimal(
-                self.Quantity*float(self.Rate)*(1 + (self.VAT/100.0)
-                ) - float(self.Discount)
+                (self.Quantity * float(self.Rate) - float(self.Discount)
+                ) * (1 + self.VAT/100.0)
                 ).quantize(Decimal('.01'))
         return self._Total
 
@@ -1555,10 +1556,9 @@ class OrderItem(Base):
 
     @property
     def Subtotal(self):
-        """ Return the subtotal, which is VAT deducted from the Total
+        """ Return the subtotal, which is Quantity*Rate
         """
-        return Decimal(float(self.Total)/(1.0+(self.VAT/100.0))).quantize(
-                        Decimal('.01'))
+        return Decimal(float(self.Rate)*self.Quantity).quantize(Decimal('.01'))
 
     @hybrid_property
     def Rate(self):
@@ -1572,8 +1572,8 @@ class OrderItem(Base):
         """
         self._Rate = Decimal(rate).quantize(Decimal('.01'))
         # when the rate changes recalculate the total
-        self.Total = self.Quantity * float(self.Rate) *(1 + (self.VAT/100.0
-                        ))- float(self.Discount)
+        self.Total = (self.Quantity * float(self.Rate) - float(self.Discount)
+                ) * (1 + self.VAT/100.0)
 
     @hybrid_property
     def Quantity(self):
@@ -1585,9 +1585,9 @@ class OrderItem(Base):
     def Quantity(self, quantity):
         """ Set the Quantity and recalculate the Total
         """
-        self._Quantity = quantity
-        self.Total = quantity * float(self.Rate) *(1 + (self.VAT/100.0
-                        )) - float(self.Discount)
+        self._Quantity = float(quantity)
+        self.Total = (self.Quantity * float(self.Rate) - float(self.Discount)
+                ) * (1 + self.VAT/100.0)
 
     @hybrid_property
     def Discount(self):
@@ -1600,13 +1600,13 @@ class OrderItem(Base):
         """ Set the Discount and recalculate the Total
         """
         self._Discount = Decimal(discount).quantize(Decimal('.01'))
-        self.Total = self.Quantity * float(self.Rate) *(1 + (self.VAT/100.0
-                        ))- float(discount)
+        self.Total = (self.Quantity * float(self.Rate) - float(self.Discount)
+                ) * (1 + self.VAT/100.0)
 
     def dict(self):
         """ Override the dict function
         """
-        vatcost = Decimal(float(self.Subtotal)*(self.VAT/100.0)
+        vatcost = Decimal(float(self.Subtotal - self.Discount)*(self.VAT/100.0)
                             ).quantize(Decimal('.01'))
         return {'Name': self.BudgetItem.Name,
                 'ParentName': self.BudgetItem.Parent.Name,

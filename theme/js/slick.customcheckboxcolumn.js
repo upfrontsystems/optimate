@@ -16,7 +16,7 @@
       columnId: "_checkbox_selector",
       cssClass: null,
       toolTip: "Select/Deselect All",
-      width: 30,
+      width: 70,
       field: "sel"
     };
 
@@ -32,40 +32,6 @@
 
     function destroy() {
       _handler.unsubscribeAll();
-    }
-
-    function handleSelectedRowsChanged(e, args) {
-      var selectedRows = _grid.getSelectedRows();
-      var lookup = {}, row, i;
-      for (i = 0; i < selectedRows.length; i++) {
-        row = selectedRows[i];
-        lookup[row] = true;
-        if (lookup[row] !== _selectedRowsLookup[row]) {
-          _grid.invalidateRow(row);
-          delete _selectedRowsLookup[row];
-        }
-      }
-      for (i in _selectedRowsLookup) {
-        _grid.invalidateRow(i);
-      }
-      _selectedRowsLookup = lookup;
-      _grid.render();
-
-      // Count the number of rows that are not selectable.
-      // Use in the check to see if all rows are selected.
-      var dataArr = _grid.getData();
-      if (dataArr.getItems) {
-        dataArr = dataArr.getItems();
-      }
-      var non_selects = $.grep(dataArr, function (r) {
-         return (r.not_multiselectable && r.not_multiselectable === 'Y');
-       }).length;
-
-      if (selectedRows.length && selectedRows.length == _grid.getDataLength() - non_selects) {
-        _grid.updateColumnHeader(_options.columnId, "<input type='checkbox' checked='checked'>", _options.toolTip);
-      } else {
-        _grid.updateColumnHeader(_options.columnId, "<input type='checkbox'>", _options.toolTip);
-      }
     }
 
     function handleKeyDown(e, args) {
@@ -111,12 +77,10 @@
         }
 
         var checked = $(e.target).is(":checked");
-        var rowData;
+        console.log(checked);
         for (var i = 0; i < _grid.getDataLength(); i++) {
-          rowData = _grid.getDataItem(i);
-          if (!rowData.not_multiselectable || rowData.not_multiselectable === 'N') {
-            rowData.VAT = checked;
-          }
+          _grid.getDataItem(i).VAT = checked;
+          console.log(_grid.getDataItem(i).VAT);
         }
         e.stopPropagation();
         e.stopImmediatePropagation();
@@ -139,16 +103,15 @@
 
     function checkboxSelectionFormatter(row, cell, value, columnDef, dataContext) {
       if (dataContext) {
-          // return value
-          //     ? "<button class='custom-checkbox' type='checkbox'<i class='fa fa-check-square-o'></i>" +
-          //       "</button>"
-          //     : "<button class='custom-checkbox' type='checkbox'<i class='fa fa-square-o'></i>" +
-          //       "</button>";
         if (dataContext.id == 'totalsrow'){
           return null;
         }
         else{
-          console.log(value);
+          // return value
+          //     ? "<button class='custom-checkbox'><i class='fa fa-check-square-o'></i>" +
+          //       "</button>"
+          //     : "<button class='custom-checkbox'><i class='fa fa-square-o'></i>" +
+          //       "</button>";
           return value
               ? "<input type='checkbox' checked='checked'>"
               : "<input type='checkbox'>";

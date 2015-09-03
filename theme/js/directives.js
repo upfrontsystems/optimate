@@ -588,11 +588,11 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
 
             // load the columns widths (if any) from local storage
             $scope.preloadWidths = function () {
-                column_widths = {'Name': 350,
+                var default_column_widths = {'Name': 300,
                                     'Quantity': 75,
                                     'Rate': 75,
                                     'Subtotal': 75,
-                                    'VAT': 75,
+                                    'VAT': 30,
                                     'VATCost': 75,
                                     'Total': 100,
                                     'Discount': 75};
@@ -602,11 +602,15 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                     }
                     catch (exception) {
                         console.log("No columns widths found in storage. Setting to default.");
-                        localStorage["orders_column_width"] = JSON.stringify(columns_widths);
+                        localStorage["orders_column_width"] = JSON.stringify(default_column_widths);
                     }
                     if ( columns_widths.length == 0 ) {
-                        localStorage["orders_column_width"] = JSON.stringify(columns_widths);
+                        columns_widths = default_column_widths;
+                        localStorage["orders_column_width"] = JSON.stringify(column_widths);
                     }
+                }
+                else{
+                    columns_widths = default_column_widths;
                 }
             };
             $scope.preloadWidths();
@@ -621,13 +625,6 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                     }
                 }
             }
-
-            var checkboxSelector = new Slick.CheckboxSelectColumn({
-              cssClass: "slick-cell-checkboxsel",
-              toolTip: "VAT on/off for all",
-              id: "VAT",
-              field: "VAT"
-            });
 
             var name_column, quantity_column, rate_column, total_column,
                 subtotal_column, vat_column,vatcost_column,discount_column;
@@ -653,12 +650,14 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                                 width: columns_widths.Subtotal,
                                 cssClass: "cell non-editable-column",
                                 formatter: CurrencyFormatter}
-                vat_column = checkboxSelector.getColumnDefinition();
-                // vat_column = {id: "VAT", name: "VAT %", field: "VAT",
-                //                 width: columns_widths.VAT,
-                //                 cssClass: "cell editable-column",
-                //                 formatter: VATFormatter,
-                //                 editor: Slick.Editors.CustomEditor}
+                vat_column = {id: "VAT", field: "VAT",
+                                name: "<i class='fa fa-square-o fa-lg'></i>",
+                                width: columns_widths.VAT,
+                                toolTip: "VAT on/off for all",
+                                cssClass: "slick-cell-checkboxsel",
+                                resizable: false,
+                                sortable: false,
+                                formatter: checkboxSelectionFormatter}
                 vatcost_column = {id: "VATCost", name: "VAT", field: "VATCost",
                                 width: columns_widths.VATCost,
                                 cssClass: "cell non-editable-column",
@@ -676,9 +675,9 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                     quantity_column,
                     rate_column,
                     subtotal_column,
+                    discount_column,
                     vat_column,
                     vatcost_column,
-                    discount_column,
                     total_column,
                 ];
 
@@ -698,7 +697,10 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
             dataView.getItemMetadata = getItemMetaData;
             grid = new Slick.Grid("#budgetitem-data-grid", dataView, columns, options);
             grid.setSelectionModel(new Slick.OrdersSelectionModel());
-            grid.registerPlugin(checkboxSelector);
+            var _handler = new Slick.EventHandler();
+            _handler
+                .subscribe(grid.onClick, handleClick)
+                .subscribe(grid.onHeaderClick, handleHeaderClick);
 
             // resize the slickgrid when modal is shown
             $('#saveOrderModal').on('shown.bs.modal', function() {
@@ -741,6 +743,9 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                     if (parts.length > 1) {
                         parts[parts.length-1] = parts[parts.length-1].slice(0,2);
                     }
+                    else if (parts.length == 1){
+                        parts.push('00');
+                    }
                     return $scope.currency + parts.join(".");
                 }
                 else {
@@ -755,6 +760,65 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                 }
                 else {
                     return "";
+                }
+            }
+
+            // formatter for the checkbox
+            function checkboxSelectionFormatter(row, cell, value, columnDef, dataContext) {
+              if (dataContext) {
+                if (dataContext.id == 'totalsrow'){
+                  return null;
+                }
+                else{
+                  return value
+                      ? "<i class='fa fa-check-square-o fa-lg'></i>"
+                      : "<i class='fa fa-square-o fa-lg'></i>"
+                }
+              }
+              return null;
+            }
+
+            function handleClick(e, args) {
+                // clicking on a row select checkbox
+                if (grid.getColumns()[args.cell].id === "VAT") {
+                    // if editing, try to commit
+                    if (grid.getEditorLock().isActive() && !grid.getEditorLock().commitCurrentEdit()) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        return;
+                    }
+                    var item = dataView.getItem(args.row);
+                    if (item.id != 'totalsrow'){
+                        item.VAT = !item.VAT;
+                        dataView.updateItem(item.id, item);
+                        updateCells(e, {'item': item});
+                    }
+                }
+            }
+
+            function handleHeaderClick(e, args) {
+                if (args.column.id == "VAT") {
+                    // if editing, try to commit
+                    if (grid.getEditorLock().isActive() && !grid.getEditorLock().commitCurrentEdit()) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        return;
+                    }
+
+                    var checked = false;
+                    if (args.column.name == "<i class='fa fa-check-square-o fa-lg'></i>"){
+                        grid.updateColumnHeader(args.column.id, "<i class='fa fa-square-o fa-lg'></i>")
+                    }
+                    else{
+                        checked = true;
+                        grid.updateColumnHeader(args.column.id,"<i class='fa fa-check-square-o fa-lg'></i>")
+                    }
+                    for (var i = 0; i < grid.getDataLength() -1 ; i++) {
+                        var item = dataView.getItem(i);
+                        item.VAT = checked;
+                        dataView.updateItem(item.id, item);
+                        updateCells(e, {'item': item});
+                    }
                 }
             }
 
@@ -812,22 +876,18 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                 }
             }, true);
 
-            // on cell change update the totals
-            grid.onCellChange.subscribe(function (e, ctx) {
-                console.log("cell change");
+            // function to update cells on change
+            var updateCells = function (e, ctx) {
                 var item = ctx.item
                 var oldtotal = item.Total;
                 var oldsubtotal = item.Subtotal;
                 var oldvatcost = item.VATCost;
                 var olddiscount = item.Discount;
-                console.log(item);
-                console.log(item._checkbox_selector);
-                console.log(item.sel);
-                var vatpercentage = 14;
+                var vatpercentage = item.VAT ? $scope.taxRate : 0;
+
                 item.Subtotal = item.Quantity*item.Rate;
-                item.VATCost = item.Subtotal * (parseFloat(vatpercentage)/100.0);
-                item.Total = item.Subtotal *(1.0 + parseFloat(vatpercentage)/100.0
-                                ) - parseFloat(item.Discount);
+                item.VATCost = (item.Subtotal - item.Discount) * (parseFloat(vatpercentage)/100.0);
+                item.Total = (item.Subtotal - item.Discount) *(1.0 + parseFloat(vatpercentage)/100.0);
                 dataView.updateItem(item.id, item);
                 // get the last row and update the values
                 var datalength = dataView.getLength();
@@ -835,8 +895,20 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                 lastrow.Total = lastrow.Total + (item.Total - oldtotal);
                 lastrow.Subtotal = lastrow.Subtotal + (item.Subtotal - oldsubtotal);
                 lastrow.VATCost = lastrow.VATCost + (item.VATCost - oldvatcost);
-                lastrow.Discount = lastrow.Discount + (item.Discount - olddiscount);
+                lastrow.Discount = lastrow.Subtotal + lastrow.VATCost - lastrow.Total;
                 dataView.updateItem(lastrow.id, lastrow);
+            };
+
+            // on cell change update the totals
+            grid.onCellChange.subscribe(updateCells);
+
+            grid.onBeforeEditCell.subscribe(function(e,args) {
+                if (args.item){
+                    // cant edit totals row
+                    if (args.item.id == 'totalsrow') {
+                        return false;
+                    }
+                }
             });
 
             // reload the order slickgrid

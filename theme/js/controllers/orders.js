@@ -31,6 +31,10 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
         SessionService.get_currency().then(function(c){
             $scope.currency = c;
         })
+        // get the company tax rate
+        SessionService.get_tax_rate().then(function(c){
+            $scope.taxRate = c;
+        })
 
         // need two separate lists of suppliers
         // one used for filtering, one for adding an order

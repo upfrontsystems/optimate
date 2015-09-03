@@ -1846,6 +1846,8 @@ def orderview(request):
             quantity = float(budgetitem.get('Quantity', 0))
             rate = budgetitem.get('Rate', 0)
             rate = Decimal(rate).quantize(Decimal('.01'))
+            discount = Decimal(budgetitem.get('Discount', 0)
+                                ).quantize(Decimal('.01'))
             vat = budgetitem.get('VAT', False)
             vatpercentage = 0
             if vat:
@@ -1856,6 +1858,7 @@ def orderview(request):
                                     BudgetItemID=budgetitem['ID'],
                                     _Quantity=quantity,
                                     _Rate = rate,
+                                    _Discount = discount,
                                     VAT=vatpercentage)
             DBSession.add(neworderitem)
         transaction.commit()
@@ -1913,6 +1916,8 @@ def orderview(request):
                 quantity = float(budgetitem.get('Quantity', 0))
                 rate = budgetitem.get('Rate', 0)
                 rate = Decimal(rate).quantize(Decimal('.01'))
+                discount = Decimal(budgetitem.get('Discount', 0)
+                                ).quantize(Decimal('.01'))
                 vat = budgetitem.get('VAT', False)
                 vatpercentage = 0
                 if vat:
@@ -1923,17 +1928,17 @@ def orderview(request):
                                         BudgetItemID=budgetitem['ID'],
                                         _Quantity=quantity,
                                         _Rate = rate,
+                                        _Discount = discount,
                                         VAT=vatpercentage)
                 DBSession.add(neworderitem)
             else:
-                # otherwise remove the id from the list and update the
-                # rate and quantity
+                # otherwise update the item and remove the id from the list
                 orderitemid = iddict[budgetitem['ID']]
                 orderitem = DBSession.query(OrderItem).filter_by(
                                     ID=orderitemid).first()
-                orderitem.Quantity = float(budgetitem['Quantity'])
-                rate = budgetitem['Rate']
-                orderitem.Rate = Decimal(rate).quantize(Decimal('.01'))
+                orderitem.Quantity = budgetitem['Quantity']
+                orderitem.Rate = budgetitem['Rate']
+                orderitem.Discount = budgetitem['Discount']
                 vat = budgetitem.get('VAT', False)
                 vatpercentage = 0
                 if vat:

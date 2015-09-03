@@ -4,8 +4,6 @@ angular.module('services', ['config'])
 
 .service('SessionService', ['$q', '$http', '$window', '$rootScope', 'globalServerURL',
     function($q, $http, $window, $rootScope, globalServerURL){
-        var userpermissions = undefined;
-        var currency = undefined;
 
         this.login = function(username, password){
             var p = $q.defer();
@@ -21,7 +19,6 @@ angular.module('services', ['config'])
                     // Success
                     $window.localStorage.auth_token = response.data.access_token;
                     $window.localStorage.auth_username = username;
-                    userpermissions = undefined;
                     $rootScope.$broadcast('session:changed', username);
                     p.resolve();
                 },
@@ -53,16 +50,10 @@ angular.module('services', ['config'])
 
         this.permissions = function(){
             var deferred = $q.defer();
-            if (userpermissions){
-                deferred.resolve(userpermissions);
-            } else {
-                $http.get(globalServerURL + 'rights/' + this.username() + '/')
-                .success(function(response){
-                    userpermissions = response;
-                    deferred.resolve(userpermissions);
-                });
-            }
-
+            $http.get(globalServerURL + 'rights/' + this.username() + '/')
+            .success(function(response){
+                deferred.resolve(response);
+            });
             return deferred.promise;
         };
 
@@ -70,8 +61,16 @@ angular.module('services', ['config'])
             var deferred = $q.defer();
             $http.get(globalServerURL + 'currency')
             .success(function(response){
-                currency = response;
-                deferred.resolve(currency);
+                deferred.resolve(response);
+            });
+            return deferred.promise;
+        };
+
+        this.get_tax_rate = function(){
+            var deferred = $q.defer();
+            $http.get(globalServerURL + 'company_information')
+            .success(function(response){
+                deferred.resolve(parseFloat(response.DefaultTaxrate))
             });
             return deferred.promise;
         };
