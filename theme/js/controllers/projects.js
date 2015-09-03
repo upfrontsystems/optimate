@@ -29,6 +29,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
         $scope.isDisabled = false;
         $scope.calculatorHidden = true; // set calculator to be hidden by default
         $scope.rowsSelected = false;    // set selected rows false
+        $scope.showBudgetActions = false;
         $scope.projectStates = ['Draft', 'Approved', 'Completed'];
 
         // get the user permissions
@@ -488,6 +489,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
 
         // load the overheads a budgetitem can use
         $scope.loadBudgetItemOverheads = function(nodeid) {
+            deferred = $q.defer()
             var req = {
                 method: 'GET',
                 url: globalServerURL + nodeid + '/overheads/',
@@ -497,7 +499,15 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             .success(function(data) {
                 $scope.budgetItemOverheadList = data;
                 console.log("BudgetItem overhead list loaded");
+                deferred.resolve();
             });
+            return deferred.promise;
+        }
+
+        // load the markups that apply to the selection
+        $scope.loadSelectionMarkup = function(){
+            // get the id of a selected row and load the budgetitem markups
+            $scope.loadBudgetItemOverheads($scope.getSelectedNodes()[0].ID);
         }
 
         // delete an overhead by id
@@ -799,6 +809,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             $scope.calculatorHidden = true;
             $scope.modalState = "Edit"
             $scope.isDisabled = false;
+            console.log("getting node data");
             var req = {
                 method: 'GET',
                 url: globalServerURL + 'node/' + nodeid + '/'
@@ -814,16 +825,10 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                     $scope.formData.selected.ID = response.ResourceID
                     $scope.formData.NodeType = nodetype;
                     $scope.resourceSelected($scope.formData.selected);
-                    // update overheadlist
-                    $http.get({
-                        url: globalServerURL + + nodeid + '/overheads/',
-                        data: {'NodeType': 'BudgetItem'}})
-                    .success(function(data) {
-                        $scope.budgetItemOverheadList = data;
+                    // load budgetitem overhead list
+                    $scope.loadBudgetItemOverheads(nodeid).then(function(){
                         var overheadlist = response['OverheadList'];
-                        var arrayLength = overheadlist.length;
-
-                        for (var i = 0; i < arrayLength; i++) {
+                        for (var i = 0; i < overheadlist.length; i++) {
                             var index = $scope.budgetItemOverheadList.map(function(e) {
                                 return e.ID; }).indexOf(overheadlist[i].ID);
                             if (index > -1) {
@@ -1287,6 +1292,9 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
         $scope.toggleRowsSelected = function(rowsselected) {
             $timeout(function() {
                 $scope.rowsSelected = rowsselected;
+                if (rowsselected){
+                    $scope.budgetActions();
+                }
             });
         }
 
@@ -1308,6 +1316,38 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 if (index>-1) {
                     $scope.cutScope.Subitem[index].cut = cut;
                 }
+            }
+        }
+
+        // get the selected rows and determine if they are budgetgroups/items
+        $scope.budgetActions = function(){
+            var selectedRows = $scope.getSelectedNodes();
+            var allbudgets = true;
+            for (var i in selectedRows) {
+                if (selectedRows[i].NodeType.indexOf("Budget") < 0){
+                    allbudgets = false;
+                    break;
+                }
+            }
+            $scope.showBudgetActions = allbudgets;
+        }
+
+        $scope.applyMarkupToSelection = function(){
+            var selectedRows = $scope.getSelectedNodes();
+            var count = 0;
+            for (var i in selectedRows) {
+                var req = {
+                    method: 'PUT',
+                    url: globalServerURL + selectedRows[i].ID + '/overheads/',
+                    data: {'overheadlist':$scope.budgetItemOverheadList}
+                }
+                $http(req).success(function() {
+                    console.log("Overheads applied to " + selectedRows[count].ID);
+                    if (count == selectedRows.length -1){
+                        $scope.loadNodeChildren($scope.currentNode.ID);
+                    }
+                    count +=1;
+                });
             }
         }
 

@@ -791,9 +791,10 @@ def resourcetypes(request):
 
 @view_config(route_name="overheadsview", renderer='json', permission='view')
 def overheadsview(request):
-    """ Perform operations on the Overheads of a specified Project
+    """ Perform operations on the Overheads of a specified node
         depending on the method
     """
+    # get a list of overheads that can be applied to this node
     if request.method == 'GET':
         paramsdict = request.params.dict_of_lists()
         paramkeys = paramsdict.keys()
@@ -813,6 +814,28 @@ def overheadsview(request):
         for overhead in overheads:
             overheadlist.append(overhead.dict())
         return sorted(overheadlist, key=lambda k: k['Name'].upper())
+
+    # apply a list of overheads to a node
+    elif request.method == 'PUT':
+        if not request.has_permission('edit'):
+            return HTTPForbidden()
+
+        nodeid = request.matchdict['nodeid']
+        overheadlist = request.json_body['overheadlist']
+
+        node = DBSession.query(Node).filter_by(ID=nodeid).first()
+
+        budgetitems = node.getBudgetItems()
+        for budgetitem in budgetitems:
+            for overhead in overheadlist:
+                if overhead.get('selected', False):
+                    overheadid = overhead['ID']
+                    overhead = DBSession.query(Overhead
+                                            ).filter_by(ID=overheadid).first()
+                    if overhead not in budgetitem.Overheads:
+                        budgetitem.Overheads.append(overhead)
+
+        return HTTPOk()
 
     elif request.method == 'POST':
         if not request.has_permission('edit'):
@@ -1032,7 +1055,7 @@ def node_paste(request):
             # get the budgetitems that were pasted
             destbudgetitems = projectcopy.getBudgetItems()
             # change the resource ids of budgetitems who were copied
-            for budgeitem in destbudgetitems:
+            for budgetitem in destbudgetitems:
                 if budgetitem.ResourceID in copiedresourceIds:
                     budgetitem.ResourceID = copiedresourceIds[
                                                 budgetitem.ResourceID]

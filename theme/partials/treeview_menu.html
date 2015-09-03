@@ -200,7 +200,7 @@
                 </li>
                 <li data-ng-show="user.permissions.projects == 'edit' && currentNode.ParentType != 'BudgetItem'">
                     <a role="button" data-toggle="modal" data-target="#addBudgetItem"
-                        data-ng-click="editNode(currentNode.ID); loadBudgetItemRelatedList(currentNode.ID)"
+                        data-ng-click="editNode(currentNode.ID)"
                        title="Edit Budget Item">
                         <i class="fa fa-pencil"></i>
                     </a>
@@ -258,7 +258,7 @@
                 </li>
                 <li data-ng-show="user.permissions.projects == 'edit'">
                     <a role="button" data-toggle="modal" data-target="#addBudgetItem"
-                        data-ng-click="editNode(currentNode.ID); loadBudgetItemRelatedList(currentNode.ID)"
+                        data-ng-click="editNode(currentNode.ID)"
                        title="Edit Budget Item">
                         <i class="fa fa-pencil"></i>
                     </a>

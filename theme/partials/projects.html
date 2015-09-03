@@ -32,6 +32,15 @@
                     <i class="fa fa-trash"></i>
                 </a>
             </li>
+            <li data-ng-show="user.permissions.projects == 'edit' && showBudgetActions">
+                <a role="button"
+                    data-target="#editSelectionMarkup"
+                    data-ng-click="loadSelectionMarkup()"
+                    data-toggle="modal"
+                    title="Edit markup">
+                    <i class="fa fa-money"></i>
+                </a>
+            </li>
         </ul>
     </div>
 </nav>
@@ -127,6 +136,9 @@
 <!-- template for the overheads modal -->
 <div custom-modals modal-id="editOverheads"
     modal-src="modal_templates/editOverheads.html">
+</div>
+<div custom-modals modal-id="editSelectionMarkup"
+    modal-src="modal_templates/editSelectionMarkup.html">
 </div>
 
 <!-- div directives for the custom modals -->

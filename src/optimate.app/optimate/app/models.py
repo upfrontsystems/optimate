@@ -135,6 +135,14 @@ class Node(Base):
             if child.type != 'ResourceCategory':
                 source.paste(child.copy(source.ID), child.Children)
 
+    def __eq__(self, other):
+        """ Test for equality on the Node ID
+        """
+        if other == None:
+            return False
+        else:
+            return self.ID == other.ID
+
     def __repr__(self):
         return '<Node(ID="%s", ParentID="%s")>' % (self.ID, self.ParentID)
 
