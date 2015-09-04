@@ -175,14 +175,12 @@
                             data-ng-disabled="saveOrderModalForm.inputProject.$invalid">
                         <i class="fa fa-plus"> </i>
                     </button>
-                    <button class="btn btn-default"
+                    <button class="btn btn-primary"
                             id="addBudgetItemsButton"
                             data-ng-click="toggleBudgetItemsGrid()"
                             data-ng-show="!isCollapsed"
-                            tabindex="1"
-                            title="Show grid"
-                            data-ng-disabled="saveOrderModalForm.inputProject.$invalid">
-                        <i class="fa fa-list"> </i>
+                            tabindex="1">
+                            Submit
                     </button>
                     <button data-ng-show="isCollapsed && rowsSelected"
                             class="btn btn-default pull-left"
