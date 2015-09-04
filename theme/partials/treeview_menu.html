@@ -507,12 +507,6 @@
                         title="Paste Project">
                         <i class="fa fa-clipboard"></i>
                     </a>
-                    <a data-ng-switch-when="ResourcePart"
-                        role="button"
-                        data-ng-click="pasteThisNode(projectsRoot)"
-                        title="Paste Project">
-                        <i class="fa fa-clipboard"></i>
-                    </a>
                     <a data-ng-switch-default
                         role="button" style="color: gray;">
                         <i class="fa fa-clipboard"></i>
@@ -557,6 +551,12 @@
                     </a>
                 </li>
                 <li data-ng-show="user.permissions.projects == 'edit' && copiedNode" data-ng-switch="copiedNode.NodeType">
+                    <a data-ng-switch-when="Project"
+                        role="button"
+                        data-ng-click="pasteThisNode(projectsRoot)"
+                        title="Paste Project">
+                        <i class="fa fa-clipboard"></i>
+                    </a>
                     <a data-ng-switch-default
                         role="button" style="color: gray;">
                         <i class="fa fa-clipboard"></i>

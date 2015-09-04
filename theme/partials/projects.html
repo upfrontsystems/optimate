@@ -231,6 +231,37 @@
     </div>
 </script>
 
+<script type="text/ng-template" id="checkRateAndQuantityModal.html">
+    <div class="modal-header">
+        <h3 class="modal-title">Paste quantity and/or rate</h3>
+    </div>
+    <div class="modal-body">
+        <table>
+            <tr><td>Include:</td>
+                <td><button class="custom-checkbox"
+                          data-ng-click="selections.rate = !selections.rate">
+                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[selections.rate]">
+                        </i>
+                    </button>
+                </td>
+                <td>Rates</td>
+            </tr>
+            <tr><td></td>
+                <td><button class="custom-checkbox"
+                          data-ng-click="selections.quantity = !selections.quantity">
+                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[selections.quantity]">
+                        </i>
+                    </button>
+                </td>
+                <td>Quantities</td>
+            </tr>
+        </table>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" data-ng-click="done()">Paste</button>
+    </div>
+</script>
+
 <script>
 $(document).ready(function() {
 

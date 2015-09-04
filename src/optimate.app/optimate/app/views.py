@@ -280,7 +280,7 @@ def additemview(request):
         # get the list of overheads used in the checkboxes
         checklist = request.json_body['OverheadList']
         for record in checklist:
-            if record['selected']:
+            if record.get('selected', False):
                 overheadid = record['ID']
                 overhead = DBSession.query(
                             Overhead).filter_by(ID=overheadid).first()
@@ -435,13 +435,16 @@ def edititemview(request):
             if resource.type == 'ResourceUnit':
                 expandBudgetItem(bi.ID, resource)
 
+            transaction.commit()
+            bi = DBSession.query(BudgetItem).filter_by(ID=nodeid).first()
+
         bi.Overheads[:] = []
 
         # get the list of overheads used in the checkboxes
         checklist = request.json_body['OverheadList']
         newoverheads = []
         for record in checklist:
-            if record['selected']:
+            if record.get('selected', False):
                 overheadid = record['ID']
                 overhead = DBSession.query(Overhead).filter_by(
                                                         ID=overheadid).first()
@@ -1014,11 +1017,14 @@ def node_paste(request):
     parentid = dest.ID
     sourceparent = source.ParentID
     node_pasted = True
+
     # if a project is being pasted into the root
     if (parentid == 0) and (source.type == 'Project'):
+        selections = request.json_body['selections']
         if request.json_body["cut"]:
             projectid = sourceid
             pasted_id = sourceid
+            source.clearCosts(selections['rate'], selections['quantity'])
         else:
             # Paste the source into the destination
             projectcopy = source.copy(dest.ID)
@@ -1059,12 +1065,12 @@ def node_paste(request):
                 if budgetitem.ResourceID in copiedresourceIds:
                     budgetitem.ResourceID = copiedresourceIds[
                                                 budgetitem.ResourceID]
-            # set the costs to zero
-            projectcopy.clearCosts()
+            # set the rate and quantity to what the user indicated
+            projectcopy.clearCosts(selections['rate'], selections['quantity'])
             pasted_id = projectcopy.ID
     # if we're dealing with resource categories
     elif source.type == 'ResourceCategory' and dest.type == 'ResourceCategory':
-        duplicates = request.json_body.get('duplicates', {})
+        duplicates = request.json_body.get('selections', {})
         resourcecodes = duplicates.keys()
         sourceresources = source.getResources()
 
@@ -1161,8 +1167,10 @@ def node_paste(request):
                         return HTTPConflict()
                 else:
                     return HTTPConflict()
+        # else for budget type nodes
         # if the source is to be cut and pasted into the destination
         elif request.json_body["cut"]:
+            selections = request.json_body['selections']
             # check if the node was pasted into a different project
             # Get the ID of the projects
             destprojectid = dest.getProjectID()
@@ -1231,7 +1239,9 @@ def node_paste(request):
             dest.Total += source.Total
             pasted_id = source.ID
             transaction.commit()
+            source.clearCosts(selections['rate'], selections['quantity'])
         else:
+            selections = request.json_body['selections']
             # Paste the source into the destination
             copy_of_source = source.copy(dest.ID)
             dest.paste(copy_of_source, source.Children)
@@ -1293,12 +1303,14 @@ def node_paste(request):
             dest.Ordered += source.Ordered
             dest.Invoiced += source.Invoiced
             dest.Total += source.Total
+            copy_of_source.clearCosts(selections['rate'], selections['quantity'])
     # when a node is pasted in the same level
     else:
         # can't do this for resources or resource categories
         if not (source.type == 'ResourceCategory' or source.type == 'Resource'):
             # don't do anything is the source was cut
             if not request.json_body["cut"]:
+                selections = request.json_body['selections']
                 # Paste the source into the destination
                 nodecopy = source.copy(dest.ID)
                 existing_sibling_names = [x.Name for x in dest.Children]
@@ -1318,6 +1330,7 @@ def node_paste(request):
                 dest.Total += source.Total
                 DBSession.flush()
                 pasted_id = nodecopy.ID
+                nodecopy.clearCosts(selections['rate'], selections['quantity'])
 
     transaction.commit()
     # return the new id

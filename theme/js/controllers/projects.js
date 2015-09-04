@@ -20,6 +20,17 @@ var duplicateModalController = function ($scope, $modalInstance, selections) {
 
 angular.module('myApp').controller('duplicateModalController', duplicateModalController);
 
+var checkRateAndQuantityController = function ($scope, $modalInstance, selections) {
+
+    $scope.selections = selections;
+
+    $scope.done = function () {
+        $modalInstance.close($scope.selections);
+    };
+};
+
+angular.module('myApp').controller('checkRateAndQuantityController', checkRateAndQuantityController);
+
 // Controller for the projects and treeview
 myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'globalServerURL', '$timeout', '$modal', 'SessionService', '$q',
     function($scope, $http, $cacheFactory, globalServerURL, $timeout, $modal, SessionService, $q) {
@@ -281,6 +292,9 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
         $scope.allowed['BudgetItem'] = ['BudgetItem'];
         $scope.allowed['ResourceCategory'] = ['ResourceCategory', 'Resource'];
         $scope.allowed['Resource'] = [];
+        $scope.allowed['ResourceUnit'] = [];
+        $scope.allowed['ResourcePart'] = [];
+        $scope.allowed['SimpleBudgetItem'] =[];
         $scope.allowed['Root'] = ['Project'];
         $scope.dragOverNode = {'original': undefined};
         $scope.dragOver = function(node) {
@@ -931,7 +945,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 url: globalServerURL + 'node/' + node.ID + '/paste/',
                 data:{'ID': $scope.copiedNode.ID,
                         'cut': $scope.copiedNode.cut,
-                        'duplicates': selectionlist}
+                        'selections': selectionlist}
             }).success(function (response) {
                 console.log('Success: Node pasted');
                 // expand the node if this is its first child
@@ -1096,6 +1110,31 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             })();
         };
 
+        // check if the rate and/or quantity is to be pasted
+        $scope.checkRateAndQuantity = function(node, index) {
+           var selections = {'quantity': false,
+                                'rate': false};
+            var openModal = function() {
+                var modalInstance = $modal.open({
+                    templateUrl: 'checkRateAndQuantityModal.html',
+                    controller: checkRateAndQuantityController,
+                    resolve: {
+                        selections: function () {
+                            return selections;
+                        }
+                    }
+                });
+                return modalInstance.result.then(function (sel) {
+                    selections = sel;
+                });
+            };
+
+            // continue when response from modal is returned
+            openModal().finally(function() {
+                $scope.pasteAction(node, selections, index);
+            });
+        };
+
         // function to paste copied node into another node
         // the id is sent to the server and the node pasted there
         // the user can't paste into the same node
@@ -1122,10 +1161,10 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                     $scope.resolvePastePromise(node, index);
                 }
             }
-            if (cnode.cut) {
+            if (flag && cnode.cut) {
                 $scope.statusMessage("Busy moving...", 0, 'alert-info');
             }
-            else {
+            else if (flag){
                 $scope.statusMessage("Busy copying...", 0, 'alert-info');
             }
             if (flag && ((cnode.NodeType == 'ResourceCategory') && (node.NodeType == 'ResourceCategory'))) {
@@ -1165,6 +1204,11 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                         });
                     });
                 }
+            }
+            // for projects, budgetgroups, and budgetitems check quantities and rate
+            else if (flag && (cnode.NodeType == 'Project' || cnode.NodeType == 'BudgetGroup' || cnode.NodeType == 'BudgetItem' || cnode.NodeType == 'SimpleBudgetItem')){
+                flag = false;
+                $scope.checkRateAndQuantity(node, index)
             }
             if (flag) {
                 $scope.pasteAction(node, {}, index);

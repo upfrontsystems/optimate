@@ -182,14 +182,14 @@ class Project(Node):
         'inherit_condition': (ID == Node.ID),
     }
 
-    def clearCosts(self):
-        """ Set the Total to zero and do the same for all
-            children
+    def clearCosts(self, rate, quantity):
+        """ Reset the Total depending on the user selection
         """
-        self._Total = Decimal(0)
+        # if not (rate and quantity):
+        #     self.Total = Decimal(0)
         for child in self.Children:
             if child.type != 'ResourceCategory':
-                child.clearCosts()
+                child.clearCosts(rate, quantity)
 
     @property
     def Total(self):
@@ -321,13 +321,13 @@ class BudgetGroup(Node):
         'inherit_condition': (ID == Node.ID),
     }
 
-    def clearCosts(self):
-        """ Set the Total to zero and do the same for all
-            children
+    def clearCosts(self,rate, quantity):
+        """ Set the Total to the user selection
         """
-        self._Total = Decimal(0)
+        # if not (rate and quantity):
+        #     self.Total = Decimal(0)
         for child in self.Children:
-            child.clearCosts()
+            child.clearCosts(rate, quantity)
 
     @property
     def Total(self):
@@ -504,11 +504,13 @@ class BudgetItem(Node):
         'inherit_condition': (ID == Node.ID),
     }
 
-    def clearCosts(self):
-        """ Set the Total and Quantity costs to zero
+    def clearCosts(self, rate, quantity):
+        """ Set the Total and Quantity costs to the user selection
         """
-        self._Total = Decimal(0)
-        self._Quantity = 0.0
+        if not quantity:
+            self.Quantity = 0.0
+        for child in self.Children:
+            child.clearCosts(rate, quantity)
 
     @property
     def Name(self):
@@ -840,6 +842,14 @@ class SimpleBudgetItem(BudgetItem):
         # change the total when the rate changes
         self.Total = (1.0+self.Markup) * self.Quantity * float(rate)
         self._Rate = Decimal(rate).quantize(Decimal('.01'))
+
+    def clearCosts(self, rate, quantity):
+        """ Set the Total, Quantity, and Rate costs to the user selection
+        """
+        if not rate:
+            self.Rate = 0
+        if not quantity:
+            self.Quantity = 0.0
 
     def copy(self, parentid):
         """ copy returns an exact duplicate of this SimpleBudgetItem,
