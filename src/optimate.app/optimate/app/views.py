@@ -564,6 +564,11 @@ def node_budgetitems(request):
     if 'resource' in paramkeys:
         resid = int(paramsdict['resource'][0])
         budgetitemslist = [x for x in budgetitemslist if x.ResourceID == resid]
+    # filter by supplier
+    if 'supplier' in paramkeys:
+        supid = int(paramsdict['supplier'][0])
+        budgetitemslist = [x for x in budgetitemslist if x.Resource.SupplierID == supid]
+
     itemlist = []
     for bi in budgetitemslist:
         # only add budgetitems with no children as an order item

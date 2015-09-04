@@ -166,7 +166,7 @@
                                     <label for="inputName"
                                            class="col-sm-2 control-label">Resource:
                                     </label>
-                                    <ui-select data-ng-model="selectedResource.selected"
+                                    <ui-select data-ng-model="selectedOrderingOn.resource.selected"
                                                 id="inputName"
                                                 on-select="resourceSelected($item)"
                                                 theme="bootstrap"
@@ -184,6 +184,14 @@
                                     </ui-select>
                                 </div>
                             </form>
+                        </div>
+                        <div data-ng-switch-when="supplier">
+                            <select chosen
+                                    data-ng-model="selectedOrderingOn.supplier"
+                                    data-ng-options="supplier.ID as supplier.Name for supplier in suppliersList"
+                                    data-ng-change="supplierSelected()">
+                                <option value="">Supplier</option>
+                            </select>
                         </div>
                         <div>&nbsp;</div>
                     </div>

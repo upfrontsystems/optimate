@@ -16,6 +16,7 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
         $scope.jsonorders = [];
         $scope.budgetItemsList = [];
         $scope.invoiceList = [];
+        $scope.selectedOrderingOn = {};
         // Pagination variables and functions
         $scope.pageSize = 100;
         $scope.currentPage = 1;
@@ -210,6 +211,7 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
             $scope.modalState = "Add";
             $scope.budgetItemsList = [];
             $scope.resourceList = [];
+            $scope.selectedOrderingOn = {};
             $scope.dateTimeNow();
             $scope.formData['Date'] = $scope.date;
             if ($scope.selectedOrder) {
@@ -226,6 +228,7 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
             $scope.orderingOn = undefined;
             $scope.modalState = "Edit";
             $scope.resourceList = [];
+            $scope.selectedOrderingOn = {};
             $http({
                 method: 'GET',
                 url: globalServerURL + 'order/' + $scope.selectedOrder.ID + '/'
@@ -520,6 +523,40 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
                 }
             })
         }
+
+        $scope.supplierSelected = function() {
+            // find all budget items in the project that uses the selected supplier
+            var req = {
+                method: 'GET',
+                url: globalServerURL + 'node/' + $scope.formData.ProjectID + '/budgetitems/',
+                params : {'supplier': $scope.selectedOrderingOn.supplier}
+            }
+            $http(req).success(function(response) {
+                // if the budgetitem list is empty just add all the nodes in order
+                if ($scope.budgetItemsList.length == 0) {
+                    $scope.budgetItemsList = response;
+                }
+                else {
+                    for (var v = 0; v<response.length; v++) {
+                        var comp = response[v];
+                        // find the budgetitem in the budgetitem list
+                        var i = $scope.budgetItemsList.map(function(e)
+                            { return e.id; }).indexOf(comp.ID);
+                        // if the budgetItem is not in the list
+                        if (i==-1) {
+                            var index = $scope.locationOf(comp);
+                            // add the budgetItem
+                            if (index == -1) {
+                                $scope.budgetItemsList.push(comp);
+                            }
+                            else {
+                                $scope.budgetItemsList.splice(index, 0, comp);
+                            }
+                        }
+                    }
+                }
+            });
+        };
 
         $scope.resourceSelected = function(item) {
             // find all budget items in the project that uses the selected resource
