@@ -1032,10 +1032,21 @@ def node_paste(request):
     # if a project is being pasted into the root
     if (parentid == 0) and (source.type == 'Project'):
         selections = request.json_body['selections']
+        pasterate = False
+        pastequantity = False
+        for sel in selections:
+            if sel['Name'] == 'Quantity':
+                pastequantity = sel['selected']
+            elif sel['Name'] == 'Rate':
+                pasterate = sel['selected']
+
         if request.json_body["cut"]:
             projectid = sourceid
             pasted_id = sourceid
-            source.clearCosts(selections['rate'], selections['quantity'])
+
+            # only need to clear costs if rate or quantity not included
+            if not (pastequantity and pasterate):
+                source.clearCosts(pasterate, pastequantity)
         else:
             # Paste the source into the destination
             projectcopy = source.copy(dest.ID)
@@ -1076,9 +1087,12 @@ def node_paste(request):
                 if budgetitem.ResourceID in copiedresourceIds:
                     budgetitem.ResourceID = copiedresourceIds[
                                                 budgetitem.ResourceID]
-            # set the rate and quantity to what the user indicated
-            projectcopy.clearCosts(selections['rate'], selections['quantity'])
-            pasted_id = projectcopy.ID
+            transaction.commit()
+            # only need to clear costs if rate or quantity not included
+            if not (pastequantity and pasterate):
+                projectcopy =DBSession.query(Project).filter_by(ID=projectid).first()
+                projectcopy.clearCosts(pasterate, pastequantity)
+            pasted_id = projectid
     # if we're dealing with resource categories
     elif source.type == 'ResourceCategory' and dest.type == 'ResourceCategory':
         duplicates = request.json_body.get('selections', {})
@@ -1181,7 +1195,6 @@ def node_paste(request):
         # else for budget type nodes
         # if the source is to be cut and pasted into the destination
         elif request.json_body["cut"]:
-            selections = request.json_body['selections']
             # check if the node was pasted into a different project
             # Get the ID of the projects
             destprojectid = dest.getProjectID()
@@ -1250,9 +1263,11 @@ def node_paste(request):
             dest.Total += source.Total
             pasted_id = source.ID
             transaction.commit()
-            source.clearCosts(selections['rate'], selections['quantity'])
+            pastequantity = request.json_body['selections'][0]['selected']
+            if not pastequantity:
+                source = DBSession.query(Node).filter_by(ID=pasted_id).first()
+                source.clearCosts()
         else:
-            selections = request.json_body['selections']
             # Paste the source into the destination
             copy_of_source = source.copy(dest.ID)
             dest.paste(copy_of_source, source.Children)
@@ -1314,7 +1329,12 @@ def node_paste(request):
             dest.Ordered += source.Ordered
             dest.Invoiced += source.Invoiced
             dest.Total += source.Total
-            copy_of_source.clearCosts(selections['rate'], selections['quantity'])
+            transaction.commit()
+            pastequantity = request.json_body['selections'][0]['selected']
+            # only need to clear costs if quantity not included
+            if not pastequantity:
+                source = DBSession.query(Node).filter_by(ID=pasted_id).first()
+                source.clearCosts()
     # when a node is pasted in the same level
     else:
         # can't do this for resources or resource categories
@@ -1341,7 +1361,11 @@ def node_paste(request):
                 dest.Total += source.Total
                 DBSession.flush()
                 pasted_id = nodecopy.ID
-                nodecopy.clearCosts(selections['rate'], selections['quantity'])
+                transaction.commit()
+                pastequantity = request.json_body['selections'][0]['selected']
+                if not pastequantity:
+                    source = DBSession.query(Node).filter_by(ID=pasted_id).first()
+                    source.clearCosts()
 
     transaction.commit()
     # return the new id

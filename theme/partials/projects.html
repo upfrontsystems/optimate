@@ -237,23 +237,15 @@
     </div>
     <div class="modal-body">
         <table>
-            <tr><td>Include:</td>
+            <tr><td>Include:</td></tr>
+            <tr data-ng-repeat="selection in selections">
                 <td><button class="custom-checkbox"
-                          data-ng-click="selections.rate = !selections.rate">
-                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[selections.rate]">
+                          data-ng-click="selection.selected = !selection.selected">
+                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[selection.selected]">
                         </i>
                     </button>
                 </td>
-                <td>Rates</td>
-            </tr>
-            <tr><td></td>
-                <td><button class="custom-checkbox"
-                          data-ng-click="selections.quantity = !selections.quantity">
-                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[selections.quantity]">
-                        </i>
-                    </button>
-                </td>
-                <td>Quantities</td>
+                <td>{{selection.Name}}</td>
             </tr>
         </table>
     </div>

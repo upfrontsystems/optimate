@@ -185,11 +185,15 @@ class Project(Node):
     def clearCosts(self, rate, quantity):
         """ Reset the Total depending on the user selection
         """
-        # if not (rate and quantity):
-        #     self.Total = Decimal(0)
         for child in self.Children:
+            # clear the quantities of non-resource types
             if child.type != 'ResourceCategory':
-                child.clearCosts(rate, quantity)
+                if not quantity:
+                    child.clearCosts()
+            # clear the rate of resource types
+            elif child.type == 'ResourceCategory':
+                if not rate:
+                    child.clearCosts()
 
     @property
     def Total(self):
@@ -321,13 +325,11 @@ class BudgetGroup(Node):
         'inherit_condition': (ID == Node.ID),
     }
 
-    def clearCosts(self,rate, quantity):
-        """ Set the Total to the user selection
+    def clearCosts(self):
+        """ Set the quantity of the budget groups children
         """
-        # if not (rate and quantity):
-        #     self.Total = Decimal(0)
         for child in self.Children:
-            child.clearCosts(rate, quantity)
+            child.clearCosts()
 
     @property
     def Total(self):
@@ -504,13 +506,12 @@ class BudgetItem(Node):
         'inherit_condition': (ID == Node.ID),
     }
 
-    def clearCosts(self, rate, quantity):
-        """ Set the Total and Quantity costs to the user selection
+    def clearCosts(self):
+        """ Clear the quantity
         """
-        if not quantity:
-            self.Quantity = 0.0
+        self.Quantity = 0.0
         for child in self.Children:
-            child.clearCosts(rate, quantity)
+            child.clearCosts()
 
     @property
     def Name(self):
@@ -843,13 +844,10 @@ class SimpleBudgetItem(BudgetItem):
         self.Total = (1.0+self.Markup) * self.Quantity * float(rate)
         self._Rate = Decimal(rate).quantize(Decimal('.01'))
 
-    def clearCosts(self, rate, quantity):
-        """ Set the Total, Quantity, and Rate costs to the user selection
+    def clearCosts(self):
+        """ Clear the costs
         """
-        if not rate:
-            self.Rate = 0
-        if not quantity:
-            self.Quantity = 0.0
+        self.Quantity = 0.0
 
     def copy(self, parentid):
         """ copy returns an exact duplicate of this SimpleBudgetItem,
@@ -987,6 +985,12 @@ class ResourceCategory(Node):
             return True
         else:
             return False
+
+    def clearCosts(self):
+        """ Clear the rate of the resource category's children
+        """
+        for child in self.Children:
+            child.clearCosts()
 
     def copy(self, parentid):
         """ copy returns an exact duplicate of this object,
@@ -1144,6 +1148,11 @@ class Resource(Node):
         """
         return [self]
 
+    def clearCosts(self):
+        """ Clear the rate of this resource
+        """
+        self.Rate = 0
+
     def dict(self):
         """ Override the dict function
         """
@@ -1197,6 +1206,11 @@ class ResourceUnit(Resource):
         'polymorphic_identity': 'ResourceUnit',
         'inherit_condition': (ID == Resource.ID),
     }
+
+    def clearCosts(self):
+        """ A resource unit's rate will be cleared when it's part's total's clear
+        """
+        pass
 
     def paste(self, source, sourcechildren):
         """ Paste a ResourcePart into this ResourceUnit

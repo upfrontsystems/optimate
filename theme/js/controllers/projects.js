@@ -1111,9 +1111,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
         };
 
         // check if the rate and/or quantity is to be pasted
-        $scope.checkRateAndQuantity = function(node, index) {
-           var selections = {'quantity': false,
-                                'rate': false};
+        $scope.checkRateAndQuantity = function(node, selections, index) {
             var openModal = function() {
                 var modalInstance = $modal.open({
                     templateUrl: 'checkRateAndQuantityModal.html',
@@ -1167,48 +1165,57 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             else if (flag){
                 $scope.statusMessage("Busy copying...", 0, 'alert-info');
             }
-            if (flag && ((cnode.NodeType == 'ResourceCategory') && (node.NodeType == 'ResourceCategory'))) {
-                flag = false;
-                if (cnode.ParentID == node.ID) {
-                    console.log("You can't paste a Resource Category into the same list");
-                    $scope.statusMessage("You can't paste a Resource Category into the same list", 2000, 'alert-warning');
-                    if (index !== undefined) {
-                        index+=1;
-                        $scope.resolvePastePromise(node, index);
+            if (flag){
+                if ((cnode.NodeType == 'ResourceCategory') && (node.NodeType == 'ResourceCategory')) {
+                    flag = false;
+                    if (cnode.ParentID == node.ID) {
+                        console.log("You can't paste a Resource Category into the same list");
+                        $scope.statusMessage("You can't paste a Resource Category into the same list", 2000, 'alert-warning');
+                        if (index !== undefined) {
+                            index+=1;
+                            $scope.resolvePastePromise(node, index);
+                        }
+                    }
+                    else {
+                        // get the resources in the copied category
+                        $http.get(globalServerURL + 'resourcecategory/' + cnode.ID + '/resources/')
+                        .success(function (response) {
+                            var copiedresources = response;
+                            // get the resources in the destination category
+                            $http.get(globalServerURL + 'resourcecategory/' + node.ID + '/allresources/')
+                            .success(function (response) {
+                                duplicatelist = [];
+                                selectionlist = {};
+                                var destinationresources = response;
+                                // get a list of the duplicate resources
+                                for (var d in destinationresources) {
+                                    for (var c in copiedresources) {
+                                        if (copiedresources[c].Code == destinationresources[d].Code)
+                                            duplicatelist.push(copiedresources[c]);
+                                    }
+                                }
+                                if (duplicatelist.length > 0) {
+                                    $scope.handleDuplicateResourceActions(node, duplicatelist, index);
+                                }
+                                else {
+                                    $scope.pasteAction(node, {}, index);
+                                }
+                            });
+                        });
                     }
                 }
-                else {
-                    // get the resources in the copied category
-                    $http.get(globalServerURL + 'resourcecategory/' + cnode.ID + '/resources/')
-                    .success(function (response) {
-                        var copiedresources = response;
-                        // get the resources in the destination category
-                        $http.get(globalServerURL + 'resourcecategory/' + node.ID + '/allresources/')
-                        .success(function (response) {
-                            duplicatelist = [];
-                            selectionlist = {};
-                            var destinationresources = response;
-                            // get a list of the duplicate resources
-                            for (var d in destinationresources) {
-                                for (var c in copiedresources) {
-                                    if (copiedresources[c].Code == destinationresources[d].Code)
-                                        duplicatelist.push(copiedresources[c]);
-                                }
-                            }
-                            if (duplicatelist.length > 0) {
-                                $scope.handleDuplicateResourceActions(node, duplicatelist, index);
-                            }
-                            else {
-                                $scope.pasteAction(node, {}, index);
-                            }
-                        });
-                    });
+                // for projects, budgetgroups, and budgetitems check quantities and rate
+                else if (cnode.NodeType == 'Project'){
+                    flag = false;
+                    var selections = [{'Name': 'Quantity', 'selected': false},
+                                        {'Name': 'Rate', 'selected': false}];
+                    $scope.checkRateAndQuantity(node, selections, index);
                 }
-            }
-            // for projects, budgetgroups, and budgetitems check quantities and rate
-            else if (flag && (cnode.NodeType == 'Project' || cnode.NodeType == 'BudgetGroup' || cnode.NodeType == 'BudgetItem' || cnode.NodeType == 'SimpleBudgetItem')){
-                flag = false;
-                $scope.checkRateAndQuantity(node, index)
+                else if (cnode.NodeType == 'BudgetGroup' || cnode.NodeType == 'BudgetItem' || cnode.NodeType == 'SimpleBudgetItem'){
+                    flag = false;
+                    var selections = [{'Name': 'Quantity', 'selected': false}];
+                    $scope.checkRateAndQuantity(node, selections, index);
+                }
             }
             if (flag) {
                 $scope.pasteAction(node, {}, index);
