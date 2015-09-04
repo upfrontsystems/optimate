@@ -205,6 +205,7 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
             $scope.formData = {'NodeType': 'order'};
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
+            $scope.orderingOn = undefined;
             $scope.orderFormProjectsDisabled = false;
             $scope.modalState = "Add";
             $scope.budgetItemsList = [];
@@ -221,6 +222,7 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
         $scope.editingState = function () {
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
+            $scope.orderingOn = undefined;
             $scope.modalState = "Edit";
             $http({
                 method: 'GET',

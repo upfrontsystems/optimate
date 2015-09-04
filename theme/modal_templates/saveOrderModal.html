@@ -133,9 +133,35 @@
                     </form>
                 </div>
                 <div data-ng-show="!isCollapsed">
-                    <div data-ng-include="'partials/orderTreeview.html'">
+                    <div data-ng-show="!orderingOn">
+                        <p>Select items from:</p>
+                        <table style="table-layout: fixed;">
+                            <tr>
+                                <td>
+                                    <button class="btn btn-primary"
+                                            data-ng-click="orderingOn = 'budget'">
+                                    Budget</button>
+                                </td>
+                                <td>
+                                    <button class="btn btn-primary"
+                                            data-ng-click="orderingOn = 'resource'">
+                                    Resource</button>
+                                </td>
+                                <td>
+                                    <button class="btn btn-primary"
+                                            data-ng-click="orderingOn = 'supplier'">
+                                    Supplier</button>
+                                </td>
+                            </tr>
+                        </table>
                     </div>
-                    <div>&nbsp;</div>
+                    <div data-ng-switch="orderingOn">
+                        <div data-ng-switch-when="budget">
+                            <div data-ng-include="'partials/orderTreeview.html'">
+                            </div>
+                        </div>
+                        <div>&nbsp;</div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
