@@ -892,10 +892,10 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                 // get the last row and update the values
                 var datalength = dataView.getLength();
                 var lastrow = dataView.getItem(datalength-1);
-                lastrow.Total = lastrow.Total + (item.Total - oldtotal);
+                lastrow.Total = parseFloat(lastrow.Total + (item.Total - oldtotal)).toFixed(2);
                 lastrow.Subtotal = lastrow.Subtotal + (item.Subtotal - oldsubtotal);
                 lastrow.VATCost = lastrow.VATCost + (item.VATCost - oldvatcost);
-                lastrow.Discount = lastrow.Subtotal + lastrow.VATCost - lastrow.Total;
+                lastrow.Discount = parseFloat(lastrow.Subtotal + lastrow.VATCost - lastrow.Total).toFixed(2);
                 dataView.updateItem(lastrow.id, lastrow);
             };
 

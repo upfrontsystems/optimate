@@ -160,6 +160,31 @@
                             <div data-ng-include="'partials/orderTreeview.html'">
                             </div>
                         </div>
+                        <div data-ng-switch-when="resource">
+                            <form class="form-horizontal">
+                                <div class="form-group">
+                                    <label for="inputName"
+                                           class="col-sm-2 control-label">Resource:
+                                    </label>
+                                    <ui-select data-ng-model="selectedResource.selected"
+                                                id="inputName"
+                                                on-select="resourceSelected($item)"
+                                                theme="bootstrap"
+                                                ng-disabled="disabled"
+                                                reset-search-input="true"
+                                                class="col-sm-7">
+                                        <ui-select-match placeholder="Enter a resource name">
+                                            {{$select.selected.Name}}
+                                        </ui-select-match>
+                                        <ui-select-choices repeat="resource in resourceList"
+                                                         refresh="refreshResources($select.search)"
+                                                         refresh-delay="300">
+                                            <div ng-bind-html="resource.Name | highlight: $select.search"></div>
+                                        </ui-select-choices>
+                                    </ui-select>
+                                </div>
+                            </form>
+                        </div>
                         <div>&nbsp;</div>
                     </div>
                 </div>

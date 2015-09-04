@@ -556,8 +556,14 @@ def node_budgetitems(request):
         that can be ordered
     """
     nodeid = request.matchdict['id']
+    paramsdict = request.params.dict_of_lists()
+    paramkeys = paramsdict.keys()
     qry = DBSession.query(Node).filter_by(ID=nodeid).first()
     budgetitemslist = qry.getBudgetItems()
+    # filter by resource
+    if 'resource' in paramkeys:
+        resid = int(paramsdict['resource'][0])
+        budgetitemslist = [x for x in budgetitemslist if x.ResourceID == resid]
     itemlist = []
     for bi in budgetitemslist:
         # only add budgetitems with no children as an order item
