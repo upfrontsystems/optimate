@@ -189,8 +189,9 @@ if __name__ == '__main__':
             if name != 'S&T':
                 if name == 'Subcontractors':
                     name = 'Subcontractor'
-                resourcetype = ResourceType(ID=code, Name=name)
-                DBSession.add(resourcetype)
+                if name != 'Profit & Attendance':
+                    resourcetype = ResourceType(ID=code, Name=name)
+                    DBSession.add(resourcetype)
         transaction.commit()
         # add a none type resource type
         resourcetype = ResourceType(ID=0, Name="")
@@ -946,7 +947,7 @@ if __name__ == '__main__':
                 rate = Decimal(0.00)
             try:
                 rtype = int(row[typeindex])
-                if rtype == 6:
+                if rtype == 6 or rtype == 5 or rtype == 4:
                     rtype = 0
             except:
                 rtype = 0

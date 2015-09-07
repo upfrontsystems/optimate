@@ -799,7 +799,10 @@ def resourcetypes(request):
     # return a list of the ResourceType names
     for restype in qry:
         if restype.Name != '':
-            restypelist.append({'ID': restype.ID, 'Name': restype.Name})
+            if restype.Name == 'Profit & Attendance':
+                DBSession.delete(restype)
+            else:
+                restypelist.append({'ID': restype.ID, 'Name': restype.Name})
     return sorted(restypelist, key=lambda k: k['Name'].upper())
 
 
