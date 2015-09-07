@@ -524,72 +524,8 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
             })
         }
 
-        $scope.supplierSelected = function() {
-            // find all budget items in the project that uses the selected supplier
-            var req = {
-                method: 'GET',
-                url: globalServerURL + 'node/' + $scope.formData.ProjectID + '/budgetitems/',
-                params : {'supplier': $scope.selectedOrderingOn.supplier}
-            }
-            $http(req).success(function(response) {
-                // if the budgetitem list is empty just add all the nodes in order
-                if ($scope.budgetItemsList.length == 0) {
-                    $scope.budgetItemsList = response;
-                }
-                else {
-                    for (var v = 0; v<response.length; v++) {
-                        var comp = response[v];
-                        // find the budgetitem in the budgetitem list
-                        var i = $scope.budgetItemsList.map(function(e)
-                            { return e.id; }).indexOf(comp.ID);
-                        // if the budgetItem is not in the list
-                        if (i==-1) {
-                            var index = $scope.locationOf(comp);
-                            // add the budgetItem
-                            if (index == -1) {
-                                $scope.budgetItemsList.push(comp);
-                            }
-                            else {
-                                $scope.budgetItemsList.splice(index, 0, comp);
-                            }
-                        }
-                    }
-                }
-            });
-        };
-
         $scope.resourceSelected = function(item) {
-            // find all budget items in the project that uses the selected resource
-            var req = {
-                method: 'GET',
-                url: globalServerURL + 'node/' + $scope.formData.ProjectID + '/budgetitems/',
-                params : {'resource': item.ID}
-            }
-            $http(req).success(function(response) {
-                // if the budgetitem list is empty just add all the nodes in order
-                if ($scope.budgetItemsList.length == 0) {
-                    $scope.budgetItemsList = response;
-                }
-                else {
-                    for (var v = 0; v<response.length; v++) {
-                        var comp = response[v];
-                        // find the budgetitem in the budgetitem list
-                        var i = $scope.budgetItemsList.map(function(e)
-                            { return e.id; }).indexOf(comp.ID);
-                        // if the budgetItem is not in the list
-                        if (i==-1) {
-                            var index = $scope.locationOf(comp);
-                            // add the budgetItem
-                            if (index == -1) {
-                                $scope.budgetItemsList.push(comp);
-                            }
-                            else {
-                                $scope.budgetItemsList.splice(index, 0, comp);
-                            }
-                        }
-                    }
-                }
-            });
+            $scope.selectedOrderingOn.resource = item;
         };
 
         // search for the resources in the node's category that match the search term
@@ -603,6 +539,60 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
                 $http(req).success(function(response) {
                     $scope.resourceList = response;
                 });
+            }
+        }
+
+        // based on the user selection, load the order items
+        $scope.loadSelection = function(){
+            var par = undefined;
+            if ($scope.orderingOn == 'resource'){
+                par = {'resource': $scope.selectedOrderingOn.resource.ID};
+            }
+            else if ($scope.orderingOn == 'supplier'){
+                par = {'supplier': $scope.selectedOrderingOn.supplier}
+            }
+            $scope.toggleBudgetItemsGrid();
+            $scope.selectedOrderingOn = {};
+            var target = document.getElementsByClassName('slick-viewport');
+            var spinner = new Spinner().spin(target[0]);
+
+            if (par){
+                var req = {
+                    method: 'GET',
+                    url: globalServerURL + 'node/' + $scope.formData.ProjectID + '/budgetitems/',
+                    params : par
+                }
+                $http(req).success(function(response) {
+                    // if the budgetitem list is empty just add all the nodes in order
+                    if ($scope.budgetItemsList.length == 0) {
+                        $scope.budgetItemsList = response;
+                    }
+                    else {
+                        for (var v = 0; v<response.length; v++) {
+                            var comp = response[v];
+                            // find the budgetitem in the budgetitem list
+                            var i = $scope.budgetItemsList.map(function(e)
+                                { return e.id; }).indexOf(comp.ID);
+                            // if the budgetItem is not in the list
+                            if (i==-1) {
+                                var index = $scope.locationOf(comp);
+                                // add the budgetItem
+                                if (index == -1) {
+                                    $scope.budgetItemsList.push(comp);
+                                }
+                                else {
+                                    $scope.budgetItemsList.splice(index, 0, comp);
+                                }
+                            }
+                        }
+                    }
+                    $scope.orderingOn = undefined;
+                    spinner.stop();
+                });
+            }
+            else{
+                $scope.orderingOn = undefined;
+                spinner.stop();
             }
         }
 

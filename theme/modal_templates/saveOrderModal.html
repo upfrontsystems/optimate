@@ -166,7 +166,7 @@
                                     <label for="inputName"
                                            class="col-sm-2 control-label">Resource:
                                     </label>
-                                    <ui-select data-ng-model="selectedOrderingOn.resource.selected"
+                                    <ui-select data-ng-model="selectedOrderingOn.selected"
                                                 id="inputName"
                                                 on-select="resourceSelected($item)"
                                                 theme="bootstrap"
@@ -178,7 +178,7 @@
                                         </ui-select-match>
                                         <ui-select-choices repeat="resource in resourceList"
                                                          refresh="refreshResources($select.search)"
-                                                         refresh-delay="300">
+                                                         refresh-delay="100">
                                             <div ng-bind-html="resource.Name | highlight: $select.search"></div>
                                         </ui-select-choices>
                                     </ui-select>
@@ -189,7 +189,6 @@
                             <select chosen
                                     data-ng-model="selectedOrderingOn.supplier"
                                     data-ng-options="supplier.ID as supplier.Name for supplier in suppliersList"
-                                    data-ng-change="supplierSelected()">
                                 <option value="">Supplier</option>
                             </select>
                         </div>
@@ -210,7 +209,7 @@
                     </button>
                     <button class="btn btn-primary"
                             id="addBudgetItemsButton"
-                            data-ng-click="toggleBudgetItemsGrid()"
+                            data-ng-click="loadSelection()"
                             data-ng-show="!isCollapsed"
                             tabindex="1">
                             Submit
