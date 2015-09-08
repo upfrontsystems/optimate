@@ -133,62 +133,50 @@
                     </form>
                 </div>
                 <div data-ng-show="!isCollapsed">
-                    <div data-ng-show="!orderingOn">
-                        <p>Select items from:</p>
-                        <table style="table-layout: fixed;">
-                            <tr>
-                                <td>
-                                    <button class="btn btn-primary"
-                                            data-ng-click="orderingOn = 'budget'">
-                                    Budget</button>
-                                </td>
-                                <td>
-                                    <button class="btn btn-primary"
-                                            data-ng-click="orderingOn = 'resource'">
-                                    Resource</button>
-                                </td>
-                                <td>
-                                    <button class="btn btn-primary"
-                                            data-ng-click="orderingOn = 'supplier'">
-                                    Supplier</button>
-                                </td>
-                            </tr>
-                        </table>
+                    <div role="navigation">
+                        <ul class="nav nav-pills">
+                            <li role="presentation" data-ng-class="{'budget':'active'}[orderingOn]">
+                                <a data-ng-click="orderingOn = 'budget'">Budget</a></li>
+                            <li role="presentation" data-ng-class="{'resource':'active'}[orderingOn]">
+                                <a data-ng-click="orderingOn = 'resource'">Resource</a></li>
+                            <li role="presentation" data-ng-class="{'supplier':'active'}[orderingOn]">
+                                <a data-ng-click="orderingOn = 'supplier'">Supplier</a></li>
+                        </ul>
                     </div>
+                    <div>&nbsp;</div>
                     <div data-ng-switch="orderingOn">
                         <div data-ng-switch-when="budget">
                             <div data-ng-include="'partials/orderTreeview.html'">
                             </div>
                         </div>
                         <div data-ng-switch-when="resource">
-                            <form class="form-horizontal">
-                                <div class="form-group">
-                                    <label for="inputName"
-                                           class="col-sm-2 control-label">Resource:
-                                    </label>
-                                    <ui-select data-ng-model="selectedOrderingOn.selected"
-                                                id="inputName"
-                                                on-select="resourceSelected($item)"
-                                                theme="bootstrap"
-                                                ng-disabled="disabled"
-                                                reset-search-input="true"
-                                                class="col-sm-7">
-                                        <ui-select-match placeholder="Enter a resource name">
-                                            {{$select.selected.Name}}
-                                        </ui-select-match>
-                                        <ui-select-choices repeat="resource in resourceList"
-                                                         refresh="refreshResources($select.search)"
-                                                         refresh-delay="100">
-                                            <div ng-bind-html="resource.Name | highlight: $select.search"></div>
-                                        </ui-select-choices>
-                                    </ui-select>
-                                </div>
-                            </form>
+                            <label for="inputName"
+                                   class="col-sm-2 control-label">Resource:
+                            </label>
+                            <ui-select data-ng-model="selectedOrderingOn.selected"
+                                        id="inputName"
+                                        on-select="resourceSelected($item)"
+                                        theme="bootstrap"
+                                        ng-disabled="disabled"
+                                        reset-search-input="true"
+                                        class="col-sm-7">
+                                <ui-select-match placeholder="Enter a resource name">
+                                    {{$select.selected.Name}}
+                                </ui-select-match>
+                                <ui-select-choices repeat="resource in resourceList"
+                                                 refresh="refreshResources($select.search)"
+                                                 refresh-delay="100">
+                                    <div ng-bind-html="resource.Name | highlight: $select.search"></div>
+                                </ui-select-choices>
+                            </ui-select>
+                            <div>&nbsp;</div>
                         </div>
                         <div data-ng-switch-when="supplier">
+                            <label class="col-sm-2 control-label">Supplier:
+                            </label>
                             <select chosen
                                     data-ng-model="selectedOrderingOn.supplier"
-                                    data-ng-options="supplier.ID as supplier.Name for supplier in suppliersList"
+                                    data-ng-options="supplier.ID as supplier.Name for supplier in suppliersList">
                                 <option value="">Supplier</option>
                             </select>
                         </div>
