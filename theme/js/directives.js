@@ -862,7 +862,7 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                 }
                 else {
                     var gridlist = [];
-                    var totals = {'id': 'T1',
+                    var totals = {'id': 'totalsrow',
                                 'Subtotal': undefined,
                                 'VATCost': undefined,
                                 'Discount': undefined,
@@ -879,7 +879,7 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
             // function to update cells on change
             var updateCells = function (e, ctx) {
                 var item = ctx.item
-                var oldtotal = item.Total;
+                var oldtotal = parseFloat(item.Total);
                 var oldsubtotal = item.Subtotal;
                 var oldvatcost = item.VATCost;
                 var olddiscount = item.Discount;
@@ -887,12 +887,11 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
 
                 item.Subtotal = item.Quantity*item.Rate;
                 item.VATCost = (item.Subtotal - item.Discount) * (parseFloat(vatpercentage)/100.0);
-                item.Total = (item.Subtotal - item.Discount) *(1.0 + parseFloat(vatpercentage)/100.0);
+                item.Total = parseFloat((item.Subtotal - item.Discount) + item.VATCost);
                 dataView.updateItem(item.id, item);
                 // get the last row and update the values
-                var datalength = dataView.getLength();
-                var lastrow = dataView.getItem(datalength-1);
-                lastrow.Total = parseFloat(lastrow.Total + (item.Total - oldtotal)).toFixed(2);
+                var lastrow = dataView.getItemById('totalsrow');
+                lastrow.Total = parseFloat(parseFloat(lastrow.Total) + (item.Total - oldtotal)).toFixed(2);
                 lastrow.Subtotal = lastrow.Subtotal + (item.Subtotal - oldsubtotal);
                 lastrow.VATCost = lastrow.VATCost + (item.VATCost - oldvatcost);
                 lastrow.Discount = parseFloat(lastrow.Subtotal + lastrow.VATCost - lastrow.Total).toFixed(2);
