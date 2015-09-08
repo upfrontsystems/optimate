@@ -195,6 +195,14 @@ class Project(Node):
                 if not rate:
                     child.clearCosts()
 
+    def clearOrderedInvoiced(self):
+        """ Clear the ordered and invoiced values
+        """
+        self.Ordered = Decimal(0)
+        self.Invoiced = Decimal(0)
+        for child in self.Children:
+            child.clearOrderedInvoiced()
+
     @property
     def Total(self):
         """ Get the total. If the Total has not been set yet, it is set to
@@ -330,6 +338,14 @@ class BudgetGroup(Node):
         """
         for child in self.Children:
             child.clearCosts()
+
+    def clearOrderedInvoiced(self):
+        """ Clear the ordered and invoiced values
+        """
+        self._Ordered = Decimal(0)
+        self._Invoiced = Decimal(0)
+        for child in self.Children:
+            child.clearOrderedInvoiced()
 
     @property
     def Total(self):
@@ -512,6 +528,14 @@ class BudgetItem(Node):
         self.Quantity = 0.0
         for child in self.Children:
             child.clearCosts()
+
+    def clearOrderedInvoiced(self):
+        """ Clear the ordered and invoiced values
+        """
+        self._Ordered = Decimal(0)
+        self._Invoiced = Decimal(0)
+        for child in self.Children:
+            child.clearOrderedInvoiced()
 
     @property
     def Name(self):
@@ -849,6 +873,12 @@ class SimpleBudgetItem(BudgetItem):
         """
         self.Quantity = 0.0
 
+    def clearOrderedInvoiced(self):
+        """ Clear the ordered and invoiced values
+        """
+        self._Ordered = Decimal(0)
+        self._Invoiced = Decimal(0)
+
     def copy(self, parentid):
         """ copy returns an exact duplicate of this SimpleBudgetItem,
             but with the ParentID specified.
@@ -991,6 +1021,9 @@ class ResourceCategory(Node):
         """
         for child in self.Children:
             child.clearCosts()
+
+    def clearOrderedInvoiced(self):
+        pass
 
     def copy(self, parentid):
         """ copy returns an exact duplicate of this object,

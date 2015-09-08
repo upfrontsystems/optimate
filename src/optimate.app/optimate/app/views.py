@@ -1084,10 +1084,10 @@ def node_paste(request):
                     pastequantity = sel['selected']
                 elif sel['Name'] == 'Rate':
                     pasterate = sel['selected']
-
+            projectcopy = DBSession.query(Project).filter_by(ID=projectid).first()
             if not (pastequantity and pasterate):
-                projectcopy =DBSession.query(Project).filter_by(ID=projectid).first()
                 projectcopy.clearCosts(pasterate, pastequantity)
+            projectcopy.clearOrderedInvoiced()
             pasted_id = projectid
     # if we're dealing with resource categories
     elif source.type == 'ResourceCategory' and dest.type == 'ResourceCategory':
@@ -1318,22 +1318,20 @@ def node_paste(request):
                             budgetitem.Overheads.append(newoverhead)
 
             # update destination parent costs
-            dest.Ordered += source.Ordered
-            dest.Invoiced += source.Invoiced
             dest.Total += source.Total
             transaction.commit()
             pastequantity = request.json_body['selections'][0]['selected']
+            source = DBSession.query(Node).filter_by(ID=pasted_id).first()
             # only need to clear costs if quantity not included
             if not pastequantity:
-                source = DBSession.query(Node).filter_by(ID=pasted_id).first()
                 source.clearCosts()
+            source.clearOrderedInvoiced()
     # when a node is pasted in the same level
     else:
         # can't do this for resources or resource categories
         if not (source.type == 'ResourceCategory' or source.type == 'Resource'):
             # don't do anything is the source was cut
             if not request.json_body["cut"]:
-                selections = request.json_body['selections']
                 # Paste the source into the destination
                 nodecopy = source.copy(dest.ID)
                 existing_sibling_names = [x.Name for x in dest.Children]
@@ -1348,16 +1346,16 @@ def node_paste(request):
                 nodechildren = source.Children
                 dest.paste(nodecopy, nodechildren)
                 # update parent total
-                dest.Ordered += source.Ordered
-                dest.Invoiced += source.Invoiced
                 dest.Total += source.Total
                 DBSession.flush()
                 pasted_id = nodecopy.ID
                 transaction.commit()
+
+                source = DBSession.query(Node).filter_by(ID=pasted_id).first()
                 pastequantity = request.json_body['selections'][0]['selected']
                 if not pastequantity:
-                    source = DBSession.query(Node).filter_by(ID=pasted_id).first()
                     source.clearCosts()
+                source.clearOrderedInvoiced()
 
     transaction.commit()
     # return the new id
