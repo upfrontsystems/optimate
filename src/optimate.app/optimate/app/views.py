@@ -799,10 +799,7 @@ def resourcetypes(request):
     # return a list of the ResourceType names
     for restype in qry:
         if restype.Name != '':
-            if restype.Name == 'Profit & Attendance':
-                DBSession.delete(restype)
-            else:
-                restypelist.append({'ID': restype.ID, 'Name': restype.Name})
+            restypelist.append({'ID': restype.ID, 'Name': restype.Name})
     return sorted(restypelist, key=lambda k: k['Name'].upper())
 
 
@@ -1034,22 +1031,9 @@ def node_paste(request):
 
     # if a project is being pasted into the root
     if (parentid == 0) and (source.type == 'Project'):
-        selections = request.json_body['selections']
-        pasterate = False
-        pastequantity = False
-        for sel in selections:
-            if sel['Name'] == 'Quantity':
-                pastequantity = sel['selected']
-            elif sel['Name'] == 'Rate':
-                pasterate = sel['selected']
-
         if request.json_body["cut"]:
             projectid = sourceid
             pasted_id = sourceid
-
-            # only need to clear costs if rate or quantity not included
-            if not (pastequantity and pasterate):
-                source.clearCosts(pasterate, pastequantity)
         else:
             # Paste the source into the destination
             projectcopy = source.copy(dest.ID)
@@ -1092,6 +1076,15 @@ def node_paste(request):
                                                 budgetitem.ResourceID]
             transaction.commit()
             # only need to clear costs if rate or quantity not included
+            selections = request.json_body['selections']
+            pasterate = False
+            pastequantity = False
+            for sel in selections:
+                if sel['Name'] == 'Quantity':
+                    pastequantity = sel['selected']
+                elif sel['Name'] == 'Rate':
+                    pasterate = sel['selected']
+
             if not (pastequantity and pasterate):
                 projectcopy =DBSession.query(Project).filter_by(ID=projectid).first()
                 projectcopy.clearCosts(pasterate, pastequantity)
@@ -1266,10 +1259,6 @@ def node_paste(request):
             dest.Total += source.Total
             pasted_id = source.ID
             transaction.commit()
-            pastequantity = request.json_body['selections'][0]['selected']
-            if not pastequantity:
-                source = DBSession.query(Node).filter_by(ID=pasted_id).first()
-                source.clearCosts()
         else:
             # Paste the source into the destination
             copy_of_source = source.copy(dest.ID)

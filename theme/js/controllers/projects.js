@@ -21,9 +21,9 @@ var duplicateModalController = function ($scope, $modalInstance, selections) {
 angular.module('myApp').controller('duplicateModalController', duplicateModalController);
 
 var checkRateAndQuantityController = function ($scope, $modalInstance, selections) {
-
     $scope.selections = selections;
-
+    $scope.modaltitle = selections.length > 1 ? "Paste rate and/or quantity" :
+                                        "Paste quantity";
     $scope.done = function () {
         $modalInstance.close($scope.selections);
     };
@@ -1127,10 +1127,19 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 });
             };
 
-            // continue when response from modal is returned
-            openModal().finally(function() {
-                $scope.pasteAction(node, selections, index);
-            });
+            // if the selection has been made continue without opening modal
+            if (index > 0){
+                $scope.pasteAction(node, $scope.rateAndQuantityselections, index);
+            }
+            else{
+                // continue when response from modal is returned
+                openModal().finally(function() {
+                    if (index == 0){
+                        $scope.rateAndQuantityselections = selections;
+                    }
+                    $scope.pasteAction(node, selections, index);
+                });
+            }
         };
 
         // function to paste copied node into another node
@@ -1204,17 +1213,19 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                         });
                     }
                 }
-                // for projects, budgetgroups, and budgetitems check quantities and rate
-                else if (cnode.NodeType == 'Project'){
-                    flag = false;
-                    var selections = [{'Name': 'Quantity', 'selected': false},
-                                        {'Name': 'Rate', 'selected': false}];
-                    $scope.checkRateAndQuantity(node, selections, index);
-                }
-                else if (cnode.NodeType == 'BudgetGroup' || cnode.NodeType == 'BudgetItem' || cnode.NodeType == 'SimpleBudgetItem'){
-                    flag = false;
-                    var selections = [{'Name': 'Quantity', 'selected': false}];
-                    $scope.checkRateAndQuantity(node, selections, index);
+                else if(cnode.cut != true){
+                    // for projects, budgetgroups, and budgetitems check quantities and rate
+                    if (cnode.NodeType == 'Project'){
+                        flag = false;
+                        var selections = [{'Name': 'Quantity', 'selected': false},
+                                            {'Name': 'Rate', 'selected': false}];
+                        $scope.checkRateAndQuantity(node, selections, index);
+                    }
+                    else if (cnode.NodeType == 'BudgetGroup' || cnode.NodeType == 'BudgetItem' || cnode.NodeType == 'SimpleBudgetItem'){
+                        flag = false;
+                        var selections = [{'Name': 'Quantity', 'selected': false}];
+                        $scope.checkRateAndQuantity(node, selections, index);
+                    }
                 }
             }
             if (flag) {
@@ -1349,6 +1360,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             });
         }
 
+        // clear the previous copied data and set nodes copied/cut
         $scope.toggleCopiedRecords = function(copiedrecords, cut) {
             if ($scope.copiedNode){
                 $scope.copiedNode.cut = false;
