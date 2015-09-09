@@ -27,7 +27,8 @@
                 <li data-ng-show="user.permissions.projects == 'edit'">
                     <a role="button" data-toggle="modal" data-target="#addProject"
                         data-ng-click="editNode(currentNode.ID)"
-                       title="Edit Project">
+                        a-disabled="currentNode.Status == 'Approved'"
+                        title="Edit Project">
                         <i class="fa fa-pencil"></i>
                     </a>
                 </li>
@@ -84,6 +85,7 @@
                     <a title="Markup"
                     data-ng-click="loadOverheads(currentNode.ID)"
                     data-target="#editOverheads"
+                    a-disabled="currentNode.Status == 'Approved'"
                     data-toggle="modal">
                     <i class="fa fa-money"></i></a>
                 </li>
@@ -133,6 +135,7 @@
                 <li data-ng-show="user.permissions.projects == 'edit'">
                     <a role="button" data-toggle="modal" data-target="#addBudgetGroup"
                         data-ng-click="editNode(currentNode.ID)"
+                        a-disabled="currentNode.Status == 'Approved'"
                        title="Edit Budget Group">
                         <i class="fa fa-pencil"></i>
                     </a>
@@ -149,7 +152,8 @@
                         <i class="fa fa-cut"></i>
                     </a>
                 </li>
-                <li data-ng-show="user.permissions.projects == 'edit' && copiedNode" data-ng-switch="copiedNode.NodeType">
+                <li data-ng-show="user.permissions.projects == 'edit' && copiedNode"
+                    data-ng-switch="copiedNode.NodeType">
                     <a data-ng-switch-when="Records"
                         role="button"
                         data-ng-click="pasteSelectedRecords(currentNode)"
@@ -201,6 +205,7 @@
                 <li data-ng-show="user.permissions.projects == 'edit' && currentNode.ParentType != 'BudgetItem'">
                     <a role="button" data-toggle="modal" data-target="#addBudgetItem"
                         data-ng-click="editNode(currentNode.ID)"
+                        a-disabled="currentNode.Status == 'Approved'"
                        title="Edit Budget Item">
                         <i class="fa fa-pencil"></i>
                     </a>
@@ -259,6 +264,7 @@
                 <li data-ng-show="user.permissions.projects == 'edit'">
                     <a role="button" data-toggle="modal" data-target="#addBudgetItem"
                         data-ng-click="editNode(currentNode.ID)"
+                        a-disabled="currentNode.Status == 'Approved'"
                        title="Edit Budget Item">
                         <i class="fa fa-pencil"></i>
                     </a>
@@ -276,12 +282,6 @@
                     </a>
                 </li>
                 <li data-ng-show="copiedNode" data-ng-switch="copiedNode.NodeType">
-                    <a data-ng-switch-when="Records"
-                        role="button"
-                        data-ng-click="pasteSelectedRecords(currentNode)"
-                        title="Paste records">
-                        <i class="fa fa-clipboard"></i>
-                    </a>
                     <a data-ng-switch-when="Project"
                         role="button"
                         data-ng-click="pasteThisNode(projectsRoot)"
@@ -316,21 +316,27 @@
                 <li data-ng-show="user.permissions.projects == 'edit'">
                     <a role="button" data-toggle="modal" data-target="#addResourceCategory"
                         data-ng-click="changeAddingType('ResourceCategory')"
-                       title="Add Resource Category" class="resource-category-button">
+                        a-disabled="currentNode.Status == 'Approved'"
+                        title="Add Resource Category"
+                        class="resource-category-button">
                         <i class="fa fa-plus-square"></i> C
                     </a>
                 </li>
                 <li data-ng-show="user.permissions.projects == 'edit'">
                     <a role="button" data-toggle="modal" data-target="#addResource"
-                        data-ng-click="changeAddingType('Resource');"
-                       title="Add Resource" class="resource-button">
+                        data-ng-click="changeAddingType('Resource')"
+                        a-disabled="currentNode.Status == 'Approved'"
+                        title="Add Resource"
+                        class="resource-button">
                         <i class="fa fa-plus-square"></i> R
                     </a>
                 </li>
                 <li data-ng-show="user.permissions.projects == 'edit'">
                     <a role="button" data-toggle="modal" data-target="#addResourceUnit"
-                        data-ng-click="changeAddingType('ResourceUnit');"
-                       title="Add Resource Unit" class="resource-unit-button">
+                        data-ng-click="changeAddingType('ResourceUnit')"
+                        a-disabled="currentNode.Status == 'Approved'"
+                        title="Add Resource Unit"
+                        class="resource-unit-button">
                         <i class="fa fa-plus-square"></i> U
                     </a>
                 </li>
@@ -341,7 +347,8 @@
                 <li data-ng-show="user.permissions.projects == 'edit'">
                     <a role="button" data-toggle="modal" data-target="#addResourceCategory"
                         data-ng-click="editNode(currentNode.ID)"
-                       title="Edit Resource Category">
+                        a-disabled="currentNode.Status == 'Approved'"
+                        title="Edit Resource Category">
                         <i class="fa fa-pencil"></i>
                     </a>
                 </li>
@@ -423,7 +430,8 @@
                 <li data-ng-show="user.permissions.projects == 'edit'">
                     <a role="button" data-toggle="modal" data-target="#addResource"
                         data-ng-click="editNode(currentNode.ID)"
-                       title="Edit Resource">
+                        a-disabled="currentNode.Status == 'Approved'"
+                        title="Edit Resource">
                         <i class="fa fa-pencil"></i>
                     </a>
                 </li>
@@ -472,8 +480,10 @@
                 </li>
                 <li data-ng-show="user.permissions.projects == 'edit'">
                     <a role="button" data-toggle="modal" data-target="#addResourcePart"
-                        data-ng-click="changeAddingType('ResourcePart');"
-                       title="Add Resource Part" class="resource-part-button">
+                        data-ng-click="changeAddingType('ResourcePart')"
+                        a-disabled="currentNode.Status == 'Approved'"
+                        title="Add Resource Part"
+                        class="resource-part-button">
                         <i class="fa fa-plus-square"></i> P
                     </a>
                 </li>
@@ -484,7 +494,8 @@
                 <li data-ng-show="user.permissions.projects == 'edit'">
                     <a role="button" data-toggle="modal" data-target="#addResourceUnit"
                         data-ng-click="editNode(currentNode.ID)"
-                       title="Edit Resource Unit">
+                        a-disabled="currentNode.Status == 'Approved'"
+                        title="Edit Resource Unit">
                         <i class="fa fa-pencil"></i>
                     </a>
                 </li>
@@ -534,7 +545,8 @@
                 <li data-ng-show="user.permissions.projects == 'edit'">
                     <a role="button" data-toggle="modal" data-target="#addResourcePart"
                         data-ng-click="editNode(currentNode.ID)"
-                       title="Edit Resource Part">
+                        a-disabled="currentNode.Status == 'Approved'"
+                        title="Edit Resource Part">
                         <i class="fa fa-pencil"></i>
                     </a>
                 </li>

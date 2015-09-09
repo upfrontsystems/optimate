@@ -823,7 +823,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             $scope.calculatorHidden = true;
             $scope.modalState = "Edit"
             $scope.isDisabled = false;
-            console.log("getting node data");
             var req = {
                 method: 'GET',
                 url: globalServerURL + 'node/' + nodeid + '/'

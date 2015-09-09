@@ -100,6 +100,12 @@ class Node(Base):
     def Total(self, total):
         pass
 
+    @property
+    def Status(self):
+        """ Return the Status of the parent
+        """
+        return self.Parent.Status
+
     def getProjectID(self):
         """ Recursively calls the parent of this node until it finds the project
             whose parent is the root
@@ -452,7 +458,8 @@ class BudgetGroup(Node):
                 'Ordered': str(self.Ordered),
                 'Invoiced': str(self.Invoiced),
                 'NodeType': self.type,
-                'NodeTypeAbbr' : 'G'}
+                'NodeTypeAbbr' : 'G',
+                'Status': self.Status}
 
     def valuation(self, level='1'):
         """ The data returned when performing a valuation on a budget group
@@ -725,7 +732,7 @@ class BudgetItem(Node):
         return overheadlist
 
     def dict(self):
-        """ Override the dict function
+        """ Override the dict function for budget item
         """
         subitem = []
         if len(self.Children) > 0:
@@ -751,7 +758,8 @@ class BudgetItem(Node):
                 'UnitID': self.UnitID,
                 'ResourceTypeID': self.Type,
                 'NodeType': self.type,
-                'NodeTypeAbbr' : 'I'
+                'NodeTypeAbbr' : 'I',
+                'Status': self.Status
         }
 
     def copy(self, parentid):
@@ -1056,7 +1064,8 @@ class ResourceCategory(Node):
                 'ParentID': self.ParentID,
                 'Subitem': subitem,
                 'NodeType': self.type,
-                'NodeTypeAbbr' : 'C'}
+                'NodeTypeAbbr' : 'C',
+                'Status': self.Status}
 
     # functions to make the resource list iterable
     def __getitem__(self, index):
@@ -1207,7 +1216,8 @@ class Resource(Node):
                 'Unit': self.unitName(),
                 'Supplier': self.SupplierID,
                 'NodeType': self.type,
-                'NodeTypeAbbr' : 'R'}
+                'NodeTypeAbbr' : 'R',
+                'Status': self.Status}
 
     def __eq__(self, other):
         """ Test for equality on the Resource product Code
@@ -1273,7 +1283,8 @@ class ResourceUnit(Resource):
                 'Unit': self.unitName(),
                 'Supplier': self.SupplierID,
                 'NodeType': self.type,
-                'NodeTypeAbbr' : 'U'}
+                'NodeTypeAbbr' : 'U',
+                'Status': self.Status}
 
     def __repr__(self):
         """ Return a representation of this ResourceUnit
@@ -1387,7 +1398,8 @@ class ResourcePart(Node):
                 'Total': str(self.Total),
                 'ResourceID': self.ResourceID,
                 'NodeType': self.type,
-                'NodeTypeAbbr' : 'P'}
+                'NodeTypeAbbr' : 'P',
+                'Status': self.Status}
 
     def __repr__(self):
         """ Return a representation of this ResourcePart
