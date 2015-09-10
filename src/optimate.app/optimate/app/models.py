@@ -261,13 +261,13 @@ class Project(Node):
             if child.type != 'ResourceCategory':
                 source.paste(child.copy(source.ID), child.Children)
 
-    def getBudgetItems(self):
+    def getBudgetItems(self, variation = None):
         """ Returns a list of all the BudgetItems that are used in this project.
         """
         budgetitemslist = []
         for child in self.Children:
             if child.type != 'ResourceCategory':
-                budgetitemslist += child.getBudgetItems()
+                budgetitemslist += child.getBudgetItems(variation)
         return budgetitemslist
 
     def dict(self):
@@ -433,12 +433,12 @@ class BudgetGroup(Node):
         for child in sourcechildren:
             source.paste(child.copy(source.ID), child.Children)
 
-    def getBudgetItems(self):
+    def getBudgetItems(self, variation = None):
         """ Returns a list of all the BudgetItems in this BudgetGroup.
         """
         budgetitemslist = []
         for child in self.Children:
-            budgetitemslist += child.getBudgetItems()
+            budgetitemslist += child.getBudgetItems(variation)
         return budgetitemslist
 
     def dict(self):
@@ -716,13 +716,19 @@ class BudgetItem(Node):
         for child in sourcechildren:
             source.paste(child.copy(source.ID), child.Children)
 
-    def getBudgetItems(self):
+    def getBudgetItems(self, variation=None):
         """ Return a list of the BudgetItems
         """
         budgetitemslist = []
-        budgetitemslist.append(self)
+        # check if the budgetitem satifies any of the optional search paramaters
+        if variation != None:
+            if self.Variation == variation:
+                budgetitemslist.append(self)
+        else:
+            budgetitemslist.append(self)
+
         for child in self.Children:
-            budgetitemslist += child.getBudgetItems()
+            budgetitemslist += child.getBudgetItems(variation)
         return budgetitemslist
 
     def updateOrdered(self, ordered):

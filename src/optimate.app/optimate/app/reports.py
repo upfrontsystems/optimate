@@ -274,8 +274,6 @@ def projectbudget(request):
         for bgroup in bgs:
             bg_id = bgroup['ID']
             qry = DBSession.query(Node).filter_by(ID=bg_id).first()
-            bg_parent_id = qry.ParentID
-            bg_parent = DBSession.query(Node).filter_by(ID=bg_parent_id).first()
 
             # start at the parent so we can display the context
             nodes.append((qry, 'level1', 'bold'))
@@ -355,19 +353,25 @@ def costcomparison_nodes(node, data, level, level_limit):
     level +=1
     nodelist = []
     for child in node.Children:
-        if child.type != 'ResourceCategory':
+        if child.type == 'BudgetGroup':
             nodelist.append(child)
     sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())
     for child in sorted_nodelist:
-        if child.type != 'ResourceCategory':
-            if child.type == 'BudgetGroup':
-                data.append((child, 'level' + str(level), 'normal'))
-            # leaf nodes with no children act as components
-            leaf = len(child.Children) == 0
-            if not leaf:
-                # restrict level as specified
-                if level != level_limit:
-                    data += costcomparison_nodes(child, [], level, level_limit)
+        # apply colour distinction
+        tc = 'black';
+        oc = 'black';
+        ic = 'black';
+        if child.Ordered > child.Total:
+            oc = 'red';
+        if child.Invoiced > child.Total:
+            ic = 'red';
+
+        data.append([child, 'level' + str(level), 'normal', tc, oc, ic])
+        # go to next level
+        if len(child.Children) > 0:
+            # restrict level as specified
+            if level != level_limit:
+                data += costcomparison_nodes(child, [], level, level_limit)
     return data
 
 
@@ -389,11 +393,18 @@ def costcomparison(request):
         for bgroup in bgs:
             bg_id = bgroup['ID']
             qry = DBSession.query(Node).filter_by(ID=bg_id).first()
-            bg_parent_id = qry.ParentID
-            bg_parent = DBSession.query(Node).filter_by(ID=bg_parent_id).first()
+
+            # apply colour distinction
+            tc = 'black';
+            oc = 'black';
+            ic = 'black';
+            if qry.Ordered > qry.Total:
+                oc = 'red';
+            if qry.Invoiced > qry.Total:
+                ic = 'red';
 
             # start at the parent so we can display the context
-            nodes.append((qry, 'level1', 'bold'))
+            nodes.append([qry, 'level1', 'bold', tc, oc, ic])
             # group data
             nodes += costcomparison_nodes(qry, [], 1, level_limit+1)
             # add blank line seperator between groups
@@ -401,22 +412,26 @@ def costcomparison(request):
     else:
         nodes = costcomparison_nodes(project, [], 0, level_limit)
 
-    # apply colour distinction based on budgetgroup totals
-    nodes_colour = []
-    for node in nodes:
-        tc = 'black';
-        oc = 'black';
-        ic = 'black';
-        if node[0].Ordered > node[0].Total:
-            oc = 'red';
-        if node[0].Invoiced > node[0].Total:
-            ic = 'red';
-        nodes_colour.append((node[0], node[1], node[2], tc, oc, ic))
+    # if the project is approved, get the variation budget items
+    if project.Status == 'Approved':
+        budgetitems = project.getBudgetItems(variation=True)
+        # for each budget item find the first parent budget group
+        # and style the parent name
+        for budgetitem in budgetitems:
+            parent = budgetitem.Parent
+            found = False
+            while parent.ID !=0 and not found:
+                for node in nodes:
+                    if node[0].ID == parent.ID:
+                        node[1] = str(node[1]) + " red"
+                        found = True
+                        break
+                parent = parent.Parent
 
     # render template
     now = datetime.now()
     template_data = render('templates/costcomparisonreport.pt',
-                           {'nodes': nodes_colour,
+                           {'nodes': nodes,
                             'project_name': project.Name,
                             'print_date' : now.strftime("%d %B %Y - %k:%M"),
                             'currency': currency},

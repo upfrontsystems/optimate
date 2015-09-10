@@ -1416,6 +1416,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
         $scope.openNodeList = [];
         // load the node that has been selected into the tree for pdf printing
         $scope.loadNodeForPrinting = function (id) {
+            $scope.formData.LevelLimit = 1;
             $http.get(globalServerURL + 'node/' + id + '/')
             .success(function(data) {
                 $scope.openNodeList = [data];
