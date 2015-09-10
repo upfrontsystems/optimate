@@ -444,3 +444,8 @@ table.modal-table {
 .text-capitalize {
     text-transform: capitalize;
 }
+
+/* make variation items red */
+.variation-item {
+    color: red;
+}

@@ -515,6 +515,7 @@ class BudgetItem(Node):
     _Total = Column('Total', Numeric)
     _Ordered = Column('Ordered', Numeric(12, 2), default=Decimal(0.00))
     _Invoiced = Column('Invoiced', Numeric(12, 2), default=Decimal(0.00))
+    Variation = Column(Boolean,default=False)
 
     Resource = relationship('Resource',
                             foreign_keys='BudgetItem.ResourceID',
@@ -688,6 +689,15 @@ class BudgetItem(Node):
                     return part
         return None
 
+    @property
+    def Status(self):
+        """ Return the Status of the parent.
+            If the budget item is a variation don't return the parent status
+        """
+        if self.Variation:
+            return ''
+        return self.Parent.Status
+
     def updateQuantity(self):
         """ Used only for BudgetItems that have a BudgetItem as a parent
             The Quantity is set Parent.Quantity * ResourcePart.Quantity
@@ -759,7 +769,8 @@ class BudgetItem(Node):
                 'ResourceTypeID': self.Type,
                 'NodeType': self.type,
                 'NodeTypeAbbr' : 'I',
-                'Status': self.Status
+                'Status': self.Status,
+                'Variation': self.Variation
         }
 
     def copy(self, parentid):

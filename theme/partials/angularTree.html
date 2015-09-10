@@ -17,7 +17,7 @@
     <span class="circle {{node.NodeType}}">&nbsp;{{node.NodeTypeAbbr}}&nbsp;</span>
     <button class="treenode {{node.NodeType}}"
         id="{{node.ID}}"
-        data-ng-class="node.selected"
+        data-ng-class="{'selected': node.selected, 'variation-item': node.Variation}"
         data-ng-click="selectNodeLabel(this)">
         {{node.Name}}
     </button>

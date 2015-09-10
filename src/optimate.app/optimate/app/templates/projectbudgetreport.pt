@@ -114,7 +114,7 @@
                 </tr>
                 </tal:bg>
                 <tal:bg tal:condition="node[0].type != 'BudgetGroup'">
-                    <tr>
+                    <tr tal:attributes="style 'color: red' if node[0].Variation else None">
                         <tal:entry tal:condition="node">
                             <td class="${node[1]} ${node[2]}" style="width: 450px" tal:content="node[0].Name">
                             </td>

@@ -295,6 +295,10 @@ def additemview(request):
         # this will set it's total and the quantity of any children it may have
         newnode.Quantity=quantity
 
+        # if the parent is already approved, the budgetitem is a variation
+        if newnode.Parent.Status == 'Approved':
+            newnode.Variation = True
+
     elif objecttype == 'SimpleBudgetItem':
         rate = request.json_body.get('Rate', 0)
         rate = Decimal(rate).quantize(Decimal('.01'))
@@ -311,6 +315,10 @@ def additemview(request):
         # add it to the parent's total
         if parent.type != 'BudgetItem':
             parent.Total += newnode.Total
+
+        # if the parent is already approved, the budgetitem is a variation
+        if newnode.Parent.Status == 'Approved':
+            newnode.Variation = True
 
     elif objecttype == 'ResourceCategory':
         newnode = ResourceCategory(Name=request.json_body['Name'],

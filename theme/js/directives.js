@@ -67,6 +67,10 @@ myApp.directive('projectslickgridjs', ['globalServerURL', '$http',
                 if (grid) {
                     var rowData = grid.getDataItem(row);
                     if (rowData) {
+                        // variation items styled in red
+                        if (rowData.Variation){
+                            return {'cssClasses': 'variation-item'};
+                        }
                         // on the first row, if it is the parent
                         // set selectable false and non-editable
                         if (row == 0  && rowData.isparent) {
