@@ -20,13 +20,16 @@
                 </a>
             </li>
             <li data-ng-show="user.permissions.projects == 'edit'">
-                <a role="button" data-ng-click="cutSelectedRecords(currentNode)"
-                   title="Cut records">
+                <a role="button"
+                    a-disabled="currentNode.Status == 'Approved'"
+                    data-ng-click="cutSelectedRecords(currentNode)"
+                    title="Cut records">
                     <i class="fa fa-cut"></i>
                 </a>
             </li>
             <li data-ng-show="user.permissions.projects == 'edit'">
                 <a role="button"
+                    a-disabled="currentNode.Status == 'Approved'"
                     data-target="#deleteRecordsConfirmation"
                     data-toggle="modal"
                     title="Delete records">
@@ -35,6 +38,7 @@
             </li>
             <li data-ng-show="user.permissions.projects == 'edit' && showBudgetActions">
                 <a role="button"
+                    a-disabled="currentNode.Status == 'Approved'"
                     data-target="#editSelectionMarkup"
                     data-ng-click="loadSelectionMarkup()"
                     data-toggle="modal"

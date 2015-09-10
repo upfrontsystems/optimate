@@ -795,7 +795,8 @@ class BudgetItem(Node):
                             IncomeReceived=self.IncomeReceived,
                             ClientCost=self.ClientCost,
                             ProjectedProfit=self.ProjectedProfit,
-                            ActualProfit=self.ActualProfit)
+                            ActualProfit=self.ActualProfit,
+                            Variation=self.Variation)
         # add the overheads
         copied.Overheads = self.Overheads
 
@@ -923,7 +924,8 @@ class SimpleBudgetItem(BudgetItem):
                                 IncomeReceived=self.IncomeReceived,
                                 ClientCost=self.ClientCost,
                                 ProjectedProfit=self.ProjectedProfit,
-                                ActualProfit=self.ActualProfit)
+                                ActualProfit=self.ActualProfit,
+                                Variation=self.Variation)
 
     def __repr__(self):
         """ return a representation of this simplebudgetitem

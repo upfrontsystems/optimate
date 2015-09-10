@@ -1228,8 +1228,14 @@ def node_paste(request):
 
                 # get the budgetitems that were pasted
                 destbudgetitems = dest.getBudgetItems()
+                # determine if the pasted items are to be variations
+                variation = False
+                if dest.Status == 'Approved':
+                    variation = True
                 # change the resource ids of budgetitems who were copied
                 for budgetitem in destbudgetitems:
+                    if variation:
+                        budgetitem.Variation = variation
                     if budgetitem.ResourceID in copiedresourceIds:
                         budgetitem.ResourceID = copiedresourceIds[
                                                     budgetitem.ResourceID]
@@ -1306,11 +1312,17 @@ def node_paste(request):
                 projectoverheads = DBSession.query(Overhead
                         ).filter_by(ProjectID=projectid).all()
 
+                # determine if the pasted items are to be variations
+                variation = False
+                if dest.Status == 'Approved':
+                    variation = True
+
                 for budgetitem in destbudgetitems:
+                    if variation:
+                        budgetitem.Variation = variation
                     if budgetitem.ResourceID in copiedresourceIds:
                         budgetitem.ResourceID = copiedresourceIds[
                                                     budgetitem.ResourceID]
-
                     # replace the overheads in the copied budgetitems with
                     # the overheads in the project
                     originaloverheads = budgetitem.Overheads
@@ -1324,6 +1336,12 @@ def node_paste(request):
                             budgetitem.Overheads.remove(overhead)
                             newoverhead = overhead.copy(projectid)
                             budgetitem.Overheads.append(newoverhead)
+            else:
+                # determine if the pasted items are to be variations
+                if dest.Status == 'Approved':
+                    destbudgetitems = copy_of_source.getBudgetItems()
+                    for budgetitem in destbudgetitems:
+                        budgetitem.Variation = True
 
             # update destination parent costs
             dest.Total += source.Total
@@ -1360,6 +1378,14 @@ def node_paste(request):
                 transaction.commit()
 
                 source = DBSession.query(Node).filter_by(ID=pasted_id).first()
+
+                # determine if the pasted items are to be variations
+                if dest.Status == 'Approved':
+                    budgetitems = source.getBudgetItems()
+                    for budgetitem in budgetitems:
+                        budgetitem.Variation = True
+
+                # clear the costs
                 pastequantity = request.json_body['selections'][0]['selected']
                 if not pastequantity:
                     source.clearCosts()
