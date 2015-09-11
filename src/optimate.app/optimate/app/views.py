@@ -1025,10 +1025,10 @@ def node_paste(request):
         and added to the current node.
     """
     # Find the source object to be copied from the path in the request body
-    sourceid = request.json_body["ID"]
-    # Find the object to be copied to from the path
-    destinationid = request.matchdict['id']
+    sourceid = int(request.json_body["ID"])
     source = DBSession.query(Node).filter_by(ID=sourceid).first()
+    # Find the object to be copied to from the path
+    destinationid = int(request.matchdict['id'])
     dest = DBSession.query(Node).filter_by(ID=destinationid).first()
     # make sure the destination total is set
     dest.Total
@@ -1208,34 +1208,33 @@ def node_paste(request):
                                 ParentID=projectid).first()
                 rescatid = resourcecategory.ID
 
-                # Get the budgetitems that were copied
+                # get the destination project resources
+                destinationresources = resourcecategory.getResources()
+                # Get the budgetitems that are to be cut
                 sourcebudgetitems = source.getBudgetItems()
+                # determine if the pasted items are to be variations
+                variation = False
+                if dest.Status == 'Approved':
+                    variation = True
+
                 # copy each unique resource into the new resource category
-                copiedresourceIds = {}
                 for budgetitem in sourcebudgetitems:
-                    if budgetitem.ResourceID not in copiedresourceIds:
+                    # update the budgetitem resource
+                    if budgetitem.Resource not in destinationresources:
                         categoryName = budgetitem.Resource.Parent.Name
                         newparentid = sortResource(resourcecategory,
                                                     categoryName)
                         copiedresource = budgetitem.Resource.copy(newparentid)
                         DBSession.add(copiedresource)
                         DBSession.flush()
-                        copiedresourceIds[
-                                budgetitem.Resource.ID] = copiedresource.ID
-
-                # get the budgetitems that were pasted
-                destbudgetitems = dest.getBudgetItems()
-                # determine if the pasted items are to be variations
-                variation = False
-                if dest.Status == 'Approved':
-                    variation = True
-                # change the resource ids of budgetitems who were copied
-                for budgetitem in destbudgetitems:
+                        budgetitem.ResourceID = copiedresource.ID
+                        destinationresources.append(copiedresource)
+                    else:
+                        i = destinationresources.index(budgetitem.Resource)
+                        budgetitem.ResourceID = destinationresources[i].ID
+                    # apply variation if necessary
                     if variation:
                         budgetitem.Variation = variation
-                    if budgetitem.ResourceID in copiedresourceIds:
-                        budgetitem.ResourceID = copiedresourceIds[
-                                                    budgetitem.ResourceID]
 
                 # copy the overheads the budgetitems use into the project
                 overheadids = {}
@@ -1291,35 +1290,37 @@ def node_paste(request):
 
                 # Get the budgetitems that were copied
                 sourcebudgetitems = source.getBudgetItems()
+
+                # get the destination project resources
+                destinationresources = resourcecategory.getResources()
+                # get the budgetitems that were pasted
+                destbudgetitems = copy_of_source.getBudgetItems()
+                # get the overheads used in the project
+                projectoverheads = DBSession.query(Overhead
+                        ).filter_by(ProjectID=projectid).all()
+                # determine if the pasted items are to be variations
+                variation = False
+                if dest.Status == 'Approved':
+                    variation = True
+
                 # copy each unique resource into the new resource category
-                copiedresourceIds = {}
-                for budgetitem in sourcebudgetitems:
-                    if budgetitem.ResourceID not in copiedresourceIds:
+                for budgetitem in destbudgetitems:
+                    # update the budgetitem resource
+                    if budgetitem.Resource not in destinationresources:
                         categoryName = budgetitem.Resource.Parent.Name
                         newparentid = sortResource(resourcecategory,
                                                     categoryName)
                         copiedresource = budgetitem.Resource.copy(newparentid)
                         DBSession.add(copiedresource)
                         DBSession.flush()
-                        copiedresourceIds[
-                                budgetitem.Resource.ID] = copiedresource.ID
-
-                # get the budgetitems that were pasted
-                destbudgetitems = copy_of_source.getBudgetItems()
-                projectoverheads = DBSession.query(Overhead
-                        ).filter_by(ProjectID=projectid).all()
-
-                # determine if the pasted items are to be variations
-                variation = False
-                if dest.Status == 'Approved':
-                    variation = True
-
-                for budgetitem in destbudgetitems:
+                        budgetitem.ResourceID = copiedresource.ID
+                        destinationresources.append(copiedresource)
+                    else:
+                        i = destinationresources.index(budgetitem.Resource)
+                        budgetitem.ResourceID = destinationresources[i].ID
+                    # apply variation
                     if variation:
                         budgetitem.Variation = variation
-                    if budgetitem.ResourceID in copiedresourceIds:
-                        budgetitem.ResourceID = copiedresourceIds[
-                                                    budgetitem.ResourceID]
                     # replace the overheads in the copied budgetitems with
                     # the overheads in the project
                     originaloverheads = budgetitem.Overheads
@@ -1353,7 +1354,7 @@ def node_paste(request):
     else:
         # can't do this for resources or resource categories
         if not (source.type == 'ResourceCategory' or source.type == 'Resource'):
-            # don't do anything is the source was cut
+            # create a 'copy' node when copy-pasting
             if not request.json_body["cut"]:
                 # Paste the source into the destination
                 nodecopy = source.copy(dest.ID)
@@ -1387,6 +1388,9 @@ def node_paste(request):
                 if not pastequantity:
                     source.clearCosts()
                 source.clearOrderedInvoiced()
+            # return the same node when cut-pasting
+            else:
+                pasted_id = sourceid
 
     transaction.commit()
     # return the new id
