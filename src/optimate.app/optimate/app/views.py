@@ -1028,17 +1028,14 @@ def node_paste(request):
     sourceid = request.json_body["ID"]
     # Find the object to be copied to from the path
     destinationid = request.matchdict['id']
-    projectid = 0
     source = DBSession.query(Node).filter_by(ID=sourceid).first()
     dest = DBSession.query(Node).filter_by(ID=destinationid).first()
     # make sure the destination total is set
     dest.Total
-    parentid = dest.ID
-    sourceparent = source.ParentID
     node_pasted = True
 
     # if a project is being pasted into the root
-    if (parentid == 0) and (source.type == 'Project'):
+    if (destinationid == 0) and (source.type == 'Project'):
         if request.json_body["cut"]:
             projectid = sourceid
             pasted_id = sourceid
@@ -1156,14 +1153,14 @@ def node_paste(request):
             if destcategory:
                 pasted_id = destcategory.ID
             else:
-                pasted_id = parentid
+                pasted_id = destinationid
                 node_pasted = False
         else:
             # the category had already existed, so don't return an id
             pasted_id = None
         transaction.commit()
     # check the node isnt being pasted into it's parent
-    elif parentid != sourceparent:
+    elif destinationid != source.ParentID:
         if source.type == 'Resource' or source.type == 'ResourceUnit':
             # check the resource is not being duplicated
             projectid = dest.getProjectID()
@@ -1176,11 +1173,11 @@ def node_paste(request):
                     for resource in sourceresources:
                         if len(resource.BudgetItems) > 0:
                             return HTTPInternalServerError("Can't cut resources that are used")
-                    source.ParentID = parentid
+                    source.ParentID = destinationid
                     pasted_id = source.ID
                 else:
                     # Paste the source into the destination
-                    newresource = source.copy(parentid)
+                    newresource = source.copy(destinationid)
                     DBSession.add(newresource)
                     DBSession.flush()
                     pasted_id = newresource.ID
@@ -1380,7 +1377,7 @@ def node_paste(request):
                 source = DBSession.query(Node).filter_by(ID=pasted_id).first()
 
                 # determine if the pasted items are to be variations
-                if dest.Status == 'Approved':
+                if source.Status == 'Approved':
                     budgetitems = source.getBudgetItems()
                     for budgetitem in budgetitems:
                         budgetitem.Variation = True

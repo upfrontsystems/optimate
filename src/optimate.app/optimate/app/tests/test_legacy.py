@@ -450,6 +450,18 @@ class DummyRouteName(object):
     def __init__ (self, name):
         self.name = name
 
+class DummyBudgetItemRequest(object):
+    def dict_of_lists(self):
+        return {}
+
+class DummyOverhead(object):
+    def dict_of_lists(self):
+        return {}
+
+class DummyBudgetItemOverhead(object):
+    def dict_of_lists(self):
+        return {'NodeType': ['BudgetItem']}
+
 class TestResourceCategoryResourcesViewSuccessCondition(unittest.TestCase):
     """ Test that the resourcecategory_resources view returns a list of the
         resources in the category
@@ -508,6 +520,7 @@ class TestNodeBudgetItemsViewSuccessCondition(unittest.TestCase):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.matchdict['id'] = 4
+        request.params = DummyBudgetItemRequest()
         response = self._callFUT(request)
 
         # should return two budgetitems
@@ -517,6 +530,7 @@ class TestNodeBudgetItemsViewSuccessCondition(unittest.TestCase):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.matchdict['id'] = 22
+        request.params = DummyBudgetItemRequest()
         response = self._callFUT(request)
 
         # should return one budgetitem
@@ -619,9 +633,6 @@ class TestProjectOverheadsViewSuccessCondition(unittest.TestCase):
         # test that a the overheads is now two
         self.assertEqual(len(response), 2)
 
-class DummyOverhead(object):
-    def dict_of_lists(self):
-        return {}
 
 class TestProjectOverheadsViewSuccessCondition(unittest.TestCase):
     """ Test the different methods of the overheads
@@ -666,9 +677,6 @@ class TestProjectOverheadsViewSuccessCondition(unittest.TestCase):
         # now test that there one overhead
         self.assertEqual(len(response), 1)
 
-class DummyBudgetItemOverhead(object):
-    def dict_of_lists(self):
-        return {'NodeType': ['BudgetItem']}
 
 class TestBudgetItemOverheadsViewSuccessCondition(unittest.TestCase):
     """ Test the operations on Overheads of a BudgetItem
@@ -1033,14 +1041,14 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
         # assert if the response from the add view is OK
         self.assertEqual(response.keys(), ['node', 'ID'])
+        addedid = response['ID']
 
         # Create another request for the child of the node added to
         request = testing.DummyRequest()
-        request.matchdict = {'parentid': 1}
-        from optimate.app.views import node_children
-        response = node_children(request)
+        request.matchdict = {'id': addedid}
+        response = self._callFUT(request)
         # true if the name of the child added to the node is 'AddingName'
-        self.assertEqual(response[1]['Name'], 'AddingName')
+        self.assertEqual(response['Name'], 'AddingName')
 
     def test_add_budgetitem(self):
         _registerRoutes(self.config)
@@ -1477,7 +1485,9 @@ class TestCopySuccessCondition(unittest.TestCase):
         # which is budgetgroup with id 2
         request = testing.DummyRequest(json_body={
             'ID': '2',
-            'cut': False}
+            'cut': False,
+            'selections': [{'Name': 'Quantity', 'selected': True}]
+            }
         )
         # set the node to be pasted into
         # which is projectb with id 4
@@ -1521,7 +1531,9 @@ class TestCopySuccessCondition(unittest.TestCase):
         # which is project with id 1
         request = testing.DummyRequest(json_body={
             'ID': '1',
-            'cut': False}
+            'cut': False,
+            'selections': [{'Name': 'Quantity', 'selected': False},
+                            {'Name': 'Rate', 'selected': False}]}
         )
         # set the node to be pasted into
         # which is root with id 0
@@ -1576,13 +1588,13 @@ class TestCopySuccessCondition(unittest.TestCase):
         response = node_children(request)
         self.assertEqual(len(response), 3)
 
-    def test_resourcecategory_in_resourcecategory_duplicates(self):
+    def test_resourcecategory_in_resourcecategory_selections(self):
         _registerRoutes(self.config)
         # set the node to be copied
         request = testing.DummyRequest(json_body={
             'ID': '12',
             'cut': False,
-            'duplicates': {'A000': True}}
+            'selections': {'A000': True}}
         )
         # set the node to be pasted into
         request.matchdict = {'id': 9}
@@ -1604,7 +1616,9 @@ class TestCopySuccessCondition(unittest.TestCase):
         # set the node to be copied
         request = testing.DummyRequest(json_body={
             'ID': '2',
-            'cut': False}
+            'cut': False,
+            'selections': [{'Name': 'Quantity', 'selected': True}]
+            }
         )
         # set the node to be pasted into
         request.matchdict = {'id': 1}
@@ -1644,7 +1658,8 @@ class TestCutAndPasteSuccessCondition(unittest.TestCase):
         # which is budgetgroup with id 2
         request = testing.DummyRequest(json_body={
             'ID': '2',
-            'cut': True}
+            'cut': True,
+            'selections': [{'Name': 'Quantity', 'selected': True}]}
         )
         # set the node to be pasted into
         # which is projectb with id 4
