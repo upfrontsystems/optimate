@@ -143,6 +143,11 @@ def main(global_config, **settings):
     config.add_route('invoices_report_filter', '/invoices_report_filter', factory=makeProtectedFunction('invoices'))
     config.add_route('claim', '/claim_report/{id}/', factory=makeProtectedFunction('claims'))
 
+    # Excel reports
+    config.add_route('excelprojectbudget', '/excel_project_budget_report/{id}/', factory=makeProtectedFunction('projects'))
+    config.add_route('excelcostcomparison', '/excel_cost_comparison_report/{id}/', factory=makeProtectedFunction('projects'))
+    config.add_route('excelresourcelist', '/excel_resource_list_report/{id}/', factory=makeProtectedFunction('projects'))
+
     # user rights
     config.add_route('userrights', '/rights/{username}/')
 

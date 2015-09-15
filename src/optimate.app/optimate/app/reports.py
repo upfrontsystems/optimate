@@ -9,6 +9,7 @@ from pyramid.response import Response
 from pyramid.renderers import render
 from StringIO import StringIO
 from xhtml2pdf import pisa
+import xlsxwriter
 
 from optimate.app.models import (
     DBSession,
@@ -933,6 +934,294 @@ def claim(request):
     # needed so that in a cross-domain situation the header is visible
     response.headers.add('Access-Control-Expose-Headers','Content-Disposition')
     response.headers.add("Content-Length", str(len(pdfcontent)))
+    response.headers.add('Last-Modified', last_modified)
+    response.headers.add("Cache-Control", "no-store")
+    response.headers.add("Pragma", "no-cache")
+    return response
+
+
+@view_config(route_name="excelprojectbudget")
+def excelprojectbudget(request):
+    logger.info("Generating Excel Project Budget Report")
+    nodeid = request.matchdict['id']
+    level_limit = request.json_body['LevelLimit']
+    bi_typelist = request.json_body['BudgetItemTypeList']
+    print_bgroups = request.json_body['PrintSelectedBudgerGroups']
+    bgroup_list = request.json_body['BudgetGroupList']
+
+    budgetitem_filter = [record['ID'] for record in bi_typelist \
+        if record['selected']]
+
+    project = DBSession.query(Node).filter_by(ID=nodeid).first()
+    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
+
+    # inject node data into template
+    nodes = []
+    if print_bgroups:
+        bgs = sorted(bgroup_list, key=lambda k: k['Name'].upper())
+        for bgroup in bgs:
+            bg_id = bgroup['ID']
+            qry = DBSession.query(Node).filter_by(ID=bg_id).first()
+
+            # start at the parent so we can display the context
+            nodes.append((qry, 'level1', 'bold'))
+            # group data
+            nodes += projectbudget_nodes(qry, [], 1, level_limit+1,
+                budgetitem_filter)
+            # add blank line seperator between groups
+            nodes.append(None)
+    else:
+        nodes = projectbudget_nodes(project, [], 0, level_limit,
+            budgetitem_filter)
+
+    # this needs explaining. The 1st budgetitem of a budget group
+    # needs a a special class so that extra spacing can be added above it for
+    # report readability & clarity
+    count = 0
+    for node in nodes:
+        if node != None:
+            if node[0].type == 'BudgetItem' and count != 0:
+                if nodes[count-1][0].type != 'BudgetItem':
+                    nodes[count] = (node[0], node[1], 'normal-space')
+        count+= 1
+
+    # get all the project markups
+    projectmarkups = DBSession.query(Overhead).filter_by(ProjectID = nodeid,
+                                                        Type='Project').all()
+    projectsubtotal = float(project.Total)
+    projecttotal = projectsubtotal
+    markups = []
+    for markup in projectmarkups:
+        data = markup.dict()
+        data['Amount'] = projecttotal * markup.Percentage / 100.0
+        markups.append(data)
+        projecttotal = projecttotal * (1+(markup.Percentage/100.0))
+
+    # render template
+    now = datetime.now()
+    filename = "excel_project_budget_report"
+    nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
+    last_modified = formatdate(time.mktime(now.timetuple()))
+
+    output = StringIO()
+
+    workbook = xlsxwriter.Workbook(output)
+    worksheet = workbook.add_worksheet()
+
+    worksheet.write(0, 0, 'Project Budget for ' + project.Name)
+    worksheet.write(1, 0, 'Description')
+    worksheet.write(1, 1, 'Unit')
+    worksheet.write(1, 2, 'Quantity')
+    worksheet.write(1, 3, 'Rate')
+    worksheet.write(1, 4, 'Total')
+    row = 2
+    for node in nodes:
+        if node[0].type == 'BudgetGroup':
+            worksheet.write(row, 0, node[0].Name)
+            worksheet.write(row, 4, currency + '{:20,.2f}'.format(node[0].Total).strip())
+        elif node:
+            worksheet.write(row, 0, node[0].Name)
+            worksheet.write(row, 1, node[0].Unit)
+            worksheet.write(row, 2, node[0].Quantity)
+            worksheet.write(row, 3, currency + '{:20,.2f}'.format(node[0].Rate).strip())
+            worksheet.write(row, 4, currency + '{:20,.2f}'.format(node[0].Total).strip())
+        row+=1
+
+    worksheet.write(row, 0, 'Subtotal')
+    worksheet.write(row, 4, projectsubtotal)
+    row+=1
+
+    for markup in markups:
+        worksheet.write(row, 0, markup['Name'])
+        worksheet.write(row, 3, markup['Percentage'] + '%')
+        worksheet.write(row, 4, currency + '{:20,.2f}'.format(markup['Amount']).strip())
+        row+=1
+
+    worksheet.write(row, 0, 'Total')
+    worksheet.write, row, 4, currency + '{:20,.2f}'.format(projecttotal).strip()
+    workbook.close()
+
+    excelcontent = output.getvalue()
+    logging.info("excel rendered")
+
+    response = Response(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                        body=excelcontent)
+    response.headers.add('Content-Disposition',
+                         "attachment; filename=%s.xlsx" % nice_filename)
+    response.headers.add('Access-Control-Expose-Headers','Content-Disposition')
+    response.headers.add("Content-Length", str(len(excelcontent)))
+    response.headers.add('Last-Modified', last_modified)
+    response.headers.add("Cache-Control", "no-store")
+    response.headers.add("Pragma", "no-cache")
+
+    return response
+
+
+@view_config(route_name="excelcostcomparison")
+def excelcostcomparison(request):
+    logging.info("Generating Excel Cost Comparison Report")
+    nodeid = request.matchdict['id']
+    level_limit = request.json_body['LevelLimit']
+    print_bgroups = request.json_body['PrintSelectedBudgerGroups']
+    bgroup_list = request.json_body['BudgetGroupList']
+
+    project = DBSession.query(Node).filter_by(ID=nodeid).first()
+    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
+
+    # inject node data into template
+    nodes = []
+    if print_bgroups:
+        bgs = sorted(bgroup_list, key=lambda k: k['Name'].upper())
+        for bgroup in bgs:
+            bg_id = bgroup['ID']
+            qry = DBSession.query(Node).filter_by(ID=bg_id).first()
+
+            # apply colour distinction
+            tc = 'black';
+            oc = 'black';
+            ic = 'black';
+            if qry.Ordered > qry.Total:
+                oc = 'red';
+            if qry.Invoiced > qry.Total:
+                ic = 'red';
+
+            # start at the parent so we can display the context
+            nodes.append([qry, 'level1', 'bold', tc, oc, ic])
+            # group data
+            nodes += costcomparison_nodes(qry, [], 1, level_limit+1)
+            # add blank line seperator between groups
+            nodes.append(None)
+    else:
+        nodes = costcomparison_nodes(project, [], 0, level_limit)
+
+    # if the project is approved, get the variation budget items
+    if project.Status == 'Approved':
+        budgetitems = project.getBudgetItems(variation=True)
+        # for each budget item find the first parent budget group
+        # and style the parent name
+        for budgetitem in budgetitems:
+            parent = budgetitem.Parent
+            found = False
+            while parent.ID !=0 and not found:
+                for node in nodes:
+                    if node[0].ID == parent.ID:
+                        node[1] = str(node[1]) + " red"
+                        found = True
+                        break
+                parent = parent.Parent
+
+    # render template
+    now = datetime.now()
+    output = StringIO()
+
+    workbook = xlsxwriter.Workbook(output)
+    worksheet = workbook.add_worksheet()
+
+    worksheet.write(0, 0, 'Cost Comparison for ' + project.Name)
+    worksheet.write(1, 0, 'Description')
+    worksheet.write(1, 1, 'Total')
+    worksheet.write(1, 2, 'Ordered')
+    worksheet.write(1, 3, 'Invoiced')
+
+    row = 2
+    for node in nodes:
+        if node:
+            worksheet.write(row, 0, node[0].Name)
+            worksheet.write(row, 1, currency + '{:20,.2f}'.format(node[0].Total).strip())
+            worksheet.write(row, 1, currency + '{:20,.2f}'.format(node[0].Ordered).strip())
+            worksheet.write(row, 1, currency + '{:20,.2f}'.format(node[0].Invoiced).strip())
+        row+=1
+
+    workbook.close()
+
+    excelcontent = output.getvalue()
+    logging.info("excel rendered")
+
+    filename = "cost_comparison_report"
+    nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
+    last_modified = formatdate(time.mktime(now.timetuple()))
+
+    response = Response(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                        body=excelcontent)
+    response.headers.add('Content-Disposition',
+                         "attachment; filename=%s.xlsx" % nice_filename)
+    # needed so that in a cross-domain situation the header is visible
+    response.headers.add('Access-Control-Expose-Headers','Content-Disposition')
+    response.headers.add("Content-Length", str(len(excelcontent)))
+    response.headers.add('Last-Modified', last_modified)
+    response.headers.add("Cache-Control", "no-store")
+    response.headers.add("Pragma", "no-cache")
+    return response
+
+
+@view_config(route_name="excelresourcelist")
+def excelresourcelist(request):
+    logging.info("Generating Excel Resource List Report")
+    nodeid = request.matchdict['id']
+    project = DBSession.query(Node).filter_by(ID=nodeid).first()
+    filter_by_supplier = request.json_body['FilterBySupplier']
+
+    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
+
+    # inject node data into template
+    nodes = []
+    filtered_by = ''
+    if filter_by_supplier and 'Supplier' in request.json_body:
+        supplier = request.json_body['Supplier']
+        nodes = all_resources(project, [], 0, supplier)
+        sp = DBSession.query(Supplier).filter_by(ID=supplier).first()
+        filtered_by = '(Supplier: ' + sp.Name + ')'
+    else:
+        nodes = all_resources(project, [], 0, None)
+
+    # render template
+    now = datetime.now()
+    template_data = render('templates/resourcelistreport.pt',
+                           {'nodes': nodes,
+                            'filtered_by_string': filtered_by,
+                            'project_name': project.Name,
+                            'print_date' : now.strftime("%d %B %Y - %k:%M"),
+                            'currency': currency},
+                           request=request)
+    html = StringIO(template_data.encode('utf-8'))
+
+    output = StringIO()
+
+    workbook = xlsxwriter.Workbook(output)
+    worksheet = workbook.add_worksheet()
+
+    worksheet.write(0, 0, 'Resource List for '+ project.Name + ' ' + filtered_by)
+    worksheet.write(1, 0, 'Description')
+    worksheet.write(1, 1, 'Rate')
+    worksheet.write(1, 2, 'Quantity')
+
+    row = 2
+    if len(nodes) == 0:
+        worksheet.write(row, 0, 'No matching resource data found')
+    else:
+        for node in nodes:
+            if node:
+                worksheet.write(row, 0, node[0].Name)
+                if node[0].type != 'ResourceCategory':
+                    worksheet.write(row, 1, currency + '{:20,.2f}'.format(node[0].Rate).strip())
+                    worksheet.write(row, 1, node[3])
+            row+=1
+
+    workbook.close()
+
+    excelcontent = output.getvalue()
+    logging.info("excel rendered")
+
+    filename = "resource_list_report"
+    nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
+    last_modified = formatdate(time.mktime(now.timetuple()))
+    response = Response(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                        body=excelcontent)
+    response.headers.add('Content-Disposition',
+                         "attachment; filename=%s.xlsx" % nice_filename)
+    # needed so that in a cross-domain situation the header is visible
+    response.headers.add('Access-Control-Expose-Headers','Content-Disposition')
+    response.headers.add("Content-Length", str(len(excelcontent)))
     response.headers.add('Last-Modified', last_modified)
     response.headers.add("Cache-Control", "no-store")
     response.headers.add("Pragma", "no-cache")

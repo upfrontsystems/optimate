@@ -32,8 +32,10 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary" data-dismiss="modal"
-                 ng-disabled="!resourceListReportForm.$valid" ng-click="getReport('resourcelist', currentNode.ID)">Print</button>
+                <button data-ng-show="selectedReportType == 'pdf'" class="btn btn-primary" data-dismiss="modal"
+                 ng-disabled="!resourceListReportForm.$valid" ng-click="getReport('resourcelist', currentNode.ID)">Print PDF</button>
+                <button data-ng-show="selectedReportType == 'excel'" class="btn btn-primary" data-dismiss="modal"
+                 ng-disabled="!resourceListReportForm.$valid" ng-click="getExcelReport('resourcelist', currentNode.ID)">Print Excel</button>
                 <button class="btn btn-default" data-dismiss="modal">Cancel</button>
             </div>
         </div>

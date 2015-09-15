@@ -80,9 +80,12 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary" data-dismiss="modal"
+                <button data-ng-show="selectedReportType == 'pdf'" class="btn btn-primary" data-dismiss="modal"
                  ng-disabled="!costComparisonReportForm.$valid"
-                 ng-click="getReport('costcomparison', currentNode.ID)">Print</button>
+                 ng-click="getReport('costcomparison', currentNode.ID)">Print PDF</button>
+                 <button data-ng-show="selectedReportType == 'excel'" class="btn btn-primary" data-dismiss="modal"
+                 ng-disabled="!costComparisonReportForm.$valid"
+                 ng-click="getExcelReport('costcomparison', currentNode.ID)">Print Excel</button>
                 <button class="btn btn-default" data-dismiss="modal">Cancel</button>
             </div>
         </div>

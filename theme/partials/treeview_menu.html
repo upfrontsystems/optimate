@@ -94,18 +94,39 @@
                 </li>
                 <li>
                    <a class="dropdown-toggle pdf_download"
-                    data-toggle="dropdown" title="Print">
+                    data-toggle="dropdown" title="Print PDF">
                     <i class="fa fa-file-pdf-o"></i></a>
                     <!-- hidden anchor for download hook -->
                     <a class="pdf_hidden_download"></a>
                     <ul class="dropdown-menu">
                         <li>
                             <a data-target="#projectBudgetReport" data-toggle="modal"
-                               data-ng-click="loadNodeForPrinting(currentNode.ID); loadBudgetItemTypes()">Project Budget Report</a>
+                               data-ng-click="loadNodeForPrinting(currentNode.ID); loadBudgetItemTypes(); setReportType('pdf')">
+                               PDF Project Budget Report</a>
                         </li>
                         <li>
                             <a data-target="#costComparisonReport" data-toggle="modal"
-                               data-ng-click="loadNodeForPrinting(currentNode.ID); loadBudgetItemTypes()">Cost Comparison Report</a>
+                               data-ng-click="loadNodeForPrinting(currentNode.ID); loadBudgetItemTypes(); setReportType('pdf')">
+                               PDF Cost Comparison Report</a>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                   <a class="dropdown-toggle excel_download"
+                    data-toggle="dropdown" title="Print Excel">
+                    <i class="fa fa-file-excel-o"></i></a>
+                    <!-- hidden anchor for download hook -->
+                    <a class="excel_hidden_download"></a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a data-target="#projectBudgetReport" data-toggle="modal"
+                               data-ng-click="loadNodeForPrinting(currentNode.ID); loadBudgetItemTypes(); setReportType('excel')">
+                               Excel Project Budget Report</a>
+                        </li>
+                        <li>
+                            <a data-target="#costComparisonReport" data-toggle="modal"
+                               data-ng-click="loadNodeForPrinting(currentNode.ID); loadBudgetItemTypes(); setReportType('excel')">
+                               Excel Cost Comparison Report</a>
                         </li>
                     </ul>
                 </li>
@@ -432,11 +453,19 @@
                 </li>
                 <li>
                     <a title="Resource List Report" data-target="#resourceListReport"
-                    data-toggle="modal" data-ng-click="loadSuppliers()"
+                    data-toggle="modal" data-ng-click="loadSuppliers(); setReportType('pdf')"
                     class="pdf_download">
                     <i class="fa fa-file-pdf-o"></i></a>
                     <!-- hidden anchor for download hook -->
                     <a class="pdf_hidden_download"></a>
+                </li>
+                <li>
+                    <a title="Excel Resource List Report" data-target="#resourceListReport"
+                    data-toggle="modal" data-ng-click="loadSuppliers(); setReportType('excel')"
+                    class="excel_download">
+                    <i class="fa fa-file-excel-o"></i></a>
+                    <!-- hidden anchor for download hook -->
+                    <a class="excel_hidden_download"></a>
                 </li>
             </ul>
         </div>

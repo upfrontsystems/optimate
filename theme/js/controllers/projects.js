@@ -42,6 +42,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
         $scope.rowsSelected = false;    // set selected rows false
         $scope.showBudgetActions = false;
         $scope.projectStates = ['Draft', 'Approved', 'Completed'];
+        $scope.selectedReportType = "something";
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
@@ -1424,6 +1425,10 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             });
         };
 
+        $scope.setReportType = function(type){
+            $scope.selectedReportType = type;
+        }
+
         $scope.getReport = function (report, nodeid) {
             var target = document.getElementsByClassName('pdf_download');
             var spinner = new Spinner().spin(target[0]);
@@ -1469,6 +1474,57 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 });
             }).error(function(data, status, headers, config) {
                 console.log("Report pdf download error")
+            });
+        };
+
+        $scope.getExcelReport = function (report, nodeid) {
+            var target = document.getElementsByClassName('excel_download');
+            var spinner = new Spinner().spin(target[0]);
+            if ( report == 'projectbudget' ) {
+                $scope.formData['BudgetItemTypeList'] = $scope.budgetItemTypeList || [];
+                $scope.formData['PrintSelectedBudgerGroups'] = $scope.printSelectedBudgetGroups;
+                $scope.formData['BudgetGroupList'] = $scope.budgetgroupList || [];
+                var url = globalServerURL + 'excel_project_budget_report/' + nodeid + '/'
+            }
+            else if ( report == 'costcomparison' ) {
+                $scope.formData['PrintSelectedBudgerGroups'] = $scope.printSelectedBudgetGroups;
+                $scope.formData['BudgetGroupList'] = $scope.budgetgroupList || [];
+                var url = globalServerURL + 'excel_cost_comparison_report/' + nodeid + '/'
+            }
+            else if ( report == 'resourcelist' ) {
+                $scope.formData['FilterBySupplier'] = $scope.filterBySupplier;
+                var url = globalServerURL + 'excel_resource_list_report/' + nodeid + '/'
+            }
+            $http({
+                method: 'POST',
+                url: url,
+                data: $scope.formData},
+                {responseType: 'arraybuffer'
+            }).success(function (response, status, headers, config) {
+                console.log("success");
+                spinner.stop(); // stop the spinner - ajax call complete
+                $scope.budgetgroupList = [] // clear selected budget group list
+                var file = new Blob([response], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+                var fileURL = URL.createObjectURL(file);
+                var result = document.getElementsByClassName("excel_hidden_download");
+                var anchor = angular.element(result);
+                console.log(headers);
+                var filename_header = headers('Content-Disposition');
+                console.log(filename_header);
+                var filename = filename_header.split('filename=')[1];
+                anchor.attr({
+                    href: fileURL,
+                    target: '_blank',
+                    download: filename
+                })[0].click();
+                // clear the hidden anchor so that everytime a new report is linked
+                anchor.attr({
+                    href: '',
+                    target: '',
+                    download: ''
+                });
+            }).error(function(data, status, headers, config) {
+                console.log("Report excel download error")
             });
         };
 
