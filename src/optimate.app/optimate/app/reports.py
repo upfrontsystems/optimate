@@ -894,7 +894,8 @@ def claim(request):
         paymenttotal += payment.Amount
         payments.append(payment)
 
-    vatamount = float(due) * 0.14
+    taxrate = DBSession.query(CompanyInformation).first().DefaultTaxrate
+    vatamount = float(due) * (taxrate/100.0)
 
     # inject claim data into template
     now = datetime.now()
@@ -911,6 +912,7 @@ def claim(request):
                             'due': due,
                             'paymenttotal': paymenttotal,
                             'vatamount': vatamount,
+                            'taxrate': taxrate,
                             'currency': currency},
                             request=request)
     # render template
@@ -1176,17 +1178,7 @@ def excelresourcelist(request):
 
     # render template
     now = datetime.now()
-    template_data = render('templates/resourcelistreport.pt',
-                           {'nodes': nodes,
-                            'filtered_by_string': filtered_by,
-                            'project_name': project.Name,
-                            'print_date' : now.strftime("%d %B %Y - %k:%M"),
-                            'currency': currency},
-                           request=request)
-    html = StringIO(template_data.encode('utf-8'))
-
     output = StringIO()
-
     workbook = xlsxwriter.Workbook(output)
     worksheet = workbook.add_worksheet()
 
@@ -1213,6 +1205,476 @@ def excelresourcelist(request):
     logging.info("excel rendered")
 
     filename = "resource_list_report"
+    nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
+    last_modified = formatdate(time.mktime(now.timetuple()))
+    response = Response(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                        body=excelcontent)
+    response.headers.add('Content-Disposition',
+                         "attachment; filename=%s.xlsx" % nice_filename)
+    # needed so that in a cross-domain situation the header is visible
+    response.headers.add('Access-Control-Expose-Headers','Content-Disposition')
+    response.headers.add("Content-Length", str(len(excelcontent)))
+    response.headers.add('Last-Modified', last_modified)
+    response.headers.add("Cache-Control", "no-store")
+    response.headers.add("Pragma", "no-cache")
+    return response
+
+
+@view_config(route_name="excelorder")
+def excelorder(request):
+    logging.info("Generating Excel Order Report")
+    orderid = request.matchdict['id']
+    order = DBSession.query(Order).filter_by(ID=orderid).first()
+    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
+
+    orderitems = []
+    for orderitem in order.OrderItems:
+        # get the resource id
+        data = orderitem.dict()
+        data['ResourceID'] = orderitem.BudgetItem.ResourceID
+        orderitems.append(data)
+
+    # sort by resourceid
+    orderitems = sorted(orderitems, key=lambda k: k['ResourceID'])
+    consolidated = []
+    if len(orderitems) > 0:
+        consolidated.append(orderitems.pop(0))
+        # loop through the order items that are ordered according to their resource
+        backups = []
+        for orderitem in orderitems:
+            if consolidated[-1]['ResourceID'] == orderitem['ResourceID']:
+                # if it is the same budgetitem and rate add the quantities
+                if consolidated[-1]['Rate'] == orderitem['Rate']:
+                    consolidated[-1]['Quantity'] += orderitem['Quantity']
+                    consolidated[-1]['Total'] = float(consolidated[-1]['Total']
+                                                ) + float(orderitem['Total'])
+                else:
+                    # check if the rate is the same as previous items
+                    added = False
+                    for backup in backups:
+                        if backup['Rate'] == orderitem['Rate']:
+                            added = True
+                            backup['Quantity'] += orderitem['Quantity']
+                            backup['Total'] = float(backup['Total']
+                                            ) + float(orderitem['Total'])
+                            break
+
+                    # if the item doesn't match add it to the backup list
+                    if not added:
+                        backups.append(orderitem)
+            else:
+                # a new set of order items with the same resource
+                # add the backup list
+                for backup in backups:
+                    consolidated.append(backup)
+                backups[:] = []
+                # add the orderitem
+                consolidated.append(orderitem)
+        for backup in backups:
+            consolidated.append(backup)
+
+    orderitems = sorted(consolidated, key=lambda k: k['Name'].upper())
+
+    Vat = 14.0
+    Subtotal = float(order.Total)/(1+ Vat/100)
+    vat_str = str(Vat) + '%'
+    totals = [Subtotal, vat_str, float(order.Total)]
+
+    # render template
+    output = StringIO()
+
+    workbook = xlsxwriter.Workbook(output)
+    worksheet = workbook.add_worksheet()
+
+    worksheet.write(0, 0, 'To Messers.')
+    worksheet.write(0, 1, order.Client.Name)
+    worksheet.write(0, 2, 'Order ' + str(order.ID))
+    worksheet.write(0, 3, order.Date.strftime("%d %B %Y"))
+
+    worksheet.write(1, 0, 'Supplier FaxNo')
+    worksheet.write(1, 1, order.Supplier.Fax)
+    worksheet.write(1, 2, 'Created by')
+
+    worksheet.write(1, 0, 'On behalf of')
+    worksheet.write(1, 2, order.Project.Name)
+
+    worksheet.write(3, 0, 'Description')
+    worksheet.write(3, 1, 'Unit')
+    worksheet.write(3, 2, 'Quantity')
+    worksheet.write(3, 3, 'Rate')
+    worksheet.write(3, 4, 'Total')
+
+    row = 4
+    for orderitem in orderitems:
+        worksheet.write(row, 0, orderitem['Name'])
+        worksheet.write(row, 1, orderitem['Unit'])
+        worksheet.write(row, 2, orderitem['Quantity'])
+        worksheet.write(row, 3, currency + '{:20,.2f}'.format(float(orderitem['Rate'])).strip())
+        worksheet.write(row, 4, currency + '{:20,.2f}'.format(float(orderitem['Total'])).strip())
+        row+=1
+
+    row+=1
+    worksheet.write(row, 0, 'Authorisation')
+    worksheet.write(row, 1, 'Signature: __________________________')
+    worksheet.write(row, 2, 'Subtotal')
+    worksheet.write(row, 3, currency + '{:20,.2f}'.format(totals[0]).strip())
+    row+=1
+    worksheet.write(row, 2, 'Vat')
+    worksheet.write(row, 3, totals[1])
+    row+=1
+    worksheet.write(row, 2, 'Total cost')
+    worksheet.write(row, 3, currency + '{:20,.2f}'.format(totals[2]).strip())
+
+    workbook.close()
+
+    excelcontent = output.getvalue()
+    logging.info("excel rendered")
+
+    filename = "order_report"
+    now = datetime.now()
+    nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
+    last_modified = formatdate(time.mktime(now.timetuple()))
+    response = Response(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                        body=excelcontent)
+    response.headers.add('Content-Disposition',
+                         "attachment; filename=%s.xlsx" % nice_filename)
+    # needed so that in a cross-domain situation the header is visible
+    response.headers.add('Access-Control-Expose-Headers','Content-Disposition')
+    response.headers.add("Content-Length", str(len(excelcontent)))
+    response.headers.add('Last-Modified', last_modified)
+    response.headers.add("Cache-Control", "no-store")
+    response.headers.add("Pragma", "no-cache")
+    return response
+
+@view_config(route_name="excelinvoices")
+def excelinvoices(request):
+    logging.info("Generating Excel Invoices Report")
+    filter_by_project = request.json_body.get('FilterByProject', False)
+    filter_by_supplier = request.json_body.get('FilterBySupplier', False)
+    filter_by_paymentdate = request.json_body.get('FilterByPaymentDate', False)
+    filter_by_status = request.json_body.get('FilterByStatus', False)
+    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
+
+    qry = DBSession.query(Invoice)
+    invoices = []
+    headings= []
+    if filter_by_project and 'Project' in request.json_body:
+        projectid = request.json_body['Project']
+        node = DBSession.query(Project).filter_by(ID=projectid).first()
+        headings.append('Project: ' + node.Name)
+        qry = qry.filter_by(ProjectID=projectid)
+
+    if filter_by_supplier and 'Supplier' in request.json_body:
+        supplierid = request.json_body['Supplier']
+        node = DBSession.query(Supplier).filter_by(ID=supplierid).first()
+        headings.append('Supplier: ' + node.Name)
+        qry = qry.filter_by(SupplierID=supplierid)
+
+    if filter_by_paymentdate and 'PaymentDate' in request.json_body:
+        headings.append('Payment Date: '+ request.json_body['PaymentDate'])
+        date = datetime.strptime(request.json_body['PaymentDate'], "%d %B %Y")
+        qry = qry.filter_by(PaymentDate=date)
+
+    if filter_by_status and 'Status' in request.json_body:
+        headings.append('Status: ' + request.json_body['Status'])
+        qry = qry.filter_by(Status=request.json_body['Status'])
+
+    for invoice in qry:
+        invoices.append(invoice.dict())
+
+    sorted_invoices = sorted(invoices, key=lambda k: k['ID'])
+
+    # inject invoice data into template
+    template_data = render('templates/invoicesreport.pt',
+                           {'invoices': sorted_invoices,
+                            'report_headings': headings,
+                            'currency': currency},
+                            request=request)
+    # render template
+    output = StringIO()
+
+    workbook = xlsxwriter.Workbook(output)
+    worksheet = workbook.add_worksheet()
+
+    worksheet.write(0, 0, 'Invoices report')
+
+    row = 1
+    for heading in headings:
+        worksheet.write(row, 0, heading)
+        row+=1
+    row+=1
+
+    worksheet.write(row, 0, 'Invoice Number')
+    worksheet.write(row, 1, 'Order Number')
+    worksheet.write(row, 2, 'Project')
+    worksheet.write(row, 3, 'Supplier')
+    worksheet.write(row, 4, 'Invoice Total')
+    worksheet.write(row, 5, 'Payment Date')
+    worksheet.write(row, 6, 'Status')
+    row+=1
+    for invoice in sorted_invoices:
+        worksheet.write(row, 0, invoice['InvoiceNumber'])
+        worksheet.write(row, 1, invoice['OrderID'])
+        worksheet.write(row, 2, invoice['Project'])
+        worksheet.write(row, 3, invoice['Supplier'])
+        worksheet.write(row, 4, currency + '{:20,.2f}'.format(float(invoice['Total'])).strip())
+        worksheet.write(row, 5, invoice['ReadablePaymentdate'])
+        worksheet.write(row, 6, invoice['Status'])
+        row+=1
+
+    workbook.close()
+
+    excelcontent = output.getvalue()
+    logging.info("excel rendered")
+
+    fd = open ('invoice_report.xlsx', 'w')
+    # populate buf
+    fd.write (excelcontent)
+
+    filename = "invoice_report"
+    now = datetime.now()
+    nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
+    last_modified = formatdate(time.mktime(now.timetuple()))
+    response = Response(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                        body=excelcontent)
+    response.headers.add('Content-Disposition',
+                         "attachment; filename=%s.xlsx" % nice_filename)
+    # needed so that in a cross-domain situation the header is visible
+    response.headers.add('Access-Control-Expose-Headers','Content-Disposition')
+    response.headers.add("Content-Length", str(len(excelcontent)))
+    response.headers.add('Last-Modified', last_modified)
+    response.headers.add("Cache-Control", "no-store")
+    response.headers.add("Pragma", "no-cache")
+    return response
+
+
+@view_config(route_name="excelvaluation")
+def excelvaluation(request):
+    logging.info("Generating Valuation Excel Report")
+    valuationid = request.matchdict['id']
+    valuation = DBSession.query(Valuation).filter_by(ID=valuationid).first()
+    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
+
+    budget_total = 0
+    itemlist = []
+    parentlist = []
+    childrenlist = []
+
+    for item in valuation.ValuationItems:
+        bg = item.BudgetGroup
+        # get data and append children valuation items to children list
+        if item.ParentID != 0:
+            data = bg.valuation('2')
+            totalbudget = item.BudgetGroupTotal
+            if totalbudget is not None:
+                totalbudget = str(totalbudget)
+            data['TotalBudget'] = totalbudget
+            data['AmountComplete'] = str(item.Total)
+            data['PercentageComplete'] = item.PercentageComplete
+            childrenlist.append(data)
+        # get data and append parents valuation items to parent list
+        else:
+            budget_total += float(item.Total)
+            data = bg.valuation()
+            if len(item.Children) > 0:
+                data['expanded'] = True
+            data['AmountComplete'] = str(item.Total)
+            data['PercentageComplete'] = item.PercentageComplete
+            totalbudget = item.BudgetGroupTotal
+            if totalbudget is not None:
+                totalbudget = str(totalbudget)
+            data['TotalBudget'] = totalbudget
+            parentlist.append(data)
+
+    # sort the list, place children after parents
+    parentlist = sorted(parentlist, key=lambda k: k['Name'].upper())
+    for parent in parentlist:
+        if parent['expanded']:
+            dc = [x for x in childrenlist if x['ParentID'] == parent['ID']]
+            dc = sorted(dc, key=lambda k: k['Name'].upper())
+            itemlist.append(parent)
+            itemlist+=dc
+        else:
+            itemlist.append(parent)
+
+    markup_list = []
+    grandtotal = float(valuation.Total)
+    # get the valuation markup
+    for markup in valuation.MarkupList:
+        data = markup.dict()
+        data["Amount"] = float(data['TotalBudget'])*(markup.PercentageComplete/100)
+        grandtotal += data["Amount"]
+        markup_list.append(data)
+
+    markup_list = sorted(markup_list, key=lambda k: k['Name'].upper())
+
+    # inject valuation data into template
+    now = datetime.now()
+    vdate = valuation.Date.strftime("%d %B %Y")
+    clientid = valuation.Project.ClientID
+    client = DBSession.query(Client).filter_by(ID=clientid).first()
+    template_data = render('templates/valuationreport.pt',
+                           {'valuation': valuation,
+                            'valuation_items': itemlist,
+                            'client': client,
+                            'budget_total': budget_total,
+                            'valuation_date': vdate,
+                            'markup_list': markup_list,
+                            'grand_total': grandtotal,
+                            'currency': currency},
+                            request=request)
+    # render template
+    output = StringIO()
+
+    workbook = xlsxwriter.Workbook(output)
+    worksheet = workbook.add_worksheet()
+
+    worksheet.write(0, 0, 'Valuation for Certificate #')
+
+    worksheet.write(1, 0, 'To:')
+    worksheet.write(1, 1, client.Name)
+    worksheet.write(2, 0, 'Date:')
+    worksheet.write(2, 1, vdate)
+    worksheet.write(3, 0, 'Project')
+    worksheet.write(3, 1, valuation.Project.Name)
+
+    row = 5
+    worksheet.write(row, 0, 'Details')
+    worksheet.write(row, 1, vdate)
+    worksheet.write(row, 2, '\% Claim')
+    worksheet.write(row, 3, 'Total')
+    row+=1
+    for item in itemlist:
+        worksheet.write(row, 0, item['Name'])
+        worksheet.write(row, 1, currency + '{:20,.2f}'.format(float(item['TotalBudget'])).strip())
+        worksheet.write(row, 2, item['PercentageComplete'])
+        worksheet.write(row, 3, currency + '{:20,.2f}'.format(float(item['AmountComplete'])).strip())
+        row+=1
+
+    worksheet.write(row, 0, 'Subtotal')
+    worksheet.write(row, 1, currency + '{:20,.2f}'.format(budget_total).strip())
+    worksheet.write(row, 3, currency + '{:20,.2f}'.format(valuation.Total).strip())
+    row+=1
+
+    for markup in markup_list:
+        worksheet.write(row, 0, markup['Name'])
+        worksheet.write(row, 1, currency + '{:20,.2f}'.format(float(markup['TotalBudget'])).strip())
+        worksheet.write(row, 2, markup['PercentageComplete'])
+        worksheet.write(row, 3, currency + '{:20,.2f}'.format(float(markup['Amount'])).strip())
+        row+=1
+
+    row+=1
+    worksheet.write(row, 0, 'Total')
+    worksheet.write(row, 3, currency + '{:20,.2f}'.format(grandtotal).strip())
+
+    workbook.close()
+
+    excelcontent = output.getvalue()
+    logging.info("excel rendered")
+
+    filename = "valuation_report"
+    nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
+    last_modified = formatdate(time.mktime(now.timetuple()))
+    response = Response(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                        body=excelcontent)
+    response.headers.add('Content-Disposition',
+                         "attachment; filename=%s.xlsx" % nice_filename)
+    # needed so that in a cross-domain situation the header is visible
+    response.headers.add('Access-Control-Expose-Headers','Content-Disposition')
+    response.headers.add("Content-Length", str(len(excelcontent)))
+    response.headers.add('Last-Modified', last_modified)
+    response.headers.add("Cache-Control", "no-store")
+    response.headers.add("Pragma", "no-cache")
+    return response
+
+
+@view_config(route_name="excelclaim")
+def excelclaim(request):
+    logging.info("Generating Excel Claim Report")
+    claimid = request.matchdict['id']
+
+    claim = DBSession.query(Claim).filter_by(ID=claimid).first()
+    valuation = claim.Valuation
+    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
+
+    budget_total = 0
+    for valuationitem in valuation.ValuationItems:
+        if valuationitem.BudgetGroupTotal:
+            budget_total += valuationitem.BudgetGroupTotal
+
+    percentage = '{0:.2f}'.format(float(claim.Total/budget_total)*100).strip()
+
+    payments = []
+    due = claim.Total
+    paymenttotal = 0
+    for payment in claim.Project.Payments:
+        due -= payment.Amount
+        paymenttotal += payment.Amount
+        payments.append(payment)
+
+    taxrate = DBSession.query(CompanyInformation).first().DefaultTaxrate
+    vatamount = float(due) * (taxrate/100.0)
+
+    # render template
+    output = StringIO()
+
+    workbook = xlsxwriter.Workbook(output)
+    worksheet = workbook.add_worksheet()
+
+    worksheet.write(0, 0, 'Pro Forma Claim')
+
+    row = 2
+    worksheet.write(row, 0, 'To:')
+    worksheet.write(1, 1, client.Name)
+    worksheet.write(2, 0, 'Date:')
+    worksheet.write(2, 1, date)
+    worksheet.write(3, 0, 'Project')
+    worksheet.write(3, 1, claim.Project.Name)
+
+    row+=2
+    worksheet.write(row, 0, 'Details of this payment certificate')
+    row+=1
+    worksheet.write(row, 0, 'ITEM')
+    worksheet.write(row, 1, 'QUANTITY')
+    worksheet.write(row, 2, 'RATE')
+    worksheet.write(row, 2, 'TOTALS')
+    row+=1
+    worksheet.write(row, 0, 'Progress Payment')
+    worksheet.write(row, 1, currency + '{:20,.2f}'.format(budget_total).strip())
+    worksheet.write(row, 2, percentage + '%')
+    worksheet.write(row, 3, currency + '{:20,.2f}'.format(float(claim.Total)).strip())
+    row+=2
+    worksheet.write(row, 0, 'SUBTOTAL: This claim')
+    worksheet.write(row, 3, currency + '{:20,.2f}'.format(float(claim.Total)).strip())
+    row+=1
+    worksheet.write(row, 0, 'Amounts of previous certificates excluding tax')
+    row+=1
+
+    for payment in payments:
+        worksheet.write(row, 0, 'Payment ' + str(payment.ID))
+        worksheet.write(row, 1, '-1')
+        worksheet.write(row, 2, currency + '{:20,.2f}'.format(float(payment.Amount)).strip())
+        worksheet.write(row, 3, '- ' + currency + '{:20,.2f}'.format(float(payment.Amount)).strip())
+        row+=1
+
+    row+=1
+    worksheet.write(row, 0, 'SUBTOTAL: This claim LESS Previous claims')
+    worksheet.write(row, 3, currency + '{:20,.2f}'.format(float(due)).strip())
+    row+=1
+    worksheet.write(row, 0, 'VALUE ADDED TAX')
+    worksheet.write(row, 1, currency + '{:20,.2f}'.format(float(due)).strip())
+    worksheet.write(row, 2, str(taxrate) + '%')
+    worksheet.write(row, 3, currency + '{:20,.2f}'.format(vatamount).strip())
+    row+=1
+    worksheet.write(row, 0, 'TOTAL DUE AS PER THIS CERTIFICATE')
+    worksheet.write(row, 3, currency + '{:20,.2f}'.format(float(due) + vatamount).strip())
+
+    workbook.close()
+
+    excelcontent = output.getvalue()
+    logging.info("excel rendered")
+
+    filename = "claim_report"
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
     last_modified = formatdate(time.mktime(now.timetuple()))
     response = Response(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

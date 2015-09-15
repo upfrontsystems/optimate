@@ -102,8 +102,10 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary" data-dismiss="modal"
-                 ng-disabled="!invoiceReportForm.$valid" ng-click="getReport('invoices')">Print</button>
+                <button data-ng-show="selectedReportType == 'pdf'" class="btn btn-primary" data-dismiss="modal"
+                    data-ng-click="getReport('invoices')">Print PDF</button>
+                 <button data-ng-show="selectedReportType == 'excel'" class="btn btn-primary" data-dismiss="modal"
+                    data-ng-click="getExcelReport('invoices')">Print Excel</button>
                 <button class="btn btn-default" data-dismiss="modal">Cancel</button>
             </div>
         </div>

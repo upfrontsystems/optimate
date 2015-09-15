@@ -629,5 +629,37 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
             }
         };
 
+        $scope.getExcelReport = function (report) {
+            if ( report == 'order' ) {
+                var target = document.getElementsByClassName('excel_download');
+                var spinner = new Spinner().spin(target[0]);
+                $http({
+                    method: 'POST',
+                    url: globalServerURL + 'excel_order_report/' + $scope.selectedOrder.ID + '/'},
+                    {responseType: 'arraybuffer'
+                }).success(function (response, status, headers, config) {
+                    spinner.stop(); // stop the spinner - ajax call complete
+                    var file = new Blob([response], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+                    var fileURL = URL.createObjectURL(file);
+                    var result = document.getElementsByClassName("excel_hidden_download");
+                    var anchor = angular.element(result);
+                    var filename_header = headers('Content-Disposition');
+                    var filename = filename_header.split('filename=')[1];
+                    anchor.attr({
+                        href: fileURL,
+                        target: '_blank',
+                        download: filename
+                    })[0].click();
+                    // clear the anchor so that everytime a new report is linked
+                    anchor.attr({
+                        href: '',
+                        target: '',
+                        download: ''
+                    });
+                }).error(function(data, status, headers, config) {
+                    console.log("Order excel download error")
+                });
+            }
+        };
     }
 ]);

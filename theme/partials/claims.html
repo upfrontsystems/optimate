@@ -41,12 +41,20 @@
                 </a>
             </li>
             <li ng-show="selectedClaim">
-                <a title="Claim Report"
+                <a title="PDF Claim Report"
                 data-ng-click="getReport('claim')"
                 class="pdf_download">
                 <i class="fa fa-file-pdf-o"></i></a>
                  <!-- hidden anchor for download hook -->
                 <a class="pdf_hidden_download"></a>
+            </li>
+            <li ng-show="selectedClaim">
+                <a title="Excel Claim Report"
+                data-ng-click="getExcelReport('claim')"
+                class="excel_download">
+                <i class="fa fa-file-excel-o"></i></a>
+                 <!-- hidden anchor for download hook -->
+                <a class="excel_hidden_download"></a>
             </li>
             <li class="claim-filters-flexbox active">
                 <select chosen

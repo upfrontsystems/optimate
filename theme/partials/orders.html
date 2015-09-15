@@ -52,12 +52,20 @@
                 </a>
             </li>
             <li data-ng-show="selectedOrder && selectedOrders.length == 1">
-                <a title="Order Report"
+                <a title="PDF Order Report"
                     data-ng-click="getReport('order')"
                     class="pdf_download">
                     <i class="fa fa-file-pdf-o"></i>
                 </a>
                 <a class="pdf_hidden_download"></a> <!-- hidden anchor for download hook -->
+            </li>
+            <li data-ng-show="selectedOrder && selectedOrders.length == 1">
+                <a title="Excel Order Report"
+                    data-ng-click="getExcelReport('order')"
+                    class="excel_download">
+                    <i class="fa fa-file-excel-o"></i>
+                </a>
+                <a class="excel_hidden_download"></a> <!-- hidden anchor for download hook -->
             </li>
             <li class="order-filters-flexbox active">
                 <input type="number"

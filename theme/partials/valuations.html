@@ -27,11 +27,18 @@
                 </a>
             </li>
             <li data-ng-show="selectedValuation">
-                <a title="Valuation Report"
+                <a title="PDF Valuation Report"
                 data-ng-click="getReport('valuation')"
                 class="pdf_download">
                 <i class="fa fa-file-pdf-o"></i></a>
                 <a class="pdf_hidden_download"></a>
+            </li>
+            <li data-ng-show="selectedValuation">
+                <a title="Excel Valuation Report"
+                data-ng-click="getExcelReport('valuation')"
+                class="excel_download">
+                <i class="fa fa-file-excel-o"></i></a>
+                <a class="excel_hidden_download"></a>
             </li>
             <li class="valuation-filters-flexbox active">
                 <select chosen
