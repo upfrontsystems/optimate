@@ -25,7 +25,8 @@ requires = [
     'xlrd',
     'PyCrypto', # For secure authentication tokens
     'xhtml2pdf',
-    'Products.FinanceFields'
+    'Products.FinanceFields',
+    'xlsxwriter'
     ]
 
 setup(name='optimate.app',
