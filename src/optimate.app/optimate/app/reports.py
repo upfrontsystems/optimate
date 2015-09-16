@@ -212,21 +212,17 @@ def projectbudget_nodes(node, data, level, level_limit, budgetitem_filter):
             nodelist.append(child)
     sorted_nodelist = sorted(nodelist, key=lambda k: k.Name.upper())
     for child in sorted_nodelist:
-        if child.type != 'ResourceCategory':
-            # leaf nodes with no children act as budgetitems
-            leaf = len(child.Children) == 0
-            if child.type == 'BudgetGroup':
-                data.append((child, 'level' + str(level), 'bold'))
-            elif leaf:
-                if child.Type in budgetitem_filter:
-                    data.append((child, 'level' + str(level), 'normal'))
-            else:
+        if child.type == 'BudgetGroup':
+            data.append((child, 'level' + str(level), 'bold'))
+        else:
+            if child.Type in budgetitem_filter:
                 data.append((child, 'level' + str(level), 'normal'))
-            if not leaf:
-                # restrict level as specified
-                if level < level_limit:
-                    data += projectbudget_nodes(child, [], level, level_limit,
-                        budgetitem_filter)
+        # if the node has children get the next level
+        if len(child.Children) > 0:
+            # restrict level as specified
+            if level < level_limit:
+                data += projectbudget_nodes(child, [], level, level_limit,
+                    budgetitem_filter)
     return data
 
 
@@ -942,6 +938,18 @@ def claim(request):
     return response
 
 
+def add_to_format(existing_format, dict_of_properties, workbook):
+    """Give a format you want to extend and a dict of the properties you want to
+    extend it with, and you get them returned in a single format"""
+    new_dict={}
+    for key, value in existing_format.__dict__.iteritems():
+        if (value != 0) and (value != {}) and (value != None):
+            new_dict[key]=value
+    del new_dict['escapes']
+
+    return(workbook.add_format(dict(new_dict.items() + dict_of_properties.items())))
+
+
 @view_config(route_name="excelprojectbudget")
 def excelprojectbudget(request):
     logger.info("Generating Excel Project Budget Report")
@@ -1010,37 +1018,76 @@ def excelprojectbudget(request):
     workbook = xlsxwriter.Workbook(output)
     worksheet = workbook.add_worksheet()
 
-    worksheet.write(0, 0, 'Project Budget for ' + project.Name)
-    worksheet.write(1, 0, 'Description')
-    worksheet.write(1, 1, 'Unit')
-    worksheet.write(1, 2, 'Quantity')
-    worksheet.write(1, 3, 'Rate')
-    worksheet.write(1, 4, 'Total')
-    row = 2
+    # bold format
+    bold = workbook.add_format({'bold': True})
+    # currency format
+    # currencyformat= currency + '#,##0.00'
+    currencyformat= '$#,##0.00'
+    moneydict = {'num_format':currencyformat}
+    money = workbook.add_format(moneydict)
+    # bold and currency for budget total
+    budgettotal = add_to_format(money, {'bold': True}, workbook)
+    # border
+    bordertop = workbook.add_format({'top': 1})
+    border = add_to_format(bordertop, {'bottom': 1}, workbook)
+
+    worksheet.set_column(0, 0, 45)
+    worksheet.set_column(3, 3, 20)
+    worksheet.set_column(4, 4, 25)
+    worksheet.set_row(0, 20)
+
+    titleformat = add_to_format(bold, {'font_size': 12}, workbook)
+    worksheet.write(0, 0, 'Project Budget for ' + project.Name, titleformat)
+    worksheet.write(2, 0, 'Description', border)
+    worksheet.write(2, 1, 'Unit', border)
+    worksheet.write(2, 2, 'Quantity', border)
+    worksheet.write(2, 3, 'Rate', border)
+    worksheet.write(2, 4, 'Total', border)
+    row = 4
     for node in nodes:
         if node[0].type == 'BudgetGroup':
-            worksheet.write(row, 0, node[0].Name)
-            worksheet.write(row, 4, currency + '{:20,.2f}'.format(node[0].Total).strip())
-        elif node:
-            worksheet.write(row, 0, node[0].Name)
-            worksheet.write(row, 1, node[0].Unit)
-            worksheet.write(row, 2, node[0].Quantity)
-            worksheet.write(row, 3, currency + '{:20,.2f}'.format(node[0].Rate).strip())
-            worksheet.write(row, 4, currency + '{:20,.2f}'.format(node[0].Total).strip())
+            indent = int(node[1][-1]) -1
+            nameformat = add_to_format(bold, {'indent': indent}, workbook)
+            worksheet.write(row, 0, node[0].Name, nameformat)
+            worksheet.write(row, 4, node[0].Total, budgettotal)
+        else:
+            indent = workbook.add_format()
+            indent.set_indent(int(node[1][-1]) -1)
+            textcolor = workbook.add_format()
+            bimoney = money
+            if node[0].Variation:
+                indent = add_to_format(indent, {'font_color': 'red'}, workbook)
+                textcolor.set_font_color('red')
+                bimoney = add_to_format(bimoney, {'font_color': 'red'}, workbook)
+            worksheet.write(row, 0, node[0].Name, indent)
+            worksheet.write(row, 1, node[0].Unit, textcolor)
+            worksheet.write(row, 2, node[0].Quantity, textcolor)
+            worksheet.write(row, 3, node[0].Rate, bimoney)
+            worksheet.write(row, 4, node[0].Total, bimoney)
         row+=1
 
-    worksheet.write(row, 0, 'Subtotal')
-    worksheet.write(row, 4, projectsubtotal)
+    boldborder = add_to_format(border, {'bold':True}, workbook)
+    worksheet.write(row, 0, 'Subtotal', boldborder)
+    worksheet.write(row, 1, '', border)
+    worksheet.write(row, 2, '', border)
+    worksheet.write(row, 3, '', border)
+    moneyborder = add_to_format(border, moneydict, workbook)
+    worksheet.write(row, 4, projectsubtotal, moneyborder)
+    subtotalrow = row
     row+=1
 
+    percentageformat = workbook.add_format({'num_format': 0x0a})
     for markup in markups:
         worksheet.write(row, 0, markup['Name'])
-        worksheet.write(row, 3, markup['Percentage'] + '%')
-        worksheet.write(row, 4, currency + '{:20,.2f}'.format(markup['Amount']).strip())
+        worksheet.write(row, 3, float(markup['Percentage'])/100.0, percentageformat)
+        worksheet.write_formula(row, 4, '{=E'+str(subtotalrow + 1)+'*D'+str(row+1)+'}', money)
         row+=1
 
-    worksheet.write(row, 0, 'Total')
-    worksheet.write, row, 4, currency + '{:20,.2f}'.format(projecttotal).strip()
+    worksheet.write(row, 0, 'Total', boldborder)
+    worksheet.write(row, 1, '', border)
+    worksheet.write(row, 2, '', border)
+    worksheet.write(row, 3, '', border)
+    worksheet.write_formula(row, 4, '{=SUM(E'+str(subtotalrow + 1)+':E'+str(row)+')}', moneyborder)
     workbook.close()
 
     excelcontent = output.getvalue()
@@ -1055,6 +1102,9 @@ def excelprojectbudget(request):
     response.headers.add('Last-Modified', last_modified)
     response.headers.add("Cache-Control", "no-store")
     response.headers.add("Pragma", "no-cache")
+
+    fd = open (nice_filename + '.xlsx', 'w')
+    fd.write (excelcontent)
 
     return response
 
