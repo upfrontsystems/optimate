@@ -25,6 +25,7 @@ server.sqlite
 
 # Excel data files
 exceldata
+*.xlsx
 
 *.log
 
