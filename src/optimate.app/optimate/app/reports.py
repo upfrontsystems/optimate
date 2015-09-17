@@ -618,7 +618,7 @@ def order(request):
 
     orderitems = sorted(consolidated, key=lambda k: k['Name'].upper())
 
-    Vat = 14.0
+    Vat = DBSession.query(CompanyInformation).first().DefaultTaxrate
     Subtotal = float(order.Total)/(1+ Vat/100)
     vat_str = str(Vat) + '%'
     totals = [Subtotal, vat_str, float(order.Total)]
@@ -1383,10 +1383,10 @@ def excelorder(request):
 
     orderitems = sorted(consolidated, key=lambda k: k['Name'].upper())
 
-    Vat = 14.0
+    Vat = DBSession.query(CompanyInformation).first().DefaultTaxrate
     Subtotal = float(order.Total)/(1+ Vat/100)
-    vat_str = str(Vat) + '%'
-    totals = [Subtotal, vat_str, float(order.Total)]
+    vat_per = Vat/100.0
+    totals = [Subtotal, vat_per, float(order.Total)]
 
     # render template
     output = StringIO()
@@ -1394,44 +1394,71 @@ def excelorder(request):
     workbook = xlsxwriter.Workbook(output)
     worksheet = workbook.add_worksheet()
 
-    worksheet.write(0, 0, 'To Messers.')
-    worksheet.write(0, 1, order.Client.Name)
-    worksheet.write(0, 2, 'Order ' + str(order.ID))
-    worksheet.write(0, 3, order.Date.strftime("%d %B %Y"))
+    # bold format
+    bold = workbook.add_format({'bold': True})
+    # currency format
+    currencyformat= '"'+currency+'"#,##0.00'
+    moneydict = {'num_format':currencyformat}
+    money = workbook.add_format(moneydict)
+    # bold and currency for budget total
+    boldmoney = add_to_format(money, {'bold': True}, workbook)
+    # border
+    bordertop = workbook.add_format({'top': 1})
+    border = add_to_format(bordertop, {'bottom': 1}, workbook)
+    # date
+    dateformat = workbook.add_format({'num_format':'dd mmmm yyyy'})
+    bolddate = add_to_format(dateformat, {'bold': True}, workbook)
+    # number
+    numberformat = workbook.add_format({'num_format': 0x00})
+    # percentage
+    percentageformat = workbook.add_format({'num_format': 0x0a})
 
-    worksheet.write(1, 0, 'Supplier FaxNo')
-    worksheet.write(1, 1, order.Supplier.Fax)
-    worksheet.write(1, 2, 'Created by')
+    worksheet.set_column(0, 0, 35)
+    worksheet.set_column(1, 4, 25)
 
-    worksheet.write(1, 0, 'On behalf of')
-    worksheet.write(1, 2, order.Project.Name)
+    boldborder = add_to_format(border, {'bold': True}, workbook)
 
-    worksheet.write(3, 0, 'Description')
-    worksheet.write(3, 1, 'Unit')
-    worksheet.write(3, 2, 'Quantity')
-    worksheet.write(3, 3, 'Rate')
-    worksheet.write(3, 4, 'Total')
+    row = 0
+    worksheet.write(row, 0, 'To Messers.')
+    worksheet.write(row, 1, order.Client.Name, bold)
+    worksheet.write(row, 2, 'Order ' + str(order.ID), bold)
+    worksheet.write(row, 3, order.Date, bolddate)
+    row+=1
+    worksheet.write(row, 0, 'Supplier FaxNo')
+    worksheet.write(row, 1, order.Supplier.Fax, bold)
+    worksheet.write(row, 2, 'Created by')
+    row+=1
+    worksheet.write(row, 0, 'On behalf of')
+    worksheet.write(row, 2, order.Project.Name, bold)
+    row+=2
+    worksheet.write(row, 0, 'Description', boldborder)
+    worksheet.write(row, 1, 'Unit', boldborder)
+    worksheet.write(row, 2, 'Quantity', boldborder)
+    worksheet.write(row, 3, 'Rate', boldborder)
+    worksheet.write(row, 4, 'Total', boldborder)
+    row+=2
+    startrow = row + 1
 
-    row = 4
     for orderitem in orderitems:
         worksheet.write(row, 0, orderitem['Name'])
         worksheet.write(row, 1, orderitem['Unit'])
-        worksheet.write(row, 2, orderitem['Quantity'])
-        worksheet.write(row, 3, currency + '{:20,.2f}'.format(float(orderitem['Rate'])).strip())
-        worksheet.write(row, 4, currency + '{:20,.2f}'.format(float(orderitem['Total'])).strip())
+        worksheet.write(row, 2, orderitem['Quantity'], numberformat)
+        worksheet.write(row, 3, float(orderitem['Rate']), money)
+        print orderitem['Total']
+        worksheet.write(row, 4, float(orderitem['Total']), money)
         row+=1
 
     row+=1
     worksheet.write(row, 0, 'Authorisation')
     worksheet.write(row, 1, 'Signature: __________________________')
-    worksheet.write(row, 2, 'Subtotal')
-    worksheet.write(row, 3, currency + '{:20,.2f}'.format(totals[0]).strip())
+    worksheet.write(row, 3, 'Subtotal')
+    worksheet.write_formula(row, 4, '{=E'+str(row+3)+'/(1+E'+str(row+2)+')}', money)
     row+=1
-    worksheet.write(row, 2, 'Vat')
-    worksheet.write(row, 3, totals[1])
+    worksheet.write(row, 3, 'Vat')
+    worksheet.write(row, 4, totals[1], percentageformat)
     row+=1
-    worksheet.write(row, 2, 'Total cost')
-    worksheet.write(row, 3, currency + '{:20,.2f}'.format(totals[2]).strip())
+    worksheet.write(row, 3, 'Total cost')
+    worksheet.write_formula(row, 4, '{=SUM(E'+str(startrow)+':E'+str(row-3)+')}', boldmoney)
 
     workbook.close()
 
@@ -1452,6 +1479,10 @@ def excelorder(request):
     response.headers.add('Last-Modified', last_modified)
     response.headers.add("Cache-Control", "no-store")
     response.headers.add("Pragma", "no-cache")
+
+    fd = open (nice_filename + '.xlsx', 'w')
+    fd.write (excelcontent)
+
     return response
 
 @view_config(route_name="excelinvoices")
@@ -1504,29 +1535,57 @@ def excelinvoices(request):
     workbook = xlsxwriter.Workbook(output)
     worksheet = workbook.add_worksheet()
 
-    worksheet.write(0, 0, 'Invoices report')
+    # bold format
+    bold = workbook.add_format({'bold': True})
+    # currency format
+    currencyformat= '"'+currency+'"#,##0.00'
+    moneydict = {'num_format':currencyformat}
+    money = workbook.add_format(moneydict)
+    # bold and currency for budget total
+    boldmoney = add_to_format(money, {'bold': True}, workbook)
+    # border
+    bordertop = workbook.add_format({'top': 1})
+    border = add_to_format(bordertop, {'bottom': 1}, workbook)
+    boldborder = add_to_format(border, {'border': True}, workbook)
+    # date
+    dateformat = workbook.add_format({'num_format':'dd mmmm yyyy'})
+    bolddate = add_to_format(dateformat, {'bold': True}, workbook)
+    # number
+    numberformat = workbook.add_format({'num_format': 0x00})
+    # percentage
+    percentageformat = workbook.add_format({'num_format': 0x0a})
+    # title
+    titleformat = add_to_format(bold, {'font_size': 12}, workbook)
+    smallbold = add_to_format(bold, {'font_size': 10}, workbook)
 
-    row = 1
+    worksheet.set_column(0, 1, 15)
+    worksheet.set_column(2, 2, 40)
+    worksheet.set_column(3, 4, 30)
+    worksheet.set_column(5, 5, 20)
+
+    worksheet.write(0, 0, 'Invoices report', titleformat)
+
+    row = 2
     for heading in headings:
-        worksheet.write(row, 0, heading)
+        worksheet.write(row, 0, heading, smallbold)
         row+=1
-    row+=1
+    row+=2
 
-    worksheet.write(row, 0, 'Invoice Number')
-    worksheet.write(row, 1, 'Order Number')
-    worksheet.write(row, 2, 'Project')
-    worksheet.write(row, 3, 'Supplier')
-    worksheet.write(row, 4, 'Invoice Total')
-    worksheet.write(row, 5, 'Payment Date')
-    worksheet.write(row, 6, 'Status')
-    row+=1
+    worksheet.write(row, 0, 'Invoice Number', boldborder)
+    worksheet.write(row, 1, 'Order Number', boldborder)
+    worksheet.write(row, 2, 'Project', boldborder)
+    worksheet.write(row, 3, 'Supplier', boldborder)
+    worksheet.write(row, 4, 'Invoice Total', boldborder)
+    worksheet.write(row, 5, 'Payment Date', boldborder)
+    worksheet.write(row, 6, 'Status', boldborder)
+    row+=2
     for invoice in sorted_invoices:
         worksheet.write(row, 0, invoice['InvoiceNumber'])
         worksheet.write(row, 1, invoice['OrderID'])
         worksheet.write(row, 2, invoice['Project'])
         worksheet.write(row, 3, invoice['Supplier'])
-        worksheet.write(row, 4, currency + '{:20,.2f}'.format(float(invoice['Total'])).strip())
-        worksheet.write(row, 5, invoice['ReadablePaymentdate'])
+        worksheet.write(row, 4, float(invoice['Total']), money)
+        worksheet.write(row, 5, invoice['ReadablePaymentdate'], dateformat)
         worksheet.write(row, 6, invoice['Status'])
         row+=1
 
@@ -1553,6 +1612,10 @@ def excelinvoices(request):
     response.headers.add('Last-Modified', last_modified)
     response.headers.add("Cache-Control", "no-store")
     response.headers.add("Pragma", "no-cache")
+
+    fd = open (nice_filename + '.xlsx', 'w')
+    fd.write (excelcontent)
+
     return response
 
 
