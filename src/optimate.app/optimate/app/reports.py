@@ -1168,27 +1168,57 @@ def excelcostcomparison(request):
     workbook = xlsxwriter.Workbook(output)
     worksheet = workbook.add_worksheet()
 
-    worksheet.write(0, 0, 'Cost Comparison for ' + project.Name)
-    worksheet.write(1, 0, 'Description')
-    worksheet.write(1, 1, 'Total')
-    worksheet.write(1, 2, 'Ordered')
-    worksheet.write(1, 3, 'Invoiced')
+    # bold format
+    bold = workbook.add_format({'bold': True})
+    # currency format
+    currencyformat= '"'+currency+'"#,##0.00'
+    moneydict = {'num_format':currencyformat}
+    money = workbook.add_format(moneydict)
+    # bold and currency for budget total
+    budgettotal = add_to_format(money, {'bold': True}, workbook)
+    # border
+    bordertop = workbook.add_format({'top': 1})
+    border = add_to_format(bordertop, {'bottom': 1}, workbook)
 
-    row = 2
+    worksheet.set_column(0, 0, 45)
+    worksheet.set_column(1, 3, 23)
+    worksheet.set_row(0, 20)
+
+    titleformat = add_to_format(bold, {'font_size': 12}, workbook)
+
+    worksheet.write(0, 0, 'Cost Comparison for ' + project.Name, titleformat)
+    worksheet.write(2, 0, 'Description', border)
+    worksheet.write(2, 1, 'Total', border)
+    worksheet.write(2, 2, 'Ordered', border)
+    worksheet.write(2, 3, 'Invoiced', border)
+
+    row = 4
     for node in nodes:
         if node:
-            worksheet.write(row, 0, node[0].Name)
-            worksheet.write(row, 1, currency + '{:20,.2f}'.format(node[0].Total).strip())
-            worksheet.write(row, 1, currency + '{:20,.2f}'.format(node[0].Ordered).strip())
-            worksheet.write(row, 1, currency + '{:20,.2f}'.format(node[0].Invoiced).strip())
+            indent = workbook.add_format()
+            indent.set_indent(int(node[1].split()[0][-1]) -1)
+            if 'red' in node[1]:
+                indent = add_to_format(indent, {'font_color': 'red'}, workbook)
+            worksheet.write(row, 0, node[0].Name, indent)
+            worksheet.write(row, 1, node[0].Total, money)
+            worksheet.write(row, 2, node[0].Ordered, money)
+            worksheet.write(row, 3, node[0].Invoiced, money)
         row+=1
+
+    redmoney = add_to_format(money, {'font_color': 'red'}, workbook)
+    # add conditional format for ordered and invoiced values
+    worksheet.conditional_format(5, 2, row+1, 3,
+                                    {'type': 'cell',
+                                    'criteria': '>',
+                                    'value': '$B$5:$B$' + str(row+1),
+                                    'format': redmoney})
 
     workbook.close()
 
     excelcontent = output.getvalue()
     logging.info("excel rendered")
 
-    filename = "cost_comparison_report"
+    filename = "excel_cost_comparison_report"
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
     last_modified = formatdate(time.mktime(now.timetuple()))
 
@@ -1202,6 +1232,9 @@ def excelcostcomparison(request):
     response.headers.add('Last-Modified', last_modified)
     response.headers.add("Cache-Control", "no-store")
     response.headers.add("Pragma", "no-cache")
+
+    fd = open (nice_filename + '.xlsx', 'w')
+    fd.write (excelcontent)
     return response
 
 
