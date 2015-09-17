@@ -1009,7 +1009,7 @@ def excelprojectbudget(request):
 
     # render template
     now = datetime.now()
-    filename = "excel_project_budget_report"
+    filename = "project_budget_report"
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
     last_modified = formatdate(time.mktime(now.timetuple()))
 
@@ -1218,7 +1218,7 @@ def excelcostcomparison(request):
     excelcontent = output.getvalue()
     logging.info("excel rendered")
 
-    filename = "excel_cost_comparison_report"
+    filename = "cost_comparison_report"
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
     last_modified = formatdate(time.mktime(now.timetuple()))
 
@@ -1264,21 +1264,44 @@ def excelresourcelist(request):
     workbook = xlsxwriter.Workbook(output)
     worksheet = workbook.add_worksheet()
 
-    worksheet.write(0, 0, 'Resource List for '+ project.Name + ' ' + filtered_by)
-    worksheet.write(1, 0, 'Description')
-    worksheet.write(1, 1, 'Rate')
-    worksheet.write(1, 2, 'Quantity')
+    # bold format
+    bold = workbook.add_format({'bold': True})
+    # currency format
+    currencyformat= '"'+currency+'"#,##0.00'
+    moneydict = {'num_format':currencyformat}
+    money = workbook.add_format(moneydict)
+    # bold and currency for budget total
+    budgettotal = add_to_format(money, {'bold': True}, workbook)
+    # border
+    bordertop = workbook.add_format({'top': 1})
+    border = add_to_format(bordertop, {'bottom': 1}, workbook)
+    # number
+    numberformat = workbook.add_format({'num_format': 0x00})
 
-    row = 2
+    worksheet.set_column(0, 0, 45)
+    worksheet.set_column(1, 2, 20)
+    worksheet.set_row(0, 20)
+
+    titleformat = add_to_format(bold, {'font_size': 12}, workbook)
+    boldborder = add_to_format(border, {'bold': True}, workbook)
+    worksheet.write(0, 0, 'Resource List for '+ project.Name + ' ' + filtered_by, titleformat)
+    worksheet.write(2, 0, 'Description', boldborder)
+    worksheet.write(2, 1, 'Rate',boldborder)
+    worksheet.write(2, 2, 'Quantity',boldborder)
+
+    row = 4
     if len(nodes) == 0:
         worksheet.write(row, 0, 'No matching resource data found')
     else:
         for node in nodes:
-            if node:
-                worksheet.write(row, 0, node[0].Name)
-                if node[0].type != 'ResourceCategory':
-                    worksheet.write(row, 1, currency + '{:20,.2f}'.format(node[0].Rate).strip())
-                    worksheet.write(row, 1, node[3])
+            indent = workbook.add_format()
+            indent.set_indent(int(node[1][-1]) -1)
+            if node[2] is 'bold':
+                indent = add_to_format(indent, {'bold': True}, workbook)
+            worksheet.write(row, 0, node[0].Name, indent)
+            if node[0].type != 'ResourceCategory':
+                worksheet.write(row, 1, node[0].Rate, money)
+                worksheet.write(row, 2, node[3], numberformat)
             row+=1
 
     workbook.close()
@@ -1299,6 +1322,9 @@ def excelresourcelist(request):
     response.headers.add('Last-Modified', last_modified)
     response.headers.add("Cache-Control", "no-store")
     response.headers.add("Pragma", "no-cache")
+
+    fd = open (nice_filename + '.xlsx', 'w')
+    fd.write (excelcontent)
     return response
 
 
