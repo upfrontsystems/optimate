@@ -1021,8 +1021,7 @@ def excelprojectbudget(request):
     # bold format
     bold = workbook.add_format({'bold': True})
     # currency format
-    # currencyformat= currency + '#,##0.00'
-    currencyformat= '$#,##0.00'
+    currencyformat= '"'+currency+'"#,##0.00'
     moneydict = {'num_format':currencyformat}
     money = workbook.add_format(moneydict)
     # bold and currency for budget total
