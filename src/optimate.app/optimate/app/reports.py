@@ -1546,7 +1546,7 @@ def excelinvoices(request):
     # border
     bordertop = workbook.add_format({'top': 1})
     border = add_to_format(bordertop, {'bottom': 1}, workbook)
-    boldborder = add_to_format(border, {'border': True}, workbook)
+    boldborder = add_to_format(border, {'bold': True}, workbook)
     # date
     dateformat = workbook.add_format({'num_format':'dd mmmm yyyy'})
     bolddate = add_to_format(dateformat, {'bold': True}, workbook)
@@ -1711,7 +1711,7 @@ def excelvaluation(request):
     # border
     bordertop = workbook.add_format({'top': 1})
     border = add_to_format(bordertop, {'bottom': 1}, workbook)
-    boldborder = add_to_format(border, {'border': True}, workbook)
+    boldborder = add_to_format(border, {'bold': True}, workbook)
     moneyborder = add_to_format(border, {'num_format':currencyformat}, workbook)
     # date
     dateformat = workbook.add_format({'num_format':'dd mmmm yyyy'})
@@ -1822,18 +1822,14 @@ def excelclaim(request):
         if valuationitem.BudgetGroupTotal:
             budget_total += valuationitem.BudgetGroupTotal
 
-    percentage = '{0:.2f}'.format(float(claim.Total/budget_total)*100).strip()
-
     payments = []
-    due = claim.Total
-    paymenttotal = 0
     for payment in claim.Project.Payments:
-        due -= payment.Amount
-        paymenttotal += payment.Amount
         payments.append(payment)
 
-    taxrate = DBSession.query(CompanyInformation).first().DefaultTaxrate
-    vatamount = float(due) * (taxrate/100.0)
+    taxrate = DBSession.query(CompanyInformation).first().DefaultTaxrate/100.0
+    now = datetime.now()
+    clientid = claim.Project.ClientID
+    client = DBSession.query(Client).filter_by(ID=clientid).first()
 
     # render template
     output = StringIO()
@@ -1841,53 +1837,97 @@ def excelclaim(request):
     workbook = xlsxwriter.Workbook(output)
     worksheet = workbook.add_worksheet()
 
-    worksheet.write(0, 0, 'Pro Forma Claim')
+    # bold format
+    bold = workbook.add_format({'bold': True})
+    # currency format
+    currencyformat= '"'+currency+'"#,##0.00'
+    moneydict = {'num_format':currencyformat}
+    money = workbook.add_format(moneydict)
+    # bold and currency for budget total
+    boldmoney = add_to_format(money, {'bold': True}, workbook)
+    # border
+    bordertop = workbook.add_format({'top': 1})
+    border = add_to_format(bordertop, {'bottom': 1}, workbook)
+    boldborder = add_to_format(border, {'bold': True}, workbook)
+    moneyborder = add_to_format(border, {'num_format':currencyformat}, workbook)
+    # date
+    dateformat = workbook.add_format({'num_format':'dd mmmm yyyy'})
+    bolddate = add_to_format(dateformat, {'bold': True}, workbook)
+    boldborderdate = add_to_format(boldborder, {'num_format':'dd mmmm yyyy'}, workbook)
+    # number
+    numberformat = workbook.add_format({'num_format': 0x00})
+    # percentage
+    percentageformat = workbook.add_format({'num_format': 0x0a})
+    percentageborder = add_to_format(border, {'num_format': 0x0a}, workbook)
+    # title
+    titleformat = add_to_format(bold, {'font_size': 12}, workbook)
+    smallbold = add_to_format(bold, {'font_size': 10}, workbook)
+
+    worksheet.set_column(0, 0, 30)
+    worksheet.set_column(1, 3, 25)
+
+    worksheet.write(0, 0, 'Pro Forma Claim', bold)
 
     row = 2
     worksheet.write(row, 0, 'To:')
-    worksheet.write(1, 1, client.Name)
-    worksheet.write(2, 0, 'Date:')
-    worksheet.write(2, 1, date)
-    worksheet.write(3, 0, 'Project')
-    worksheet.write(3, 1, claim.Project.Name)
+    worksheet.write(row, 1, client.Name, bold)
+    row+=1
+    worksheet.write(row, 0, 'Date:')
+    worksheet.write(row, 1, claim.Date, bolddate)
+    row+=1
+    worksheet.write(row, 0, 'Project')
+    worksheet.write(row, 1, claim.Project.Name, bold)
 
     row+=2
     worksheet.write(row, 0, 'Details of this payment certificate')
     row+=1
-    worksheet.write(row, 0, 'ITEM')
-    worksheet.write(row, 1, 'QUANTITY')
-    worksheet.write(row, 2, 'RATE')
-    worksheet.write(row, 2, 'TOTALS')
-    row+=1
-    worksheet.write(row, 0, 'Progress Payment')
-    worksheet.write(row, 1, currency + '{:20,.2f}'.format(budget_total).strip())
-    worksheet.write(row, 2, percentage + '%')
-    worksheet.write(row, 3, currency + '{:20,.2f}'.format(float(claim.Total)).strip())
+    worksheet.write(row, 0, 'ITEM', boldborder)
+    worksheet.write(row, 1, 'QUANTITY', boldborder)
+    worksheet.write(row, 2, 'RATE', boldborder)
+    worksheet.write(row, 3, 'TOTALS', boldborder)
     row+=2
-    worksheet.write(row, 0, 'SUBTOTAL: This claim')
-    worksheet.write(row, 3, currency + '{:20,.2f}'.format(float(claim.Total)).strip())
+    worksheet.write(row, 0, 'Progress Payment')
+    worksheet.write(row, 1, budget_total, money)
+    worksheet.write_formula(row, 2, '{=D'+str(row+1)+'/B'+str(row+1)+'}', percentageformat)
+    worksheet.write(row, 3, claim.Total, money)
+    row+=2
+    worksheet.write(row, 0, 'SUBTOTAL: This claim', border)
+    worksheet.write(row, 1, '', border)
+    worksheet.write(row, 2, '', border)
+    worksheet.write_formula(row, 3, '{=D'+str(row-1)+'}', moneyborder)
+    subtot = row + 1
     row+=1
     worksheet.write(row, 0, 'Amounts of previous certificates excluding tax')
     row+=1
+    prevclaims = row + 1
 
     for payment in payments:
         worksheet.write(row, 0, 'Payment ' + str(payment.ID))
-        worksheet.write(row, 1, '-1')
-        worksheet.write(row, 2, currency + '{:20,.2f}'.format(float(payment.Amount)).strip())
-        worksheet.write(row, 3, '- ' + currency + '{:20,.2f}'.format(float(payment.Amount)).strip())
+        worksheet.write(row, 1, -1, numberformat)
+        worksheet.write(row, 2, payment.Amount, money)
+        worksheet.write_formula(row, 3, '{=B'+str(row+1)+'*C'+str(row+1)+'}', money)
         row+=1
 
     row+=1
+    worksheet.write(row, 0, 'SUBTOTAL: Previous claims', border)
+    worksheet.write(row, 1, '', border)
+    worksheet.write(row, 2, '', border)
+    worksheet.write_formula(row, 3, '{=SUM(C'+str(prevclaims)+':C'+str(row-1)+')}', moneyborder)
+    row+=1
     worksheet.write(row, 0, 'SUBTOTAL: This claim LESS Previous claims')
-    worksheet.write(row, 3, currency + '{:20,.2f}'.format(float(due)).strip())
+    worksheet.write(row, 1, '', border)
+    worksheet.write(row, 2, '', border)
+    worksheet.write_formula(row, 3, '{=D'+str(subtot)+'-D'+str(row)+'}', moneyborder)
     row+=1
-    worksheet.write(row, 0, 'VALUE ADDED TAX')
-    worksheet.write(row, 1, currency + '{:20,.2f}'.format(float(due)).strip())
-    worksheet.write(row, 2, str(taxrate) + '%')
-    worksheet.write(row, 3, currency + '{:20,.2f}'.format(vatamount).strip())
+    worksheet.write(row, 0, 'VALUE ADDED TAX', border)
+    worksheet.write_formula(row, 1, '{=D'+str(row)+'}', moneyborder)
+    worksheet.write(row, 2, taxrate, percentageborder)
+    worksheet.write_formula(row, 3, '{=B'+str(row+1)+'*C'+str(row+1)+'}', moneyborder)
     row+=1
-    worksheet.write(row, 0, 'TOTAL DUE AS PER THIS CERTIFICATE')
-    worksheet.write(row, 3, currency + '{:20,.2f}'.format(float(due) + vatamount).strip())
+    worksheet.write(row, 0, 'TOTAL DUE AS PER THIS CERTIFICATE', border)
+    worksheet.write(row, 1, '', border)
+    worksheet.write(row, 2, '', border)
+    worksheet.write_formula(row, 3, '{=D'+str(row-1)+'+D'+str(row)+'}', moneyborder)
 
     workbook.close()
 
@@ -1907,4 +1947,8 @@ def excelclaim(request):
     response.headers.add('Last-Modified', last_modified)
     response.headers.add("Cache-Control", "no-store")
     response.headers.add("Pragma", "no-cache")
+
+    fd = open (nice_filename + '.xlsx', 'w')
+    fd.write (excelcontent)
+
     return response
