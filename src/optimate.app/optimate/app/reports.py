@@ -1700,43 +1700,88 @@ def excelvaluation(request):
     workbook = xlsxwriter.Workbook(output)
     worksheet = workbook.add_worksheet()
 
-    worksheet.write(0, 0, 'Valuation for Certificate #')
+    # bold format
+    bold = workbook.add_format({'bold': True})
+    # currency format
+    currencyformat= '"'+currency+'"#,##0.00'
+    moneydict = {'num_format':currencyformat}
+    money = workbook.add_format(moneydict)
+    # bold and currency for budget total
+    boldmoney = add_to_format(money, {'bold': True}, workbook)
+    # border
+    bordertop = workbook.add_format({'top': 1})
+    border = add_to_format(bordertop, {'bottom': 1}, workbook)
+    boldborder = add_to_format(border, {'border': True}, workbook)
+    moneyborder = add_to_format(border, {'num_format':currencyformat}, workbook)
+    # date
+    dateformat = workbook.add_format({'num_format':'dd mmmm yyyy'})
+    bolddate = add_to_format(dateformat, {'bold': True}, workbook)
+    boldborderdate = add_to_format(boldborder, {'num_format':'dd mmmm yyyy'}, workbook)
+    # number
+    numberformat = workbook.add_format({'num_format': 0x00})
+    # percentage
+    percentageformat = workbook.add_format({'num_format': 0x0a})
+    # title
+    titleformat = add_to_format(bold, {'font_size': 12}, workbook)
+    smallbold = add_to_format(bold, {'font_size': 10}, workbook)
 
-    worksheet.write(1, 0, 'To:')
-    worksheet.write(1, 1, client.Name)
-    worksheet.write(2, 0, 'Date:')
-    worksheet.write(2, 1, vdate)
-    worksheet.write(3, 0, 'Project')
-    worksheet.write(3, 1, valuation.Project.Name)
+    worksheet.set_column(0, 0, 35)
+    worksheet.set_column(1, 1, 20)
+    worksheet.set_column(3, 3, 20)
 
-    row = 5
-    worksheet.write(row, 0, 'Details')
-    worksheet.write(row, 1, vdate)
-    worksheet.write(row, 2, '\% Claim')
-    worksheet.write(row, 3, 'Total')
+    worksheet.write(0, 0, 'Valuation for Certificate #', bold)
+
+    row = 2
+    worksheet.write(row, 0, 'To:')
+    worksheet.write(row, 1, client.Name, bold)
     row+=1
+    worksheet.write(row, 0, 'Date:')
+    worksheet.write(row, 1, valuation.Date, bolddate)
+    row+=1
+    worksheet.write(row, 0, 'Project')
+    worksheet.write(row, 1, valuation.Project.Name, bold)
+
+    row+=2
+    worksheet.write(row, 0, 'Details', boldborder)
+    worksheet.write(row, 1, valuation.Date, boldborder)
+    worksheet.write(row, 2, '% Claim', boldborder)
+    worksheet.write(row, 3, 'Total', boldborder)
+    row+=2
     for item in itemlist:
+        totalbudget = None
+        if item['TotalBudget'] is not None:
+            totalbudget = float(item['TotalBudget'])
+        percentagecomp = None
+        if item['PercentageComplete'] is not None:
+            percentagecomp = float(item['PercentageComplete'])/100
+        amcomp = None
+        if item['AmountComplete'] is not None:
+            amcomp = float(item['AmountComplete'])
         worksheet.write(row, 0, item['Name'])
-        worksheet.write(row, 1, currency + '{:20,.2f}'.format(float(item['TotalBudget'])).strip())
-        worksheet.write(row, 2, item['PercentageComplete'])
-        worksheet.write(row, 3, currency + '{:20,.2f}'.format(float(item['AmountComplete'])).strip())
+        worksheet.write(row, 1, totalbudget, money)
+        worksheet.write(row, 2, percentagecomp, percentageformat)
+        worksheet.write(row, 3, amcomp, money)
         row+=1
 
-    worksheet.write(row, 0, 'Subtotal')
-    worksheet.write(row, 1, currency + '{:20,.2f}'.format(budget_total).strip())
-    worksheet.write(row, 3, currency + '{:20,.2f}'.format(valuation.Total).strip())
+    row+=1
+    worksheet.write(row, 0, 'Subtotal', border)
+    worksheet.write(row, 1, budget_total, moneyborder)
+    worksheet.write(row, 2, '', border)
+    worksheet.write(row, 3, valuation.Total, moneyborder)
     row+=1
 
     for markup in markup_list:
         worksheet.write(row, 0, markup['Name'])
-        worksheet.write(row, 1, currency + '{:20,.2f}'.format(float(markup['TotalBudget'])).strip())
-        worksheet.write(row, 2, markup['PercentageComplete'])
-        worksheet.write(row, 3, currency + '{:20,.2f}'.format(float(markup['Amount'])).strip())
+        worksheet.write(row, 1, float(markup['TotalBudget']), money)
+        worksheet.write(row, 2, markup['PercentageComplete']/100, percentageformat)
+        worksheet.write(row, 3, float(markup['Amount']), money)
         row+=1
 
     row+=1
-    worksheet.write(row, 0, 'Total')
-    worksheet.write(row, 3, currency + '{:20,.2f}'.format(grandtotal).strip())
+    worksheet.write(row, 0, 'Total', border)
+    worksheet.write(row, 1, '', border)
+    worksheet.write(row, 2, '', border)
+    worksheet.write(row, 3, grandtotal, moneyborder)
 
     workbook.close()
 
@@ -1756,6 +1801,10 @@ def excelvaluation(request):
     response.headers.add('Last-Modified', last_modified)
     response.headers.add("Cache-Control", "no-store")
     response.headers.add("Pragma", "no-cache")
+
+    fd = open (nice_filename + '.xlsx', 'w')
+    fd.write (excelcontent)
+
     return response
 
 
