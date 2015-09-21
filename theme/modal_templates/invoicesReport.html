@@ -13,42 +13,34 @@
                         <label class="col-sm-3">Filter on:
                         </label>
                         <table>
-                            <tr>
+                            <tr data-ng-click="formData.FilterByProject = !formData.FilterByProject">
                                 <td>
-                                    <button class="custom-checkbox" ng-model="formData.FilterByProject"
-                                          data-ng-click="formData.FilterByProject = !formData.FilterByProject">
-                                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[formData.FilterByProject]">
-                                        </i>
+                                    <button class="custom-checkbox" ng-model="formData.FilterByProject">
+                                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[formData.FilterByProject]"></i>
                                     </button>
                                 </td>
                                 <td>Project &nbsp;</td>
                             </tr>
-                            <tr>
+                            <tr data-ng-click="formData.FilterBySupplier = !formData.FilterBySupplier">
                                 <td>
-                                    <button class="custom-checkbox" ng-model="formData.FilterBySupplier"
-                                          data-ng-click="formData.FilterBySupplier = !formData.FilterBySupplier">
-                                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[formData.FilterBySupplier]">
-                                        </i>
+                                    <button class="custom-checkbox" ng-model="formData.FilterBySupplier">
+                                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[formData.FilterBySupplier]"></i>
                                     </button>
                                 </td>
                                 <td>Supplier &nbsp;</td>
                             </tr>
-                            <tr data-ng-show="paymentDatesExist">
+                            <tr data-ng-if="paymentDatesExist" data-ng-click="formData.FilterByPaymentDate = !formData.FilterByPaymentDate">
                                 <td>
-                                    <button class="custom-checkbox" ng-model="formData.FilterByPaymentDate"
-                                          data-ng-click="formData.FilterByPaymentDate = !formData.FilterByPaymentDate">
-                                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[formData.FilterByPaymentDate]">
-                                        </i>
+                                    <button class="custom-checkbox" ng-model="formData.FilterByPaymentDate">
+                                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[formData.FilterByPaymentDate]"></i>
                                     </button>
                                 </td>
                                 <td>Payment Date &nbsp;</td>
                             </tr>
-                            <tr>
+                            <tr data-ng-click="formData.FilterByStatus = !formData.FilterByStatus">
                                 <td>
-                                    <button class="custom-checkbox" ng-model="formData.FilterByStatus"
-                                          data-ng-click="formData.FilterByStatus = !formData.FilterByStatus">
-                                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[formData.FilterByStatus]">
-                                        </i>
+                                    <button class="custom-checkbox" ng-model="formData.FilterByStatus">
+                                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[formData.FilterByStatus]"></i>
                                     </button>
                                 </td>
                                 <td>Status &nbsp;</td>

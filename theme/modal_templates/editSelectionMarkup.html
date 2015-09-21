@@ -12,15 +12,13 @@
                     Apply markup to the selected items:
                 </label>
                 <table>
-                    <tr data-ng-repeat="overhead in budgetItemOverheadList">
-                        <td>{{overhead.Name}} &nbsp;</td>
-                        <td>
-                            <button class="custom-checkbox"
-                                  data-ng-click="overhead.selected = !overhead.selected">
-                                <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[overhead.selected]">
-                                </i>
-                            </button>
-                        </td>
+                    <tr data-ng-repeat="overhead in budgetItemOverheadList"
+                        data-ng-click="overhead.selected = !overhead.selected">
+                        <td>&nbsp;</td>
+                        <td><button class="custom-checkbox">
+                                <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[overhead.selected]"></i>
+                            </button</td>
+                        <td>{{overhead.Name}}</td>
                     </tr>
                 </table>
             </div>

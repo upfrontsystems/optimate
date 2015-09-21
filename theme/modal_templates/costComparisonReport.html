@@ -16,7 +16,8 @@
       </input>
       <span class="circle {{node.NodeType}}">&nbsp;{{node.NodeTypeAbbr}}&nbsp;</span>
       <span class="order-tree-node"
-          id="{{node.ID}}">
+          id="{{node.ID}}"
+          data-ng-click="toggleBudgetgroup(node)">
           {{node.Name}}
       </span>
       <button class="custom-checkbox align-right"
@@ -59,7 +60,9 @@
                                required>
                     </div>
                     <div class="form-group">
-                        <label class="col-sm-5">Print only selected budget groups:
+                        <label class="col-sm-5"
+                              data-ng-click="printSelectedBudgetGroups = !printSelectedBudgetGroups">
+                              Print only selected budget groups:
                         </label>
                         <button class="custom-checkbox" ng-model="printSelectedBudgetGroups"
                               data-ng-click="printSelectedBudgetGroups = !printSelectedBudgetGroups">

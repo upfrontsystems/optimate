@@ -10,7 +10,9 @@
             <div class="modal-body">
                 <form class="form-horizontal" name="resourceListReportForm" novalidate>
                     <div class="form-group">
-                        <label class="col-sm-3">Filter by Supplier:
+                        <label class="col-sm-3"
+                                data-ng-click="filterBySupplier = !filterBySupplier">
+                                Filter by Supplier:
                         </label>
                         <button class="custom-checkbox" ng-model="filterBySupplier"
                               data-ng-click="filterBySupplier = !filterBySupplier">

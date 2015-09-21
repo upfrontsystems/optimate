@@ -220,10 +220,10 @@
     <div class="modal-body">
         <p>Do you want to overwrite it or skip it?</p>
         <table>
-            <tr><td><button class="custom-checkbox"
-                          data-ng-click="selections.doAll = !selections.doAll">
-                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[selections.doAll]">
-                        </i>
+            <tr data-ng-click="selections.doAll = !selections.doAll">
+                <td>
+                    <button class="custom-checkbox">
+                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[selections.doAll]"></i>
                     </button>
                 </td>
                 <td>&nbsp;Do this for all existing resources</td>
@@ -243,14 +243,14 @@
     <div class="modal-body">
         <table>
             <tr><td>Include:</td></tr>
-            <tr data-ng-repeat="selection in selections">
-                <td><button class="custom-checkbox"
-                          data-ng-click="selection.selected = !selection.selected">
-                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[selection.selected]">
-                        </i>
+            <tr data-ng-repeat="selection in selections"
+                data-ng-click="selection.selected = !selection.selected">
+                <td>
+                    <button class="custom-checkbox">
+                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[selection.selected]"></i>
                     </button>
                 </td>
-                <td>{{selection.Name}}</td>
+                <td>&nbsp;{{selection.Name}}</td>
             </tr>
         </table>
     </div>
