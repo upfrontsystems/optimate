@@ -176,12 +176,13 @@ class Project(Node):
     Status = Column(Text(50), default='Draft')
     _Total = Column('Total', Numeric)
 
-    Clients = relationship('Client',
-                            foreign_keys='Project.ClientID',
-                            backref='Project')
-
-    OverheadList = relationship('Overhead',
-                                backref='Project')
+    Client = relationship('Client')
+    OverheadList = relationship('Overhead')
+    City = relationship('City')
+    Orders = relationship('Order')
+    Valuations = relationship('Valuation')
+    Claims = relationship('Claim')
+    Payments = relationship('Payment')
 
     __mapper_args__ = {
         'polymorphic_identity': 'Project',
@@ -307,12 +308,9 @@ class City(Base):
     ID = Column(Integer, primary_key=True)
     Name = Column(Text(50))
 
-    Projects = relationship('Project',
-                         backref=backref('City'))
-    Clients = relationship('Client',
-                         backref=backref('City'))
-    Suppliers = relationship('Supplier',
-                         backref=backref('City'))
+    Projects = relationship('Project')
+    Clients = relationship('Client')
+    Suppliers = relationship('Supplier')
 
     def __repr__(self):
         return '<City(Name="%s", ID="%d")>' % (
@@ -333,6 +331,8 @@ class BudgetGroup(Node):
     _Total = Column('Total', Numeric)
     _Ordered = Column('Ordered', Numeric(12, 2), default=Decimal(0.00))
     _Invoiced = Column('Invoiced', Numeric(12, 2), default=Decimal(0.00))
+
+    ValuationItems = relationship('ValuationItem')
 
     __mapper_args__ = {
         'polymorphic_identity': 'BudgetGroup',
@@ -517,13 +517,9 @@ class BudgetItem(Node):
     _Invoiced = Column('Invoiced', Numeric(12, 2), default=Decimal(0.00))
     Variation = Column(Boolean,default=False)
 
-    Resource = relationship('Resource',
-                            foreign_keys='BudgetItem.ResourceID',
-                            backref='BudgetItems')
-
-    Overheads = relationship('Overhead',
-                    secondary=association_table,
-                    backref='BudgetItems')
+    Resource = relationship('Resource', foreign_keys='BudgetItem.ResourceID')
+    Overheads = relationship('Overhead', secondary=association_table)
+    OrderItems = relationship('OrderItem')
 
     __mapper_args__ = {
         'polymorphic_identity': 'BudgetItem',
@@ -944,6 +940,10 @@ class Overhead(Base):
     ProjectID = Column(Integer, ForeignKey('Project.ID'))
     Type = Column(Text(50))
 
+    Project = relationship('Project')
+    BudgetItems = relationship('BudgetItem', secondary=association_table)
+    ValuationMarkups = relationship('ValuationMarkup')
+
     @property
     def Amount(self):
         """ Return the overhead percentage of the project total
@@ -991,7 +991,7 @@ class ResourceCategory(Node):
                 primary_key=True)
     Name = Column(Text(50))
     Description = Column(Text(100))
-    # Total is just a dummy column for when a project is calculating its total
+    # Total is just a dummy column for when a project is calculating it's total
     _Total = Column('Total', Numeric(12, 2), default=Decimal(0.00))
 
     __mapper_args__ = {
@@ -1111,8 +1111,7 @@ class ResourceType(Base):
     Name = Column(Text(50))
     DefaultMarkup = Column(Float, default=0.0)
 
-    Resources = relationship('Resource',
-                              backref=backref('ResourceType'))
+    Resources = relationship('Resource')
 
     def __repr__(self):
         return '<ResourceType(Name="%s")>' % (
@@ -1140,8 +1139,11 @@ class Resource(Node):
     _Rate = Column('Rate', Numeric)
     SupplierID = Column(Integer, ForeignKey('Supplier.ID'))
 
-    Suppliers = relationship('Supplier',
-                              backref=backref('Resource'))
+    Suppliers = relationship('Supplier')
+    BudgetItems = relationship('BudgetItem', foreign_keys='BudgetItem.ResourceID')
+    ResourceType = relationship('ResourceType')
+    ResourceParts = relationship('ResourcePart', foreign_keys='ResourcePart.ResourceID')
+    Unit = relationship('Unit')
 
     __mapper_args__ = {
             'polymorphic_identity': 'Resource',
@@ -1323,9 +1325,7 @@ class ResourcePart(Node):
     _Quantity = Column('Quantity', Float)
     _Total = Column('Total', Numeric)
 
-    Resource = relationship('Resource',
-                            foreign_keys=[ResourceID],
-                            backref=backref('ResourceParts'))
+    Resource = relationship('Resource', foreign_keys='ResourcePart.ResourceID')
 
     __mapper_args__ = {
         'polymorphic_identity': 'ResourcePart',
@@ -1434,8 +1434,7 @@ class Unit(Base):
     ID = Column(Integer, primary_key=True)
     Name = Column(Text(50))
 
-    Resources = relationship('Resource',
-                              backref=backref('Unit'))
+    Resources = relationship('Resource')
 
     def __repr__(self):
         return '<Unit(Name="%s", ID="%d")>' % (
@@ -1459,6 +1458,10 @@ class Client(Base):
     Contact = Column(Text(50))
     VAT = Column(Text(50))
     RegNo = Column(Text(50))
+
+    Projects = relationship('Project', foreign_keys='Project.ClientID')
+    City = relationship('City')
+    Orders = relationship('Order')
 
     def dict(self):
         """ Return a dictionary of this Client
@@ -1499,6 +1502,10 @@ class Supplier(Base):
     Fax = Column(Text(50))
     Cellular = Column(Text(50))
     Contact = Column(Text(50))
+
+    City = relationship('City')
+    Resource = relationship('Resource')
+    Orders = relationship('Order')
 
     def dict(self):
         """ Return a dictionary of this Supplier
@@ -1561,12 +1568,11 @@ class Order(Base):
     Date = Column(DateTime)
     Status = Column(Text(50), default='Draft')
 
-    Project = relationship('Project',
-                              backref=backref('Orders'))
-    Supplier = relationship('Supplier',
-                              backref=backref('Orders'))
-    Client = relationship('Client',
-                              backref=backref('Orders'))
+    Project = relationship('Project')
+    Supplier = relationship('Supplier')
+    Client = relationship('Client')
+    OrderItems = relationship('OrderItem', cascade='all')
+    Invoices = relationship('Invoice')
 
     def resetTotal(self):
         """ Recalculate the Order Total from it's OrderItems
@@ -1627,11 +1633,8 @@ class OrderItem(Base):
     _Total = Column('Total', Numeric(12, 2))
     _Discount = Column('Discount', Numeric(12, 2), default=Decimal(0.00))
 
-    Order = relationship('Order',
-                            backref=backref('OrderItems'))
-
-    BudgetItem = relationship('BudgetItem',
-                                backref=backref('OrderItems'))
+    Order = relationship('Order')
+    BudgetItem = relationship('BudgetItem')
 
     @hybrid_property
     def Total(self):
@@ -1736,6 +1739,8 @@ class User(Base):
     # to be phased out
     roles = Column(Text(20))
 
+    UserRights = relationship('UserRight', cascade='all')
+
     def validate_password(self, password):
         return hashlib.sha256((self.salt + password).encode('utf-8')).hexdigest() == self.password
 
@@ -1770,8 +1775,7 @@ class UserRight(Base):
     Function = Column(Text(50))
     Permission = Column(Text(20))
 
-    User = relationship('User',
-                          backref=backref('UserRights'))
+    User = relationship('User')
 
     def dict(self):
         """ Return a dictionary of the user right
@@ -1798,8 +1802,7 @@ class Invoice(Base):
     Amount = Column(Numeric)
     Status = Column(Text(50), default='Draft')
 
-    Order = relationship('Order',
-                              backref=backref('Invoices'))
+    Order = relationship('Order')
 
     @hybrid_property
     def ProjectID(self):
@@ -1913,12 +1916,10 @@ class Valuation(Base):
     ProjectID = Column(Integer, ForeignKey('Project.ID'))
     Date = Column(DateTime)
 
-    Project = relationship('Project',
-                              backref=backref('Valuations'))
-
-    MarkupList = relationship('ValuationMarkup',
-                                cascade='all',
-                                backref='Valuation')
+    Project = relationship('Project')
+    MarkupList = relationship('ValuationMarkup', cascade='all')
+    ValuationItems = relationship('ValuationItem', cascade='all')
+    Claim = relationship('Claim', uselist=False)
 
     @hybrid_property
     def Status(self):
@@ -1986,11 +1987,8 @@ class ValuationItem(Base):
     BudgetGroupTotal = Column(Numeric)
     PercentageComplete = Column(Float)
 
-    BudgetGroup = relationship('BudgetGroup',
-                              backref=backref('ValuationItems'))
-    Valuation = relationship('Valuation',
-                            backref=backref('ValuationItems',
-                                            cascade='all'))
+    BudgetGroup = relationship('BudgetGroup')
+    Valuation = relationship('Valuation')
     Children = relationship('ValuationItem',
                             cascade='all',
                             backref=backref('Parent',
@@ -2043,11 +2041,8 @@ class Claim(Base):
     Status = Column(Text(50), default='Draft')
     ValuationID = Column(Integer, ForeignKey('Valuation.ID'))
 
-    Project = relationship('Project',
-                            backref=backref('Claims'))
-    Valuation = relationship('Valuation',
-                            uselist=False,
-                            backref=backref('Claim', uselist=False,))
+    Project = relationship('Project')
+    Valuation = relationship('Valuation', uselist=False)
 
     @property
     def Total(self):
@@ -2094,8 +2089,7 @@ class Payment(Base):
     ReferenceNumber = Column(Text(50))
     Amount = Column(Numeric)
 
-    Project = relationship('Project',
-                            backref=backref('Payments'))
+    Project = relationship('Project')
 
     def dict(self):
         """ Returns a dictionary of this Payment
@@ -2127,7 +2121,8 @@ class ValuationMarkup(Base):
     PercentageComplete = Column(Float, default=0.0)
     ValuationID = Column(Integer, ForeignKey('Valuation.ID'))
 
-    Overhead = relationship('Overhead', backref='ValuationMarkups')
+    Overhead = relationship('Overhead')
+    Valuation = relationship('Valuation')
 
     def copy(self, valuationid):
         """ Return a copy of this markup but with the ValuationID specified
