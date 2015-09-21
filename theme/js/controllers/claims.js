@@ -236,27 +236,19 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
                 $http({
                     method: 'POST',
                     url: globalServerURL + 'claim_report/' + claimid + '/',
-                    data: $scope.formData},
-                    {responseType: 'arraybuffer'})
-                .success(function (response, status, headers, config) {
-                    spinner.stop(); // stop the spinner - ajax call complete
+                    data: $scope.formData,
+                    responseType: 'arraybuffer'
+                }).success(function (response, status, headers, config) {
+                    spinner.stop();
                     var file = new Blob([response], {type: 'application/pdf'});
-                    var fileURL = URL.createObjectURL(file);
-                    var result = document.getElementsByClassName("pdf_hidden_download");
-                    var anchor = angular.element(result);
                     var filename_header = headers('Content-Disposition');
                     var filename = filename_header.split('filename=')[1];
-                    anchor.attr({
-                        href: fileURL,
-                        target: '_blank',
-                        download: filename
-                    })[0].click();
-                    // clear the anchor so that everytime a new report is linked
-                    anchor.attr({
-                        href: '',
-                        target: '',
-                        download: ''
-                    });
+                    var config = {
+                      data: file,
+                      filename: filename,
+                    };
+
+                    FileSaver.saveAs(config);
                 }).error(function(data, status, headers, config) {
                     console.log("Claim pdf download error")
                 });
