@@ -12,7 +12,8 @@ var myApp = angular.module('myApp', [
                     'ngFormValidation',
                     'ui.select',
                     'ngSanitize',
-                    'selectionModel'
+                    'selectionModel',
+                    'ngFileSaver'
                     ]);
 
 myApp.config(function(formValidationDecorationsProvider, formValidationErrorsProvider) {

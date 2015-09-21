@@ -1044,25 +1044,26 @@ def excelprojectbudget(request):
     worksheet.write(2, 4, 'Total', border)
     row = 4
     for node in nodes:
-        if node[0].type == 'BudgetGroup':
-            indent = int(node[1][-1]) -1
-            nameformat = add_to_format(bold, {'indent': indent}, workbook)
-            worksheet.write(row, 0, node[0].Name, nameformat)
-            worksheet.write(row, 4, node[0].Total, budgettotal)
-        else:
-            indent = workbook.add_format()
-            indent.set_indent(int(node[1][-1]) -1)
-            textcolor = workbook.add_format()
-            bimoney = money
-            if node[0].Variation:
-                indent = add_to_format(indent, {'font_color': 'red'}, workbook)
-                textcolor.set_font_color('red')
-                bimoney = add_to_format(bimoney, {'font_color': 'red'}, workbook)
-            worksheet.write(row, 0, node[0].Name, indent)
-            worksheet.write(row, 1, node[0].Unit, textcolor)
-            worksheet.write(row, 2, node[0].Quantity, textcolor)
-            worksheet.write(row, 3, node[0].Rate, bimoney)
-            worksheet.write(row, 4, node[0].Total, bimoney)
+        if node:
+            if node[0].type == 'BudgetGroup':
+                indent = int(node[1][-1]) -1
+                nameformat = add_to_format(bold, {'indent': indent}, workbook)
+                worksheet.write(row, 0, node[0].Name, nameformat)
+                worksheet.write(row, 4, node[0].Total, budgettotal)
+            else:
+                indent = workbook.add_format()
+                indent.set_indent(int(node[1][-1]) -1)
+                textcolor = workbook.add_format()
+                bimoney = money
+                if node[0].Variation:
+                    indent = add_to_format(indent, {'font_color': 'red'}, workbook)
+                    textcolor.set_font_color('red')
+                    bimoney = add_to_format(bimoney, {'font_color': 'red'}, workbook)
+                worksheet.write(row, 0, node[0].Name, indent)
+                worksheet.write(row, 1, node[0].Unit, textcolor)
+                worksheet.write(row, 2, node[0].Quantity, textcolor)
+                worksheet.write(row, 3, node[0].Rate, bimoney)
+                worksheet.write(row, 4, node[0].Total, bimoney)
         row+=1
 
     boldborder = add_to_format(border, {'bold':True}, workbook)

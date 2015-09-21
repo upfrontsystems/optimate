@@ -32,8 +32,8 @@ var checkRateAndQuantityController = function ($scope, $modalInstance, selection
 angular.module('myApp').controller('checkRateAndQuantityController', checkRateAndQuantityController);
 
 // Controller for the projects and treeview
-myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'globalServerURL', '$timeout', '$modal', 'SessionService', '$q',
-    function($scope, $http, $cacheFactory, globalServerURL, $timeout, $modal, SessionService, $q) {
+myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'globalServerURL', '$timeout', '$modal', 'SessionService', '$q', 'FileSaver',
+    function($scope, $http, $cacheFactory, globalServerURL, $timeout, $modal, SessionService, $q, FileSaver) {
 
         toggleMenu('projects');
         // variable for disabling submit button after user clicked it
@@ -1498,31 +1498,21 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             $http({
                 method: 'POST',
                 url: url,
-                data: $scope.formData},
-                {responseType: 'arraybuffer'
+                data: $scope.formData,
+                responseType: 'arraybuffer'
             }).success(function (response, status, headers, config) {
-                console.log("success");
-                spinner.stop(); // stop the spinner - ajax call complete
-                $scope.budgetgroupList = [] // clear selected budget group list
-                var file = new Blob([response], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-                var fileURL = URL.createObjectURL(file);
-                var result = document.getElementsByClassName("excel_hidden_download");
-                var anchor = angular.element(result);
-                console.log(headers);
-                var filename_header = headers('Content-Disposition');
-                console.log(filename_header);
-                var filename = filename_header.split('filename=')[1];
-                anchor.attr({
-                    href: fileURL,
-                    target: '_blank',
-                    download: filename
-                })[0].click();
-                // clear the hidden anchor so that everytime a new report is linked
-                anchor.attr({
-                    href: '',
-                    target: '',
-                    download: ''
+                spinner.stop();
+                var blob = new Blob([response], {
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                 });
+                var filename_header = headers('Content-Disposition');
+                var filename = filename_header.split('filename=')[1];
+                var config = {
+                  data: blob,
+                  filename: filename,
+                };
+
+                FileSaver.saveAs(config);
             }).error(function(data, status, headers, config) {
                 console.log("Report excel download error")
             });
