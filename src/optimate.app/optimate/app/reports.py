@@ -1445,7 +1445,6 @@ def excelorder(request):
         worksheet.write(row, 1, orderitem['Unit'])
         worksheet.write(row, 2, orderitem['Quantity'], numberformat)
         worksheet.write(row, 3, float(orderitem['Rate']), money)
-        print orderitem['Total']
         worksheet.write(row, 4, float(orderitem['Total']), money)
         row+=1
 
