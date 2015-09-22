@@ -1061,7 +1061,7 @@ def node_paste(request):
             # for each resource part in a resource unit, replace the old
             # resource id with the new resource id
             for resource in resourcelist:
-                for part in resource.ResourceParts:
+                for part in resource.Children:
                     i = resourcelist.index(part.Resource)
                     part.ResourceID = resourcelist[i].ID
             DBSession.flush()
