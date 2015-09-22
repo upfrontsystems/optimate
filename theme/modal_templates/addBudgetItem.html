@@ -40,7 +40,7 @@
                                    for="description">Description:</label>
                             <textarea class="col-sm-7" id="description"
                                       name="description"
-                                      ng-model="formData.selected.Description"
+                                      ng-model="formData.Description"
                                       ng-disabled="addBudgetItemForm.has_selection"></textarea>
                         </div>
                         <div class="form-group">
@@ -51,7 +51,7 @@
                                    class="col-sm-1"
                                    id="inputQuantity"
                                    name="inputQuantity"
-                                   ng-model="formData.selected.Quantity">
+                                   ng-model="formData.Quantity">
                         </div>
                         <div class="form-group">
                             <label class="col-sm-2 control-label"
@@ -60,7 +60,7 @@
                                    type="text"
                                    smart-float
                                    name="rate"
-                                   ng-model="formData.selected.Rate"
+                                   ng-model="formData.Rate"
                                    ng-disabled="addBudgetItemForm.has_selection"
                                    required />
                           <!--  <ul class="nav nav-pills no-top-margin">
@@ -83,7 +83,7 @@
                                     id="resourcetype"
                                     name="resourcetype"
                                     ng-disabled="addBudgetItemForm.has_selection"
-                                    ng-model="formData.selected.ResourceTypeID"
+                                    ng-model="formData.ResourceTypeID"
                                     ng-options="type.ID as type.Name for type in restypeList"
                                     required>
                                 <option value="">Select a type</option>

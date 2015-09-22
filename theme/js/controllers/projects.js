@@ -602,10 +602,17 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                     $description = $addBudgetItem.find('#description');
                 if (item.ID == undefined) {
                     $scope.addBudgetItemForm.has_selection = false;
+                    $scope.formData.NodeType = 'SimpleBudgetItem';
+                    $scope.formData.Name = item.Name;
                     $description.focus();
                 }
                 else {
                     $scope.addBudgetItemForm.has_selection = true;
+                    $scope.formData.Description = item.Description;
+                    $scope.formData.Rate = item.Rate;
+                    $scope.formData.ResourceTypeID = item.ResourceTypeID;
+                    $scope.formData.NodeType = 'BudgetItem';
+                    $scope.formData.Name = item.Name;
                     $addBudgetItem.find('#inputQuantity').focus();
                 }
             }
@@ -626,16 +633,10 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 // if the node is a budgetitem set the selected data to the form
                 if ($scope.formData.NodeType == 'BudgetItem' || $scope.formData.NodeType == 'SimpleBudgetItem') {
                     if ($scope.formData.selected.ID === undefined) {
-                        $scope.formData.Quantity = $scope.formData.selected.Quantity;
-                        $scope.formData.Rate = $scope.formData.selected.Rate;
-                        $scope.formData.Name = $scope.formData.selected.Name;
-                        $scope.formData.Description = $scope.formData.selected.Description;
-                        $scope.formData.ResourceTypeID = $scope.formData.selected.ResourceTypeID;
                         $scope.formData.NodeType = 'SimpleBudgetItem';
                     }
                     else {
                         $scope.formData.ResourceID = $scope.formData.selected.ID;
-                        $scope.formData.Quantity = $scope.formData.selected.Quantity;
                         $scope.formData['OverheadList'] = $scope.budgetItemOverheadList || [];
                         $scope.formData.NodeType = 'BudgetItem';
                     }
@@ -727,6 +728,78 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             }
         };
 
+        // Setting the type of the node to be added
+        // refresh it if the type is the same
+        // $timeout is used so that the scope is refreshed and the directive
+        // reloaded even if the node type is the same
+        // reset the formdata to the type
+        $scope.changeAddingType = function(nodetype) {
+            $scope.calculatorHidden = true;
+            if ($scope.addingNodeType == nodetype) {
+                $scope.addingNodeType = '';
+                $timeout(function() {
+                    $scope.changeAddingType(nodetype);
+                });
+            }
+            else {
+                $scope.addingNodeType = nodetype;
+            }
+            $scope.isDisabled = false;
+            $scope.modalState = "Add";
+            $scope.resourceList = [];
+            $scope.formData = {'NodeType': nodetype};
+            $scope['add' + nodetype + 'Form'].$setPristine();
+        }
+
+        // edit the current node
+        $scope.editNode = function() {
+            $scope.calculatorHidden = true;
+            $scope.modalState = "Edit"
+            $scope.isDisabled = false;
+            // editing the current node, no need to load it
+            if ($scope.currentNode){
+                var nodetype = $scope.currentNode.NodeType;
+                $scope.formData = $scope.currentNode;
+                $scope.formData.selected = {};
+                // special case for budgetitem types
+                if (nodetype == 'BudgetItem') {
+                    // populate the selection
+                    $scope.refreshResources($scope.currentNode.Name);
+                    $scope.formData.selected.ID = $scope.currentNode.ResourceID;
+                    $scope.formData.selected.Name = $scope.currentNode.Name;
+                    $scope.resourceSelected($scope.formData);
+                    // load budgetitem overhead list
+                    $scope.loadBudgetItemOverheads($scope.currentNode.ID).then(function(){
+                        var overheadlist = $scope.currentNode.OverheadList;
+                        for (var i = 0; i < overheadlist.length; i++) {
+                            var index = $scope.budgetItemOverheadList.map(function(e) {
+                                return e.ID; }).indexOf(overheadlist[i].ID);
+                            if (index > -1) {
+                                $scope.budgetItemOverheadList[index].selected = true;
+                            }
+                        }
+                        $scope.formData.OverheadList = $scope.budgetItemOverheadList;
+                    });
+                }
+                else if (nodetype == 'SimpleBudgetItem') {
+                    // populate the selection
+                    $scope.formData.selected.Name = $scope.currentNode.Name;
+                    $scope.resourceSelected($scope.formData.selected);
+                    nodetype = 'BudgetItem';
+                }
+                else if (nodetype == 'ResourcePart'){
+                    $scope.refreshResources($scope.currentNode.Name);
+                    $scope.formData.selected = $scope.currentNode;
+                    $scope.formData.selected.ID = $scope.currentNode.ResourceID
+                }
+                $scope.formData.originalName = $scope.currentNode.Name;
+                // set each field dirty
+                angular.forEach($scope['add' + nodetype + 'Form'].$error.required, function(field) {
+                    field.$setDirty();
+                });
+            }
+        };
+
         // save changes made to the node's properties
         $scope.saveNodeEdits = function() {
             if (!$scope.isDisabled) {
@@ -734,25 +807,14 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 // if the node is a budgetitem set the selected data to the form
                 if ($scope.formData.NodeType == 'BudgetItem' || $scope.formData.NodeType == 'SimpleBudgetItem') {
                     $scope.formData.ResourceID = $scope.formData.selected.ID;
-                    $scope.formData.Quantity = $scope.formData.selected.Quantity;
-                    if ($scope.formData.ResourceID == undefined) {
-                        $scope.formData.NodeType == 'SimpleBudgetItem';
-                        $scope.formData.Rate = $scope.formData.selected.Rate;
-                        $scope.formData.Name = $scope.formData.selected.Name;
-                        $scope.formData.Description = $scope.formData.selected.Description;
-                        $scope.formData.ResourceTypeID = $scope.formData.selected.ResourceTypeID;
-                    }
-                    else {
-                        $scope.formData.NodeType == 'BudgetItem';
-                        $scope.formData.Name = $scope.formData.selected.Name;
-                        $scope.formData['OverheadList'] = $scope.budgetItemOverheadList || [];
-                    }
+                    $scope.formData.Name = $scope.formData.selected.Name;
                 }
                 else if ($scope.formData.NodeType == 'ResourcePart') {
                     $scope.formData.Name = $scope.formData.selected.Name;
                     $scope.formData.ResourceID = $scope.formData.selected.ID;
                     $scope.formData.selected = {};
                 }
+
                 var req = {
                     method: 'PUT',
                     url: globalServerURL + 'node/' + $scope.currentNode.ID + '/',
@@ -760,9 +822,8 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 }
                 $http(req).success(function(response) {
                     console.log($scope.formData['NodeType'] + " edited")
-                    // set the current node name to the name in the modal form
-                    if ($scope.currentNode.Name != $scope.formData.Name) {
-                        $scope.currentNode.Name = $scope.formData.Name;
+                    // check if the name has changed
+                    if ($scope.currentNode.Name != $scope.formData.originalName) {
                         // only sort if its not a project's resource category
                         var parent = $scope.currentNodeScope.$parentNodeScope || {'$modelValue':{'NodeType':'Project'}};
                         if (!($scope.currentNode.NodeType == 'ResourceCategory' && parent.$modelValue.NodeType == 'Project')) {
@@ -787,90 +848,20 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                                 return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
                             });
                         }
-
                     }
-                    $scope.currentNode.Description = $scope.formData.Description
+                    if ($scope.formData.NodeType == 'BudgetItem'){
+                        $scope.formData.OverheadList = $scope.budgetItemOverheadList || [];
+                        var i = $scope.formData.OverheadList.length;
+                        while (i--){
+                            if (!$scope.formData.OverheadList[i].selected){
+                                $scope.formData.OverheadList.splice(i, 1);
+                            }
+                        }
+                    }
+                    $scope.currentNode = $scope.formData;
                     $scope.handleReloadSlickgrid($scope.currentNode.ID);
                 });
             }
-        };
-
-        // Setting the type of the node to be added
-        // refresh it if the type is the same
-        // $timeout is used so that the scope is refreshed and the directive
-        // reloaded even if the node type is the same
-        // reset the formdata to the type
-        $scope.changeAddingType = function(nodetype) {
-            $scope.calculatorHidden = true;
-            if ($scope.addingNodeType == nodetype) {
-                $scope.addingNodeType = '';
-                $timeout(function() {
-                    $scope.changeAddingType(nodetype);
-                });
-            }
-            else {
-                $scope.addingNodeType = nodetype;
-            }
-            $scope.isDisabled = false;
-            $scope.modalState = "Add";
-            $scope.resourceList = [];
-            $scope.formData = {'NodeType': nodetype};
-            $scope['add' + nodetype + 'Form'].$setPristine();
-        }
-
-        // fetch the properties of the node being edited
-        // to populate the respective edit form
-        $scope.editNode = function(nodeid) {
-            $scope.calculatorHidden = true;
-            $scope.modalState = "Edit"
-            $scope.isDisabled = false;
-            var req = {
-                method: 'GET',
-                url: globalServerURL + 'node/' + nodeid + '/'
-            }
-            $http(req).success(function(response) {
-                var nodetype = response.NodeType;
-                $scope.formData = response;
-                // special case for budgetitem types
-                if (nodetype == 'BudgetItem') {
-                    // populate the selection
-                    $scope.refreshResources(response.Name);
-                    $scope.formData.selected = response;
-                    $scope.formData.selected.ID = response.ResourceID
-                    $scope.formData.NodeType = nodetype;
-                    $scope.resourceSelected($scope.formData.selected);
-                    // load budgetitem overhead list
-                    $scope.loadBudgetItemOverheads(nodeid).then(function(){
-                        var overheadlist = response['OverheadList'];
-                        for (var i = 0; i < overheadlist.length; i++) {
-                            var index = $scope.budgetItemOverheadList.map(function(e) {
-                                return e.ID; }).indexOf(overheadlist[i].ID);
-                            if (index > -1) {
-                                $scope.budgetItemOverheadList[index].selected = true;
-                            }
-                        }
-                        $scope.formData['OverheadList'] = $scope.budgetItemOverheadList;
-                    });
-                }
-                else if (nodetype == 'SimpleBudgetItem') {
-                    // populate the selection
-                    $scope.formData.selected = response;
-                    $scope.formData.NodeType = nodetype;
-                    nodetype = 'BudgetItem';
-                }
-                else if (nodetype == 'ResourcePart'){
-                    $scope.refreshResources(response.Name);
-                    $scope.formData.selected = response;
-                    $scope.formData.selected.ID = response.ResourceID
-                    $scope.resourceSelected($scope.formData.selected);
-                    $scope.formData.NodeType = nodetype;
-                }
-                $scope.formData.ID = response.ID;
-                // set each field dirty
-                angular.forEach($scope['add' + nodetype + 'Form'].$error.required, function(field) {
-                    field.$setDirty();
-                });
-            });
         };
 
         // Deleting a node. It receives the id of the node

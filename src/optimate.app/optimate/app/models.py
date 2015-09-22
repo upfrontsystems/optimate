@@ -716,7 +716,7 @@ class BudgetItem(Node):
         """ Return a list of the BudgetItems
         """
         budgetitemslist = []
-        # check if the budgetitem satifies any of the optional search paramaters
+        # check if the budgetitem satisfies any of the optional search paramaters
         if variation != None:
             if self.Variation == variation:
                 budgetitemslist.append(self)

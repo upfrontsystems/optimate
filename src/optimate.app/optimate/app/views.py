@@ -169,7 +169,7 @@ def node_children(request):
     resourcecategories = []
 
     qry = DBSession.query(Node).filter_by(ID=parentid).first()
-    # build the list and only get the neccesary values
+    # build the list
     if qry:
         for child in qry.Children:
             if child.type == 'ResourceCategory':
@@ -428,7 +428,7 @@ def edititemview(request):
 
         # if a different resource is used, get the new resource
         if bi.Resource.ID != uid:
-            # A different resource was linked to this bi
+            # A different resource was linked to this budgetitem
             rootparentid = bi.getProjectID()
             resourcecategory = DBSession.query(
                 ResourceCategory).filter_by(
@@ -445,7 +445,6 @@ def edititemview(request):
 
             transaction.commit()
             bi = DBSession.query(BudgetItem).filter_by(ID=nodeid).first()
-
         bi.Overheads[:] = []
 
         # get the list of overheads used in the checkboxes
