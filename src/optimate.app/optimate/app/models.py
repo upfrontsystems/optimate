@@ -137,9 +137,7 @@ class Node(Base):
         """
         self.Children.append(source)
         for child in sourcechildren:
-            # The resource category is not pasted
-            if child.type != 'ResourceCategory':
-                source.paste(child.copy(source.ID), child.Children)
+            source.paste(child.copy(source.ID), child.Children)
 
     def __eq__(self, other):
         """ Test for equality on the Node ID
@@ -258,9 +256,7 @@ class Project(Node):
         """
         self.Children.append(source)
         for child in sourcechildren:
-            # The resource category is not pasted
-            if child.type != 'ResourceCategory':
-                source.paste(child.copy(source.ID), child.Children)
+            source.paste(child.copy(source.ID), child.Children)
 
     def getBudgetItems(self, variation = None):
         """ Returns a list of all the BudgetItems that are used in this project.
@@ -1275,6 +1271,20 @@ class ResourceUnit(Resource):
         """ A resource unit's rate will be cleared when it's part's total's clear
         """
         pass
+
+    def copy(self, parentid):
+        """ Copy returns an exact duplicate of this ResourceUnit,
+            but with the ParentID specified.
+        """
+        copied = ResourceUnit(Name=self.Name,
+                         Description=self.Description,
+                         Type=self.Type,
+                         Code = self.Code,
+                         UnitID = self.UnitID,
+                         ParentID=parentid,
+                         _Rate = self.Rate,
+                         SupplierID = self.SupplierID)
+        return copied
 
     def paste(self, source, sourcechildren):
         """ Paste a ResourcePart into this ResourceUnit

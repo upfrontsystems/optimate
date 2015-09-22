@@ -1046,38 +1046,44 @@ def node_paste(request):
             DBSession.flush()
             projectid = projectcopy.ID
             dest.paste(projectcopy, source.Children)
-            DBSession.flush()
-            # add a Resource Category to the new Project
-            resourcecategory = ResourceCategory(Name='Resource List',
-                                            Description='List of Resources',
-                                            ParentID=projectid)
-            DBSession.add(resourcecategory)
-            DBSession.flush()
-            rescatid = resourcecategory.ID
 
-            # Get the budgetitems that were copied
-            sourcebudgetitems = source.getBudgetItems()
-            # copy each unique resource into the new resource category
-            copiedresourceIds = {}
-            for budgetitem in sourcebudgetitems:
-                if budgetitem.ResourceID not in copiedresourceIds:
-                    # the original category name
-                    categoryName = budgetitem.Resource.Parent.Name
-                    newparentid = sortResource(resourcecategory,
-                                                categoryName)
-                    copiedresource = budgetitem.Resource.copy(newparentid)
-                    DBSession.add(copiedresource)
-                    DBSession.flush()
-                    copiedresourceIds[
-                            budgetitem.Resource.ID] = copiedresource.ID
+            # copy the overheads over
+            for overhead in source.OverheadList:
+                projectcopy.OverheadList.append(overhead.copy(projectid))
+            DBSession.flush()
+            # get the resource category of the new Project
+            resourcecategory = DBSession.query(ResourceCategory).filter_by(
+                                                    ParentID=projectid).first()
+            # get the resources that were copied
+            resourcelist = resourcecategory.getResources()
+            resourcelist = sorted(resourcelist, key=lambda k: k.Code)
+
+            # for each resource part in a resource unit, replace the old
+            # resource id with the new resource id
+            for resource in resourcelist:
+                for part in resource.ResourceParts:
+                    i = resourcelist.index(part.Resource)
+                    part.ResourceID = resourcelist[i].ID
+            DBSession.flush()
 
             # get the budgetitems that were pasted
             destbudgetitems = projectcopy.getBudgetItems()
+            projectoverheads = projectcopy.OverheadList
             # change the resource ids of budgetitems who were copied
-            for budgetitem in destbudgetitems:
-                if budgetitem.ResourceID in copiedresourceIds:
-                    budgetitem.ResourceID = copiedresourceIds[
-                                                budgetitem.ResourceID]
+            for bi in destbudgetitems:
+                if bi.Resource:
+                    i = resourcelist.index(bi.Resource)
+                    bi.ResourceID = resourcelist[i].ID
+
+                # replace the overheads in the copied budgetitems with
+                # the overheads in the project
+                originaloverheads = bi.Overheads
+                for overhead in originaloverheads:
+                    bi.Overheads.remove(overhead)
+                    projectoverhead = projectoverheads[
+                                        projectoverheads.index(overhead)]
+                    bi.Overheads.append(projectoverhead)
+
             transaction.commit()
             # only need to clear costs if rate or quantity not included
             selections = request.json_body['selections']
