@@ -257,7 +257,18 @@ li.filters-label {
 }
 
 input.custom-datepicker{
+    text-align: center;
     height: 14px !important;
+}
+
+/* datepicker restrict size */
+.dropdown-toggle .input-group {
+    width: 200px;
+}
+
+/* make the datepicker clickable area smaller */
+#inputDate {
+    pointer-events: none;
 }
 
 /* overwriting bootstrap in order table */
@@ -340,11 +351,6 @@ input.custom-datepicker{
     top: -4px !important;
 }
 
-/* datepicker restrict size */
-.dropdown-toggle .input-group {
-    width: 160px;
-}
-
 /* align the value better with the label */
 p#valuationNumber,
 p#orderNumber {
@@ -378,11 +384,6 @@ label.control-label{
 
 span.fa-asterisk{
     display: block !important;
-}
-
-/* make the datepicker clickable area smaller */
-#inputDate {
-    pointer-events: none;
 }
 
 #inputDate .dropdown-menu,
