@@ -1438,6 +1438,10 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 $scope.formData['FilterBySupplier'] = $scope.filterBySupplier;
                 var url = globalServerURL + 'resource_list_report/' + nodeid + '/'
             }
+            else if (report == 'cashflow'){
+                $scope.formData = {};
+                var url = globalServerURL + 'cash_flow_report/' + nodeid + '/'
+            }
             $http({
                 method: 'POST',
                 url: url,
@@ -1477,6 +1481,10 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 $scope.formData['FilterBySupplier'] = $scope.filterBySupplier;
                 var url = globalServerURL + 'excel_resource_list_report/' + nodeid + '/'
             }
+            else if (report == 'cashflow'){
+                var url = globalServerURL + 'excel_cash_flow_report/' + nodeid + '/'
+            }
+            console.log(url);
             $http({
                 method: 'POST',
                 url: url,

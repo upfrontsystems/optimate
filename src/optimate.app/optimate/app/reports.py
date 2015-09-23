@@ -937,10 +937,86 @@ def claim(request):
     response.headers.add("Pragma", "no-cache")
     return response
 
+@view_config(route_name="cashflow")
+def cashflow(request):
+    logging.info("Generating cashflow Report")
+    projectid = request.matchdict['id']
+    project = DBSession.query(Project).filter_by(ID=projectid).first()
+    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
+
+    for valuation in project.Valuations:
+        for item in valuation.ValuationItems:
+            # list items
+            pass
+
+    # # sort the list, place children after parents
+    # parentlist = sorted(parentlist, key=lambda k: k['Name'].upper())
+    # for parent in parentlist:
+    #     if parent['expanded']:
+    #         dc = [x for x in childrenlist if x['ParentID'] == parent['ID']]
+    #         dc = sorted(dc, key=lambda k: k['Name'].upper())
+    #         itemlist.append(parent)
+    #         itemlist+=dc
+    #     else:
+    #         itemlist.append(parent)
+
+    # markup_list = []
+    # grandtotal = float(valuation.Total)
+    # # get the valuation markup
+    # for markup in valuation.MarkupList:
+    #     data = markup.dict()
+    #     data["Amount"] = float(data['TotalBudget'])*(markup.PercentageComplete/100)
+    #     grandtotal += data["Amount"]
+    #     markup_list.append(data)
+
+    # markup_list = sorted(markup_list, key=lambda k: k['Name'].upper())
+
+    # # inject valuation data into template
+    # now = datetime.now()
+    # vdate = valuation.Date.strftime("%d %B %Y")
+    # clientid = valuation.Project.ClientID
+    # client = DBSession.query(Client).filter_by(ID=clientid).first()
+    # template_data = render('templates/valuationreport.pt',
+    #                        {'valuation': valuation,
+    #                         'valuation_items': itemlist,
+    #                         'client': client,
+    #                         'budget_total': budget_total,
+    #                         'valuation_date': vdate,
+    #                         'markup_list': markup_list,
+    #                         'grand_total': grandtotal,
+    #                         'currency': currency},
+    #                         request=request)
+    # # render template
+    # html = StringIO(template_data.encode('utf-8'))
+
+    # # Generate the pdf
+    # pdf = StringIO()
+    # pisadoc = pisa.CreatePDF(html, pdf, raise_exception=False)
+    # assert pdf.len != 0, 'Pisa PDF generation returned empty PDF!'
+    # html.close()
+    # pdfcontent = pdf.getvalue()
+    # pdf.close()
+
+    # filename = "valuation_report"
+    # nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
+    # last_modified = formatdate(time.mktime(now.timetuple()))
+    # response = Response(content_type='application/pdf',
+    #                     body=pdfcontent)
+    # response.headers.add('Content-Disposition',
+    #                      "attachment; filename=%s.pdf" % nice_filename)
+    # # needed so that in a cross-domain situation the header is visible
+    # response.headers.add('Access-Control-Expose-Headers','Content-Disposition')
+    # response.headers.add("Content-Length", str(len(pdfcontent)))
+    # response.headers.add('Last-Modified', last_modified)
+    # response.headers.add("Cache-Control", "no-store")
+    # response.headers.add("Pragma", "no-cache")
+    # return response
+
 
 def add_to_format(existing_format, dict_of_properties, workbook):
-    """Give a format you want to extend and a dict of the properties you want to
-    extend it with, and you get them returned in a single format"""
+    """ Give a format you want to extend and a dict of the properties you want
+        to extend it with, and you get them returned in a single format
+    """
     new_dict={}
     for key, value in existing_format.__dict__.iteritems():
         if (value != 0) and (value != {}) and (value != None):
@@ -1522,13 +1598,6 @@ def excelinvoices(request):
         invoices.append(invoice.dict())
 
     sorted_invoices = sorted(invoices, key=lambda k: k['ID'])
-
-    # inject invoice data into template
-    template_data = render('templates/invoicesreport.pt',
-                           {'invoices': sorted_invoices,
-                            'report_headings': headings,
-                            'currency': currency},
-                            request=request)
     # render template
     output = StringIO()
 
@@ -1684,16 +1753,6 @@ def excelvaluation(request):
     vdate = valuation.Date.strftime("%d %B %Y")
     clientid = valuation.Project.ClientID
     client = DBSession.query(Client).filter_by(ID=clientid).first()
-    template_data = render('templates/valuationreport.pt',
-                           {'valuation': valuation,
-                            'valuation_items': itemlist,
-                            'client': client,
-                            'budget_total': budget_total,
-                            'valuation_date': vdate,
-                            'markup_list': markup_list,
-                            'grand_total': grandtotal,
-                            'currency': currency},
-                            request=request)
     # render template
     output = StringIO()
 
@@ -1935,6 +1994,102 @@ def excelclaim(request):
     logging.info("excel rendered")
 
     filename = "claim_report"
+    nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
+    last_modified = formatdate(time.mktime(now.timetuple()))
+    response = Response(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                        body=excelcontent)
+    response.headers.add('Content-Disposition',
+                         "attachment; filename=%s.xlsx" % nice_filename)
+    # needed so that in a cross-domain situation the header is visible
+    response.headers.add('Access-Control-Expose-Headers','Content-Disposition')
+    response.headers.add("Content-Length", str(len(excelcontent)))
+    response.headers.add('Last-Modified', last_modified)
+    response.headers.add("Cache-Control", "no-store")
+    response.headers.add("Pragma", "no-cache")
+
+    fd = open (nice_filename + '.xlsx', 'w')
+    fd.write (excelcontent)
+
+    return response
+
+@view_config(route_name="excelcashflow")
+def excelcashflow(request):
+    logging.info("Generating cash flow Excel Report")
+    projectid = request.matchdict['id']
+    project = DBSession.query(Project).filter_by(ID=projectid).first()
+    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
+
+    # inject valuation data into template
+    now = datetime.now()
+    clientid = project.ClientID
+    client = DBSession.query(Client).filter_by(ID=clientid).first()
+    # render template
+    output = StringIO()
+
+    workbook = xlsxwriter.Workbook(output)
+    worksheet = workbook.add_worksheet()
+
+    # bold format
+    bold = workbook.add_format({'bold': True})
+    # currency format
+    currencyformat= '"'+currency+'"#,##0.00'
+    moneydict = {'num_format':currencyformat}
+    money = workbook.add_format(moneydict)
+    # bold and currency for budget total
+    boldmoney = add_to_format(money, {'bold': True}, workbook)
+    # border
+    bordertop = workbook.add_format({'top': 1})
+    border = add_to_format(bordertop, {'bottom': 1}, workbook)
+    boldborder = add_to_format(border, {'bold': True}, workbook)
+    moneyborder = add_to_format(border, {'num_format':currencyformat}, workbook)
+    # date
+    dateformat = workbook.add_format({'num_format':'dd mmmm yyyy'})
+    bolddate = add_to_format(dateformat, {'bold': True}, workbook)
+    boldborderdate = add_to_format(boldborder, {'num_format':'dd mmmm yyyy'}, workbook)
+    # number
+    numberformat = workbook.add_format({'num_format': 0x00})
+    # percentage
+    percentageformat = workbook.add_format({'num_format': 0x0a})
+    # title
+    titleformat = add_to_format(bold, {'font_size': 12}, workbook)
+    smallbold = add_to_format(bold, {'font_size': 10}, workbook)
+
+    worksheet.set_column(0, 0, 35)
+    worksheet.set_column(1, 1, 20)
+    worksheet.set_column(3, 3, 20)
+
+    worksheet.write(0, 0, 'Valuation for Certificate #', bold)
+
+    row = 2
+    worksheet.write(row, 0, 'To:')
+    worksheet.write(row, 1, client.Name, bold)
+    row+=1
+    worksheet.write(row, 0, 'Project')
+    worksheet.write(row, 1, project.Name, bold)
+
+    row+=2
+    headerrow = row
+    worksheet.write(row, 0, 'Details', boldborder)
+
+    col = 1
+    for valuation in project.Valuations:
+        row = headerrow
+        worksheet.write(row, col, valuation.Date, boldborder)
+        row+=2
+        valuationitems = sorted(valuation.ValuationItems,
+                                key=lambda k: k.BudgetGroup.Name.upper())
+        for item in valuationitems:
+            worksheet.write(row, 0, item.BudgetGroup.Name)
+            worksheet.write(row, col, item.Total, money)
+            row+=1
+        col+=1
+
+    workbook.close()
+
+    excelcontent = output.getvalue()
+    logging.info("excel rendered")
+
+    filename = "cashflow_report"
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
     last_modified = formatdate(time.mktime(now.timetuple()))
     response = Response(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

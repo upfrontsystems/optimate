@@ -142,6 +142,7 @@ def main(global_config, **settings):
     config.add_route('invoices', '/invoices_report', factory=makeProtectedFunction('invoices'))
     config.add_route('invoices_report_filter', '/invoices_report_filter', factory=makeProtectedFunction('invoices'))
     config.add_route('claim', '/claim_report/{id}/', factory=makeProtectedFunction('claims'))
+    config.add_route('cashflow', '/cash_flow_report/{id}/', factory=makeProtectedFunction('projects'))
 
     # Excel reports
     config.add_route('excelprojectbudget', '/excel_project_budget_report/{id}/', factory=makeProtectedFunction('projects'))
@@ -151,6 +152,7 @@ def main(global_config, **settings):
     config.add_route('excelinvoices', '/excel_invoices_report', factory=makeProtectedFunction('invoices'))
     config.add_route('excelvaluation', '/excel_valuation_report/{id}/', factory=makeProtectedFunction('valuations'))
     config.add_route('excelclaim', '/excel_claim_report/{id}/', factory=makeProtectedFunction('claims'))
+    config.add_route('excelcashflow', '/excel_cash_flow_report/{id}/', factory=makeProtectedFunction('projects'))
 
     # user rights
     config.add_route('userrights', '/rights/{username}/')
