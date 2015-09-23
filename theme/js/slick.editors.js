@@ -24,12 +24,14 @@
 
   function CustomEditor(args) {
     // A custom editor used in the editable columns
-    // Only BudgetItem, SimpleBudgetItem, and Resource have editable attributes
+    // only certain type have editable attributes
     // If the node type is anything else it will pass to empty functions and
     // the cell will be non-editable
+    // it accepts float types and mathematical formulas
 
     var node_type = args.item["NodeType"];
-    var editableTypes = ["Resource", "ResourcePart", "BudgetItem", "SimpleBudgetItem", "OrderItem", "ValuationItem", "ValuationMarkup"];
+    var editableTypes = ["Resource", "ResourcePart", "BudgetItem", "SimpleBudgetItem",
+                          "OrderItem", "ValuationItem", "ValuationMarkup"];
     if (editableTypes.indexOf(node_type) > -1){
       var $input;
       var defaultValue;
@@ -65,7 +67,13 @@
       };
 
       this.serializeValue = function () {
-        return parseFloat($input.val(), 10) || 0;
+        var value = $input.val();
+        if (isNaN(Number(value))) {
+          return eval(value.substring(1));
+        }
+        else{
+          return parseFloat(value, 10) || 0;
+        }
       };
 
       this.applyValue = function (item, state) {
@@ -77,15 +85,20 @@
       };
 
       this.validate = function () {
-        if (isNaN(parseFloat($input.val()))) {
+        var value = $input.val();
+        if (isNaN(Number(value))) {
           // not FLOAT
-          return {
-            valid: false,
-            msg: "Please enter a valid float"
-          };
+          // test if begins with an equals sign
+          value = value.trim();
+          if (value.charAt(0) !== '='){
+            return {
+              valid: false,
+              msg: "Please enter valid input"
+            };
+          }
         }
 
-        // FLOAT
+        // valid
         return {
           valid: true,
           msg: null
