@@ -944,73 +944,53 @@ def cashflow(request):
     project = DBSession.query(Project).filter_by(ID=projectid).first()
     currency = currencies[DBSession.query(CompanyInformation).first().Currency]
 
+    valuations = []
+    # create a matrix of valuations and valuation items
     for valuation in project.Valuations:
+        valuations.append(valuation.dict())
+        items = []
         for item in valuation.ValuationItems:
-            # list items
-            pass
+            items.append(item.dict())
+        items = sorted(items, key=lambda k: k['Name'].upper())
+        valuations[-1]['Items'] = items
 
-    # # sort the list, place children after parents
-    # parentlist = sorted(parentlist, key=lambda k: k['Name'].upper())
-    # for parent in parentlist:
-    #     if parent['expanded']:
-    #         dc = [x for x in childrenlist if x['ParentID'] == parent['ID']]
-    #         dc = sorted(dc, key=lambda k: k['Name'].upper())
-    #         itemlist.append(parent)
-    #         itemlist+=dc
-    #     else:
-    #         itemlist.append(parent)
+    valuations = sorted(valuations, key=lambda k: k['Date'])
 
-    # markup_list = []
-    # grandtotal = float(valuation.Total)
-    # # get the valuation markup
-    # for markup in valuation.MarkupList:
-    #     data = markup.dict()
-    #     data["Amount"] = float(data['TotalBudget'])*(markup.PercentageComplete/100)
-    #     grandtotal += data["Amount"]
-    #     markup_list.append(data)
+    # inject valuation data into template
+    now = datetime.now()
+    clientid = project.Client.ID
+    client = project.Client
+    template_data = render('templates/cashflowreport.pt',
+                           {'project': project,
+                            'valuations': valuations,
+                            'client': client,
+                            'currency': currency},
+                            request=request)
+    # render template
+    html = StringIO(template_data.encode('utf-8'))
 
-    # markup_list = sorted(markup_list, key=lambda k: k['Name'].upper())
+    # Generate the pdf
+    pdf = StringIO()
+    pisadoc = pisa.CreatePDF(html, pdf, raise_exception=False)
+    assert pdf.len != 0, 'Pisa PDF generation returned empty PDF!'
+    html.close()
+    pdfcontent = pdf.getvalue()
+    pdf.close()
 
-    # # inject valuation data into template
-    # now = datetime.now()
-    # vdate = valuation.Date.strftime("%d %B %Y")
-    # clientid = valuation.Project.ClientID
-    # client = DBSession.query(Client).filter_by(ID=clientid).first()
-    # template_data = render('templates/valuationreport.pt',
-    #                        {'valuation': valuation,
-    #                         'valuation_items': itemlist,
-    #                         'client': client,
-    #                         'budget_total': budget_total,
-    #                         'valuation_date': vdate,
-    #                         'markup_list': markup_list,
-    #                         'grand_total': grandtotal,
-    #                         'currency': currency},
-    #                         request=request)
-    # # render template
-    # html = StringIO(template_data.encode('utf-8'))
-
-    # # Generate the pdf
-    # pdf = StringIO()
-    # pisadoc = pisa.CreatePDF(html, pdf, raise_exception=False)
-    # assert pdf.len != 0, 'Pisa PDF generation returned empty PDF!'
-    # html.close()
-    # pdfcontent = pdf.getvalue()
-    # pdf.close()
-
-    # filename = "valuation_report"
-    # nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
-    # last_modified = formatdate(time.mktime(now.timetuple()))
-    # response = Response(content_type='application/pdf',
-    #                     body=pdfcontent)
-    # response.headers.add('Content-Disposition',
-    #                      "attachment; filename=%s.pdf" % nice_filename)
-    # # needed so that in a cross-domain situation the header is visible
-    # response.headers.add('Access-Control-Expose-Headers','Content-Disposition')
-    # response.headers.add("Content-Length", str(len(pdfcontent)))
-    # response.headers.add('Last-Modified', last_modified)
-    # response.headers.add("Cache-Control", "no-store")
-    # response.headers.add("Pragma", "no-cache")
-    # return response
+    filename = "valuation_report"
+    nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
+    last_modified = formatdate(time.mktime(now.timetuple()))
+    response = Response(content_type='application/pdf',
+                        body=pdfcontent)
+    response.headers.add('Content-Disposition',
+                         "attachment; filename=%s.pdf" % nice_filename)
+    # needed so that in a cross-domain situation the header is visible
+    response.headers.add('Access-Control-Expose-Headers','Content-Disposition')
+    response.headers.add("Content-Length", str(len(pdfcontent)))
+    response.headers.add('Last-Modified', last_modified)
+    response.headers.add("Cache-Control", "no-store")
+    response.headers.add("Pragma", "no-cache")
+    return response
 
 
 def add_to_format(existing_format, dict_of_properties, workbook):
@@ -2055,10 +2035,8 @@ def excelcashflow(request):
     smallbold = add_to_format(bold, {'font_size': 10}, workbook)
 
     worksheet.set_column(0, 0, 35)
-    worksheet.set_column(1, 1, 20)
-    worksheet.set_column(3, 3, 20)
 
-    worksheet.write(0, 0, 'Valuation for Certificate #', bold)
+    worksheet.write(0, 0, 'Cash flow report', bold)
 
     row = 2
     worksheet.write(row, 0, 'To:')
@@ -2073,6 +2051,7 @@ def excelcashflow(request):
 
     col = 1
     for valuation in project.Valuations:
+        worksheet.set_column(col, col, 20)
         row = headerrow
         worksheet.write(row, col, valuation.Date, boldborder)
         row+=2
