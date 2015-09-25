@@ -10,6 +10,7 @@ from pyramid.renderers import render
 from StringIO import StringIO
 from xhtml2pdf import pisa
 import xlsxwriter
+from xlsxwriter.utility import xl_rowcol_to_cell
 
 from optimate.app.models import (
     DBSession,
@@ -944,7 +945,7 @@ def cashflow(request):
     project = DBSession.query(Project).filter_by(ID=projectid).first()
     currency = currencies[DBSession.query(CompanyInformation).first().Currency]
 
-    valuations = sorted(project.Valuations, key=lambda k: k.Date)
+    valuations = sorted(project.Valuations, key=lambda k: k.ID)
     data = []
     # create a matrix of valuations and valuation items
     for valuation in valuations:
@@ -2021,6 +2022,7 @@ def excelcashflow(request):
     smallbold = add_to_format(bold, {'font_size': 10}, workbook)
 
     worksheet.set_column(0, 0, 35)
+    worksheet.set_column(1, 1, 20)
 
     worksheet.write(0, 0, 'Cash flow report', bold)
 
@@ -2034,20 +2036,38 @@ def excelcashflow(request):
     row+=2
     headerrow = row
     worksheet.write(row, 0, 'Details', boldborder)
+    worksheet.write(row, 1, 'Budget Total', boldborder)
 
-    col = 1
-    for valuation in project.Valuations:
-        worksheet.set_column(col, col, 20)
+    valuations = sorted(project.Valuations, key=lambda k: k.ID)
+    # list the budget groups
+    valuationitems = sorted(project.Valuations[0].ValuationItems,
+                                key=lambda k: k.BudgetGroup.Name.upper())
+    row+=2
+    for item in valuationitems:
+        worksheet.write(row, 0, item.BudgetGroup.Name)
+        worksheet.write(row, 1, item.BudgetGroup.Total, money)
+        row+=1
+
+    col = 2
+    for valuation in valuations:
+        worksheet.set_column(col, col + 1, 20)
         row = headerrow
-        worksheet.write(row, col, valuation.Date, boldborder)
+        worksheet.write(row, col, 'Claimed', boldborder)
+        worksheet.write(row, col + 1, valuation.Date, boldborderdate)
         row+=2
         valuationitems = sorted(valuation.ValuationItems,
                                 key=lambda k: k.BudgetGroup.Name.upper())
         for item in valuationitems:
-            worksheet.write(row, 0, item.BudgetGroup.Name)
-            worksheet.write(row, col, item.Total, money)
+            if col == 2:
+                worksheet.write(row, col, item.PercentageComplete/100, percentageformat)
+            else:
+                cell = xl_rowcol_to_cell(row, col-2)
+                worksheet.write_formula(row, col,
+                    '{='+str(item.PercentageComplete/100)+'-'+cell+'}', percentageformat)
+            cell = xl_rowcol_to_cell(row, col)
+            worksheet.write_formula(row, col + 1, '{=B' + str(row+1)+'*' + cell+'}', money)
             row+=1
-        col+=1
+        col+=2
 
     workbook.close()
 
