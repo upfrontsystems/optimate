@@ -1484,7 +1484,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             else if (report == 'cashflow'){
                 var url = globalServerURL + 'excel_cash_flow_report/' + nodeid + '/'
             }
-            console.log(url);
             $http({
                 method: 'POST',
                 url: url,

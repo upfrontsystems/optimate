@@ -944,17 +944,22 @@ def cashflow(request):
     project = DBSession.query(Project).filter_by(ID=projectid).first()
     currency = currencies[DBSession.query(CompanyInformation).first().Currency]
 
-    valuations = []
+    valuations = sorted(project.Valuations, key=lambda k: k.Date)
+    data = []
     # create a matrix of valuations and valuation items
-    for valuation in project.Valuations:
-        valuations.append(valuation.dict())
+    for valuation in valuations:
+        column = {}
+        column['Valuation'] = valuation.dict()
         items = []
         for item in valuation.ValuationItems:
             items.append(item.dict())
         items = sorted(items, key=lambda k: k['Name'].upper())
-        valuations[-1]['Items'] = items
+        column['Items'] = items
+        data.append(column)
 
-    valuations = sorted(valuations, key=lambda k: k['Date'])
+    budgetgroups = []
+    for item in data[0]['Items']:
+        budgetgroups.append(item)
 
     # inject valuation data into template
     now = datetime.now()
@@ -962,12 +967,16 @@ def cashflow(request):
     client = project.Client
     template_data = render('templates/cashflowreport.pt',
                            {'project': project,
-                            'valuations': valuations,
+                            'data': data,
+                            'budgetgroups': budgetgroups,
                             'client': client,
                             'currency': currency},
                             request=request)
     # render template
     html = StringIO(template_data.encode('utf-8'))
+
+    fd = open ('test.html', 'w')
+    fd.write (html.getvalue())
 
     # Generate the pdf
     pdf = StringIO()
@@ -1159,9 +1168,6 @@ def excelprojectbudget(request):
     response.headers.add("Cache-Control", "no-store")
     response.headers.add("Pragma", "no-cache")
 
-    fd = open (nice_filename + '.xlsx', 'w')
-    fd.write (excelcontent)
-
     return response
 
 
@@ -1290,8 +1296,6 @@ def excelcostcomparison(request):
     response.headers.add("Cache-Control", "no-store")
     response.headers.add("Pragma", "no-cache")
 
-    fd = open (nice_filename + '.xlsx', 'w')
-    fd.write (excelcontent)
     return response
 
 
@@ -1380,8 +1384,6 @@ def excelresourcelist(request):
     response.headers.add("Cache-Control", "no-store")
     response.headers.add("Pragma", "no-cache")
 
-    fd = open (nice_filename + '.xlsx', 'w')
-    fd.write (excelcontent)
     return response
 
 
@@ -1536,9 +1538,6 @@ def excelorder(request):
     response.headers.add("Cache-Control", "no-store")
     response.headers.add("Pragma", "no-cache")
 
-    fd = open (nice_filename + '.xlsx', 'w')
-    fd.write (excelcontent)
-
     return response
 
 @view_config(route_name="excelinvoices")
@@ -1643,10 +1642,6 @@ def excelinvoices(request):
     excelcontent = output.getvalue()
     logging.info("excel rendered")
 
-    fd = open ('invoice_report.xlsx', 'w')
-    # populate buf
-    fd.write (excelcontent)
-
     filename = "invoice_report"
     now = datetime.now()
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
@@ -1661,9 +1656,6 @@ def excelinvoices(request):
     response.headers.add('Last-Modified', last_modified)
     response.headers.add("Cache-Control", "no-store")
     response.headers.add("Pragma", "no-cache")
-
-    fd = open (nice_filename + '.xlsx', 'w')
-    fd.write (excelcontent)
 
     return response
 
@@ -1841,9 +1833,6 @@ def excelvaluation(request):
     response.headers.add("Cache-Control", "no-store")
     response.headers.add("Pragma", "no-cache")
 
-    fd = open (nice_filename + '.xlsx', 'w')
-    fd.write (excelcontent)
-
     return response
 
 
@@ -1987,9 +1976,6 @@ def excelclaim(request):
     response.headers.add("Cache-Control", "no-store")
     response.headers.add("Pragma", "no-cache")
 
-    fd = open (nice_filename + '.xlsx', 'w')
-    fd.write (excelcontent)
-
     return response
 
 @view_config(route_name="excelcashflow")
@@ -2081,8 +2067,5 @@ def excelcashflow(request):
     response.headers.add('Last-Modified', last_modified)
     response.headers.add("Cache-Control", "no-store")
     response.headers.add("Pragma", "no-cache")
-
-    fd = open (nice_filename + '.xlsx', 'w')
-    fd.write (excelcontent)
 
     return response

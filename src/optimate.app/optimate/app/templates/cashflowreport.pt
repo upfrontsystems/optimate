@@ -40,25 +40,20 @@
             </tr>
         </table>
         <div>&nbsp;</div>
-        <table class="order-font">
-            <tr style="border-top: 1px solid #000;">
-                <td></td>
-            </tr>
-            <tr style="border-bottom: 1px solid #000;">
-                <th class="bold" style="width: 300px; text-align:left">Details</th>
-                <th class="bold" style="width: 200px; text-align:right"
-                    tal:repeat="valuation valuations">${valuation['Date']}</th>
-            </tr>
-        </table>
     </div>
+    <table class="order-font" style="float: left; display: inline-block;">
+        <th class="bold" style="width: 200px; text-align:left">Detail</th>
+        <tr tal:repeat="item budgetgroups">
+            <td style="width: 200px;">${item['Name']|nothing}</td>
+        </tr>
+    </table>
     <!-- each column of valuation items is a table next to each other -->
-    <div style="display=inline-table;">
-        <table class="order-font" tal:repeat="valuation valuations">
-            <tr tal:repeat="item valuation">
-                <td style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(float(item['AmountComplete'])).strip()|nothing}</td>
-            </tr>
-        </table>
-    <div>
+    <table class="order-font" style="float: left; display: inline-block;" tal:repeat="column data">
+        <th class="bold" style="width: 50px; text-align:left">${column['Valuation']['ReadableDate']}</th>
+        <tr tal:repeat="item column['Items']">
+            <td style="width: 50px; text-align:right">${currency + '{:20,.2f}'.format(float(item['AmountComplete'])).strip()|nothing}</td>
+        </tr>
+    </table>
 
     <div id="pageNumber">
         <pdf:pagenumber>
