@@ -946,21 +946,52 @@ def cashflow(request):
     currency = currencies[DBSession.query(CompanyInformation).first().Currency]
 
     valuations = sorted(project.Valuations, key=lambda k: k.ID)
-    data = []
+    headers = []
+    rows = []
     # create a matrix of valuations and valuation items
-    for valuation in valuations:
-        column = {}
-        column['Valuation'] = valuation.dict()
-        items = []
-        for item in valuation.ValuationItems:
-            items.append(item.dict())
-        items = sorted(items, key=lambda k: k['Name'].upper())
-        column['Items'] = items
-        data.append(column)
+    if len(valuations) > 0:
+        data = []
+        budgetgroups = []
+        for item in valuations[0].ValuationItems:
+            budgetgroups.append(item.dict())
+            budgetgroups[-1]['BudgetGroupTotal'] = item.BudgetGroup.Total
+        budgetgroups = sorted(budgetgroups, key=lambda k: k['Name'].upper())
 
-    budgetgroups = []
-    for item in data[0]['Items']:
-        budgetgroups.append(item)
+        col = 0
+        for valuation in valuations:
+            column = {}
+            column['Valuation'] = valuation.dict()
+            items = []
+            for item in valuation.ValuationItems:
+                items.append(item.dict())
+            items = sorted(items, key=lambda k: k['Name'].upper())
+            if col > 0:
+                for i in range(len(items)):
+                    items[i]['PercentageComplete']-=(
+                        data[-1]['Items'][i]['PercentageComplete'])
+            col=1
+            column['Items'] = items
+            data.append(column)
+
+        # rearange the data into a table
+        headers.append('Detail')
+        headers.append('Budget Total')
+        for column in data:
+            headers.append('Claimed')
+            headers.append(column['Valuation']['ReadableDate'])
+
+        for i in range(len(budgetgroups)):
+            row = []
+            pair = []
+            pair.append(budgetgroups[i]['Name'])
+            pair.append(budgetgroups[i]['BudgetGroupTotal'])
+            row.append(pair)
+            for column in data:
+                pair = []
+                pair.append(column['Items'][i]['PercentageComplete'])
+                pair.append(column['Items'][i]['AmountComplete'])
+                row.append(pair)
+            rows.append(row)
 
     # inject valuation data into template
     now = datetime.now()
@@ -968,16 +999,16 @@ def cashflow(request):
     client = project.Client
     template_data = render('templates/cashflowreport.pt',
                            {'project': project,
-                            'data': data,
-                            'budgetgroups': budgetgroups,
+                            'headers': headers,
+                            'rows': rows,
                             'client': client,
                             'currency': currency},
                             request=request)
     # render template
     html = StringIO(template_data.encode('utf-8'))
 
-    fd = open ('test.html', 'w')
-    fd.write (html.getvalue())
+    # fd = open ('test.html', 'w')
+    # fd.write (html.getvalue())
 
     # Generate the pdf
     pdf = StringIO()
@@ -987,7 +1018,7 @@ def cashflow(request):
     pdfcontent = pdf.getvalue()
     pdf.close()
 
-    filename = "valuation_report"
+    filename = "cashflow_report"
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
     last_modified = formatdate(time.mktime(now.timetuple()))
     response = Response(content_type='application/pdf',
