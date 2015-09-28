@@ -119,6 +119,8 @@ describe('Projects Page', function () {
         // check the paste function displays
         expect(element(by.css('nav ul li a i.fa-clipboard')).isDisplayed()).toBe(true);
         element(by.css('nav ul li a i.fa-clipboard')).click();
+        expect(element(by.buttonText('Paste')).isDisplayed()).toBe(true);
+        element(by.buttonText('Paste')).click();
 
         // check the copied project name
         expect(element(by.id('left')).element(by.buttonText('Copy of TestProject')).isDisplayed()).toBe(true);

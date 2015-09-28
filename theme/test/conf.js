@@ -11,5 +11,5 @@ exports.config = {
     browserName: 'firefox'
   },
   rootElement: '.main-container',
-  allScriptsTimeout: 20000
+  allScriptsTimeout: 50000
 };
