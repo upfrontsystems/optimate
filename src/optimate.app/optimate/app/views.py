@@ -602,7 +602,6 @@ def node_budgetgroups(request):
         childrenlist = []
         for item in most_recent_valuation.ValuationItems:
             bg = item.BudgetGroup
-
             # get data and append children valuation items to children list
             if item.ParentID != 0:
                 data = bg.valuation('2')
@@ -628,6 +627,7 @@ def node_budgetgroups(request):
                 itemlist+=dc
             else:
                 itemlist.append(parent)
+
     # no valuation exists
     else:
         # add the project's budgetgroup children to the list
@@ -1604,7 +1604,7 @@ def company_information(request):
         company_information.BranchCode=request.json_body.get('BranchCode', '')
         company_information.AccountNo=request.json_body.get('AccountNo', '')
         company_information.AccountName=request.json_body.get('AccountName', '')
-        company_information.DefaultTaxrate=request.json_body.get('DefaultTaxrate', '')
+        company_information.DefaultTaxrate=request.json_body.get('DefaultTaxrate', 0)
         company_information.Currency=request.json_body.get('Currency', 'R')
 
         DBSession.flush()
@@ -3080,4 +3080,8 @@ def currenciesview(request):
             'ZMK':'',
             'ZWD':'$'
         }
-    return currencies[DBSession.query(CompanyInformation).first().Currency]
+    if DBSession.query(CompanyInformation).first():
+        return currencies[DBSession.query(CompanyInformation).first().Currency]
+    else:
+        # company information not set
+        return None

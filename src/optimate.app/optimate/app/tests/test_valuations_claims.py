@@ -96,10 +96,12 @@ def initdb():
                                     Date=datetime.date(2000, 1, 1))
         vitem1 = ValuationItem(ID=1,
                                 ValuationID=valuation.ID,
+                                ParentID=0,
                                 BudgetGroupID=budgetgroup.ID,
                                 PercentageComplete=80)
         vitem2 = ValuationItem(ID=2,
                                 ValuationID=valuation.ID,
+                                ParentID=0,
                                 BudgetGroupID=budgetgroup2.ID,
                                 PercentageComplete=80)
 
@@ -110,6 +112,38 @@ def initdb():
                         SiteAddress='Address',
                         FileNumber='0001',
                         ParentID=0)
+        budgetgroup3 = BudgetGroup(Name='TestBGName3',
+                        ID=20,
+                        Description='TestBGDesc',
+                        ParentID=project2.ID)
+        budgetgroup4 = BudgetGroup(Name='TestBGName4',
+                        ID=21,
+                        Description='TestBGDesc',
+                        ParentID=budgetgroup3.ID)
+        rescat2 = ResourceCategory(Name='Resource List',
+                        ID=22,
+                        Description='Test Category',
+                        ParentID=project2.ID)
+        res2 = Resource(ID=23,
+                       Code='B000',
+                       Name='Bump',
+                       Description='Bump',
+                       UnitID=unit1.ID,
+                       Type=mattype.ID,
+                       _Rate=resource_rate,
+                       ParentID=rescat2.ID)
+        budgetitem2 = BudgetItem(ID=24,
+                        _Quantity=budgetitem_quantity,
+                        ResourceID=res2.ID,
+                        ParentID=budgetgroup4.ID)
+
+        valuation2 = Valuation(ID=2, ProjectID=project2.ID,
+                                    Date=datetime.date(2000, 1, 1))
+        vitem21 = ValuationItem(ID=3,
+                                ParentID=0,
+                                ValuationID=valuation2.ID,
+                                BudgetGroupID=budgetgroup3.ID,
+                                PercentageComplete=40)
 
         claim1 = Claim(ID=1,
                         ProjectID=project.ID,
@@ -118,12 +152,17 @@ def initdb():
 
         claim2 = Claim(ID=2,
                         ProjectID=project2.ID,
-                        ValuationID=valuation.ID,
+                        ValuationID=valuation2.ID,
                         Date=datetime.date(2013, 10, 10))
+
+        unclaimedvaluation = Valuation(ID=3, ProjectID=project.ID,
+                                    Date=datetime.date(2000, 1, 1))
 
         for ob in (root, client1, city1, unit1, project, budgetgroup,
             budgetgroup2, budgetitem, rescat, res, sibi, valuation,
-            vitem1, vitem2, claim1, claim2, project2):
+            vitem1, vitem2, claim1, claim2, project2, budgetgroup3,
+            budgetgroup4, rescat2, res2, budgetitem2, valuation2, vitem21,
+            unclaimedvaluation):
             DBSession().add(ob)
 
 
@@ -138,6 +177,10 @@ def _registerRoutes(config):
 class DummyValuation(object):
     def dict_of_lists(self):
         return {}
+
+class DummyValuationFilter(object):
+    def dict_of_lists(self):
+        return {'Project': [1]}
 
 class TestValuationsView(unittest.TestCase):
     """ Test the valuations view responds correctly
@@ -242,6 +285,85 @@ class TestValuationView(unittest.TestCase):
         # test if the response is ok
         self.assertEqual(response['ProjectID'], 1)
 
+class TestValuationsFilterViewSuccessCondition(unittest.TestCase):
+    """ Test if the filter works on valuations
+    """
+
+    def setUp(self):
+        self.config = testing.setUp()
+        self.request = testing.DummyRequest()
+        self.session = initdb();
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from optimate.app.views import valuations_filter
+        return valuations_filter(request)
+
+    def test_it(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.params = DummyValuationFilter()
+        response = self._callFUT(request)
+        # the response should contain one valuation
+        self.assertEqual(len(response), 1)
+
+class TestNodeBudgetGroupsViewSuccessCondition(unittest.TestCase):
+    """ Test that the node_budgetgroups view returns a list of the budgetgroups
+        in the node
+    """
+
+    def setUp(self):
+        self.config = testing.setUp()
+        self.request = testing.DummyRequest()
+        self.session = initdb();
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from optimate.app.views import node_budgetgroups
+        return node_budgetgroups(request)
+
+    def test_project_budgetgroups(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict['id'] = 1
+        response = self._callFUT(request)
+
+        # the budget groups should already have a percentage complete value
+        self.assertEqual(response[0]['PercentageComplete'], 80)
+
+class TestExpandBudgetGroupViewSuccessCondition(unittest.TestCase):
+    """ Test that the node_expand_budgetgroup expands a budget group correctly
+    """
+
+    def setUp(self):
+        self.config = testing.setUp()
+        self.request = testing.DummyRequest()
+        self.session = initdb();
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from optimate.app.views import node_expand_budgetgroup
+        return node_expand_budgetgroup(request)
+
+    def test_expand_budgetgroup(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict['bg_id'] = 20
+        response = self._callFUT(request)
+
+        # should return the parent and the budgetgroup
+        self.assertEqual(len(response), 2)
+        # parent should be exanded
+        self.assertEqual(response[0]['expanded'], True)
 
 class DummyClaim(object):
     def __init__(self, filters):
@@ -338,3 +460,85 @@ class TestClaimView(unittest.TestCase):
         response = self._callFUT(request)
         # test if the response is ok
         self.assertEqual(response['ProjectID'], 19)
+
+class TestClaimValuationsView(unittest.TestCase):
+    """ Test the claim_valuations view responds correctly
+    """
+    def setUp(self):
+        self.config = testing.setUp()
+        self.request = testing.DummyRequest()
+        self.session = initdb();
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from optimate.app.views import claim_valuations
+        return claim_valuations(request)
+
+    def test_it(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.params = DummyValuationFilter()
+        response = self._callFUT(request)
+        # valuation 3 should be returned
+        self.assertEqual(response[0]['ID'], 3)
+
+class TestClaimsFilterViewSuccessCondition(unittest.TestCase):
+    """ Test if the filter works on claims
+    """
+
+    def setUp(self):
+        self.config = testing.setUp()
+        self.request = testing.DummyRequest()
+        self.session = initdb();
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from optimate.app.views import claims_filter
+        return claims_filter(request)
+
+    def test_it(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.params = DummyValuationFilter()
+        response = self._callFUT(request)
+        # the response should contain one claim
+        self.assertEqual(len(response), 1)
+
+class TestClaimStatusViewSuccessCondition(unittest.TestCase):
+    """ test the claim status view
+    """
+
+    def setUp(self):
+        self.config = testing.setUp()
+        self.request = testing.DummyRequest()
+        self.session = initdb();
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from optimate.app.views import claimstatus
+        return claimstatus(request)
+
+    def test_it(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.method = 'POST'
+        request.matchdict['id'] = 1
+        request.json_body = {'status': 'Processed'}
+        response = self._callFUT(request)
+
+        request = testing.DummyRequest()
+        request.method = 'GET'
+        request.matchdict['id'] = 1
+        from optimate.app.views import claimview
+        return claimview(request)
+        # the claim status is 'Processed'
+        self.assertEqual(response['Status'], 'Processed')

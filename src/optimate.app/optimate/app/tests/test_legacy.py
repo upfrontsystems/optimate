@@ -536,6 +536,32 @@ class TestNodeBudgetItemsViewSuccessCondition(unittest.TestCase):
         # should return one budgetitem
         self.assertEqual(len(response), 1)
 
+class TestNodeBudgetGroupsViewSuccessCondition(unittest.TestCase):
+    """ Test that the node_budgetgroups view returns a list of the budgetgroups
+        in the node
+    """
+
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from optimate.app.views import node_budgetgroups
+        return node_budgetgroups(request)
+
+    def test_project_budgetgroups(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict['id'] = 4
+        response = self._callFUT(request)
+
+        # should return one budgetgroup
+        self.assertEqual(len(response), 1)
+
 class TestProjectResourcesViewSuccessCondition(unittest.TestCase):
     """ Test that a list of the Resources in a specified project is returned
     """

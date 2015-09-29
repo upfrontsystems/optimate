@@ -483,7 +483,7 @@ class TestOrdersLengthViewSuccessCondition(unittest.TestCase):
         self.assertEqual(response['length'], 2)
 
 class TestOrdersTreeViewSuccessCondition(unittest.TestCase):
-    """
+    """ Test the tree view of orders
     """
 
     def setUp(self):
@@ -574,6 +574,38 @@ class TestOrderViewSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
         # the edited order should be returned
         self.assertEqual(response['SupplierID'], 3)
+
+class TestOrderStatusViewSuccessCondition(unittest.TestCase):
+    """ test the order status view
+    """
+
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from optimate.app.views import orderstatus
+        return orderstatus(request)
+
+    def test_it(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.method = 'POST'
+        request.matchdict['id'] = 1
+        request.json_body = {'status': 'Processed'}
+        response = self._callFUT(request)
+
+        request = testing.DummyRequest()
+        request.method = 'GET'
+        request.matchdict['id'] = 1
+        from optimate.app.views import orderview
+        return orderview(request)
+        # the order status is 'Processed'
+        self.assertEqual(response['Status'], 'Processed')
 
 class DummyMatchProject(object):
     def dict_of_lists(self):
@@ -731,3 +763,35 @@ class TestInvoiceViewSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
         # the edited amount should be returned
         self.assertEqual(response['Amount'], '20.00')
+
+class TestInvoiceStatusViewSuccessCondition(unittest.TestCase):
+    """ test the invoice status view
+    """
+
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from optimate.app.views import invoicestatus
+        return invoicestatus(request)
+
+    def test_it(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.method = 'POST'
+        request.matchdict['id'] = 1
+        request.json_body = {'status': 'Processed'}
+        response = self._callFUT(request)
+
+        request = testing.DummyRequest()
+        request.method = 'GET'
+        request.matchdict['id'] = 1
+        from optimate.app.views import invoiceview
+        return invoiceview(request)
+        # the order status is 'Processed'
+        self.assertEqual(response['Status'], 'Processed')

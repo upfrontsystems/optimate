@@ -417,19 +417,23 @@ class TestCompanyInformationViewSuccessCondition(unittest.TestCase):
         # the default information should be returned
         self.assertEqual(response['Name'], 'TETIUS RABE PROPERTY SERVICES')
 
-    # def test_edit(self):
-    #     _registerRoutes(self.config)
-    #     request = testing.DummyRequest()
-    #     request.method = 'PUT'
-    #     request.json_body = {'Name': 'NewName'}
-    #     response = self._callFUT(request)
-    #     self.assertEqual(response.code, 200)
+    def test_edit(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.method = 'GET'
+        self._callFUT(request)
 
-    #     request = testing.DummyRequest()
-    #     request.method = 'GET'
-    #     response = self._callFUT(request)
-    #     # the new information should be returned
-    #     self.assertEqual(response['Name'], 'NewName')
+        request = testing.DummyRequest()
+        request.method = 'PUT'
+        request.json_body = {'Name': 'NewName'}
+        response = self._callFUT(request)
+        self.assertEqual(response.code, 200)
+
+        request = testing.DummyRequest()
+        request.method = 'GET'
+        response = self._callFUT(request)
+        # the new information should be returned
+        self.assertEqual(response['Name'], 'NewName')
 
 class TestUnitsViewSuccessCondition(unittest.TestCase):
     """ Test the units view
@@ -594,3 +598,29 @@ class TestCityViewSuccessCondition(unittest.TestCase):
         response = citiesview(request)
         # the number of cities should still be four
         self.assertEqual(len(response), 4)
+
+class TestCurrenciesView(unittest.TestCase):
+    """ Test the currenciesview
+    """
+
+    def setUp(self):
+        self.session = _initTestingDB()
+        self.config = testing.setUp()
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from optimate.app.views import currenciesview
+        return currenciesview(request)
+
+    def test_it(self):
+        _registerRoutes(self.config)
+        # set default company info data
+        from optimate.app.views import company_information
+        company_information(testing.DummyRequest())
+        request = testing.DummyRequest()
+        response = self._callFUT(request)
+        # the default currency is Rand, should return an R
+        self.assertEqual(response, 'R')
