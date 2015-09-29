@@ -30,14 +30,26 @@ describe('Orders page', function() {
         addOrderModal.element(by.css('#inputDate ul table tbody tr td.day.active')).click()
 
         // add budget items from the tree
+        // expect(addOrderModal.element(by.css('.modal-footer i.fa-plus')).isEnabled()).toBe(true);
+        // addOrderModal.element(by.css('.modal-footer i.fa-plus')).click();
+        // addOrderModal.element(by.linkText('Budget')).click();
+        // expect(addOrderModal.element(by.id('tree-root')).isDisplayed()).toBe(true);
+        // addOrderModal.element(by.css('#tree-root ol li ol li [data-ng-show="true"] i.fa-square-o')).click();
+        // browser.waitForAngular();
+        // addOrderModal.element(by.buttonText('Submit')).click();
+        // browser.waitForAngular();
+        // addOrderModal.element(by.buttonText('Save')).click();
+
+        // add budget items from suppliers
         expect(addOrderModal.element(by.css('.modal-footer i.fa-plus')).isEnabled()).toBe(true);
         addOrderModal.element(by.css('.modal-footer i.fa-plus')).click();
-        addOrderModal.element(by.linkText('Budget')).click();
-        expect(addOrderModal.element(by.id('tree-root')).isDisplayed()).toBe(true);
-        addOrderModal.element(by.css('#tree-root ol li ol li [data-ng-show="true"] i.fa-square-o')).click();
-        browser.waitForAngular();
+        addOrderModal.element(by.linkText('Supplier')).click();
+        var supplierselect = addOrderModal.element(by.id('selectSupplier_chosen'));
+        supplierselect.click();
+        supplierselect.all(by.css('.chosen-results li')).then(function(items) {
+          items[2].click();
+        });
         addOrderModal.element(by.buttonText('Submit')).click();
-        browser.waitForAngular();
         addOrderModal.element(by.buttonText('Save')).click();
 
         // check the order was added
