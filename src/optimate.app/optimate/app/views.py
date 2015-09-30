@@ -349,11 +349,13 @@ def additemview(request):
         DBSession.add(newnode)
         DBSession.flush()
         newid = newnode.ID
+        name = name[:3].upper()
+        name = re.sub(r"[^\w\s]", 'X', name)
+        name = re.sub(r"\s+", 'X', name)
         # generate a code for the resource
         if len(name) < 3:
-            name = name.upper() + (3-len(name))*'X'
-        else:
-            name = name[:3].upper()
+            name = name + (3-len(name))*'X'
+
         numerseq = '0'*(4-len(str(newid))) + str(newid)
         newnode.Code = name+numerseq
 
@@ -717,12 +719,17 @@ def project_resources(request):
         If an optional search term is included the resources are filtered by it.
     """
     nodeid = request.matchdict['id']
+    # print nodeid
     currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
     resourcecategory = DBSession.query(ResourceCategory).filter_by(
             ParentID=currentnode.getProjectID()).first()
 
     if 'search' in request.params:
+        # print "searching " + request.params['search']
+        # print datetime.now()
         resources = search_resources(resourcecategory, request.params['search'])
+        # print "found " + str(len(resources))
+        # print datetime.now()
         excludedlist = []
         # if current node is a budgetgroup we are adding a budgetitem
         if currentnode.type == 'BudgetGroup':
@@ -760,6 +767,8 @@ def project_resources(request):
         sortedlist = [item.dict()
                     for item in sorted(resources, key=lambda o: o.Name.upper())]
 
+    # print "returning " + str(len(sortedlist))
+    # print datetime.now()
     return sortedlist
 
 

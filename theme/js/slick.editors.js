@@ -69,7 +69,7 @@
       this.serializeValue = function () {
         var value = $input.val();
         if (isNaN(Number(value))) {
-          return eval(value.substring(1));
+          return math.eval(value.substring(1));
         }
         else{
           return parseFloat(value, 10) || 0;
@@ -93,8 +93,20 @@
           if (value.charAt(0) !== '='){
             return {
               valid: false,
-              msg: "Please enter valid input"
+              msg: "Please start expressions with '='"
             };
+          }
+          // otherwise check it is a valid expression
+          else{
+            try{
+              math.eval(value.substring(1))
+            }
+            catch(e){
+              return {
+                valid: false,
+                msg: "Please enter a valid expression"
+              };
+            }
           }
         }
 

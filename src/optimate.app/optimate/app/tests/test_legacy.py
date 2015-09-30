@@ -1193,6 +1193,39 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         response = node_cost(request)
         self.assertEqual(response['Cost'], str(newprojtot))
 
+    def test_add_simple_budgetitem(self):
+        _registerRoutes(self.config)
+
+        # Add the default data using json in the request
+        newbiquant= 5
+        newrate = 10
+        request = testing.DummyRequest(json_body={
+            'Rate': newrate,
+            'Quantity': newbiquant,
+            'NodeType': 'SimpleBudgetItem',
+            'Description': 'A simple budget item',
+            'Name': 'SimpleBudgetItem',
+            'ResourceTypeID': 2
+        })
+        # add it to id:21
+        request.matchdict = {'id': 21}
+        request.method = 'POST'
+        response = self._callFUT(request)
+
+        # assert if the response from the add view returns the new id
+        self.assertEqual(response.keys(), ['node', 'ID'])
+
+        newbitot = Decimal(float(newrate) * \
+                            newbiquant).quantize(Decimal('.01'))
+        newprojtot=projctot + newbitot
+
+        # do another test to see if the cost is correct
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 19}
+        from optimate.app.views import node_cost
+        response = node_cost(request)
+        self.assertEqual(response['Cost'], str(newprojtot))
+
     def test_add_whole_project(self):
         _registerRoutes(self.config)
 

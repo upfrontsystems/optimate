@@ -584,6 +584,8 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
 
         // search for the resources in the node's category that match the search term
         $scope.refreshResources = function(searchterm) {
+            // console.log(searchterm);
+            // console.log(Date())
             if ($scope.currentNode) {
                 var req = {
                     method: 'GET',
@@ -592,6 +594,8 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 };
                 $http(req).success(function(response) {
                     $scope.resourceList = response;
+                    // console.log(response.length)
+                    // console.log(Date())
                 });
             }
         }

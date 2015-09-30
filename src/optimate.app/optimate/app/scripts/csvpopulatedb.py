@@ -58,6 +58,8 @@ from decimal import *
 from itertools import groupby
 from operator import itemgetter
 from datetime import datetime
+import re
+
 
 resourcecodeno = 0
 
@@ -68,15 +70,12 @@ def generateResourceCode(resname):
     if resource:
         return resource.Code
 
-    letter = resname[0].upper()
-    # if the name is not alphanumeric clear it
-    if not letter.isalpha():
-        resname = ""
-
+    resname = resname[:3].upper()
+    resname = re.sub(r"[^\w\s]", 'X', resname)
+    resname = re.sub(r"\s+", 'X', resname)
+    # generate a code for the resource
     if len(resname) < 3:
-        resname = resname.upper() + (3-len(resname))*'X'
-    else:
-        resname = resname[:3].upper()
+        resname = resname + (3-len(resname))*'X'
 
     numerseq = '0'*(4-len(str(resourcecodeno))) + str(resourcecodeno)
     finalcode = resname+numerseq
