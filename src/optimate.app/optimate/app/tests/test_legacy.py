@@ -87,6 +87,8 @@ def _initTestingDB():
         bibq = 10.0
         global resbrate
         resbrate = Decimal(7.00)
+        global respartbq
+        respartbq = 10687.9
         global bibtot
         bibtot = Decimal((1.0+overheadbperc)* \
                       float(resbrate)*bibq).quantize(Decimal('.01'))
@@ -98,6 +100,9 @@ def _initTestingDB():
         global bictot
         bictot = Decimal((1.0+overheadbperc)*float(resduplicaterate)* \
                     bicq).quantize(Decimal('.01'))
+
+        global resunitbrate
+        resunitbrate = Decimal(respartbq*float(resbrate)).quantize(Decimal('.01'))
 
         global bgbtot
         bgbtot = bictot + bibtot
@@ -263,6 +268,17 @@ def _initTestingDB():
                        Type=mattype.ID,
                        _Rate=resduplicaterate,
                        ParentID=rescatb.ID)
+        resunitb = ResourceUnit(ID=27,
+                       Code='B000',
+                       Name='TestResourceUnitB',
+                       Description='Test resource unit B',
+                       UnitID=unit2.ID,
+                       Type=labtype.ID,
+                       ParentID=rescatb.ID)
+        respartb = ResourcePart(ID=28,
+                        ResourceID=resb.ID,
+                        _Quantity=respartbq,
+                        ParentID=resunitb.ID)
         budgetitemb = BudgetItem(ID=6,
                         _Quantity=bibq,
                         ResourceID=resb.ID,
@@ -361,6 +377,8 @@ def _initTestingDB():
         DBSession.add(overheadb)
         DBSession.add(resb)
         DBSession.add(resduplicate)
+        DBSession.add(resunitb)
+        DBSession.add(respartb)
         DBSession.add(budgetgroupb)
         DBSession.add(budgetitemb)
         DBSession.add(budgetitemc)
@@ -407,6 +425,10 @@ def _initTestingDB():
                          resb id:17
                          |
                          resduplicate id:18
+                         |
+                         resunitb - id:27
+                                  |
+                                  respartb - id:28 - resb id:17
 
         projectc -(4210.56) id:19 overheadc: 0.01
                                   overheadd: 0.15
@@ -486,8 +508,8 @@ class TestResourceCategoryResourcesViewSuccessCondition(unittest.TestCase):
         request.matched_route = DummyRouteName('resourcecategory_resources')
         response = self._callFUT(request)
 
-        # should return two resources
-        self.assertEqual(len(response), 2)
+        # should return three resources
+        self.assertEqual(len(response), 3)
 
     def test_all_resources(self):
         _registerRoutes(self.config)
@@ -496,8 +518,8 @@ class TestResourceCategoryResourcesViewSuccessCondition(unittest.TestCase):
         request.matched_route = DummyRouteName('resourcecategory_allresources')
         response = self._callFUT(request)
 
-        # should return two resources
-        self.assertEqual(len(response), 2)
+        # should return three resources
+        self.assertEqual(len(response), 3)
 
 class TestNodeBudgetItemsViewSuccessCondition(unittest.TestCase):
     """ Test that the node_budgetitems view returns a list of the budgetitems
@@ -581,7 +603,6 @@ class TestProjectResourcesViewSuccessCondition(unittest.TestCase):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.matchdict['id'] = 19
-        request.matched_route = DummyRouteName('project_resources')
         response = self._callFUT(request)
 
         # test the correct resource is returned
@@ -607,7 +628,6 @@ class TestResourcesViewSuccessCondition(unittest.TestCase):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.matchdict['id'] = 24
-        request.matched_route = DummyRouteName('resources')
         response = self._callFUT(request)
 
         # test the correct resource is returned
@@ -1472,7 +1492,10 @@ class TestEditItemSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
         self.assertEqual(response['Name'], 'EditedName')
 
-    def test_edit_budgetitem(self):
+    def test_edit_budgetitem_resource(self):
+        """ Change budget item referencing a resource unit to referencing
+            a resource
+        """
         _registerRoutes(self.config)
 
         # Add the default data using json in the request
@@ -1497,6 +1520,73 @@ class TestEditItemSuccessCondition(unittest.TestCase):
         request.method = 'GET'
         response = self._callFUT(request)
         self.assertEqual(response['Name'], 'TestResourceA')
+
+        # it should have no children
+        self.assertEqual(len(response['Subitem']), 0)
+
+    def test_edit_budgetitem_resource_unit(self):
+        """ Change budget item referencing a resource to referencing
+            a resource unit
+        """
+        _registerRoutes(self.config)
+
+        # Add the default data using json in the request
+        request = testing.DummyRequest(json_body={
+            'ResourceID': 27,
+            'Quantity': 10,
+            'NodeType': 'BudgetItem',
+            'OverheadList':[{'Name': 'Overhead',
+                                'ID':1,
+                                'selected':False}],
+        })
+        request.matchdict = {'id': 6}
+        request.method = 'PUT'
+        response = self._callFUT(request)
+
+        # assert if the response returns ok
+        self.assertEqual(response.code, 200)
+
+        # check if the name has changed
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 6}
+        request.method = 'GET'
+        response = self._callFUT(request)
+        self.assertEqual(response['Name'], 'TestResourceUnitB')
+
+        # it should have a child
+        self.assertEqual(len(response['Subitem']), 1)
+
+        # check the project total
+        newprojtotal = projbtot - bibtot + Decimal(10 *
+                                        resunitbrate).quantize(Decimal('.01'))
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 4}
+        response = self._callFUT(request)
+        self.assertEqual(response['Total'], str(newprojtotal))
+
+    def test_edit_resource_category(self):
+        """ edit a resource category
+        """
+        _registerRoutes(self.config)
+
+        # Add the default data using json in the request
+        request = testing.DummyRequest(json_body={
+            'Name': 'EditedName',
+            'Description': 'Edit test item',
+            'NodeType': 'ResourceCategory'
+        })
+        request.matchdict = {'id': 9}
+        request.method = 'PUT'
+        response = self._callFUT(request)
+        # assert if the response from the add view is OK
+        self.assertEqual(response.code, 200)
+
+        # check if the name has changed
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 9}
+        request.method = 'GET'
+        response = self._callFUT(request)
+        self.assertEqual(response['Name'], 'EditedName')
 
     def test_edit_resource(self):
         _registerRoutes(self.config)
@@ -1539,6 +1629,39 @@ class TestEditItemSuccessCondition(unittest.TestCase):
 
         # assert if the response returns ok
         self.assertEqual(response.code, 200)
+        # test if the project total has updated
+        newresunitrate = 25 * float(resarate)
+        newprojtot = projtot - bitot + Decimal((1.0+overheadperc)* \
+                    newresunitrate*biq).quantize(Decimal('.01'))
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 1}
+        response = self._callFUT(request)
+        self.assertEqual(response['Total'], str(newprojtot))
+
+    def test_edit_resource_unit(self):
+        _registerRoutes(self.config)
+
+        # Add the resource data
+        request = testing.DummyRequest(json_body={
+            'Name': 'EditResourceUnit',
+            'NodeType': 'ResourceUnit',
+            'Description': 'Edited resource unit',
+            'ResourceTypeID': 1,
+            'UnitID': 2
+        })
+        request.matchdict = {'id': 15}
+        request.method = 'PUT'
+        response = self._callFUT(request)
+
+        # assert if the response returns ok
+        self.assertEqual(response.code, 200)
+
+        # check if the name has changed
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 15}
+        request.method = 'GET'
+        response = self._callFUT(request)
+        self.assertEqual(response['Name'], 'EditResourceUnit')
 
 class TestDeleteviewSuccessCondition(unittest.TestCase):
     """ Test if the delete view functions correctly and deletes the node
@@ -1739,7 +1862,7 @@ class TestCopySuccessCondition(unittest.TestCase):
         request.matchdict = {'parentid': 9}
         from optimate.app.views import node_children
         response = node_children(request)
-        self.assertEqual(len(response), 3)
+        self.assertEqual(len(response), 4)
 
     def test_paste_in_same_level(self):
         _registerRoutes(self.config)

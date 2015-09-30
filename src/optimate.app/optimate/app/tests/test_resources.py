@@ -247,14 +247,90 @@ class TestResourcePart(unittest.TestCase):
     def test_total(self):
         # test the total of a resource part is correctly calculated
         resourcepart = DBSession.query(ResourcePart).filter_by(ID=12).first()
-        resparttotal = Decimal(resource_rate*respart_quantity).quantize(Decimal('.01'))
-        # self.assertEqual(str(resourcepart.Total), str(resparttotal));
+        resparttotal = Decimal(resource_rate*respart_quantity
+                                                    ).quantize(Decimal('.01'))
+        self.assertEqual(str(resourcepart.Total), str(resparttotal));
 
         resourcepart = DBSession.query(ResourcePart).filter_by(ID=14).first()
         self.assertEqual(str(resourcepart.Total), str(resparta_total));
 
         resourcepart = DBSession.query(ResourcePart).filter_by(ID=16).first()
-        # self.assertEqual(str(resourcepart.Total), str(respartb_total));
+        self.assertEqual(str(resourcepart.Total), str(respartb_total));
+
+class TestSearchResources(unittest.TestCase):
+    def setUp(self):
+        self.config = testing.setUp()
+        self.session = _initTestingDB()
+
+    def tearDown(self):
+        DBSession.remove()
+        testing.tearDown()
+
+    def _callFUT(self, request):
+        from optimate.app.views import project_resources
+        return project_resources(request)
+
+    def test_search_budgetgroup(self):
+        """ Search in a budget group
+        """
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict['id'] = 2
+        request.params = {'search': ''}
+        response = self._callFUT(request)
+
+        # test the correct resources is returned
+        self.assertEqual(len(response), 3)
+
+        request = testing.DummyRequest()
+        request.matchdict['id'] = 2
+        request.params = {'search': 'resource'}
+        response = self._callFUT(request)
+
+        # test the correct resources is returned
+        self.assertEqual(len(response), 2)
+
+    def test_search_budgetitem(self):
+        """ Search for a budget item
+        """
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict['id'] = 7
+        request.params = {'search': 'pump'}
+        response = self._callFUT(request)
+        # test the correct resources is returned
+        self.assertEqual(len(response), 1)
+
+        request = testing.DummyRequest()
+        request.matchdict['id'] = 7
+        request.params = {'search': 'resource'}
+        response = self._callFUT(request)
+        # test the correct resources is returned
+        self.assertEqual(len(response), 3)
+
+    def test_search_resourceunit(self):
+        """ Search in a resource unit
+        """
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict['id'] = 13
+        request.params = {'search': 'resource'}
+        response = self._callFUT(request)
+        # test the correct resources is returned
+        self.assertEqual(len(response), 0)
+
+    def test_search_resourcepart(self):
+        """ Search in a resource part
+        """
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict['id'] = 12
+        request.params = {'search': 'resource'}
+        response = self._callFUT(request)
+        # test the correct resources is returned
+        print response
+        self.assertEqual(len(response), 1)
+
 
 class TestTree(unittest.TestCase):
     def setUp(self):

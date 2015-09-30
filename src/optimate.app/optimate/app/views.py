@@ -444,6 +444,9 @@ def edititemview(request):
             resource = DBSession.query(Resource).filter_by(ID=uid).first()
             if resource.type == 'ResourceUnit':
                 expandBudgetItem(bi.ID, resource)
+            # otherwise remove any children it may have
+            else:
+                bi.Children[:] = []
 
             transaction.commit()
             bi = DBSession.query(BudgetItem).filter_by(ID=nodeid).first()
@@ -498,9 +501,6 @@ def edititemview(request):
         runit.Description=request.json_body.get('Description', '')
         runit.UnitID = request.json_body.get('UnitID', '')
         runit.SupplierID=request.json_body.get('Supplier', '')
-        rate = request.json_body.get('Rate', 0)
-        rate = Decimal(rate).quantize(Decimal('.01'))
-        runit.Rate = rate
         runit.Name = request.json_body['Name']
 
     elif objecttype == 'ResourcePart':
@@ -719,24 +719,19 @@ def project_resources(request):
         If an optional search term is included the resources are filtered by it.
     """
     nodeid = request.matchdict['id']
-    # print nodeid
     currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
     resourcecategory = DBSession.query(ResourceCategory).filter_by(
             ParentID=currentnode.getProjectID()).first()
 
     if 'search' in request.params:
-        # print "searching " + request.params['search']
-        # print datetime.now()
         resources = search_resources(resourcecategory, request.params['search'])
-        # print "found " + str(len(resources))
-        # print datetime.now()
         excludedlist = []
         # if current node is a budgetgroup we are adding a budgetitem
         if currentnode.type == 'BudgetGroup':
-            budgetitems = currentnode.getBudgetItems()
-            for bi in budgetitems:
-                if bi.Resource:
-                    excludedlist.append(bi.Resource)
+            for child in currentnode.Children:
+                if child.type == 'BudgetItem':
+                    if child.Resource:
+                        excludedlist.append(child.Resource)
         # if current node is a budgetitem we are editing a budgetitem
         elif currentnode.type == 'BudgetItem':
             siblings = currentnode.Parent.Children
@@ -751,6 +746,9 @@ def project_resources(request):
             # and go through all it's resource parts and add their parents
             for part in currentnode.ResourceParts:
                 excludedlist.append(part.Parent)
+            # add all the children
+            for child in currentnode.Children:
+                excludedlist.append(child.Resource)
         # if the current node is a resourcepart we are editing a resourcepart
         elif currentnode.type == 'ResourcePart':
             # add the parent to the excluded nodes
@@ -758,6 +756,10 @@ def project_resources(request):
             # and go through all the parents resource parts and add their parents
             for part in currentnode.Parent.ResourceParts:
                 excludedlist.append(part.Parent)
+            # add the children
+            for sib in currentnode.Parent.Children:
+                if sib.ID != currentnode.ID:
+                    excludedlist.append(sib.Resource)
 
         filteredlist = [x for x in resources if x not in excludedlist]
         sortedlist = [item.dict()
@@ -767,8 +769,6 @@ def project_resources(request):
         sortedlist = [item.dict()
                     for item in sorted(resources, key=lambda o: o.Name.upper())]
 
-    # print "returning " + str(len(sortedlist))
-    # print datetime.now()
     return sortedlist
 
 

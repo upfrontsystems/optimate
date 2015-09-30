@@ -584,8 +584,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
 
         // search for the resources in the node's category that match the search term
         $scope.refreshResources = function(searchterm) {
-            // console.log(searchterm);
-            // console.log(Date())
             if ($scope.currentNode) {
                 var req = {
                     method: 'GET',
@@ -594,8 +592,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 };
                 $http(req).success(function(response) {
                     $scope.resourceList = response;
-                    // console.log(response.length)
-                    // console.log(Date())
                 });
             }
         }
@@ -793,8 +789,9 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 }
                 else if (nodetype == 'ResourcePart'){
                     $scope.refreshResources($scope.currentNode.Name);
-                    $scope.formData.selected = $scope.currentNode;
-                    $scope.formData.selected.ID = $scope.currentNode.ResourceID
+                    $scope.formData.selected.Quantity = $scope.currentNode.Quantity;
+                    $scope.formData.selected.ID = $scope.currentNode.ResourceID;
+                    $scope.formData.selected.Name = $scope.currentNode.Name;
                 }
                 $scope.formData.originalName = $scope.currentNode.Name;
                 // set each field dirty

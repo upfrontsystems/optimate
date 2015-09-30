@@ -95,7 +95,7 @@ def initdb():
     return DBSession
 
 
-class TestSimpleComponent(unittest.TestCase):
+class TestSimpleBudgetItem(unittest.TestCase):
     def setUp(self):
         self.config = testing.setUp()
         self.request = testing.DummyRequest()

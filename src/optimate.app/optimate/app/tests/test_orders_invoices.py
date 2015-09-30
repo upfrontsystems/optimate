@@ -384,7 +384,6 @@ def _registerRoutes(config):
     config.add_route('node_children', 'node/{parentid}/children/')
     config.add_route('nodeview', 'node/{id}/')
     config.add_route('projects', '/projects/')
-    config.add_route('project_resources', '/project/{id}/resources/')
     config.add_route('resources', '/resource/{id}/')
     config.add_route('project_overheads', '/project/{id}/overheads/')
     config.add_route('component_overheads', '/component/{id}/overheads/')
