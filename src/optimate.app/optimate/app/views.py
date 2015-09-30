@@ -790,8 +790,7 @@ def resourcecategory_resources(request):
     for resource in resources:
         if resource not in uniqueresources:
             uniqueresources.append(resource)
-    for resource in uniqueresources:
-        resourcelist.append(resource.dict())
+            resourcelist.append(resource.dict())
 
     return resourcelist
 
@@ -994,7 +993,7 @@ def node_update_value(request):
     if result.type == 'Resource':
         if request.json_body.get('Rate'):
             result.Rate = request.json_body['Rate']
-    # only a budgetitems quantity can be modified
+    # only a budgetitem's quantity can be modified
     elif result.type == 'BudgetItem':
         if request.json_body.get('Quantity') != None:
             result.Quantity = float(request.json_body.get('Quantity'))

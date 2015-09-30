@@ -32,7 +32,7 @@
                             </ui-select-match>
                             <ui-select-choices repeat="order in ordersList"
                                              refresh="refreshOrders($select.search)"
-                                             refresh-delay="300">
+                                             refresh-delay="1000">
                                 <div ng-bind-html="''+order.ID | highlight: $select.search"></div>
                             </ui-select-choices>
                         </ui-select>

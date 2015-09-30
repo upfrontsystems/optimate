@@ -841,7 +841,7 @@ class TestNodeViewSuccessCondition(unittest.TestCase):
         # assert returns true if the response code is 404
         self.assertEqual(response.code, 404)
 
-    def test_budgeitem_returned(self):
+    def test_budgetitem_returned(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.matchdict = {'id': 3}
@@ -1108,6 +1108,52 @@ class TestAddItemSuccessCondition(unittest.TestCase):
         response = node_cost(request)
         self.assertEqual(response['Cost'], str(newprojtot))
 
+    def test_add_variation_budgetitem(self):
+        _registerRoutes(self.config)
+
+        # set the project status to approved
+        request = testing.DummyRequest(json_body={
+            'Name': 'Project',
+            'Description': 'Approved project',
+            'Client': 2,
+            'City': 2,
+            'Status': 'Approved',
+            'NodeType': 'Project'
+        })
+        request.matchdict = {'id': 4}
+        request.method = 'PUT'
+        response = self._callFUT(request)
+        # assert if the project is approved
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 4}
+        response = self._callFUT(request)
+        self.assertEqual(response['Status'], 'Approved')
+
+        # Add the default data using json in the request
+        newbiquant= 4
+        request = testing.DummyRequest(json_body={
+            'ResourceID': 18,
+            'Quantity': newbiquant,
+            'NodeType': 'BudgetItem',
+            'OverheadList':[{'Name': 'OverheadB',
+                            'ID':2,
+                            'selected':True}],
+        })
+        # add it to id:5
+        request.matchdict = {'id': 5}
+        request.method = 'POST'
+        response = self._callFUT(request)
+
+        # assert if the response from the add view returns the new id
+        self.assertEqual(response.keys(), ['node', 'ID'])
+        newid = response['ID']
+
+        # do another test to see if the budget item is a variation
+        request = testing.DummyRequest()
+        request.matchdict = {'id': newid}
+        response = self._callFUT(request)
+        self.assertEqual(response['Variation'], True)
+
     def test_add_budgeitem_with_unit(self):
         _registerRoutes(self.config)
 
@@ -1344,6 +1390,31 @@ class TestEditItemSuccessCondition(unittest.TestCase):
             request.json_body = {}
         from optimate.app.views import nodeview
         return nodeview(request)
+
+    def test_edit_project(self):
+        _registerRoutes(self.config)
+
+        # Add the default data using json in the request
+        request = testing.DummyRequest(json_body={
+            'Name': 'EditedName',
+            'Description': 'Edit test project',
+            'Client': 1,
+            'City': 2,
+            'Status': 'Draft',
+            'NodeType': 'Project'
+        })
+        request.matchdict = {'id': 1}
+        request.method = 'PUT'
+        response = self._callFUT(request)
+        # assert if the response from the add view is OK
+        self.assertEqual(response.code, 200)
+
+        # check if the name has changed
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 1}
+        request.method = 'GET'
+        response = self._callFUT(request)
+        self.assertEqual(response['Name'], 'EditedName')
 
     def test_edit_budgetgroup(self):
         _registerRoutes(self.config)

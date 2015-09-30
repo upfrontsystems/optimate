@@ -165,7 +165,7 @@
                                 </ui-select-match>
                                 <ui-select-choices repeat="resource in resourceList"
                                                  refresh="refreshResources($select.search)"
-                                                 refresh-delay="100">
+                                                 refresh-delay="1000">
                                     <div ng-bind-html="resource.Name | highlight: $select.search"></div>
                                 </ui-select-choices>
                             </ui-select>
