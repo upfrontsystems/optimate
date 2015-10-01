@@ -584,7 +584,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
 
         // search for the resources in the node's category that match the search term
         $scope.refreshResources = function(searchterm) {
-            if ($scope.currentNode) {
+            if ($scope.currentNode && searchterm) {
                 var req = {
                     method: 'GET',
                     url: globalServerURL + 'project/' + $scope.currentNode.ID + '/resources/',

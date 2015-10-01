@@ -704,14 +704,17 @@ def projects(request):
                          'ID': project.ID})
     return sorted(projects, key=lambda k: k['Name'].upper())
 
-
-def search_resources(top, search):
-    # Search from the top down. Not terribly efficient, but we probably don't
-    # have more than a few hundred resources.
-    resources = top.getResources()
-    search = search.lower()
-    return [r for r in resources if search in r.Name.lower()]
-
+def search_resources(categoryid, search):
+    """ go through each child resource category and return resources which match
+        the search term
+    """
+    resources = DBSession.query(Resource).filter(Resource.ParentID==categoryid,
+                            Resource.Name.ilike('%{}%'.format(search))).all()
+    categories = DBSession.query(ResourceCategory.ID).filter_by(
+                            ParentID=categoryid).all()
+    for cat in categories:
+        resources+=search_resources(cat.ID, search)
+    return resources
 
 @view_config(route_name="project_resources", renderer='json', permission='view')
 def project_resources(request):
@@ -720,11 +723,12 @@ def project_resources(request):
     """
     nodeid = request.matchdict['id']
     currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
-    resourcecategory = DBSession.query(ResourceCategory).filter_by(
+    category = DBSession.query(ResourceCategory).filter_by(
             ParentID=currentnode.getProjectID()).first()
 
     if 'search' in request.params:
-        resources = search_resources(resourcecategory, request.params['search'])
+        resources = search_resources(category.ID, request.params['search'])
+
         excludedlist = []
         # if current node is a budgetgroup we are adding a budgetitem
         if currentnode.type == 'BudgetGroup':
@@ -765,7 +769,7 @@ def project_resources(request):
         sortedlist = [item.dict()
                 for item in sorted(filteredlist, key=lambda o: o.Name.upper())]
     else:
-        resources = resourcecategory.getResources()
+        resources = category.getResources()
         sortedlist = [item.dict()
                     for item in sorted(resources, key=lambda o: o.Name.upper())]
 
