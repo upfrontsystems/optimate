@@ -238,6 +238,10 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
                 $scope.budgetItemsList = $scope.formData.BudgetItemsList;
                 $scope.date = new Date($scope.formData['Date']);
                 $scope.formData.NodeType = 'order';
+                // if the order is processed set the grid read only
+                if ($scope.selectedOrder.Status == 'Processed'){
+                    $scope.gridSetEditable(false);
+                }
                 if ( $scope.budgetItemsList.length != 0 ) {
                     $scope.orderFormProjectsDisabled = true;
                 }

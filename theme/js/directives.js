@@ -786,45 +786,51 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
             }
 
             function handleClick(e, args) {
-                // clicking on a row select checkbox
-                if (grid.getColumns()[args.cell].id === "VAT") {
-                    // if editing, try to commit
-                    if (grid.getEditorLock().isActive() && !grid.getEditorLock().commitCurrentEdit()) {
-                        e.preventDefault();
-                        e.stopImmediatePropagation();
-                        return;
-                    }
-                    var item = dataView.getItem(args.row);
-                    if (item.id != 'totalsrow'){
-                        item.VAT = !item.VAT;
-                        dataView.updateItem(item.id, item);
-                        updateCells(e, {'item': item});
+                // check first if grid is editable
+                if (grid.getOptions().editable){
+                    // clicking on a row select checkbox
+                    if (grid.getColumns()[args.cell].id === "VAT") {
+                        // if editing, try to commit
+                        if (grid.getEditorLock().isActive() && !grid.getEditorLock().commitCurrentEdit()) {
+                            e.preventDefault();
+                            e.stopImmediatePropagation();
+                            return;
+                        }
+                        var item = dataView.getItem(args.row);
+                        if (item.id != 'totalsrow'){
+                            item.VAT = !item.VAT;
+                            dataView.updateItem(item.id, item);
+                            updateCells(e, {'item': item});
+                        }
                     }
                 }
             }
 
             function handleHeaderClick(e, args) {
-                if (args.column.id == "VAT") {
-                    // if editing, try to commit
-                    if (grid.getEditorLock().isActive() && !grid.getEditorLock().commitCurrentEdit()) {
-                        e.preventDefault();
-                        e.stopImmediatePropagation();
-                        return;
-                    }
+                // check first if grid is editable
+                if (grid.getOptions().editable){
+                    if (args.column.id == "VAT") {
+                        // if editing, try to commit
+                        if (grid.getEditorLock().isActive() && !grid.getEditorLock().commitCurrentEdit()) {
+                            e.preventDefault();
+                            e.stopImmediatePropagation();
+                            return;
+                        }
 
-                    var checked = false;
-                    if (args.column.name == "<i class='fa fa-check-square-o fa-lg'></i>"){
-                        grid.updateColumnHeader(args.column.id, "<i class='fa fa-square-o fa-lg'></i>")
-                    }
-                    else{
-                        checked = true;
-                        grid.updateColumnHeader(args.column.id,"<i class='fa fa-check-square-o fa-lg'></i>")
-                    }
-                    for (var i = 0; i < grid.getDataLength() -1 ; i++) {
-                        var item = dataView.getItem(i);
-                        item.VAT = checked;
-                        dataView.updateItem(item.id, item);
-                        updateCells(e, {'item': item});
+                        var checked = false;
+                        if (args.column.name == "<i class='fa fa-check-square-o fa-lg'></i>"){
+                            grid.updateColumnHeader(args.column.id, "<i class='fa fa-square-o fa-lg'></i>")
+                        }
+                        else{
+                            checked = true;
+                            grid.updateColumnHeader(args.column.id,"<i class='fa fa-check-square-o fa-lg'></i>")
+                        }
+                        for (var i = 0; i < grid.getDataLength() -1 ; i++) {
+                            var item = dataView.getItem(i);
+                            item.VAT = checked;
+                            dataView.updateItem(item.id, item);
+                            updateCells(e, {'item': item});
+                        }
                     }
                 }
             }
@@ -960,6 +966,12 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                 grid.setSelectedRows([]);
                 grid.render();
             };
+
+            $scope.gridSetEditable = function(setting){
+                var gridoptions = grid.getOptions();
+                gridoptions.editable = setting;
+                grid.setOptions(gridoptions);
+            }
         }
     }
 }]);
