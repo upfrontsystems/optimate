@@ -3,13 +3,25 @@
         <ul data-ng-show="user.permissions.setup == 'edit'"
             class="nav nav-pills">
             <li>
-                <a title="Add User" data-ng-click="addingState()" data-target="#saveUser"  data-toggle="modal"><i class="fa fa-plus-square"></i></a>
+                <a title="Add User" data-ng-click="addingState()"
+                    data-target="#saveUser"
+                    data-backdrop="static"
+                    data-toggle="modal">
+                    <i class="fa fa-plus-square"></i></a>
             </li>
             <li ng-show="selectedUser">
-                <a title="Edit User" data-ng-click="editingState()" data-target="#saveUser"  data-toggle="modal"><i class="fa fa-pencil"></i></a>
+                <a title="Edit User" data-ng-click="editingState()"
+                    data-target="#saveUser"
+                    data-backdrop="static"
+                    data-toggle="modal">
+                    <i class="fa fa-pencil"></i></a>
             </li>
             <li ng-show="selectedUser">
-                <a title="Delete User" data-target="#deleteUserModal" data-toggle="modal"><i class="fa fa-trash"></i></a>
+                <a title="Delete User"
+                    data-target="#deleteUserModal"
+                    data-backdrop="static"
+                    data-toggle="modal">
+                    <i class="fa fa-trash"></i></a>
             </li>
         </ul>
     </div>

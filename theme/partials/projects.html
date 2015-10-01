@@ -3,13 +3,18 @@
         <ul data-ng-show="!rowsSelected" class="nav nav-pills">
             <li data-ng-show="user.permissions.projects == 'edit'">
                 <a title="Add Project" data-ng-click="changeAddingType('Project');"
-                 data-target="#addProject" data-toggle="modal" class="project-button">
+                    data-target="#addProject"
+                    data-backdrop="static"
+                    data-toggle="modal"
+                    class="project-button">
                     <i class="fa fa-plus-square"></i> P</a>
             </li>
             <li>
-                <a title="Open Project" data-target="#selectProjectModal"
-                data-toggle="modal"
-                data-ng-click="selectedProject = undefined">
+                <a title="Open Project"
+                    data-target="#selectProjectModal"
+                    data-backdrop="static"
+                    data-toggle="modal"
+                    data-ng-click="selectedProject = undefined">
                     <i class="fa fa-folder-open"></i></a>
             </li>
             <div ng-include="'partials/treeview_menu.html'"></div>
@@ -33,6 +38,7 @@
                 <a role="button"
                     a-disabled="currentNode.Status == 'Approved'"
                     data-target="#deleteRecordsConfirmation"
+                    data-backdrop="static"
                     data-toggle="modal"
                     title="Delete records">
                     <i class="fa fa-trash"></i>
@@ -43,6 +49,7 @@
                     a-disabled="currentNode.Status == 'Approved'"
                     data-target="#editSelectionMarkup"
                     data-ng-click="loadSelectionMarkup()"
+                    data-backdrop="static"
                     data-toggle="modal"
                     title="Edit markup">
                     <i class="fa fa-money"></i>

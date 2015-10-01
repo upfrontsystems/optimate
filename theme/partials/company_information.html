@@ -3,7 +3,9 @@
         <ul class="nav nav-pills">
             <li data-ng-show="user.permissions.setup == 'edit'">
                 <a title="Edit Company Information" data-ng-click="editingState()"
-                   data-target="#editCompanyInformation" data-toggle="modal">
+                    data-target="#editCompanyInformation"
+                    data-backdrop="static"
+                    data-toggle="modal">
                     <i class="fa fa-pencil"></i>
                 </a>
             </li>

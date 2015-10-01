@@ -6,6 +6,7 @@
                 <a title="Add Invoice"
                     data-ng-click="addingState()"
                     data-target="#saveInvoiceModal"
+                    data-backdrop="static"
                     data-toggle="modal">
                         <i class="fa fa-plus-square"></i>
                 </a>
@@ -16,6 +17,7 @@
                     data-ng-show="selectedInvoice && selectedInvoice.Status == 'Draft'"
                     data-ng-click="editingState()"
                     data-target="#saveInvoiceModal"
+                    data-backdrop="static"
                     data-toggle="modal">
                         <i class="fa fa-pencil"></i>
                 </a>
@@ -25,6 +27,7 @@
                     data-ng-show="selectedInvoice.Status != 'Draft'"
                     data-ng-click="editingState()"
                     data-target="#viewInvoiceModal"
+                    data-backdrop="static"
                     data-toggle="modal">
                         <i class="fa fa-square-o"></i>
                 </a>
@@ -33,6 +36,7 @@
                 <a title="Delete Invoice"
                     data-ng-show="selectedInvoice"
                     data-target="#deleteInvoiceModal"
+                    data-backdrop="static"
                     data-toggle="modal">
                         <i class="fa fa-trash"></i>
                 </a>
@@ -66,16 +70,20 @@
             <li data-ng-show="invoicesReportEnabled"
                 data-ng-hide="selectedInvoices.length > 1">
                 <a title="PDF Invoices Report" data-target="#invoicesReport"
-                data-toggle="modal" data-ng-click="filterReportBy(); setReportType('pdf')"
-                class="pdf_download">
-                <i class="fa fa-file-pdf-o"></i></a>
+                    data-backdrop="static"
+                    data-toggle="modal"
+                    data-ng-click="filterReportBy(); setReportType('pdf')"
+                    class="pdf_download">
+                    <i class="fa fa-file-pdf-o"></i></a>
             </li>
             <li data-ng-show="invoicesReportEnabled"
                 data-ng-hide="selectedInvoices.length > 1">
                 <a title="Excel Invoices Report" data-target="#invoicesReport"
-                data-toggle="modal" data-ng-click="filterReportBy(); setReportType('excel')"
-                class="excel_download">
-                <i class="fa fa-file-excel-o"></i></a>
+                    data-backdrop="static"
+                    data-toggle="modal"
+                    data-ng-click="filterReportBy(); setReportType('excel')"
+                    class="excel_download">
+                    <i class="fa fa-file-excel-o"></i></a>
             </li>
             <li class="invoice-filters-flexbox active">
                 <input type="text"

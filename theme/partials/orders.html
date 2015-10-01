@@ -6,6 +6,7 @@
                 <a title="Add Order"
                     data-ng-click="addingState()"
                     data-target="#saveOrderModal"
+                    data-backdrop="static"
                     data-toggle="modal">
                         <i class="fa fa-plus-square"></i>
                 </a>
@@ -16,6 +17,7 @@
                     data-ng-show="selectedOrder && selectedOrder.Status != 'Processed'"
                     data-ng-click="editingState()"
                     data-target="#saveOrderModal"
+                    data-backdrop="static"
                     data-toggle="modal">
                         <i class="fa fa-pencil"></i>
                 </a>
@@ -25,6 +27,7 @@
                     data-ng-show="selectedOrder && selectedOrder.Status == 'Processed'"
                     data-ng-click="editingState()"
                     data-target="#saveOrderModal"
+                    data-backdrop="static"
                     data-toggle="modal">
                         <i class="fa fa-square-o"></i>
                 </a>
@@ -33,6 +36,7 @@
                 <a title="Delete Order"
                     data-ng-show="selectedOrder"
                     data-target="#deleteOrderModal"
+                    data-backdrop="static"
                     data-toggle="modal">
                         <i class="fa fa-trash"></i>
                 </a>

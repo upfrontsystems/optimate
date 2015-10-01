@@ -5,6 +5,7 @@
                 <a title="Add Payment"
                     data-ng-click="addingState()"
                     data-target="#savePaymentModal"
+                    data-backdrop="static"
                     data-toggle="modal">
                         <i class="fa fa-plus-square"></i>
                 </a>
@@ -14,6 +15,7 @@
                     data-ng-show="selectedPayment"
                     data-ng-click="editingState()"
                     data-target="#savePaymentModal"
+                    data-backdrop="static"
                     data-toggle="modal">
                         <i class="fa fa-pencil"></i>
                 </a>
@@ -22,17 +24,21 @@
                 <a title="Delete Payment"
                     data-ng-show="selectedPayment"
                     data-target="#deletePaymentModal"
+                    data-backdrop="static"
                     data-toggle="modal">
                         <i class="fa fa-trash"></i>
                 </a>
             </li>
             <li ng-show="paymentsReportEnabled">
-                <a title="Payments Report" data-target="#paymentsReport"
-                data-toggle="modal" data-ng-click="filterReportBy()"
-                class="pdf_download">
-                <i class="fa fa-file-pdf-o"></i></a>
-                 <!-- hidden anchor for download hook -->
-                <a class="pdf_hidden_download"></a>
+                <a title="Payments Report"
+                    data-target="#paymentsReport"
+                    data-backdrop="static"
+                    data-toggle="modal"
+                    data-ng-click="filterReportBy()"
+                    class="pdf_download">
+                    <i class="fa fa-file-pdf-o"></i></a>
+                     <!-- hidden anchor for download hook -->
+                    <a class="pdf_hidden_download"></a>
             </li>
             <li class="payment-filters-flexbox active">
                 <select chosen

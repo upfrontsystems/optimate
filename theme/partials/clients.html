@@ -3,13 +3,27 @@
         class="container-fluid">
         <ul class="nav nav-pills">
             <li>
-                <a title="Add Client" data-ng-click="addingState()" data-target="#saveModal"  data-toggle="modal"><i class="fa fa-plus-square"></i></a>
+                <a title="Add Client" data-ng-click="addingState()"
+                    data-target="#saveModal"
+                    data-backdrop="static"
+                    data-toggle="modal">
+                    <i class="fa fa-plus-square"></i>
+                </a>
             </li>
             <li ng-show="selectedClient">
-                <a title="Edit Client" data-ng-click="editingState()" data-target="#saveModal" data-toggle="modal"><i class="fa fa-pencil"></i></a>
+                <a title="Edit Client" data-ng-click="editingState()"
+                    data-target="#saveModal"
+                    data-backdrop="static"
+                    data-toggle="modal">
+                    <i class="fa fa-pencil"></i>
+                </a>
             </li>
             <li ng-show="selectedClient">
-                <a title="Delete Client" data-target="#deleteClientModal" data-toggle="modal"><i class="fa fa-trash"></i></a>
+                <a title="Delete Client" data-target="#deleteClientModal"
+                    data-backdrop="static"
+                    data-toggle="modal">
+                    <i class="fa fa-trash"></i>
+                </a>
             </li>
         </ul>
     </div>
