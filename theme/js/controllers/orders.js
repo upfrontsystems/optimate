@@ -591,12 +591,10 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
                             }
                         }
                     }
-                    $scope.orderingOn = undefined;
                     spinner.stop();
                 });
             }
             else{
-                $scope.orderingOn = undefined;
                 spinner.stop();
             }
         }

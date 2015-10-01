@@ -125,7 +125,16 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
 
         $scope.orderSelected = function(item) {
             $scope.formData.OrderID = item.ID;
-            $scope.calculatedAmounts[3].amount = item.Total;
+            if (item.Subtotal != undefined){
+                $scope.formData.Amount = item.Subtotal;
+                $scope.formData.VAT = (parseFloat(item.Total) -
+                                            parseFloat(item.Subtotal)).toFixed(2);
+                $scope.calculatedAmounts[0].amount = item.Subtotal;
+                $scope.calculatedAmounts[1].amount = (parseFloat(item.Total) -
+                                            parseFloat(item.Subtotal)).toFixed(2);
+                $scope.calculatedAmounts[2].amount = item.Total;
+                $scope.calculatedAmounts[3].amount = item.Total;
+            }
         };
 
         // Adding or editing an invoice

@@ -1593,6 +1593,13 @@ class Order(Base):
 
         self.Total = Decimal(total).quantize(Decimal('.01'))
 
+    @property
+    def Subtotal(self):
+        subtotal = Decimal(0.00)
+        for item in self.OrderItems:
+            subtotal+=item.Subtotal
+        return subtotal
+
     def dict(self):
         """ Override the dict function for an order
         """
@@ -1602,9 +1609,9 @@ class Order(Base):
         clientname = ""
         if self.Client:
             clientname = self.Client.Name
-        total = '0.00'
-        if self.Total:
-            total = str(self.Total)
+        if self.Total is None:
+            self.resetTotal()
+        total = str(self.Total)
         date = ''
         if self.Date:
             date = self.Date.strftime("%d %B %Y")
@@ -1621,6 +1628,7 @@ class Order(Base):
                 'Client': clientname,
                 'ClientID': self.ClientID,
                 'Total': total,
+                'Subtotal': str(self.Subtotal),
                 'Status': self.Status}
 
     def __repr__(self):
@@ -1656,6 +1664,18 @@ class OrderItem(Base):
                 ) * (1 + self.VAT/100.0)
                 ).quantize(Decimal('.01'))
         return self._Total
+
+    @hybrid_property
+    def Subtotal(self):
+        """ Return the subtotal. Subtotal is Total - Vat amount
+        """
+        if not self._Total:
+            self._Total = Decimal(
+                (self.Quantity * float(self.Rate) - float(self.Discount)
+                ) * (1 + self.VAT/100.0)
+                ).quantize(Decimal('.01'))
+        return Decimal(float(self._Total) / (1+(self.VAT/100))
+                        ).quantize(Decimal('.01'))
 
     @Total.setter
     def Total(self, total):
