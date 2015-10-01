@@ -576,7 +576,8 @@ def node_budgetitems(request):
     # filter by supplier
     if 'supplier' in paramkeys:
         supid = int(paramsdict['supplier'][0])
-        budgetitemslist = [x for x in budgetitemslist if x.Resource.SupplierID == supid]
+        budgetitemslist = [
+                x for x in budgetitemslist if x.Resource.SupplierID == supid]
 
     itemlist = []
     for bi in budgetitemslist:
@@ -860,13 +861,15 @@ def overheadsview(request):
 
         budgetitems = node.getBudgetItems()
         for budgetitem in budgetitems:
-            for overhead in overheadlist:
-                if overhead.get('selected', False):
-                    overheadid = overhead['ID']
-                    overhead = DBSession.query(Overhead
-                                            ).filter_by(ID=overheadid).first()
-                    if overhead not in budgetitem.Overheads:
-                        budgetitem.Overheads.append(overhead)
+            # don't apply markup to budgetitems that are children of budgetitems
+            if budgetitem.Parent.type != 'BudgetItem':
+                for overhead in overheadlist:
+                    if overhead.get('selected', False):
+                        overheadid = overhead['ID']
+                        overhead = DBSession.query(Overhead
+                                                ).filter_by(ID=overheadid).first()
+                        if overhead not in budgetitem.Overheads:
+                            budgetitem.Overheads.append(overhead)
 
         return HTTPOk()
 

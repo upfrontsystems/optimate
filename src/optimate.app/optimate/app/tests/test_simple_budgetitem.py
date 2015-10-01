@@ -128,3 +128,25 @@ class TestSimpleBudgetItem(unittest.TestCase):
         newsibi_total = Decimal(newrate*newquantity).quantize(Decimal('.01'))
         newproject_total = budgetitem_total + newsibi_total
         self.assertEqual(str(project.Total), str(newproject_total));
+
+    def test_update_value(self):
+        # update the simple budget item rate and quantity
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 4}
+        newbiq = 50.0
+        newbrate = 10
+        request.json_body = {'Quantity': newbiq,
+                            'Rate': newbrate}
+        from optimate.app.views import node_update_value
+        response = node_update_value(request)
+
+        newtot = Decimal(newbiq * newbrate).quantize(Decimal('.01'))
+        newprojtot = project_total - sibi_total + newtot
+        self.assertEqual(response['Total'], str(newtot))
+
+        # now the project cost should have changed
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 1}
+        from optimate.app.views import node_cost
+        response = node_cost(request)
+        self.assertEqual(response['Cost'], str(newprojtot))

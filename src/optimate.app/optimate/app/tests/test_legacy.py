@@ -59,6 +59,8 @@ def _initTestingDB():
         biq = 5.0
         global overheadperc
         overheadperc = 0.05
+        global extraoverheadperc
+        extraoverheadperc = 0.1
         global respartq
         respartq = 5.895
 
@@ -193,6 +195,11 @@ def _initTestingDB():
                         ProjectID=project.ID,
                         Percentage=(overheadperc*100.0),
                         Type='BudgetItem')
+        extraoverhead = Overhead(Name="ExtraOverhead",
+                        ID=5,
+                        ProjectID=project.ID,
+                        Percentage=(extraoverheadperc*100.0),
+                        Type='BudgetItem')
         budgetgroup = BudgetGroup(Name='TestBGName',
                         ID=2,
                         Description='TestBGDesc',
@@ -213,6 +220,7 @@ def _initTestingDB():
                        Name='TestResourceA',
                        Description='Test resource',
                        UnitID=unit2.ID,
+                       SupplierID=supplier1.ID,
                        Type=labtype.ID,
                        _Rate=resarate,
                        ParentID=rescat.ID)
@@ -365,6 +373,7 @@ def _initTestingDB():
         DBSession.add(root)
         DBSession.add(project)
         DBSession.add(overhead)
+        DBSession.add(extraoverhead)
         DBSession.add(rescat)
         DBSession.add(budgetgroup)
         DBSession.add(budgetitem)
@@ -397,7 +406,7 @@ def _initTestingDB():
         transaction.commit()
 
         """The hierarchy
-        project - id:1 overhead: 0.05
+        project - id:1 overhead: 0.05, extraoverhead: 0.1
                 |
                 budgetgroup - id:2
                             |
@@ -476,9 +485,15 @@ class DummyBudgetItemRequest(object):
     def dict_of_lists(self):
         return {}
 
-class DummyOverhead(object):
+class DummyFilterBudgetItemRequest(object):
     def dict_of_lists(self):
-        return {}
+        return {'supplier': [1]}
+
+class DummyOverhead(object):
+    def __init__(self, params = {}):
+        self.params = params
+    def dict_of_lists(self):
+        return self.params
 
 class DummyBudgetItemOverhead(object):
     def dict_of_lists(self):
@@ -553,6 +568,16 @@ class TestNodeBudgetItemsViewSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.matchdict['id'] = 22
         request.params = DummyBudgetItemRequest()
+        response = self._callFUT(request)
+
+        # should return one budgetitem
+        self.assertEqual(len(response), 1)
+
+    def test_filter_supplier_budgetitems(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict['id'] = 1
+        request.params = DummyFilterBudgetItemRequest()
         response = self._callFUT(request)
 
         # should return one budgetitem
@@ -661,7 +686,18 @@ class TestProjectOverheadsViewSuccessCondition(unittest.TestCase):
         self.assertEqual(len(response), 1)
         self.assertEqual(response[0]['Name'], 'Overhead')
 
-    def test_post(self):
+    def test_get_type(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict = {'nodeid': 1}
+        request.method = 'GET'
+        request.params = DummyOverhead({'NodeType': ['Project']})
+        response = self._callFUT(request)
+
+        # test that no project type overheads are returned
+        self.assertEqual(len(response), 0)
+
+    def test_add(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.matchdict = {'id': 1}
@@ -678,6 +714,28 @@ class TestProjectOverheadsViewSuccessCondition(unittest.TestCase):
         response = self._callFUT(request)
         # test that a the overheads is now two
         self.assertEqual(len(response), 2)
+
+    def test_edit(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict = {'nodeid': 1}
+        request.json_body = {'overheadlist':[{'selected':True,
+                                                'ID': 1},
+                                                {'selected': True,
+                                                'ID': 5}]}
+        request.method = 'PUT'
+        request.params = DummyOverhead()
+        response = self._callFUT(request)
+
+        newprojtotal = projtot - bitot + Decimal((1.0+overheadperc)* \
+                                (1.0+extraoverheadperc)* \
+                                float(resunitrate)*biq).quantize(Decimal('.01'))
+        request = testing.DummyRequest()
+        request.matchdict = {'id': 1}
+        from optimate.app.views import nodeview
+        response = nodeview(request)
+        self.assertEqual(response['Total'], str(newprojtotal))
+
 
 
 class TestProjectOverheadsViewSuccessCondition(unittest.TestCase):
@@ -886,7 +944,7 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         from optimate.app.views import node_grid
         return node_grid(request)
 
-    def test_project_gridview(self):
+    def test_projects_gridview(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.matchdict = {'parentid': 0}
@@ -897,7 +955,7 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         self.assertEqual(response['list'][2]['Name'], 'TestPName')
         self.assertEqual(response['emptycolumns'], True)
 
-    def test_budgetgroup_gridview(self):
+    def test_project_gridview(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.matchdict = {'parentid': 1}
@@ -907,6 +965,7 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         self.assertEqual(response['list'][0]['Name'], 'Resource List')
         self.assertEqual(response['list'][1]['Name'], 'TestBGName')
         self.assertEqual(response['emptycolumns'], True)
+        self.assertEqual(response['type'], 'Project')
 
     def test_resource_category_gridview(self):
         _registerRoutes(self.config)
@@ -918,6 +977,7 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         self.assertEqual(response['list'][0]['Name'], 'TestResource')
         self.assertEqual(response['list'][1]['Name'], 'TestResourceB')
         self.assertEqual(response['emptycolumns'], True)
+        self.assertEqual(response['type'], 'Resources')
 
     def test_mixed_gridview(self):
         _registerRoutes(self.config)
@@ -932,8 +992,9 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         self.assertEqual(response['list'][1]['Name'], 'TestDBGName')
         self.assertEqual(response['list'][2]['Name'], 'TestResourceB')
         self.assertEqual(response['emptycolumns'], False)
+        self.assertEqual(response['type'], 'BudgetGroup')
 
-    def test_budgetitem_gridview(self):
+    def test_budgetgroup_gridview(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.matchdict = {'parentid': 5}
@@ -945,6 +1006,19 @@ class TestNodeGridViewSuccessCondition(unittest.TestCase):
         self.assertEqual(response['list'][1]['Name'], 'TestResource')
         self.assertEqual(response['list'][2]['Name'], 'TestResourceB')
         self.assertEqual(response['emptycolumns'], False)
+        self.assertEqual(response['type'], 'BudgetGroup')
+
+    def test_budgetitem_gridview(self):
+        _registerRoutes(self.config)
+        request = testing.DummyRequest()
+        request.matchdict = {'parentid': 11}
+        response = self._callFUT(request)
+
+        # assert returns true if the projects are returned correctly
+        # first row is the parent
+        self.assertEqual(response['list'][0]['Name'], 'TestResourceA')
+        self.assertEqual(response['emptycolumns'], False)
+        self.assertEqual(response['type'], 'BudgetItem')
 
 
 class TestUpdateValueSuccessCondition(unittest.TestCase):
