@@ -45,7 +45,7 @@ myApp.directive('projectslickgridjs', ['globalServerURL', '$http',
 
             var data = [];
             // set the default column sizes
-            var projects_column_width= {};
+            var projects_column_width= undefined;
             var projects_columns = [];
             var columns_list = {};
             // aux function to test if we can support localstorage
@@ -108,7 +108,7 @@ myApp.directive('projectslickgridjs', ['globalServerURL', '$http',
                         console.log("No columns widths found in storage. Setting to default.");
                         localStorage["projects_column_width"] = JSON.stringify(projects_column_width);
                     }
-                    if ( projects_column_width.length == 0 ) {
+                    if (projects_column_width == undefined) {
                         localStorage["projects_column_width"] = JSON.stringify(projects_column_width);
                     }
                 }
@@ -579,7 +579,7 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
             });
 
             var data = [];
-            var columns_widths= {};
+            var columns_widths= undefined;
             // aux function to test if we can support localstorage
             var hasStorage = (function() {
                 try {
@@ -600,7 +600,6 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                                     'Quantity': 75,
                                     'Rate': 75,
                                     'Subtotal': 75,
-                                    'VAT': 30,
                                     'VATCost': 75,
                                     'Total': 100,
                                     'Discount': 75};
@@ -612,9 +611,9 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                         console.log("No columns widths found in storage. Setting to default.");
                         localStorage["orders_column_width"] = JSON.stringify(default_column_widths);
                     }
-                    if ( columns_widths.length == 0 ) {
+                    if (columns_widths == undefined) {
                         columns_widths = default_column_widths;
-                        localStorage["orders_column_width"] = JSON.stringify(column_widths);
+                        localStorage["orders_column_width"] = JSON.stringify(columns_widths);
                     }
                 }
                 else{
@@ -660,7 +659,7 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                                 formatter: CurrencyFormatter}
                 vat_column = {id: "VAT", field: "VAT",
                                 name: "<i class='fa fa-square-o fa-lg'></i>",
-                                width: columns_widths.VAT,
+                                maxWidth: 20,
                                 toolTip: "VAT on/off for all",
                                 cssClass: "slick-cell-checkboxsel",
                                 resizable: false,
@@ -981,7 +980,7 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
             });
 
             var data = [];
-            var valuations_column_width= {};
+            var valuations_column_width= undefined;
 
             // aux function to test if we can support localstorage
             var hasStorage = (function() {
@@ -1010,7 +1009,7 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                         console.log("No columns widths found in storage. Setting to default.");
                         localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
                     }
-                    if ( valuations_column_width.length == 0 ) {
+                    if (valuations_column_width == undefined) {
                         localStorage["valuations_column_width"] = JSON.stringify(valuations_column_width);
                     }
                 }

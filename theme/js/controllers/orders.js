@@ -428,6 +428,7 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
             .success(function(data) {
                 $scope.openProjectsList = [data];
                 $scope.selectNodeHead(data);
+                $scope.orderingOn = 'budget';
             });
         };
 
