@@ -912,7 +912,7 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                                         .subtract(item.Discount)
                                         .multiply(vatpercentage)
                                         .done();
-                console.log(item.VATCost);
+                item.VATCost = math.format(item.VATCost, {precision: 2});
                 item.Total = moneymath.chain(item.Subtotal)
                                         .subtract(item.Discount)
                                         .add(item.VATCost)
@@ -941,7 +941,6 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                     }
                     lastrow.Discount = discounttotal;
                 }
-                console.log(lastrow.VATCost);
                 dataView.updateItem(lastrow.id, lastrow);
             };
 
