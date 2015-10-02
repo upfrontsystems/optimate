@@ -945,7 +945,11 @@ def cashflow(request):
     project = DBSession.query(Project).filter_by(ID=projectid).first()
     currency = currencies[DBSession.query(CompanyInformation).first().Currency]
 
-    valuations = sorted(project.Valuations, key=lambda k: k.ID)
+    valuations = DBSession.query(Valuation
+                                ).filter_by(ProjectID=projectid
+                                ).order_by(Valuation.Date.desc()
+                                ).order_by(Valuation.ID.desc()).all()
+
     headers = []
     rows = []
     # create a matrix of valuations and valuation items
@@ -2069,7 +2073,10 @@ def excelcashflow(request):
     worksheet.write(row, 0, 'Details', boldborder)
     worksheet.write(row, 1, 'Budget Total', boldborder)
 
-    valuations = sorted(project.Valuations, key=lambda k: k.ID)
+    valuations = DBSession.query(Valuation
+                                ).filter_by(ProjectID=projectid
+                                ).order_by(Valuation.Date.desc()
+                                ).order_by(Valuation.ID.desc()).all()
     # list the budget groups
     valuationitems = sorted(project.Valuations[0].ValuationItems,
                                 key=lambda k: k.BudgetGroup.Name.upper())

@@ -598,8 +598,8 @@ def node_budgetgroups(request):
     # get the data from an existing & most recent valuation for this project
     if qry.first() != None:
         # find the valuation closest to the current date
-        qry = qry.order_by(Valuation.Date.desc()).all()
-        most_recent_valuation = qry[0]
+        most_recent_valuation = qry.order_by(Valuation.Date.desc()
+                                ).order_by(Valuation.ID.desc()).first()
 
         parentlist = []
         childrenlist = []
