@@ -580,6 +580,11 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
 
             var data = [];
             var columns_widths= undefined;
+            // create an instance of math.js with money configuration
+            var moneymath = math.create({
+              number: 'bignumber',
+              precision: 2
+            });
             // aux function to test if we can support localstorage
             var hasStorage = (function() {
                 try {
@@ -800,7 +805,8 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                         if (item.id != 'totalsrow'){
                             item.VAT = !item.VAT;
                             dataView.updateItem(item.id, item);
-                            updateCells(e, {'item': item});
+                            args.item = item;
+                            updateCells(e, args);
                         }
                     }
                 }
@@ -829,7 +835,9 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                             var item = dataView.getItem(i);
                             item.VAT = checked;
                             dataView.updateItem(item.id, item);
-                            updateCells(e, {'item': item});
+                            updateCells(e, {'item': item,
+                                            'cell': grid.getColumnIndex(args.column.id),
+                                            'row': i});
                         }
                     }
                 }
@@ -897,17 +905,43 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                 var oldvatcost = item.VATCost;
                 var olddiscount = item.Discount;
                 var vatpercentage = item.VAT ? $scope.taxRate : 0;
+                var vatpercentage = math.divide(vatpercentage, 100.0);
 
-                item.Subtotal = item.Quantity*item.Rate;
-                item.VATCost = (item.Subtotal - item.Discount) * (parseFloat(vatpercentage)/100.0);
-                item.Total = parseFloat((item.Subtotal - item.Discount) + item.VATCost);
+                item.Subtotal = moneymath.multiply(item.Quantity, item.Rate);
+                item.VATCost = moneymath.chain(item.Subtotal)
+                                        .subtract(item.Discount)
+                                        .multiply(vatpercentage)
+                                        .done();
+                console.log(item.VATCost);
+                item.Total = moneymath.chain(item.Subtotal)
+                                        .subtract(item.Discount)
+                                        .add(item.VATCost)
+                                        .done();
                 dataView.updateItem(item.id, item);
                 // get the last row and update the values
                 var lastrow = dataView.getItemById('totalsrow');
-                lastrow.Total = parseFloat(parseFloat(lastrow.Total) + (item.Total - oldtotal)).toFixed(2);
-                lastrow.Subtotal = lastrow.Subtotal + (item.Subtotal - oldsubtotal);
-                lastrow.VATCost = lastrow.VATCost + (item.VATCost - oldvatcost);
-                lastrow.Discount = parseFloat(lastrow.Subtotal + lastrow.VATCost - lastrow.Total).toFixed(2);
+                lastrow.Subtotal =  moneymath.chain(lastrow.Subtotal)
+                                            .add(item.Subtotal)
+                                            .subtract(oldsubtotal)
+                                            .done();
+                lastrow.VATCost =   moneymath.chain(lastrow.VATCost)
+                                            .add(item.VATCost)
+                                            .subtract(oldvatcost)
+                                            .done();
+                lastrow.Total =     moneymath.chain(lastrow.Total)
+                                            .add(item.Total)
+                                            .subtract(oldtotal)
+                                            .done();
+                // if the discount column was changed update the last row value
+                if (grid.getColumns()[ctx.cell].name == 'Discount'){
+                    var discounttotal = 0;
+                    for (var i = 0; i < grid.getDataLength() -1 ; i++) {
+                        var item = dataView.getItem(i);
+                        discounttotal = moneymath.add(discounttotal, item.Discount);
+                    }
+                    lastrow.Discount = discounttotal;
+                }
+                console.log(lastrow.VATCost);
                 dataView.updateItem(lastrow.id, lastrow);
             };
 
