@@ -1256,6 +1256,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                     Name: $scope.restypeList[i].Name, selected: true})
             }
             $scope.budgetItemTypeList = bitypes;
+            $scope.allBudgetItemTypes = true;
             $scope.printSelectedBudgetGroups = false;
             console.log("Budget Item Type list loaded");
         };
@@ -1406,6 +1407,22 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             }
         }
 
+        // select all the budget item types (even none type ones)
+        $scope.toggleAllBudgetItemTypes = function(){
+            $scope.allBudgetItemTypes = !$scope.allBudgetItemTypes;
+            if ($scope.allBudgetItemTypes){
+                for (var i in $scope.budgetItemTypeList){
+                    $scope.budgetItemTypeList[i].selected = true;
+                }
+            }
+        }
+
+        // toggle the selected budget item
+        $scope.toggleBudgetItemType = function(btype){
+            btype.selected = !btype.selected;
+            $scope.allBudgetItemTypes = false;
+        }
+
         $scope.openNodeList = [];
         // load the node that has been selected into the tree for pdf printing
         $scope.loadNodeForPrinting = function (id) {
@@ -1426,6 +1443,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             var spinner = new Spinner().spin(target[0]);
             if ( report == 'projectbudget' ) {
                 $scope.formData['BudgetItemTypeList'] = $scope.budgetItemTypeList || [];
+                $scope.formData.BudgetItemTypeList.unshift({'ID': 0, 'selected': $scope.allBudgetItemTypes});
                 $scope.formData['PrintSelectedBudgerGroups'] = $scope.printSelectedBudgetGroups;
                 $scope.formData['BudgetGroupList'] = $scope.budgetgroupList || [];
                 var url = globalServerURL + 'project_budget_report/' + nodeid + '/'
@@ -1469,6 +1487,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             var spinner = new Spinner().spin(target[0]);
             if ( report == 'projectbudget' ) {
                 $scope.formData['BudgetItemTypeList'] = $scope.budgetItemTypeList || [];
+                $scope.formData.BudgetItemTypeList.unshift({'ID': 0, 'selected': $scope.allBudgetItemTypes});
                 $scope.formData['PrintSelectedBudgerGroups'] = $scope.printSelectedBudgetGroups;
                 $scope.formData['BudgetGroupList'] = $scope.budgetgroupList || [];
                 var url = globalServerURL + 'excel_project_budget_report/' + nodeid + '/'

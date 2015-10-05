@@ -267,11 +267,14 @@ def projectbudget(request):
 
     # inject node data into template
     nodes = []
+    projectsubtotal = float(project.Total)
     if print_bgroups:
+        projectsubtotal = 0
         bgs = sorted(bgroup_list, key=lambda k: k['Name'].upper())
         for bgroup in bgs:
             bg_id = bgroup['ID']
             qry = DBSession.query(Node).filter_by(ID=bg_id).first()
+            projectsubtotal+=float(qry.Total)
 
             # start at the parent so we can display the context
             nodes.append((qry, 'level1', 'bold'))
@@ -298,7 +301,6 @@ def projectbudget(request):
     # get all the project markups
     projectmarkups = DBSession.query(Overhead).filter_by(ProjectID = nodeid,
                                                         Type='Project').all()
-    projectsubtotal = float(project.Total)
     projecttotal = projectsubtotal
     markups = []
     for markup in projectmarkups:
@@ -1050,6 +1052,50 @@ def add_to_format(existing_format, dict_of_properties, workbook):
 
     return(workbook.add_format(dict(new_dict.items() + dict_of_properties.items())))
 
+def write_budget_data(worksheet, workbook, nodes, row, level, money, bold):
+    """ recursively write data to the excel spreadsheet
+        keeping track of the indentation level to write the subtotal formula
+    """
+    # write the data, start from row
+    while row < (len(nodes)+4):
+        node = nodes[row-4]
+        if node:
+            currentlevel = int(node[1][-1]) -1
+            # current level
+            if currentlevel == level:
+                # print budget group
+                if node[0].type == 'BudgetGroup':
+                    budgettotal = add_to_format(money, {'bold': True}, workbook)
+                    nameformat = add_to_format(bold, {'indent': currentlevel}, workbook)
+                    worksheet.write(row, 0, node[0].Name, nameformat)
+                    worksheet.write(row, 4, node[0].Total, budgettotal)
+                # print budget items
+                else:
+                    indent = workbook.add_format()
+                    indent.set_indent(currentlevel)
+                    textcolor = workbook.add_format()
+                    bimoney = money
+                    if node[0].Variation:
+                        indent = add_to_format(indent, {'font_color': 'red'}, workbook)
+                        textcolor.set_font_color('red')
+                        bimoney = add_to_format(bimoney, {'font_color': 'red'}, workbook)
+                    worksheet.write(row, 0, node[0].Name, indent)
+                    worksheet.write(row, 1, node[0].Unit, textcolor)
+                    worksheet.write(row, 2, node[0].Quantity, textcolor)
+                    worksheet.write(row, 3, node[0].Rate, bimoney)
+                    worksheet.write_formula(row, 4, '{=C'+str(row+1)+'*D'+str(row+1)+'}', bimoney)
+                row+=1
+            # next level
+            elif currentlevel > level:
+                parentrow = row-1
+                row = write_budget_data(worksheet, workbook, nodes, row, currentlevel, money, bold)
+                # write the parent subtotal
+                budgettotal = add_to_format(money, {'bold': True}, workbook)
+                worksheet.write_formula(parentrow, 4, '{=SUBTOTAL(9, E'+str(parentrow+2)+':E'+str(row)+'}', budgettotal)
+            # previous level, break
+            else:
+                break
+    return row
 
 @view_config(route_name="excelprojectbudget")
 def excelprojectbudget(request):
@@ -1084,17 +1130,6 @@ def excelprojectbudget(request):
     else:
         nodes = projectbudget_nodes(project, [], 0, level_limit,
             budgetitem_filter)
-
-    # this needs explaining. The 1st budgetitem of a budget group
-    # needs a a special class so that extra spacing can be added above it for
-    # report readability & clarity
-    count = 0
-    for node in nodes:
-        if node != None:
-            if node[0].type == 'BudgetItem' and count != 0:
-                if nodes[count-1][0].type != 'BudgetItem':
-                    nodes[count] = (node[0], node[1], 'normal-space')
-        count+= 1
 
     # get all the project markups
     projectmarkups = DBSession.query(Overhead).filter_by(ProjectID = nodeid,
@@ -1143,29 +1178,43 @@ def excelprojectbudget(request):
     worksheet.write(2, 2, 'Quantity', border)
     worksheet.write(2, 3, 'Rate', border)
     worksheet.write(2, 4, 'Total', border)
+
+    level = 0
     row = 4
-    for node in nodes:
+    # write the data, start from row 4
+    while row < (len(nodes)+4):
+        node = nodes[row-4]
         if node:
-            if node[0].type == 'BudgetGroup':
-                indent = int(node[1][-1]) -1
-                nameformat = add_to_format(bold, {'indent': indent}, workbook)
-                worksheet.write(row, 0, node[0].Name, nameformat)
-                worksheet.write(row, 4, node[0].Total, budgettotal)
-            else:
-                indent = workbook.add_format()
-                indent.set_indent(int(node[1][-1]) -1)
-                textcolor = workbook.add_format()
-                bimoney = money
-                if node[0].Variation:
-                    indent = add_to_format(indent, {'font_color': 'red'}, workbook)
-                    textcolor.set_font_color('red')
-                    bimoney = add_to_format(bimoney, {'font_color': 'red'}, workbook)
-                worksheet.write(row, 0, node[0].Name, indent)
-                worksheet.write(row, 1, node[0].Unit, textcolor)
-                worksheet.write(row, 2, node[0].Quantity, textcolor)
-                worksheet.write(row, 3, node[0].Rate, bimoney)
-                worksheet.write(row, 4, node[0].Total, bimoney)
-        row+=1
+            currentlevel = int(node[1][-1]) -1
+            # current level
+            if currentlevel == level:
+                # print budget group
+                if node[0].type == 'BudgetGroup':
+                    nameformat = add_to_format(bold, {'indent': currentlevel}, workbook)
+                    worksheet.write(row, 0, node[0].Name, nameformat)
+                    worksheet.write(row, 4, node[0].Total, budgettotal)
+                # print budget items
+                else:
+                    indent = workbook.add_format()
+                    indent.set_indent(currentlevel)
+                    textcolor = workbook.add_format()
+                    bimoney = money
+                    if node[0].Variation:
+                        indent = add_to_format(indent, {'font_color': 'red'}, workbook)
+                        textcolor.set_font_color('red')
+                        bimoney = add_to_format(bimoney, {'font_color': 'red'}, workbook)
+                    worksheet.write(row, 0, node[0].Name, indent)
+                    worksheet.write(row, 1, node[0].Unit, textcolor)
+                    worksheet.write(row, 2, node[0].Quantity, textcolor)
+                    worksheet.write(row, 3, node[0].Rate, bimoney)
+                    worksheet.write_formula(row, 4, '{=C'+str(row+1)+'*D'+str(row+1)+'}', bimoney)
+                row+=1
+            # next level
+            elif currentlevel > level:
+                parentrow = row-1
+                row = write_budget_data(worksheet, workbook, nodes, row, currentlevel, money, bold)
+                # write the parent subtotal
+                worksheet.write_formula(parentrow, 4, '{=SUBTOTAL(9, E'+str(parentrow+2)+':E'+str(row)+'}', budgettotal)
 
     boldborder = add_to_format(border, {'bold':True}, workbook)
     worksheet.write(row, 0, 'Subtotal', boldborder)
@@ -1173,7 +1222,7 @@ def excelprojectbudget(request):
     worksheet.write(row, 2, '', border)
     worksheet.write(row, 3, '', border)
     moneyborder = add_to_format(border, moneydict, workbook)
-    worksheet.write(row, 4, projectsubtotal, moneyborder)
+    worksheet.write_formula(row, 4, '{=SUBTOTAL(9, E'+str(5)+':E'+str(row)+'}', moneyborder)
     subtotalrow = row
     row+=1
 
