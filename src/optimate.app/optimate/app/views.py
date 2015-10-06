@@ -1289,6 +1289,7 @@ def node_paste(request):
             dest.Total += source.Total
             pasted_id = source.ID
             transaction.commit()
+        # copying budget types
         else:
             # Paste the source into the destination
             copy_of_source = source.copy(dest.ID)

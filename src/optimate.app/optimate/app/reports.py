@@ -621,16 +621,11 @@ def order(request):
 
     orderitems = sorted(consolidated, key=lambda k: k['Name'].upper())
 
-    Vat = DBSession.query(CompanyInformation).first().DefaultTaxrate
-    Subtotal = float(order.Total)/(1+ Vat/100)
-    vat_str = str(Vat) + '%'
-    totals = [Subtotal, vat_str, float(order.Total)]
     # inject order data into template
     template_data = render('templates/orderreport.pt',
                            {'order': order,
                             'order_items': orderitems,
                             'order_date': order.Date.strftime("%d %B %Y"),
-                            'totals': totals,
                             'currency': currency},
                             request=request)
     # render template
@@ -1577,11 +1572,6 @@ def excelorder(request):
 
     orderitems = sorted(consolidated, key=lambda k: k['Name'].upper())
 
-    Vat = DBSession.query(CompanyInformation).first().DefaultTaxrate
-    Subtotal = float(order.Total)/(1+ Vat/100)
-    vat_per = Vat/100.0
-    totals = [Subtotal, vat_per, float(order.Total)]
-
     # render template
     output = StringIO()
 
@@ -1608,28 +1598,32 @@ def excelorder(request):
     percentageformat = workbook.add_format({'num_format': 0x0a})
 
     worksheet.set_column(0, 0, 35)
-    worksheet.set_column(1, 4, 25)
+    worksheet.set_column(1, 2, 15)
+    worksheet.set_column(3, 7, 20)
 
     boldborder = add_to_format(border, {'bold': True}, workbook)
 
     row = 0
     worksheet.write(row, 0, 'To Messers.')
     worksheet.write(row, 1, order.Client.Name, bold)
-    worksheet.write(row, 2, 'Order ' + str(order.ID), bold)
-    worksheet.write(row, 3, order.Date, bolddate)
+    worksheet.write(row, 3, 'Order ' + str(order.ID), bold)
+    worksheet.write(row, 4, order.Date, bolddate)
     row+=1
     worksheet.write(row, 0, 'Supplier FaxNo')
     worksheet.write(row, 1, order.Supplier.Fax, bold)
-    worksheet.write(row, 2, 'Created by')
+    worksheet.write(row, 3, 'Created by')
     row+=1
     worksheet.write(row, 0, 'On behalf of')
-    worksheet.write(row, 2, order.Project.Name, bold)
+    worksheet.write(row, 1, order.Project.Name, bold)
     row+=2
     worksheet.write(row, 0, 'Description', boldborder)
     worksheet.write(row, 1, 'Unit', boldborder)
     worksheet.write(row, 2, 'Quantity', boldborder)
     worksheet.write(row, 3, 'Rate', boldborder)
-    worksheet.write(row, 4, 'Total', boldborder)
+    worksheet.write(row, 4, 'Subtotal', boldborder)
+    worksheet.write(row, 5, 'Discount', boldborder)
+    worksheet.write(row, 6, 'VAT', boldborder)
+    worksheet.write(row, 7, 'Total', boldborder)
     row+=2
     startrow = row + 1
 
@@ -1638,20 +1632,18 @@ def excelorder(request):
         worksheet.write(row, 1, orderitem['Unit'])
         worksheet.write(row, 2, orderitem['Quantity'], numberformat)
         worksheet.write(row, 3, float(orderitem['Rate']), money)
-        worksheet.write(row, 4, float(orderitem['Total']), money)
+        worksheet.write_formula(row, 4, '{=C'+str(row+1)+'*D'+str(row+1)+'}', money)
+        worksheet.write(row, 5, float(orderitem['Discount']), money)
+        worksheet.write_formula(row, 6, '{=(E'+str(row+1)+'-F'+str(row+1)+')*'+str(orderitem['VAT']/100.0)+'}', money)
+        worksheet.write_formula(row, 7, '{=E'+str(row+1)+'-F'+str(row+1)+'+G'+str(row+1)+'}', money)
+
         row+=1
 
     row+=1
     worksheet.write(row, 0, 'Authorisation')
     worksheet.write(row, 1, 'Signature: __________________________')
-    worksheet.write(row, 3, 'Subtotal')
-    worksheet.write_formula(row, 4, '{=E'+str(row+3)+'/(1+E'+str(row+2)+')}', money)
-    row+=1
-    worksheet.write(row, 3, 'Vat')
-    worksheet.write(row, 4, totals[1], percentageformat)
-    row+=1
-    worksheet.write(row, 3, 'Total cost')
-    worksheet.write_formula(row, 4, '{=SUM(E'+str(startrow)+':E'+str(row-3)+')}', boldmoney)
+    worksheet.write(row, 6, 'Total cost')
+    worksheet.write_formula(row, 7, '{=SUM(H'+str(startrow)+':H'+str(row)+')}', boldmoney)
 
     workbook.close()
 

@@ -148,7 +148,6 @@ def _registerRoutes(config):
     config.add_route('overheadview', '/overhead/{id}/')
     config.add_route('resourcetypes', '/resourcetypes')
     config.add_route('node_update_value', '/node/{id}/update_value/')
-    config.add_route('node_paste', 'node/{id}/paste/')
     config.add_route('node_cost', 'node/{id}/cost/')
     config.add_route('node_budgetgroups', 'node/{id}/budgetgroups/')
     config.add_route('resourcecategory_allresources', 'resourcecategory/{id}/allresources/')
