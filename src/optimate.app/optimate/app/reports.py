@@ -1255,6 +1255,39 @@ def excelprojectbudget(request):
 
     return response
 
+def write_cost_comparison(worksheet, workbook, nodes, row, level, money):
+    """ recursively write data to the excel spreadsheet
+        keeping track of the indentation level to write the subtotal formula
+    """
+    # write the data, start from row
+    while row < (len(nodes)+4):
+        node = nodes[row-4]
+        if node:
+            currentlevel = int(node[1][-1]) -1
+            # current level
+            if currentlevel == level:
+                indent = workbook.add_format()
+                indent.set_indent(currentlevel)
+                if 'red' in node[1]:
+                    indent = add_to_format(indent, {'font_color': 'red'}, workbook)
+                worksheet.write(row, 0, node[0].Name, indent)
+                worksheet.write(row, 1, node[0].Total, money)
+                worksheet.write(row, 2, node[0].Ordered, money)
+                worksheet.write(row, 3, node[0].Invoiced, money)
+                row+=1
+            # next level
+            elif currentlevel > level:
+                parentrow = row-1
+                row = write_cost_comparison(worksheet, workbook, nodes, row, currentlevel, money)
+                # write the parent subtotal
+                worksheet.write_formula(parentrow, 1, '{=SUBTOTAL(9, B'+str(parentrow+2)+':B'+str(row)+'}', money)
+                worksheet.write_formula(parentrow, 2, '{=SUBTOTAL(9, C'+str(parentrow+2)+':C'+str(row)+'}', money)
+                worksheet.write_formula(parentrow, 3, '{=SUBTOTAL(9, D'+str(parentrow+2)+':D'+str(row)+'}', money)
+            # previous level, break
+            else:
+                break
+    return row
+
 
 @view_config(route_name="excelcostcomparison")
 def excelcostcomparison(request):
@@ -1341,17 +1374,32 @@ def excelcostcomparison(request):
     worksheet.write(2, 3, 'Invoiced', border)
 
     row = 4
-    for node in nodes:
+    level = 0
+
+    # write the data, start from row 4
+    while row < (len(nodes)+4):
+        node = nodes[row-4]
         if node:
-            indent = workbook.add_format()
-            indent.set_indent(int(node[1].split()[0][-1]) -1)
-            if 'red' in node[1]:
-                indent = add_to_format(indent, {'font_color': 'red'}, workbook)
-            worksheet.write(row, 0, node[0].Name, indent)
-            worksheet.write(row, 1, node[0].Total, money)
-            worksheet.write(row, 2, node[0].Ordered, money)
-            worksheet.write(row, 3, node[0].Invoiced, money)
-        row+=1
+            currentlevel = int(node[1].split()[0][-1]) -1
+            # current level
+            if currentlevel == level:
+                indent = workbook.add_format()
+                indent.set_indent(currentlevel)
+                if 'red' in node[1]:
+                    indent = add_to_format(indent, {'font_color': 'red'}, workbook)
+                worksheet.write(row, 0, node[0].Name, indent)
+                worksheet.write(row, 1, node[0].Total, money)
+                worksheet.write(row, 2, node[0].Ordered, money)
+                worksheet.write(row, 3, node[0].Invoiced, money)
+                row+=1
+            # next level
+            elif currentlevel > level:
+                parentrow = row-1
+                row = write_cost_comparison(worksheet, workbook, nodes, row, currentlevel, money)
+                # write the parent subtotal
+                worksheet.write_formula(parentrow, 1, '{=SUBTOTAL(9, B'+str(parentrow+2)+':B'+str(row)+'}', money)
+                worksheet.write_formula(parentrow, 2, '{=SUBTOTAL(9, C'+str(parentrow+2)+':C'+str(row)+'}', money)
+                worksheet.write_formula(parentrow, 3, '{=SUBTOTAL(9, D'+str(parentrow+2)+':D'+str(row)+'}', money)
 
     redmoney = add_to_format(money, {'font_color': 'red'}, workbook)
     # add conditional format for ordered and invoiced values
