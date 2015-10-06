@@ -677,17 +677,18 @@ def valuation(request):
         bg = item.BudgetGroup
         # get data and append children valuation items to children list
         if item.ParentID != 0:
-            data = bg.valuation('2')
+            data = bg.valuation()
             totalbudget = item.BudgetGroupTotal
             if totalbudget is not None:
                 totalbudget = str(totalbudget)
             data['TotalBudget'] = totalbudget
             data['AmountComplete'] = str(item.Total)
             data['PercentageComplete'] = item.PercentageComplete
+            data['Indent'] = 'level1'
             childrenlist.append(data)
         # get data and append parents valuation items to parent list
         else:
-            budget_total += float(item.Total)
+            budget_total += float(item.BudgetGroup.Total)
             data = bg.valuation()
             if len(item.Children) > 0:
                 data['expanded'] = True
@@ -697,6 +698,7 @@ def valuation(request):
             if totalbudget is not None:
                 totalbudget = str(totalbudget)
             data['TotalBudget'] = totalbudget
+            data['Indent'] = 'level0'
             parentlist.append(data)
 
     # sort the list, place children after parents
@@ -1792,6 +1794,33 @@ def excelinvoices(request):
 
     return response
 
+def write_valuation_data(worksheet, workbook, itemlist, row, rowshift, level, money, percentageformat):
+    """ recursively write data to the excel spreadsheet
+        keeping track of the indentation level to write the subtotal formula
+    """
+    while row < (len(itemlist)+rowshift):
+        item = itemlist[row-rowshift]
+        currentlevel = item['Indent']
+        # current level
+        if currentlevel == level:
+            indent = workbook.add_format()
+            indent.set_indent(currentlevel)
+
+            worksheet.write(row, 0, item['Name'], indent)
+            worksheet.write(row, 1, item['TotalBudget'], money)
+            worksheet.write(row, 2, item['PercentageComplete'], percentageformat)
+            worksheet.write_formula(row, 3, '{=B'+str(row+1)+'*C'+str(row+1)+'}', money)
+            row+=1
+        # next level
+        elif currentlevel > level:
+            parentrow = row-1
+            row = write_valuation_data(worksheet, workbook, itemlist, row, rowshift, currentlevel, money, percentageformat)
+            # write the parent subtotal
+            worksheet.write_formula(parentrow, 3, '{=SUBTOTAL(9, D'+str(parentrow+2)+':D'+str(row)+'}', money)
+        # previous level, break
+        else:
+            break
+    return row
 
 @view_config(route_name="excelvaluation")
 def excelvaluation(request):
@@ -1809,13 +1838,17 @@ def excelvaluation(request):
         bg = item.BudgetGroup
         # get data and append children valuation items to children list
         if item.ParentID != 0:
-            data = bg.valuation('2')
+            data = bg.valuation()
             totalbudget = item.BudgetGroupTotal
             if totalbudget is not None:
-                totalbudget = str(totalbudget)
+                totalbudget = float(totalbudget)
             data['TotalBudget'] = totalbudget
-            data['AmountComplete'] = str(item.Total)
-            data['PercentageComplete'] = item.PercentageComplete
+            data['AmountComplete'] = float(item.Total)
+            percentagecomp = None
+            if item.PercentageComplete is not None:
+                percentagecomp = float(item.PercentageComplete)/100
+            data['PercentageComplete'] = percentagecomp
+            data['Indent'] = 1
             childrenlist.append(data)
         # get data and append parents valuation items to parent list
         else:
@@ -1823,12 +1856,16 @@ def excelvaluation(request):
             data = bg.valuation()
             if len(item.Children) > 0:
                 data['expanded'] = True
-            data['AmountComplete'] = str(item.Total)
-            data['PercentageComplete'] = item.PercentageComplete
+            data['AmountComplete'] = float(item.Total)
+            percentagecomp = None
+            if item.PercentageComplete is not None:
+                percentagecomp = float(item.PercentageComplete)/100
+            data['PercentageComplete'] = percentagecomp
             totalbudget = item.BudgetGroupTotal
             if totalbudget is not None:
-                totalbudget = str(totalbudget)
+                totalbudget = float(totalbudget)
             data['TotalBudget'] = totalbudget
+            data['Indent'] = 0
             parentlist.append(data)
 
     # sort the list, place children after parents
@@ -1907,45 +1944,52 @@ def excelvaluation(request):
 
     row+=2
     worksheet.write(row, 0, 'Details', boldborder)
-    worksheet.write(row, 1, valuation.Date, boldborder)
+    worksheet.write(row, 1, valuation.Date, boldborderdate)
     worksheet.write(row, 2, '% Claim', boldborder)
     worksheet.write(row, 3, 'Total', boldborder)
     row+=2
-    for item in itemlist:
-        totalbudget = None
-        if item['TotalBudget'] is not None:
-            totalbudget = float(item['TotalBudget'])
-        percentagecomp = None
-        if item['PercentageComplete'] is not None:
-            percentagecomp = float(item['PercentageComplete'])/100
-        amcomp = None
-        if item['AmountComplete'] is not None:
-            amcomp = float(item['AmountComplete'])
-        worksheet.write(row, 0, item['Name'])
-        worksheet.write(row, 1, totalbudget, money)
-        worksheet.write(row, 2, percentagecomp, percentageformat)
-        worksheet.write(row, 3, amcomp, money)
-        row+=1
+
+    level = 0
+    rowshift = row
+    # write the data, start from row
+    while row < (len(itemlist)+rowshift):
+        item = itemlist[row-rowshift]
+        currentlevel = item['Indent']
+        # current level
+        if currentlevel == level:
+            # print parent item
+            worksheet.write(row, 0, item['Name'])
+            worksheet.write(row, 1, item['TotalBudget'], money)
+            worksheet.write(row, 2, item['PercentageComplete'], percentageformat)
+            worksheet.write_formula(row, 3, '{=B'+str(row+1)+'*C'+str(row+1)+'}', money)
+            row+=1
+        # next level
+        elif currentlevel > level:
+            parentrow = row-1
+            row = write_valuation_data(worksheet, workbook, itemlist, row, rowshift, currentlevel, money, percentageformat)
+            # write the parent subtotal
+            worksheet.write_formula(parentrow, 3, '{=SUBTOTAL(9, D'+str(parentrow+2)+':D'+str(row)+'}', money)
 
     row+=1
+    subtotalrow = row
     worksheet.write(row, 0, 'Subtotal', border)
-    worksheet.write(row, 1, budget_total, moneyborder)
+    worksheet.write_formula(row, 1, '{=SUM(B'+str(rowshift+1) + ':B'+str(row)+')}', moneyborder)
     worksheet.write(row, 2, '', border)
-    worksheet.write(row, 3, valuation.Total, moneyborder)
+    worksheet.write_formula(row, 3, '{=SUM(D'+str(rowshift+1) + ':D'+str(row)+')}', moneyborder)
     row+=1
 
     for markup in markup_list:
         worksheet.write(row, 0, markup['Name'])
         worksheet.write(row, 1, float(markup['TotalBudget']), money)
         worksheet.write(row, 2, markup['PercentageComplete']/100, percentageformat)
-        worksheet.write(row, 3, float(markup['Amount']), money)
+        worksheet.write_formula(row, 3, '{=B'+str(row+1)+'*C'+str(row+1)+'}', money)
         row+=1
 
     row+=1
     worksheet.write(row, 0, 'Total', border)
     worksheet.write(row, 1, '', border)
     worksheet.write(row, 2, '', border)
-    worksheet.write(row, 3, grandtotal, moneyborder)
+    worksheet.write_formula(row, 3, '{=SUM(D'+str(subtotalrow+1) + ':D'+str(row)+')}', moneyborder)
 
     workbook.close()
 

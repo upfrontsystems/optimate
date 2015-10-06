@@ -23,6 +23,10 @@
                 margin-right: 2cm;
             }
         }
+
+        td.level1 {
+            padding-left: 8px;
+        }
     <span tal:replace='structure string:</style>'/>
 
 <body>
@@ -58,7 +62,7 @@
     </div>
     <table class="order-font">
         <tr tal:repeat="valuation_item valuation_items">
-            <td style="width: 300px" tal:content="valuation_item['Name']|nothing"></td>
+            <td class="${valuation_item['Indent']}" style="width: 300px" tal:content="valuation_item['Name']|nothing"></td>
             <td style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(float(valuation_item['TotalBudget'])).strip()|nothing}</td>
             <td style="width: 80px; text-align:right" tal:content="valuation_item['PercentageComplete']|nothing"></td>
             <td style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(float(valuation_item['AmountComplete'])).strip()|nothing}</td>
