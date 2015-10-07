@@ -127,6 +127,7 @@ def main(global_config, **settings):
     # payments
     config.add_route('paymentsview', '/payments', factory=makeProtectedFunction('payments'))
     config.add_route('paymentview', '/payment/{id}/', factory=makeProtectedFunction('payments'))
+    config.add_route('payment_claims', '/payment/claims', factory=makeProtectedFunction('payments'))
 
     # Editing users
     config.add_route('usersview', '/users', factory=makeProtectedFunction('setup'))

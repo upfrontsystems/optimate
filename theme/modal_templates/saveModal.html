@@ -17,6 +17,15 @@
                                required
                                autofocus>
                     </div>
+                    <div data-ng-show="formData.NodeType == 'supplier'" class="form-group">
+                        <label for="inputSupplierCode" class="col-sm-2 control-label">Code:</label>
+                        <input type="text"
+                               class="col-sm-7"
+                               id="inputSupplierCode"
+                               name="inputSupplierCode"
+                               ng-model="formData.SupplierCode"
+                               required>
+                    </div>
                     <div class="form-group">
                         <label for="inputAddress" class="col-sm-2 control-label">Address:</label>
                         <textarea id="inputAddress"

@@ -600,7 +600,6 @@ def node_budgetgroups(request):
         # find the valuation closest to the current date
         most_recent_valuation = qry.order_by(Valuation.Date.desc()
                                 ).order_by(Valuation.ID.desc()).first()
-
         parentlist = []
         childrenlist = []
         for item in most_recent_valuation.ValuationItems:
@@ -630,14 +629,12 @@ def node_budgetgroups(request):
                 itemlist+=dc
             else:
                 itemlist.append(parent)
-
     # no valuation exists
     else:
         # add the project's budgetgroup children to the list
-        project = DBSession.query(Project).filter_by(ID=proj_id).first()
-        for child in project.Children:
-            if child.type == 'BudgetGroup':
-                itemlist.append(child.valuation())
+        bgs = DBSession.query(BudgetGroup).filter_by(ParentID=proj_id).all()
+        for child in bgs:
+            itemlist.append(child.valuation())
         itemlist = sorted(itemlist, key=lambda k: k['Name'].upper())
 
     return itemlist
@@ -1570,7 +1567,8 @@ def supplierview(request):
             Fax=request.json_body.get('Fax', ''),
             Phone=request.json_body.get('Phone', ''),
             Cellular=request.json_body.get('Cellular', ''),
-            Contact=request.json_body.get('Contact', ''))
+            Contact=request.json_body.get('Contact', ''),
+            SupplierCode=request.json_body.get('SupplierCode', ''))
 
         DBSession.add(newsupplier)
         DBSession.flush()
@@ -1593,6 +1591,7 @@ def supplierview(request):
         supplier.Phone=request.json_body.get('Phone', '')
         supplier.Cellular=request.json_body.get('Cellular', '')
         supplier.Contact=request.json_body.get('Contact', '')
+        supplier.SupplierCode=request.json_body.get('SupplierCode', '')
         transaction.commit()
         return HTTPOk()
 
@@ -1941,6 +1940,7 @@ def orderview(request):
         proj = request.json_body.get('ProjectID', None)
         supplier = request.json_body.get('SupplierID', None)
         address = request.json_body.get('DeliveryAddress', '')
+        description = request.json_body.get('Description', '')
         # the client is derived from the project
         client = DBSession.query(Project).filter_by(ID=proj).first().ClientID
         # convert to date from json format
@@ -1953,7 +1953,8 @@ def orderview(request):
                             SupplierID=supplier,
                             ClientID=client,
                             DeliveryAddress=address,
-                            Date=date)
+                            Date=date,
+                            Description=description)
         DBSession.add(neworder)
         DBSession.flush()
         # add the order items to the order
@@ -1963,8 +1964,7 @@ def orderview(request):
             quantity = float(budgetitem.get('Quantity', 0))
             rate = budgetitem.get('Rate', 0)
             rate = Decimal(rate).quantize(Decimal('.01'))
-            discount = Decimal(budgetitem.get('Discount', 0)
-                                ).quantize(Decimal('.01'))
+            discount = float(budgetitem.get('Discount', 0))
             vat = budgetitem.get('VAT', False)
             vatpercentage = 0
             if vat:
@@ -1984,7 +1984,7 @@ def orderview(request):
         neworder.resetTotal()
         # update the budgetitem ordered amounts
         for orderitem in neworder.OrderItems:
-            orderitem.BudgetItem.Ordered = orderitem.Total
+            orderitem.BudgetItem.Ordered += orderitem.Total
         return neworder.dict()
 
     # if the method is put, edit an existing order
@@ -1997,6 +1997,7 @@ def orderview(request):
         user = request.json_body.get('UserCode', '')
         auth = request.json_body.get('Authorisation', '')
         proj = request.json_body.get('ProjectID', None)
+        description = request.json_body.get('Description', '')
         if proj == order.ProjectID:
             client = order.ClientID
         else:
@@ -2018,6 +2019,7 @@ def orderview(request):
         order.ClientID=client
         order.DeliveryAddress=address
         order.Date = date
+        order.Description = description
 
         # get a list of id's used in the orderitems
         iddict = {}
@@ -2048,11 +2050,17 @@ def orderview(request):
                                         _Discount = discount,
                                         VAT=vatpercentage)
                 DBSession.add(neworderitem)
+
+                # update the budget item ordered amount
+                bi = DBSession.query(BudgetItem).filter_by(
+                                                ID=budgetitem['ID']).first()
+                bi.Ordered +=neworderitem.Total
             else:
                 # otherwise update the item and remove the id from the list
                 orderitemid = iddict[budgetitem['ID']]
                 orderitem = DBSession.query(OrderItem).filter_by(
                                     ID=orderitemid).first()
+                oldtotal = orderitem.Total
                 orderitem.Quantity = budgetitem['Quantity']
                 orderitem.Rate = budgetitem['Rate']
                 orderitem.Discount = budgetitem['Discount']
@@ -2062,12 +2070,16 @@ def orderview(request):
                     vatpercentage = DBSession.query(CompanyInformation
                                 ).first().DefaultTaxrate
                 orderitem.VAT = vatpercentage
+
+                # update the budget item ordered amount
+                bi = DBSession.query(BudgetItem).filter_by(
+                                                ID=budgetitem['ID']).first()
+                bi.Ordered = bi.Ordered - oldtotal + orderitem.Total
                 del iddict[budgetitem['ID']]
         # delete the leftover id's and update the ordered total
         for oldid in iddict.values():
             deletethis = DBSession.query(OrderItem).filter_by(ID=oldid).first()
-            deletethis.BudgetItem.Ordered = (deletethis.BudgetItem.Ordered -
-                                                deletethis.Total)
+            deletethis.BudgetItem.Ordered -= deletethis.Total
             qry = DBSession.delete(deletethis)
 
         transaction.commit()
@@ -2075,9 +2087,6 @@ def orderview(request):
         order = DBSession.query(
                     Order).filter_by(ID=request.matchdict['id']).first()
         order.resetTotal()
-        # update the budgetitem ordered amounts
-        for orderitem in order.OrderItems:
-            orderitem.BudgetItem.Ordered = orderitem.Total
         return order.dict()
 
     # otherwise return the selected order
@@ -2573,8 +2582,14 @@ def invoiceview(request):
 
         # update the budgetitem invoiced amounts
         order = DBSession.query(Order).filter_by(ID=deletethis.OrderID).first()
+        ordertotal = order.Total
+        invoicetotal = deletethis.Total
         for orderitem in order.OrderItems:
-            orderitem.BudgetItem.Invoiced = 0
+            if ordertotal > 0:
+                proportion = orderitem.Total/ordertotal
+                orderitem.BudgetItem.Invoiced -= invoicetotal * proportion
+            else:
+                orderitem.BudgetItem.Invoiced = 0
 
         qry = DBSession.delete(deletethis)
         if qry == 0:
@@ -2654,12 +2669,12 @@ def invoiceview(request):
         newtotal = invoice.Total
         # if the totals are different update the invoiced amounts
         if oldtotal != newtotal:
-            orderid = invoice.OrderID
-            order = DBSession.query(Order).filter_by(ID=orderid).first()
+            order = DBSession.query(Order).filter_by(ID=invoice.OrderID).first()
             for orderitem in order.OrderItems:
                 if order.Total > 0:
                     proportion = orderitem.Total/order.Total
-                    orderitem.BudgetItem.Invoiced = newtotal * proportion
+                    difference = oldtotal * proportion - newtotal * proportion
+                    orderitem.BudgetItem.Invoiced += difference
                 else:
                     orderitem.BudgetItem.Invoiced = 0
         transaction.commit()
@@ -2877,12 +2892,21 @@ def paymentview(request):
         refnumber = request.json_body.get('ReferenceNumber', '')
         amount = Decimal(0.00)
         if 'Amount' in request.json_body.keys():
-            amount = Decimal(request.json_body['Amount']).quantize(Decimal('.01'))
+            amount = Decimal(request.json_body['Amount']
+                                ).quantize(Decimal('.01'))
+        # if the total payment on a claim is equal or bigger than it's total
+        # update it's status to 'Paid'
+        claimid = request.json_body['ClaimID']
+        claim = DBSession.query(Claim).filter_by(ID=claimid).first()
+
+        if amount >= claim.Total:
+            claim.Status = "Paid"
 
         newpayment = Payment(ProjectID=projectid,
                             Date=date,
                             ReferenceNumber=refnumber,
-                            Amount=amount)
+                            Amount=amount,
+                            ClaimID=claimid)
         DBSession.add(newpayment)
         DBSession.flush()
 
@@ -2897,6 +2921,7 @@ def paymentview(request):
                                 ).filter_by(ID=request.matchdict['id']).first()
         payment.ProjectID = request.json_body['ProjectID']
         payment.ReferenceNumber = request.json_body.get('ReferenceNumber', '')
+        payment.ClaimID = request.json_body['ClaimID']
         amount = Decimal(0.00)
         if 'Amount' in request.json_body.keys():
             amount = Decimal(request.json_body['Amount']).quantize(Decimal('.01'))
@@ -2917,6 +2942,21 @@ def paymentview(request):
     payment = DBSession.query(Payment).filter_by(ID=paymentid).first()
 
     return payment.dict()
+
+@view_config(route_name='payment_claims', renderer='json', permission='view')
+def payment_claims(request):
+    """ Returns which claims on a project can still be paid
+    """
+    qry = DBSession.query(Claim).filter(
+                Claim.ProjectID==request.params.dict_of_lists()['Project'][0],
+                Claim.Status!='Paid'
+                ).order_by(Claim.ID.desc()).all()
+
+    claims = []
+    for claim in qry:
+        claims.append(claim.dict())
+
+    return claims
 
 @view_config(route_name='currencyview', renderer='json', permission='view')
 def currenciesview(request):

@@ -1512,6 +1512,7 @@ class Supplier(Base):
     Fax = Column(Text(50))
     Cellular = Column(Text(50))
     Contact = Column(Text(50))
+    SupplierCode = Column(Text(50))
 
     City = relationship('City')
     Resource = relationship('Resource')
@@ -1530,7 +1531,8 @@ class Supplier(Base):
                 'Phone': self.Phone,
                 'Fax': self.Fax,
                 'Cellular': self.Cellular,
-                'Contact': self.Contact}
+                'Contact': self.Contact,
+                'SupplierCode': self.SupplierCode}
 
     def __repr__(self):
         """Return a representation of this supplier
@@ -1577,6 +1579,7 @@ class Order(Base):
     DeliveryAddress = Column(Text(100))
     Date = Column(DateTime)
     Status = Column(Text(50), default='Draft')
+    Description = Column(Text(100))
 
     Project = relationship('Project')
     Supplier = relationship('Supplier')
@@ -1629,7 +1632,8 @@ class Order(Base):
                 'ClientID': self.ClientID,
                 'Total': total,
                 'Subtotal': str(self.Subtotal),
-                'Status': self.Status}
+                'Status': self.Status,
+                'Description': self.Description}
 
     def __repr__(self):
         """Return a representation of this order
@@ -1649,7 +1653,7 @@ class OrderItem(Base):
     _Quantity = Column('Quantity', Float, default=0.0)
     _Rate = Column('Rate', Numeric(12, 2), default=Decimal(0.00))
     _Total = Column('Total', Numeric(12, 2))
-    _Discount = Column('Discount', Numeric(12, 2), default=Decimal(0.00))
+    _Discount = Column('Discount', Float, default=0.00)
 
     Order = relationship('Order')
     BudgetItem = relationship('BudgetItem')
@@ -1660,22 +1664,10 @@ class OrderItem(Base):
         """
         if not self._Total:
             self._Total = Decimal(
-                (self.Quantity * float(self.Rate) - float(self.Discount)
-                ) * (1 + self.VAT/100.0)
-                ).quantize(Decimal('.01'))
+                    (float(self.Subtotal) - float(
+                    self.Subtotal) * self.Discount/100.0
+                ) * (1 + self.VAT/100.0)).quantize(Decimal('.01'))
         return self._Total
-
-    @hybrid_property
-    def Subtotal(self):
-        """ Return the subtotal. Subtotal is Total - Vat amount
-        """
-        if not self._Total:
-            self._Total = Decimal(
-                (self.Quantity * float(self.Rate) - float(self.Discount)
-                ) * (1 + self.VAT/100.0)
-                ).quantize(Decimal('.01'))
-        return Decimal(float(self._Total) / (1+(self.VAT/100))
-                        ).quantize(Decimal('.01'))
 
     @Total.setter
     def Total(self, total):
@@ -1683,7 +1675,7 @@ class OrderItem(Base):
         """
         self._Total = Decimal(total).quantize(Decimal('.01'))
 
-    @property
+    @hybrid_property
     def Subtotal(self):
         """ Return the subtotal, which is Quantity*Rate
         """
@@ -1701,7 +1693,8 @@ class OrderItem(Base):
         """
         self._Rate = Decimal(rate).quantize(Decimal('.01'))
         # when the rate changes recalculate the total
-        self.Total = (self.Quantity * float(self.Rate) - float(self.Discount)
+        self.Total = (float(self.Subtotal) - float(self.Subtotal
+                    ) * self.Discount/100.0
                 ) * (1 + self.VAT/100.0)
 
     @hybrid_property
@@ -1715,8 +1708,9 @@ class OrderItem(Base):
         """ Set the Quantity and recalculate the Total
         """
         self._Quantity = float(quantity)
-        self.Total = (self.Quantity * float(self.Rate) - float(self.Discount)
-                ) * (1 + self.VAT/100.0)
+        self.Total = (float(self.Subtotal) - float(
+                        self.Subtotal) * self.Discount/100
+                        ) * (1 + self.VAT/100.0)
 
     @hybrid_property
     def Discount(self):
@@ -1728,14 +1722,16 @@ class OrderItem(Base):
     def Discount(self, discount):
         """ Set the Discount and recalculate the Total
         """
-        self._Discount = Decimal(discount).quantize(Decimal('.01'))
-        self.Total = (self.Quantity * float(self.Rate) - float(self.Discount)
-                ) * (1 + self.VAT/100.0)
+        self._Discount = float(discount)
+        self.Total = (float(self.Subtotal) - float(self.Subtotal
+                        ) * self.Discount/100
+                        ) * (1 + self.VAT/100.0)
 
     def dict(self):
         """ Override the dict function
         """
-        vatcost = Decimal(float(self.Subtotal - self.Discount)*(self.VAT/100.0)
+        vatcost = Decimal(float(self.Total) - (float(self.Subtotal)
+                            - float(self.Subtotal)*self.Discount/100)
                             ).quantize(Decimal('.01'))
         return {'Name': self.BudgetItem.Name,
                 'ParentName': self.BudgetItem.Parent.Name,
@@ -1930,7 +1926,8 @@ class Invoice(Base):
                 'ReadablePaymentdate': readable_pay_date,
                 'ReadableInvoicedate': readable_invoice_date,
                 'Ordertotal': str(self.Order.Total),
-                'Status': self.Status}
+                'Status': self.Status,
+                'OrderDescription': self.Order.Description}
 
     def __repr__(self):
         """ Return a representation of this invoice
@@ -2073,6 +2070,7 @@ class Claim(Base):
 
     Project = relationship('Project')
     Valuation = relationship('Valuation', uselist=False)
+    Payments = relationship('Payment')
 
     @property
     def Total(self):
@@ -2115,11 +2113,13 @@ class Payment(Base):
     __tablename__ = 'Payment'
     ID = Column(Integer, primary_key=True)
     ProjectID = Column(Integer, ForeignKey('Project.ID'))
+    ClaimID = Column(Integer, ForeignKey('Claim.ID'))
     Date = Column(DateTime)
     ReferenceNumber = Column(Text(50))
     Amount = Column(Numeric)
 
     Project = relationship('Project')
+    Claim = relationship('Claim')
 
     def dict(self):
         """ Returns a dictionary of this Payment
@@ -2134,7 +2134,8 @@ class Payment(Base):
                 'Project': self.Project.Name,
                 'ReferenceNumber': self.ReferenceNumber,
                 'Date': date,
-                'Amount': str(self.Amount)}
+                'Amount': str(self.Amount),
+                'ClaimID': self.ClaimID}
 
     def __repr__(self):
         """ Return a representation of this Payment

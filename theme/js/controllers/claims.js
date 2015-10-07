@@ -8,7 +8,7 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
         $scope.jsonclaims = [];
         $scope.claimList = [];
         $scope.valuationsList = [];
-        $scope.statusList = ['Draft', 'Claimed'];
+        $scope.statusList = ['Draft', 'Claimed', 'Paid'];
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};

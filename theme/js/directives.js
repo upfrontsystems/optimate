@@ -677,7 +677,7 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                 discount_column = {id: "Discount", name: "Discount", field: "Discount",
                                 width: columns_widths.Discount,
                                  cssClass: "cell editable-column",
-                                formatter: CurrencyFormatter,
+                                formatter: PercentageFormatter,
                                 editor: Slick.Editors.CustomEditor}
             }
             initialiseColumns();
@@ -759,6 +759,22 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                         parts.push('00');
                     }
                     return $scope.currency + parts.join(".");
+                }
+                else {
+                    return "";
+                }
+            }
+
+            // Formatter for displaying percentages
+            function PercentageFormatter(row, cell, value, columnDef, dataContext) {
+                if (value != undefined) {
+                    var parts = value.toString().split(".");
+                    // if the percentage has a long decimal cut it at 3
+                    if (parts.length > 1 && parts[parts.length-1].length > 3){
+                        parts[parts.length-1] = parts[parts.length-1].slice(0,3);
+                        value = parts.join('.')
+                    }
+                    return value + ' %';
                 }
                 else {
                     return "";
@@ -858,19 +874,16 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                     var ordertotal = 0.0;
                     var ordersubtotal = 0.0;
                     var ordervatcost = 0.0;
-                    var orderdiscount = 0.0;
                     var gridlist = [];
                     gridlist = budgetItemslist.slice(0);
                     for (var i=0;i<budgetItemslist.length; i++) {
                         ordertotal += parseFloat(budgetItemslist[i].Total);
                         ordersubtotal += parseFloat(budgetItemslist[i].Subtotal);
                         ordervatcost += parseFloat(budgetItemslist[i].VATCost);
-                        orderdiscount += parseFloat(budgetItemslist[i].Discount);
                     }
                     var totals = {'id': 'totalsrow',
                                     'Subtotal': ordersubtotal,
                                     'VATCost': ordervatcost,
-                                    'Discount': orderdiscount,
                                     'Total': ordertotal,
                                     'cssClasses': 'cell-title non-editable-column'};
 
@@ -886,7 +899,6 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                     var totals = {'id': 'totalsrow',
                                 'Subtotal': undefined,
                                 'VATCost': undefined,
-                                'Discount': undefined,
                                 'Total': undefined};
                     gridlist.push(totals);
                     grid.setColumns(columns);
@@ -903,18 +915,21 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                 var oldtotal = parseFloat(item.Total);
                 var oldsubtotal = item.Subtotal;
                 var oldvatcost = item.VATCost;
-                var olddiscount = item.Discount;
                 var vatpercentage = item.VAT ? $scope.taxRate : 0;
                 var vatpercentage = math.divide(vatpercentage, 100.0);
 
                 item.Subtotal = moneymath.multiply(item.Quantity, item.Rate);
                 item.VATCost = moneymath.chain(item.Subtotal)
-                                        .subtract(item.Discount)
+                                        .subtract(math.multiply(
+                                                        item.Subtotal,
+                                                        item.Discount/100))
                                         .multiply(vatpercentage)
                                         .done();
                 item.VATCost = math.format(item.VATCost, {precision: 2});
                 item.Total = moneymath.chain(item.Subtotal)
-                                        .subtract(item.Discount)
+                                        .subtract(math.multiply(
+                                                        item.Subtotal,
+                                                        item.Discount/100))
                                         .add(item.VATCost)
                                         .done();
                 dataView.updateItem(item.id, item);
@@ -932,15 +947,7 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                                             .add(item.Total)
                                             .subtract(oldtotal)
                                             .done();
-                // if the discount column was changed update the last row value
-                if (grid.getColumns()[ctx.cell].name == 'Discount'){
-                    var discounttotal = 0;
-                    for (var i = 0; i < grid.getDataLength() -1 ; i++) {
-                        var item = dataView.getItem(i);
-                        discounttotal = moneymath.add(discounttotal, item.Discount);
-                    }
-                    lastrow.Discount = discounttotal;
-                }
+
                 dataView.updateItem(lastrow.id, lastrow);
             };
 

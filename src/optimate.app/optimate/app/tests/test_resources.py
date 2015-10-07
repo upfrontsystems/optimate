@@ -328,7 +328,6 @@ class TestSearchResources(unittest.TestCase):
         request.params = {'search': 'resource'}
         response = self._callFUT(request)
         # test the correct resources is returned
-        print response
         self.assertEqual(len(response), 1)
 
 

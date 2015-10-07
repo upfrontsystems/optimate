@@ -7,7 +7,7 @@ myApp.controller('paymentsController', ['$scope', '$http', 'globalServerURL', 'S
         $scope.isDisabled = false;
         $scope.jsonpayments = [];
         $scope.paymentList = [];
-        $scope.valuationsList = []
+        $scope.claimsList = []
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
@@ -53,6 +53,34 @@ myApp.controller('paymentsController', ['$scope', '$http', 'globalServerURL', 'S
             });
         }
         $scope.loadPaymentSection();
+
+        // load the list of claims based on a project
+        $scope.loadProjectClaims = function(projectid) {
+            if (projectid) {
+                var req = {
+                    method: 'GET',
+                    url: globalServerURL + 'payment/claims',
+                    params: {'Project': projectid}
+                };
+                $http(req).success(function(response) {
+                    $scope.claimsList = response;
+                    console.log("Claims list loaded");
+                });
+            }
+            else {
+                $scope.claimsList = [];
+            }
+        }
+
+        // when a claim is selected update the default amount
+        $scope.claimSelected = function(claimid){
+            if (claimid){
+                $http.get(globalServerURL + 'claim/' + claimid + '/'
+                ).success(function(response){
+                    $scope.formData.Amount = response['Total'];
+                });
+            }
+        }
 
         // Adding or editing a payment
         $scope.save = function() {
@@ -124,7 +152,7 @@ myApp.controller('paymentsController', ['$scope', '$http', 'globalServerURL', 'S
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
             $scope.modalState = "Add";
-            $scope.valuationsList = [];
+            $scope.claimsList = [];
             if ($scope.selectedPayment) {
                 $('#payment-'+$scope.selectedPayment.id).removeClass('active');
                 $scope.selectedPayment = undefined;
@@ -144,6 +172,7 @@ myApp.controller('paymentsController', ['$scope', '$http', 'globalServerURL', 'S
                 $scope.formData = response;
                 $scope.formData.Date = new Date($scope.formData.Date);
                 $scope.formData.NodeType = 'payment';
+                $scope.formData.Amount = response['Amount'];
             });
             // set each field dirty
             angular.forEach($scope.savePaymentModalForm.$error.required, function(field) {

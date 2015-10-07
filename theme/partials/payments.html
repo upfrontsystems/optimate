@@ -110,6 +110,7 @@
                 <tr>
                     <th>Payment ID</th>
                     <th>Payment Date</th>
+                    <th>Claim ID</th>
                     <th>Project</th>
                     <th class="currency">Amount</th>
                 </tr>
@@ -119,6 +120,7 @@
                     ng-click="showActionsFor(obj)" id="payment-{{obj.ID}}">
                     <td>{{obj.ID}}</td>
                     <td>{{obj.Date}}</td>
+                    <td>{{obj.ClaimID}}</td>
                     <td>{{obj.Project}}</td>
                     <td class="currency" ng-bind-html="obj.Amount | currency:currency"></td>
                 </tr>

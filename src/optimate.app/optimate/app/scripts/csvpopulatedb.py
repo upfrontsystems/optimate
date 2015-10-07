@@ -1090,11 +1090,6 @@ if __name__ == '__main__':
                                 DBSession.add(newpart)
                                 biquantity = parent.Quantity * quantity
 
-                                # if the resource equals the resource part part
-                                if parentresourceid == resource.ID:
-                                    import pdb
-                                    pdb.set_trace()
-
                             bi = BudgetItem(ID=code,
                                             ResourceID=resource.ID,
                                             _Quantity = biquantity,
@@ -1333,52 +1328,54 @@ if __name__ == '__main__':
                 auth = str(row[authindex]).encode('ascii')
                 try:
                     projid = int(row[projidindex])
-                    if projid == 0:
-                        projid = None
                 except:
-                    projid = None
-                try:
-                    supid = int(row[supidindex])
-                    if supid == 0:
-                        supid = None
-                except:
-                    supid = None
-                try:
-                    clientid = row[clientidindex]
-                    if clientid == 0:
-                        clientid = None
-                except:
-                    clientid = None
-                try:
-                    date = datetime.strptime(row[dateindex], '%Y-%m-%d %H:%M:%S')
-                except ValueError, e:
-                    date = None
-                try:
-                    total = Decimal(row[
-                        totalindex]).quantize(Decimal('.01'))
-                except InvalidOperation, e:
-                    total = Decimal(0.00)
-                try:
-                    tax = float(row[taxindex])
-                except ValueError:
-                    tax = 0.0
-                try:
-                    deladd = str(row[deladdindex]).encode('ascii')
-                except UnicodeEncodeError:
-                    deladd = ""
-                # store the order's tax rate in a dict
-                ordertaxrate[str(code)] = tax
+                    projid = 0
 
-                order = Order(ID=code,
-                                Authorisation=auth,
-                                ProjectID=projid,
-                                SupplierID=supid,
-                                ClientID=clientid,
-                                Total=total,
-                                DeliveryAddress=deladd,
-                                Date=date)
-                DBSession.add(order)
-                DBSession.flush()
+                # make sure the project exists
+                project = DBSession.query(Project).filter_by(ID=projid).first()
+                if project:
+                    try:
+                        supid = int(row[supidindex])
+                        if supid == 0:
+                            supid = None
+                    except:
+                        supid = None
+                    try:
+                        clientid = row[clientidindex]
+                        if clientid == 0:
+                            clientid = None
+                    except:
+                        clientid = None
+                    try:
+                        date = datetime.strptime(row[dateindex], '%Y-%m-%d %H:%M:%S')
+                    except ValueError, e:
+                        date = None
+                    try:
+                        total = Decimal(row[
+                            totalindex]).quantize(Decimal('.01'))
+                    except InvalidOperation, e:
+                        total = Decimal(0.00)
+                    try:
+                        tax = float(row[taxindex])
+                    except ValueError:
+                        tax = 0.0
+                    try:
+                        deladd = str(row[deladdindex]).encode('ascii')
+                    except UnicodeEncodeError:
+                        deladd = ""
+                    # store the order's tax rate in a dict
+                    ordertaxrate[str(code)] = tax
+
+                    order = Order(ID=code,
+                                    Authorisation=auth,
+                                    ProjectID=projid,
+                                    SupplierID=supid,
+                                    ClientID=clientid,
+                                    Total=total,
+                                    DeliveryAddress=deladd,
+                                    Date=date)
+                    DBSession.add(order)
+                    DBSession.flush()
 
         transaction.commit()
 
@@ -1393,27 +1390,25 @@ if __name__ == '__main__':
         for row in book:
             code = int(row[codeindex])
             if code != 0:
-                orderid = int(row[orderidindex])
-                compid = int(row[compidindex])
-                try:
-                    quantity = float(row[quantityindex])
-                except ValueError, e:
-                    quantity = 0.0
-                try:
-                    rate = Decimal(row[rateindex]).quantize(Decimal('.01'))
-                except InvalidOperation, e:
-                    rate = Decimal(0.00)
-
                 # if the code has been changed assign it here
                 if compid in changedcocodes:
                     compid = changedcocodes[compid]
 
                 if compid != errorid:
                     # make sure the component/budgetitem exists
-                    comp = DBSession.query(BudgetItem).filter_by(ID=compid).first()
-                    if comp:
-                        comp.Ordered += Decimal(quantity * float(rate)
-                            ).quantize(Decimal('.01'))
+                    bi = DBSession.query(BudgetItem).filter_by(ID=compid).first()
+                    if bi:
+                        orderid = int(row[orderidindex])
+                        compid = int(row[compidindex])
+                        try:
+                            quantity = float(row[quantityindex])
+                        except ValueError, e:
+                            quantity = 0.0
+                        try:
+                            rate = Decimal(row[rateindex]).quantize(Decimal('.01'))
+                        except InvalidOperation, e:
+                            rate = Decimal(0.00)
+
                         # set the order tax rate to the order item tax rate
                         tax = 0.0
                         try:
@@ -1421,16 +1416,17 @@ if __name__ == '__main__':
                         except:
                             pass
 
-                        # check if an order item already exists on this budgetitem
-                        existingorderitem = None
-                        for orderitem in comp.OrderItems:
-                            if orderitem.OrderID == orderid:
-                                existingorderitem = orderitem
-                                break
+                        # check if an order item already exists
+                        # for this budgetitem and this order
+                        existing = DBSession.query(OrderItem).filter_by(
+                                                    OrderID=orderid,
+                                                    BudgetItemID=compid).first()
 
                         # if the order item exists add the quantities
-                        if existingorderitem:
-                            existingorderitem._Quantity += quantity
+                        if existing:
+                            oldtotal = existing.Total
+                            existing.Quantity += quantity
+                            bi.Ordered = bi.Ordered - oldtotal + existing.Total
                         else:
                             orderitem = OrderItem(OrderID=orderid,
                                             BudgetItemID=compid,
@@ -1439,32 +1435,9 @@ if __name__ == '__main__':
                                             VAT=tax)
                             DBSession.add(orderitem)
                             DBSession.flush()
+                            bi.Ordered += orderitem.Total
 
         transaction.commit()
-
-        print "Deleting broken orders"
-        orders = DBSession.query(Order).all()
-        for order in orders:
-            if not order.Project:
-                DBSession.delete(order)
-
-        print "Deleting duplicate orderitems"
-        item_2 = aliased(OrderItem)
-        dups = DBSession.query(OrderItem
-            ).join(item_2, OrderItem.OrderID == item_2.OrderID).filter(OrderItem.BudgetItemID == item_2.BudgetItemID)
-        deleteids = []
-        for dup in dups:
-            if dup.ID not in deleteids:
-                duplicates = dups.filter_by(OrderID=dup.OrderID, BudgetItemID=dup.BudgetItemID).all()
-                for dupbi in duplicates:
-                    if dupbi.ID != dup.ID:
-                        if dup._Quantity is None:
-                            dup._Quantity = 0
-                        if dupbi._Quantity is None:
-                            dupbi._Quantity = 0
-                        dup._Quantity += dupbi._Quantity
-                        deleteids.append(dupbi.ID)
-                        DBSession.delete(dupbi)
 
         print 'Recalculating Project totals'
         projectlist = DBSession.query(Project).all()
@@ -1482,7 +1455,6 @@ if __name__ == '__main__':
             project.Total
 
         transaction.commit()
-
 
         print "\nRecalculating Order totals"
         orders = DBSession.query(Order).all()
@@ -1505,22 +1477,19 @@ if __name__ == '__main__':
         transaction.commit()
 
         print "\nSetting Resource SupplierID"
-        resources = DBSession.query(Resource).all()
-        percentile = len(resources) / 100.0
+        orderitems = DBSession.query(OrderItem
+                                    ).group_by(OrderItem.BudgetItemID).all()
+        percentile = len(orderitems) / 100.0
         print 'Percentage done: '
         counter = 0
         x = 0
-        for resource in resources:
+        for item in orderitems:
             if x == int(percentile * counter):
                 counter += 1
                 stdout.write('\r%d' % counter + '%')
                 stdout.flush()
                 sleep(1)
             x +=1
-            budgetitem = resource.BudgetItems[0]
-            if len(budgetitem.OrderItems) > 0:
-                orderitem = budgetitem.OrderItems[0]
-                if orderitem.Order:
-                    resource.SupplierID = orderitem.Order.SupplierID
+            item.BudgetItem.Resource.SupplierID = item.Order.SupplierID
 
     print '\nDone'

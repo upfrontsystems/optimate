@@ -93,7 +93,7 @@ def initdb():
                         ParentID=budgetgroup2.ID)
 
         valuation = Valuation(ID=1, ProjectID=project.ID,
-                                    Date=datetime.date(2000, 1, 1))
+                                    Date=datetime.date(2001, 1, 1))
         vitem1 = ValuationItem(ID=1,
                                 ValuationID=valuation.ID,
                                 ParentID=0,

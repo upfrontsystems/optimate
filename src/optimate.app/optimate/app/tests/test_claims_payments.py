@@ -129,12 +129,14 @@ def initdb():
 
         payment1 = Payment(ID=1,
                         ProjectID=project.ID,
+                        ClaimID=claim1.ID,
                         ReferenceNumber="0000",
                         Date=datetime.date(2000, 02, 02),
                         Amount=Decimal(50.00))
 
         payment2 = Payment(ID=2,
                         ProjectID=project2.ID,
+                        ClaimID=claim2.ID,
                         ReferenceNumber="0001",
                         Date=datetime.date(2100, 12, 12),
                         Amount=Decimal(10.00))
@@ -267,7 +269,8 @@ class TestPaymentView(unittest.TestCase):
         request.matchdict = {'id': 0}
         request.json_body = {'ProjectID': 1,
                             'ReferenceNumber': "0002",
-                            'Amount': 40}
+                            'Amount': 40,
+                            'ClaimID': 1}
         response = self._callFUT(request)
         # test if the response is ok
         self.assertEqual(response['Project'], 'Project 1')
@@ -277,7 +280,8 @@ class TestPaymentView(unittest.TestCase):
         request = testing.DummyRequest()
         request.method = 'PUT'
         request.matchdict = {'id': 1}
-        request.json_body = {'ProjectID': 19}
+        request.json_body = {'ProjectID': 19,
+                            'ClaimID': 2}
         response = self._callFUT(request)
         # test if the response is ok
         self.assertEqual(response['ProjectID'], 19)

@@ -199,6 +199,7 @@
                 <tr>
                     <th>Invoice Number</th>
                     <th>Order Number</th>
+                    <th>Order Description</th>
                     <th>Project</th>
                     <th>Supplier</th>
                     <th class="currency">Invoice Total</th>
@@ -216,6 +217,7 @@
                     ng-click="showActionsFor(obj)" id="invoice-{{obj.ID}}">
                     <td>{{obj.InvoiceNumber}}</td>
                     <td>{{obj.OrderID}}</td>
+                    <td>{{obj.OrderDescription}}</td>
                     <td>{{obj.Project}}</td>
                     <td>{{obj.Supplier}}</td>
                     <td class="currency" ng-bind-html="obj.Total | currency:currency"></td>

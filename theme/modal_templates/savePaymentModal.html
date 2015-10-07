@@ -23,8 +23,22 @@
                                 name="inputProject"
                                 data-ng-model="formData.ProjectID"
                                 data-ng-options="project.ID as project.Name for project in projectsList"
+                                data-ng-change="loadProjectClaims(formData.ProjectID); formData.ClaimID=undefined"
                                 required>
                             <option value="">Select a project</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputClaim" class="col-sm-2 control-label">Claim:</label>
+                        <select chosen
+                                class="col-sm-7"
+                                id="inputClaim"
+                                name="inputClaim"
+                                data-ng-model="formData.ClaimID"
+                                data-ng-options="claim.ID as claim.ID for claim in claimsList"
+                                data-ng-change="claimSelected(formData.ClaimID)"
+                                required>
+                            <option value="">Select a claim</option>
                         </select>
                     </div>
                     <div class="form-group">
