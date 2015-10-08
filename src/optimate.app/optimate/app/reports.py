@@ -15,9 +15,11 @@ from xlsxwriter.utility import xl_rowcol_to_cell
 from optimate.app.models import (
     DBSession,
     Node,
+    BudgetGroup,
     Order,
     OrderItem,
     Valuation,
+    ValuationItem,
     Client,
     Invoice,
     Supplier,
@@ -943,35 +945,47 @@ def cashflow(request):
     projectid = request.matchdict['id']
     project = DBSession.query(Project).filter_by(ID=projectid).first()
     currency = currencies[DBSession.query(CompanyInformation).first().Currency]
+    compinfo = DBSession.query(CompanyInformation).first()
+
+    budgetgroupsqry = DBSession.query(BudgetGroup
+                                    ).filter_by(ParentID=projectid
+                                    ).order_by(BudgetGroup.Name.asc()).all()
 
     valuations = DBSession.query(Valuation
                                 ).filter_by(ProjectID=projectid
-                                ).order_by(Valuation.Date.desc()
-                                ).order_by(Valuation.ID.desc()).all()
+                                ).order_by(Valuation.Date.asc()
+                                ).order_by(Valuation.ID.asc()).all()
 
+    dateheader = []
     headers = []
     rows = []
     # create a matrix of valuations and valuation items
     if len(valuations) > 0:
         data = []
         budgetgroups = []
-        for item in valuations[0].ValuationItems:
-            budgetgroups.append(item.dict())
-            budgetgroups[-1]['BudgetGroupTotal'] = item.BudgetGroup.Total
-        budgetgroups = sorted(budgetgroups, key=lambda k: k['Name'].upper())
+        for bg in budgetgroupsqry:
+            budgetgroups.append(bg.dict())
 
         col = 0
         for valuation in valuations:
             column = {}
             column['Valuation'] = valuation.dict()
             items = []
-            for item in valuation.ValuationItems:
-                items.append(item.dict())
-            items = sorted(items, key=lambda k: k['Name'].upper())
-            if col > 0:
-                for i in range(len(items)):
-                    items[i]['PercentageComplete']-=(
-                        data[-1]['Items'][i]['PercentageComplete'])
+            rootitems = DBSession.query(ValuationItem).filter_by(
+                                                    ValuationID=valuation.ID,
+                                                    ParentID=0).all()
+            if len(rootitems) == len(valuation.ValuationItems):
+                items = [v.dict() for v in rootitems]
+            else:
+                for item in rootitems:
+                    data = item.dict()
+                    budgettotal = item.BudgetGroup.Total
+                    if item.Total > 0:
+                        data['PercentageComplete'] = float(item.Total/budgettotal)*100
+                    else:
+                        data['PercentageComplete'] = 0
+                    items.append(data)
+
             col=1
             column['Items'] = items
             data.append(column)
@@ -980,14 +994,15 @@ def cashflow(request):
         headers.append('Detail')
         headers.append('Budget Total')
         for column in data:
-            headers.append('Claimed')
-            headers.append(column['Valuation']['ReadableDate'])
+            headers.append('%')
+            headers.append('Amount')
+            dateheader.append(column['Valuation']['ReadableDate'])
 
         for i in range(len(budgetgroups)):
             row = []
             pair = []
             pair.append(budgetgroups[i]['Name'])
-            pair.append(budgetgroups[i]['BudgetGroupTotal'])
+            pair.append(budgetgroups[i]['Total'])
             row.append(pair)
             for column in data:
                 pair = []
@@ -998,10 +1013,14 @@ def cashflow(request):
 
     # inject valuation data into template
     now = datetime.now()
+    today = now.strftime('%D%M%Y')
     clientid = project.Client.ID
     client = project.Client
     template_data = render('templates/cashflowreport.pt',
                            {'project': project,
+                            'company_info': compinfo,
+                            'today': today,
+                            'dateheader': dateheader,
                             'headers': headers,
                             'rows': rows,
                             'client': client,
@@ -2185,60 +2204,121 @@ def excelcashflow(request):
     numberformat = workbook.add_format({'num_format': 0x00})
     # percentage
     percentageformat = workbook.add_format({'num_format': 0x0a})
+    boldborderpercentage = add_to_format(boldborder, {'num_format': 0x0a}, workbook)
     # title
     titleformat = add_to_format(bold, {'font_size': 12}, workbook)
     smallbold = add_to_format(bold, {'font_size': 10}, workbook)
 
-    worksheet.set_column(0, 0, 35)
-    worksheet.set_column(1, 1, 20)
+    worksheet.set_column(0, 0, 10)
+    worksheet.set_column(1, 1, 35)
+    worksheet.set_column(2, 2, 20)
 
-    worksheet.write(0, 0, 'Cash flow report', bold)
+    worksheet.write(0, 0, 'Project Cashflow Projection', bold)
 
     row = 2
     worksheet.write(row, 0, 'To:')
     worksheet.write(row, 1, client.Name, bold)
-    row+=1
-    worksheet.write(row, 0, 'Project')
-    worksheet.write(row, 1, project.Name, bold)
-
+    worksheet.write(row, 3, 'TRE Bank Details', bold)
+    compinfo = DBSession.query(CompanyInformation).first()
     row+=2
+    worksheet.write(row, 0, 'Date:')
+    worksheet.write(row, 1, datetime.now(), bolddate)
+    worksheet.write(row, 3, 'Bank')
+    worksheet.write(row, 4, compinfo.BankName, bold)
+    row+=1
+    worksheet.write(row, 0, 'Project:')
+    worksheet.write(row, 1, project.Name, bold)
+    worksheet.write(row, 3, 'Bank Code:')
+    worksheet.write(row, 4, compinfo.BranchCode, bold)
+    row+=1
+    worksheet.write(row, 3, 'Account:')
+    worksheet.write(row, 4, compinfo.AccountName, bold)
+    row+=1
+    worksheet.write(row, 3, 'Account No:')
+    worksheet.write(row, 4, compinfo.AccountNo, bold)
+    row+=1
+    worksheet.write(row, 3, 'TRE VAT no:')
+    row+=1
+    worksheet.write(row, 3, 'Client VAT no:')
+    worksheet.write(row,4, client.VAT, bold)
+
+    compvat = compinfo.DefaultTaxrate
+
+    row+=3
     headerrow = row
-    worksheet.write(row, 0, 'Details', boldborder)
-    worksheet.write(row, 1, 'Budget Total', boldborder)
+    worksheet.write(row, 1, 'Details', boldborder)
+    worksheet.write(row, 2, 'Budget', boldborder)
 
     valuations = DBSession.query(Valuation
                                 ).filter_by(ProjectID=projectid
-                                ).order_by(Valuation.Date.desc()
-                                ).order_by(Valuation.ID.desc()).all()
+                                ).order_by(Valuation.Date.asc()
+                                ).order_by(Valuation.ID.asc()).all()
     # list the budget groups
-    valuationitems = sorted(project.Valuations[0].ValuationItems,
-                                key=lambda k: k.BudgetGroup.Name.upper())
+    budgetgroups = DBSession.query(BudgetGroup
+                                    ).filter_by(ParentID=projectid
+                                    ).order_by(BudgetGroup.Name.asc()).all()
     row+=2
-    for item in valuationitems:
-        worksheet.write(row, 0, item.BudgetGroup.Name)
-        worksheet.write(row, 1, item.BudgetGroup.Total, money)
+    for bg in budgetgroups:
+        worksheet.write(row, 1, bg.Name)
+        worksheet.write(row, 2, bg.Total, money)
         row+=1
+    worksheet.write_formula(row, 2, '{=SUM(C'+str(headerrow+3)+':C'+str(row)+')}', boldmoney)
 
-    col = 2
+    col = 3
     for valuation in valuations:
-        worksheet.set_column(col, col + 1, 20)
+        worksheet.set_column(col, col, 10)
+        worksheet.set_column(col+1, col+1, 20)
         row = headerrow
-        worksheet.write(row, col, 'Claimed', boldborder)
-        worksheet.write(row, col + 1, valuation.Date, boldborderdate)
+        worksheet.write(row-1, col+1, valuation.Date, dateformat)
+        worksheet.write(row, col, '%', boldborderpercentage)
+        worksheet.write(row, col + 1, 'Amount',boldborder)
         row+=2
-        valuationitems = sorted(valuation.ValuationItems,
-                                key=lambda k: k.BudgetGroup.Name.upper())
+
+        # condense the expanded valuation items into a list of
+        # the first level budget groups
+        valuationitems = []
+        rootitems = DBSession.query(ValuationItem).filter_by(
+                                                    ValuationID=valuation.ID,
+                                                    ParentID=0).all()
+        if len(rootitems) == len(valuation.ValuationItems):
+            valuationitems = [v.dict() for v in rootitems]
+        else:
+            for item in rootitems:
+                data = item.dict()
+                budgettotal = item.BudgetGroup.Total
+                if item.Total > 0:
+                    data['PercentageComplete'] = float(item.Total/budgettotal)*100
+                else:
+                    data['PercentageComplete'] = 0
+                valuationitems.append(data)
+
+        valuationitems = sorted(valuationitems, key=lambda k: k['Name'].upper())
+
         for item in valuationitems:
-            if col == 2:
-                worksheet.write(row, col, item.PercentageComplete/100, percentageformat)
-            else:
-                cell = xl_rowcol_to_cell(row, col-2)
-                worksheet.write_formula(row, col,
-                    '{='+str(item.PercentageComplete/100)+'-'+cell+'}', percentageformat)
+            worksheet.write(row, col, item['PercentageComplete']/100, percentageformat)
             cell = xl_rowcol_to_cell(row, col)
-            worksheet.write_formula(row, col + 1, '{=B' + str(row+1)+'*' + cell+'}', money)
+            worksheet.write_formula(row, col + 1, '{=C' + str(row+1)+'*' + cell+'}', money)
             row+=1
+
+        cellc = xl_rowcol_to_cell(row, col+1)
+        worksheet.write_formula(row, col, '{='+cellc+'/C'+str(row+1)+'}', percentageformat)
+        cells = xl_rowcol_to_cell(headerrow+2, col+1)
+        celle = xl_rowcol_to_cell(row-1, col+1)
+        worksheet.write_formula(row, col+1, '{=SUM('+cells+':'+celle+')}', boldmoney)
+        cellr = xl_rowcol_to_cell(row, col+1)
+        worksheet.write_formula(row+2, col+1, '{='+cellr+'}', money)
+        cellv = xl_rowcol_to_cell(row+2, col+1)
+        worksheet.write_formula(row+3, col+1, '{='+cellv+'*'+str(compvat/100)+'}', money)
+        cellt = xl_rowcol_to_cell(row+3, col+1)
+        worksheet.write_formula(row+4, col+1, '{='+cellv+'+'+cellt+'}', money)
         col+=2
+
+    row+=2
+    worksheet.write(row, 1, 'Total cost excl VAT')
+    row+=1
+    worksheet.write(row, 1, 'VAT @ ' + str(compvat))
+    row+=1
+    worksheet.write(row, 1, 'Total cost excl VAT')
 
     workbook.close()
 

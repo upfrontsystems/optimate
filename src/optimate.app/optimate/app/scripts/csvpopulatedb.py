@@ -244,8 +244,8 @@ if __name__ == '__main__':
             city = row[cityindex]
             city = city.encode('ascii')
             if len(city) > 0:
-                existingcity = DBSession.query(City).filter_by(Name=city).first()
-                if not existingcity:
+                existing = DBSession.query(City).filter_by(Name=city).first()
+                if not existing:
                     newcity = City(Name=city)
                     DBSession.add(newcity)
                     transaction.commit()
@@ -258,13 +258,13 @@ if __name__ == '__main__':
             city = row[cityindex]
             city = city.encode('ascii')
             if len(city) > 0:
-                existingcity = DBSession.query(City).filter_by(Name=city).first()
-                if not existingcity:
+                existing = DBSession.query(City).filter_by(Name=city).first()
+                if not existing:
                     newcity = City(Name=city)
                     DBSession.add(newcity)
                     transaction.commit()
 
-        book = csv.reader(open(exceldatapath + 'data.csv/Supplier.DB.csv', 'rb'))
+        book = csv.reader(open(exceldatapath+'data.csv/Supplier.DB.csv', 'rb'))
         cityindex = 3
 
         next(book)
@@ -272,15 +272,15 @@ if __name__ == '__main__':
             city = row[cityindex]
             city = city.encode('ascii')
             if len(city) > 0:
-                existingcity = DBSession.query(City).filter_by(Name=city).first()
-                if not existingcity:
+                existing = DBSession.query(City).filter_by(Name=city).first()
+                if not existing:
                     newcity = City(Name=city)
                     DBSession.add(newcity)
                     transaction.commit()
 
         print 'Converting Project table'
         # # open the excel projects spreadsheet
-        book = csv.reader(open(exceldatapath + 'data.csv/Projects.DB.csv', 'rb'))
+        book = csv.reader(open(exceldatapath+'data.csv/Projects.DB.csv', 'rb'))
         codeindex = 0
         nameindex = 1
         descriptionindex = 2
@@ -297,7 +297,7 @@ if __name__ == '__main__':
         projectids = []
 
         # # build the projects
-        # # =====================================================================
+        # # ====================================================================
         next(book)
         for row in book:
             code = int(row[codeindex])
@@ -386,7 +386,8 @@ if __name__ == '__main__':
         print 'Converting BudgetGroups table'
         # build the budgetgroups
         # =====================================================================
-        book = csv.reader(open(exceldatapath + 'data.csv/BudgetGroups.DB.csv', 'rb'))
+        book = csv.reader(
+                    open(exceldatapath + 'data.csv/BudgetGroups.DB.csv', 'rb'))
         codeindex = 0
         nameindex = 1
         parentindex = 2
@@ -420,7 +421,8 @@ if __name__ == '__main__':
                     changedbgcodes[pid] = newcode
 
         # build the budgetgroups
-        book = csv.reader(open(exceldatapath + 'data.csv/BudgetGroups.DB.csv', 'rb'))
+        book = csv.reader(
+                    open(exceldatapath + 'data.csv/BudgetGroups.DB.csv', 'rb'))
         next(book)
         for row in book:
             code = int(row[codeindex])
@@ -505,9 +507,11 @@ if __name__ == '__main__':
 
         print 'Converting BudgetItems table'
         # build the budgetitems
-        book = csv.reader(open(exceldatapath + 'data.csv/BudgetItems.DB.csv', 'rb'))
+        book = csv.reader(
+                open(exceldatapath + 'data.csv/BudgetItems.DB.csv', 'rb'))
         length = sum(1 for row in book)
-        book = csv.reader(open(exceldatapath + 'data.csv/BudgetItems.DB.csv', 'rb'))
+        book = csv.reader(
+                open(exceldatapath + 'data.csv/BudgetItems.DB.csv', 'rb'))
         codeindex = 0
         nameindex = 1
         parentindex = 2
@@ -552,7 +556,8 @@ if __name__ == '__main__':
                 newcode += 1
                 changedbicodes[code] = newcode
 
-        book = csv.reader(open(exceldatapath + 'data.csv/BudgetItems.DB.csv', 'rb'))
+        book = csv.reader(
+                    open(exceldatapath + 'data.csv/BudgetItems.DB.csv', 'rb'))
         percentile = length / 100.0
         print 'Percentage done: '
         counter = 1
@@ -672,7 +677,7 @@ if __name__ == '__main__':
                     if biparent:
                         # this is a nested budgetitem
                         # there are only a few of them
-                        # store their data to be sorted when all the others are done
+                        # store their data to be sorted when done
                         bidata = {'ID': code,
                                     'Name': name,
                                     'Unit':measureunit,
@@ -697,13 +702,17 @@ if __name__ == '__main__':
                         if parent:
                             projectid = parent.getProjectID()
                             if projectid != errorid and projectid !=0:
-                                resourcecategory = DBSession.query(ResourceCategory
-                                                ).filter_by(ParentID=projectid).first()
+                                resourcecategory = DBSession.query(
+                                                        ResourceCategory
+                                                        ).filter_by(
+                                                            ParentID=projectid
+                                                        ).first()
                                 # check the resource exists
                                 # in the resource category
                                 resource = None
                                 resource = DBSession.query(Resource).filter_by(
-                                    ParentID=resourcecategory.ID, Name=name).first()
+                                        ParentID=resourcecategory.ID, Name=name
+                                        ).first()
 
                                 if resource:
                                     # the resource exists
@@ -723,7 +732,7 @@ if __name__ == '__main__':
                                     DBSession.add(bi)
                                 else:
                                     # the resource does not exist
-                                    # get the id of the unit the resource is using
+                                    # get the id of the unit of the resource
                                     qry = DBSession.query(Unit).filter_by(
                                             Name=measureunit).first()
                                     if qry:
@@ -733,13 +742,13 @@ if __name__ == '__main__':
                                     resourcecode = generateResourceCode(name)
                                     newcode+=1
                                     resource = ResourceUnit(ID=newcode,
-                                                            Code=resourcecode,
-                                                            Name=name,
-                                                            UnitID=measureunit,
-                                                            _Rate=rate,
-                                                            Type=0,
-                                                            Description=description,
-                                                            ParentID=resourcecategory.ID)
+                                                    Code=resourcecode,
+                                                    Name=name,
+                                                    UnitID=measureunit,
+                                                    _Rate=rate,
+                                                    Type=0,
+                                                    Description=description,
+                                                    ParentID=resourcecategory.ID)
                                     DBSession.add(resource)
                                     bi = BudgetItem(ID=code,
                                                     _Quantity=quantity,
@@ -853,9 +862,11 @@ if __name__ == '__main__':
 
         # build the components
         print '\nConverting Components table to BudgetItems'
-        book = csv.reader(open(exceldatapath + 'data.csv/Components.DB.csv', 'rb'))
+        book = csv.reader(
+                    open(exceldatapath + 'data.csv/Components.DB.csv', 'rb'))
         length = sum(1 for row in book)
-        book = csv.reader(open(exceldatapath + 'data.csv/Components.DB.csv', 'rb'))
+        book = csv.reader(
+                    open(exceldatapath + 'data.csv/Components.DB.csv', 'rb'))
         codeindex = 0
         nameindex = 1
         parentindex = 2
@@ -905,7 +916,8 @@ if __name__ == '__main__':
                 changedcocodes[code] = newcode
 
         # build the components/budgetitems
-        book = csv.reader(open(exceldatapath + 'data.csv/Components.DB.csv', 'rb'))
+        book = csv.reader(
+                    open(exceldatapath + 'data.csv/Components.DB.csv', 'rb'))
         percentile = length / 100.0
         print 'Percentage done: '
         counter = 1
@@ -1265,7 +1277,8 @@ if __name__ == '__main__':
 
         # build the supplier table
         # =====================================================================
-        book = csv.reader(open(exceldatapath + 'data.csv/Supplier.DB.csv', 'rb'))
+        book = csv.reader(
+                    open(exceldatapath + 'data.csv/Supplier.DB.csv', 'rb'))
         print 'Converting Supplier table'
         next(book)
         for row in book:
@@ -1347,7 +1360,8 @@ if __name__ == '__main__':
                     except:
                         clientid = None
                     try:
-                        date = datetime.strptime(row[dateindex], '%Y-%m-%d %H:%M:%S')
+                        date = datetime.strptime(
+                                            row[dateindex], '%Y-%m-%d %H:%M:%S')
                     except ValueError, e:
                         date = None
                     try:
@@ -1380,7 +1394,15 @@ if __name__ == '__main__':
         transaction.commit()
 
         print 'Converting Order Item table'
-        book = csv.reader(open(exceldatapath + 'data.csv/OrderItem.DB.csv', 'rb'))
+        book = csv.reader(
+                    open(exceldatapath + 'data.csv/OrderItem.DB.csv', 'rb'))
+        length = sum(1 for row in book)
+        percentile = length / 100.0
+        print 'Percentage done: '
+        counter = 1
+        x = 0
+        book = csv.reader(
+                    open(exceldatapath + 'data.csv/OrderItem.DB.csv', 'rb'))
         codeindex = 0
         orderidindex = 1
         compidindex = 2
@@ -1388,8 +1410,16 @@ if __name__ == '__main__':
         rateindex = 7
         next(book)
         for row in book:
+            x +=1
+            if x == int(percentile * counter):
+                counter += 1
+                stdout.write('\r%d' % counter + '%')
+                stdout.flush()
+                sleep(1)
+
             code = int(row[codeindex])
             if code != 0:
+                compid = int(row[compidindex])
                 # if the code has been changed assign it here
                 if compid in changedcocodes:
                     compid = changedcocodes[compid]
@@ -1399,47 +1429,47 @@ if __name__ == '__main__':
                     bi = DBSession.query(BudgetItem).filter_by(ID=compid).first()
                     if bi:
                         orderid = int(row[orderidindex])
-                        compid = int(row[compidindex])
                         try:
                             quantity = float(row[quantityindex])
                         except ValueError, e:
                             quantity = 0.0
                         try:
-                            rate = Decimal(row[rateindex]).quantize(Decimal('.01'))
+                            rate = Decimal(row[rateindex]
+                                            ).quantize(Decimal('.01'))
                         except InvalidOperation, e:
                             rate = Decimal(0.00)
 
                         # set the order tax rate to the order item tax rate
-                        tax = 0.0
                         try:
                             tax = ordertaxrate[str(orderid)]
-                        except:
-                            pass
 
-                        # check if an order item already exists
-                        # for this budgetitem and this order
-                        existing = DBSession.query(OrderItem).filter_by(
+                            # check if an order item already exists
+                            # for this budgetitem and this order
+                            existing = DBSession.query(OrderItem).filter_by(
                                                     OrderID=orderid,
                                                     BudgetItemID=compid).first()
 
-                        # if the order item exists add the quantities
-                        if existing:
-                            oldtotal = existing.Total
-                            existing.Quantity += quantity
-                            bi.Ordered = bi.Ordered - oldtotal + existing.Total
-                        else:
-                            orderitem = OrderItem(OrderID=orderid,
-                                            BudgetItemID=compid,
-                                            _Quantity=quantity,
-                                            _Rate=rate,
-                                            VAT=tax)
-                            DBSession.add(orderitem)
-                            DBSession.flush()
-                            bi.Ordered += orderitem.Total
+                            # if the order item exists add the quantities
+                            if existing:
+                                oldtotal = existing.Total
+                                existing.Quantity += quantity
+                                bi.Ordered = bi.Ordered - oldtotal + existing.Total
+                            else:
+                                orderitem = OrderItem(OrderID=orderid,
+                                                BudgetItemID=compid,
+                                                _Quantity=quantity,
+                                                _Rate=rate,
+                                                VAT=tax)
+                                DBSession.add(orderitem)
+                                DBSession.flush()
+                                bi.Ordered += orderitem.Total
+                        except:
+                            pass
+
 
         transaction.commit()
 
-        print 'Recalculating Project totals'
+        print '\nRecalculating Project totals'
         projectlist = DBSession.query(Project).all()
         percentile = len(projectlist) / 100.0
         print 'Percentage done: '

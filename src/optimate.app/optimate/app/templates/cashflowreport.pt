@@ -7,14 +7,14 @@
             size: a4 landscape;
             @frame {
                 margin: 2cm;
-                top :4.6cm;
+                top :2cm;
             }
             @frame header {
                 -pdf-frame-content: headerContent;
                 top :1cm;
                 margin-left: 2cm;
                 margin-right: 2cm;
-                height: 5.2cm;
+                height: 2cm;
             }
             @frame footer {
                 -pdf-frame-content: pageNumber;
@@ -28,36 +28,85 @@
 
 <body>
     <div id="headerContent">
-        <h1>Cash flow report</h1>
-        <table class="order-font">
-            <tr></tr>
-            <tr>
-                <td style="width: 60px">To:</td>
-                <td class="bold" style="width: 400px; text-align:left" tal:content="client.Name|nothing"></td>
-            </tr>
-            <tr>
-                <td style="width: 60px">Project</td>
-                <td class="bold" style="width: 400px; text-align:left">${project.Name}</td>
-            </tr>
-        </table>
-        <div>&nbsp;</div>
-        <table class="order-font">
-            <tr style="border-top: 1px solid #000;">
-                <td></td>
-            </tr>
-            <tr style="border-bottom: 1px solid #000;">
-                <th class="bold" style="width: 400px; text-align:left" tal:repeat="header headers">
-                    ${header}
-                </th>
-            </tr>
-        </table>
+        <h1>Project Cashflow Projection</h1>
     </div>
+    <table class="order-font">
+        <tr></tr>
+        <tr>
+            <td style="width: 60px">To:</td>
+            <td class="bold" style="width: 400px; text-align:left" tal:content="client.Name|nothing"></td>
+            <td></td>
+            <td>TRE Bank Details</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td style="width: 60px">Date:</td>
+            <td class="bold" style="width: 400px; text-align:right">${today}</td>
+            <td></td>
+            <td>Bank:</td>
+            <td class="bold">${company_info.BankName}</td>
+        </tr>
+        <tr>
+            <td style="width: 60px">Project:</td>
+            <td class="bold" style="width: 400px; text-align:right">${project.Name}</td>
+            <td></td>
+            <td>Bank Code:</td>
+            <td class="bold">${company_info.BranchCode}</td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>Account:</td>
+            <td class="bold">${company_info.AccountName}</td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>Account No:</td>
+            <td class="bold">${company_info.AccountNo}</td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>TRE VAT no</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>Client VAT no:</td>
+            <td></td>
+        </tr>
+    </table>
+    <div>&nbsp;</div>
+    <table class="order-font">
+        <tr style="border-top: 1px solid #000;">
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <span tal:repeat="date dateheader">
+                <td colspan="2">${date}</td>
+            </span>
+        </tr>
+        <tr style="border-bottom: 1px solid #000;">
+            <th class="bold" style="width: 400px; text-align:left" tal:repeat="header headers">
+                ${header}
+            </th>
+        </tr>
+        <tr><td></td></tr>
+    </table>
     <table class="order-font">
         <tr tal:repeat="row rows">
             <th class="bold" style="width: 400px; text-align:left">${row[0][0]}</th>
             <td class="bold" style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(float(row[0][1])).strip()|nothing}</td>
             <span tal:repeat="cell row[1:]">
-                <td style="width: 400px; text-align:right">${str(cell[0]) + '%'}</td>
+                <td style="width: 100px; text-align:right">${str(cell[0]) + '%'}</td>
                 <td style="width: 400px; text-align:right">${currency + '{:20,.2f}'.format(float(cell[1])).strip()|nothing}</td>
             </span>
         </tr>
