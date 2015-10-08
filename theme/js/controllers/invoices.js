@@ -14,6 +14,7 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
         $scope.jsoninvoices = [];
         $scope.invoiceList = [];
         $scope.selectedInvoices = [];
+        $scope.amounts = {};
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
@@ -28,6 +29,7 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
         // loading the project, client and supplier list
         $scope.clearFilters = function() {
             $scope.filters = {};
+            $scope.showAmountInHand = false;
             $http.get(globalServerURL + 'projects/')
             .success(function(data) {
                 $scope.projectsList = data;
@@ -64,7 +66,8 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
                 params: $scope.filters
             };
             $http(req).success(function(response) {
-                $scope.jsoninvoices = response;
+                $scope.amounts = response.amounts;
+                $scope.jsoninvoices = response.invoices;
                 $scope.invoicesLengthCheck();
                 console.log("Invoices loaded");
             });
@@ -81,7 +84,11 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
             $http(req).success(function(response) {
                 if (selection == 'project') {
                     if ($scope.filters.Project == null) {
+                        $scope.showAmountInHand = false;
                         $scope.projectsList = response['projects'];
+                    }
+                    else{
+                        $scope.showAmountInHand = true;
                     }
                     $scope.clientsList = response['clients'];
                     $scope.suppliersList = response['suppliers'];

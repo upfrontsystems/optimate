@@ -2493,16 +2493,20 @@ def userrights(request):
 def invoicesview(request):
     """ The invoicesview returns a list in json format of all the invoices
     """
+    invoicetotal = Decimal(0)
+    receivedtotal = Decimal(0)
+    paidtotal = Decimal(0)
+    available = Decimal(0)
+
     invoicelist = []
     qry = DBSession.query(Invoice).order_by(Invoice.ID.desc())
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
     if 'InvoiceNumber' in paramkeys:
-        qry = qry.filter(Invoice.InvoiceNumber.like(paramsdict['InvoiceNumber'][0]+'%'))
+        qry = qry.filter(Invoice.InvoiceNumber.like(
+                                        paramsdict['InvoiceNumber'][0]+'%'))
     if 'OrderNumber' in paramkeys:
         qry = qry.filter(Invoice.OrderID.like(paramsdict['OrderNumber'][0]+'%'))
-    if 'Project' in paramkeys:
-        qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
     if 'Client' in paramkeys:
         qry = qry.filter_by(ClientID=paramsdict['Client'][0])
     if 'Supplier' in paramkeys:
@@ -2513,10 +2517,30 @@ def invoicesview(request):
         qry = qry.filter_by(PaymentDate=date)
     if 'Status' in paramkeys:
         qry = qry.filter(Invoice.Status.like(paramsdict['Status'][0]+'%'))
+    if 'Project' in paramkeys:
+        qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
+
+        # if invoices are filtered by project get totals
+        for invoice in qry:
+            total = invoice.Total
+            invoicetotal+=total
+            if invoice.Status == 'Paid':
+                paidtotal+=total
+
+        projectpayments = DBSession.query(Payment).filter_by(
+                                    ProjectID=paramsdict['Project'][0]).all()
+        for payment in projectpayments:
+            receivedtotal+=payment.Amount
+        available = receivedtotal - paidtotal
 
     for invoice in qry:
         invoicelist.append(invoice.dict())
-    return invoicelist
+    return {'invoices':invoicelist,
+            'amounts': {'total': str(invoicetotal),
+                        'paid': str(paidtotal),
+                        'received': str(receivedtotal),
+                        'available': str(available)}
+            }
 
 
 @view_config(route_name='invoices_filter', renderer='json', permission='view')

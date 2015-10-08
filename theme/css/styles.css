@@ -5,7 +5,7 @@ body {
 
 body {
     background: none repeat scroll 0 0;
-    padding-top: 105px;
+    padding-top: 85px;
 }
 
 /* nav-pills custom styling */
@@ -20,13 +20,17 @@ body {
     position: relative;
 }
 
+.navbar {
+    min-height:40px !important
+}
+
 /* Fix for cursor point in angular bootstrap */
 .nav, .pagination, .carousel, .panel-title a {
     cursor: pointer;
 }
 
 .nav {
-    margin-top: 10px;
+    margin-top: 5px;
 }
 
 .no-top-margin {
@@ -34,15 +38,15 @@ body {
 }
 
 .action-bar {
-    top: 50px;
+    top: 40px;
     z-index: 999;
 }
 
 /* calculate tree and grid height minus top padding */
 #costs {
-    height: -moz-calc(100vh - 105px);
-    height: -webkit-calc(100vh - 105px);
-    height: calc(100vh - 105px);
+    height: -moz-calc(100vh - 85px);
+    height: -webkit-calc(100vh - 85px);
+    height: calc(100vh - 85px);
 }
 
 /* tree class for resizable*/
@@ -153,7 +157,7 @@ input.editor-text {
 }
 
 div.personal-tools {
-    margin-top: 10px;
+    margin-top: 5px;
 }
 
 /* centering nav-bar pagination */
@@ -478,4 +482,36 @@ table.modal-table {
   white-space: nowrap;
   text-overflow: '';
   padding-right: 40px;
+}
+
+/* center pills in a nav-bar */
+.centered-pills {
+    text-align: center
+}
+.centered-pills ul.nav-pills {
+    display: inline-block
+}
+.centered-pills li {
+    display: inline
+}
+.centered-pills a {
+    float: left
+}
+* html .centered-pills ul.nav-pills, *+html .centered-pills ul.nav-pills {
+    display: inline
+}
+
+/* smaller nav-bar */
+.navbar-small {
+    min-height:25px !important
+}
+
+.nav-small {
+    margin-top: 2px;
+}
+
+/* bottom padding for bottom nav bar */
+.bottom-bar {
+    padding-bottom: 20px;
+    z-index: 999;
 }

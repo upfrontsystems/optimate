@@ -228,3 +228,15 @@
         </table>
     </div>
 </div>
+<div class="bottom-bar"><div>
+<nav class="navbar navbar-default navbar-fixed-bottom navbar-small"
+    data-ng-show="showAmountInHand">
+    <div class="centered-pills">
+        <ul class="nav nav-pills nav-small">
+            <li><a>Total: <span class="currency" ng-bind-html="amounts.total | currency:currency"></span></a></li>
+            <li><a>Paid: <span class="currency" ng-bind-html="amounts.paid | currency:currency"></span></a></li>
+            <li><a>Amount Recieved: <span class="currency" ng-bind-html="amounts.received | currency:currency"></span></a></li>
+            <li><a>Available: <span class="currency" ng-bind-html="amounts.available | currency:currency"></span></a></li>
+        </ul>
+    </div>
+</nav>
