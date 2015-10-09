@@ -26,6 +26,7 @@ from optimate.app.models import (
     Project,
     CompanyInformation,
     Claim,
+    Payment,
     Overhead,
     ValuationMarkup
 )
@@ -884,13 +885,16 @@ def claim(request):
 
     percentage = '{0:.2f}'.format(float(claim.Total/budget_total)*100).strip()
 
-    payments = []
+    # get only payments made before the claim date
+    payments = DBSession.query(Payment).filter(Payment.ClaimID == claimid,
+                                                Payment.Date <= Claim.Date
+                                                ).order_by(Payment.ID.asc()
+                                                ).all()
     due = claim.Total
     paymenttotal = 0
-    for payment in claim.Project.Payments:
+    for payment in payments:
         due -= payment.Amount
         paymenttotal += payment.Amount
-        payments.append(payment)
 
     taxrate = DBSession.query(CompanyInformation).first().DefaultTaxrate
     vatamount = float(due) * (taxrate/100.0)
@@ -2038,9 +2042,11 @@ def excelclaim(request):
         if valuationitem.BudgetGroupTotal:
             budget_total += valuationitem.BudgetGroupTotal
 
-    payments = []
-    for payment in claim.Project.Payments:
-        payments.append(payment)
+    # get only payments made before the claim date
+    payments = DBSession.query(Payment).filter(Payment.ClaimID == claimid,
+                                                Payment.Date <= Claim.Date
+                                                ).order_by(Payment.ID.asc()
+                                                ).all()
 
     taxrate = DBSession.query(CompanyInformation).first().DefaultTaxrate/100.0
     now = datetime.now()
