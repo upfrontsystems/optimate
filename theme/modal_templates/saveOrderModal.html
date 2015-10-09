@@ -6,25 +6,25 @@
                         aria-hidden="true" data-ng-show="isCollapsed">&times;</button>
                 <button type="button" class="close" data-ng-click="toggleBudgetItemsGrid()"
                         aria-hidden="true" data-ng-show="!isCollapsed">&times;</button>
-                <h3 data-ng-show="selectedOrder.Status != 'Processed'"
+                <h3 data-ng-show="selectedOrders[0].Status != 'Processed'"
                     class="modal-title">{{modalState}} an {{formData.NodeType}}</h3>
-                <h3 data-ng-show="selectedOrder.Status == 'Processed'"
-                    class="modal-title">Order {{selectedOrder.ID}}</h3>
+                <h3 data-ng-show="selectedOrders[0].Status == 'Processed'"
+                    class="modal-title">Order {{selectedOrders[0].ID}}</h3>
             </div>
             <div class="order-modal-body">
                 <div data-ng-show="isCollapsed">
-                    <div data-ng-show="selectedOrder.Status == 'Processed'">
+                    <div data-ng-show="selectedOrders[0].Status == 'Processed'">
                         <div data-ng-include="'modal_templates/viewOrderModal.html'">
                         </div>
                     </div>
                     <form class="form-horizontal"  name="saveOrderModalForm" novalidate>
-                        <div data-ng-show="selectedOrder.Status != 'Processed'">
+                        <div data-ng-show="selectedOrders[0].Status != 'Processed'">
                             <div class="form-group" data-ng-show="modalState == 'Edit'">
                                 <label for="orderNumber" class="col-sm-2 control-label">Order Number:</label>
                                 <p class="col-sm-7"
                                         id="orderNumber"
                                         name="orderNumber">
-                                        {{selectedOrder.ID}}
+                                        {{selectedOrders[0].ID}}
                                 </p>
                             </div>
                             <div class="form-group">
@@ -195,7 +195,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <div data-ng-show="selectedOrder.Status != 'Processed'">
+                <div data-ng-show="selectedOrders[0].Status != 'Processed'">
                     <button class="btn btn-default"
                             id="addBudgetItemsButton"
                             data-ng-click="toggleBudgetItemsGrid()"
@@ -232,7 +232,7 @@
                         </button>
                     </div>
                 </div>
-                <div data-ng-show="selectedOrder.Status == 'Processed'">
+                <div data-ng-show="selectedOrders[0].Status == 'Processed'">
                     <button class="btn btn-default" data-dismiss="modal">
                         Close
                     </button>

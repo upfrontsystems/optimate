@@ -12,9 +12,9 @@
                 </a>
             </li>
             <li data-ng-show="user.permissions.orders == 'edit'"
-                data-ng-hide="selectedOrders.length > 1">
+                data-ng-hide="selectedOrders.length != 1">
                 <a title="Edit Order"
-                    data-ng-show="selectedOrder && selectedOrder.Status != 'Processed'"
+                    data-ng-show="selectedOrders[0].Status == 'Draft'"
                     data-ng-click="editingState()"
                     data-target="#saveOrderModal"
                     data-backdrop="static"
@@ -22,9 +22,9 @@
                         <i class="fa fa-pencil"></i>
                 </a>
             </li>
-            <li data-ng-hide="selectedOrders.length > 1">
+            <li data-ng-hide="selectedOrders.length != 1">
                 <a title="View"
-                    data-ng-show="selectedOrder && selectedOrder.Status == 'Processed'"
+                    data-ng-show="selectedOrders[0].Status == 'Processed'"
                     data-ng-click="editingState()"
                     data-target="#saveOrderModal"
                     data-backdrop="static"
@@ -34,7 +34,16 @@
             </li>
             <li data-ng-show="user.permissions.orders == 'edit'">
                 <a title="Delete Order"
-                    data-ng-show="selectedOrder"
+                    data-ng-show="selectedOrders.length == 1"
+                    data-target="#deleteOrderModal"
+                    data-backdrop="static"
+                    data-toggle="modal">
+                        <i class="fa fa-trash"></i>
+                </a>
+            </li>
+            <li data-ng-show="user.permissions.orders == 'edit'">
+                <a title="Delete Orders"
+                    data-ng-show="selectedOrders.length > 1"
                     data-target="#deleteOrderModal"
                     data-backdrop="static"
                     data-toggle="modal">
@@ -43,26 +52,26 @@
             </li>
             <li data-ng-show="user.permissions.orders == 'edit'">
                 <a title="Process"
-                    data-ng-show="selectedOrder.Status == 'Draft'"
+                    data-ng-show="selectedOrders[0].Status == 'Draft'"
                     data-ng-click="toggleOrderStatus('Processed', 0)">
                         <i class="fa fa-arrow-right"></i>
                 </a>
             </li>
             <li data-ng-show="user.permissions.orders == 'edit'">
                 <a title="Retract"
-                    data-ng-show="selectedOrder.Status == 'Processed'"
+                    data-ng-show="selectedOrders[0].Status == 'Processed'"
                     data-ng-click="toggleOrderStatus('Draft', 0)">
                         <i class="fa fa-arrow-left"></i>
                 </a>
             </li>
-            <li data-ng-show="selectedOrder && selectedOrders.length == 1">
+            <li data-ng-show="selectedOrders.length == 1">
                 <a title="PDF Order Report"
                     data-ng-click="getReport('order')"
                     class="pdf_download">
                     <i class="fa fa-file-pdf-o"></i>
                 </a>
             </li>
-            <li data-ng-show="selectedOrder && selectedOrders.length == 1">
+            <li data-ng-show="selectedOrders.length == 1">
                 <a title="Excel Order Report"
                     data-ng-click="getExcelReport('order')"
                     class="excel_download">
@@ -142,7 +151,7 @@
         <div class="modal-content">
             <div class="modal-body">
                 <h4 data-ng-show="selectedOrders.length == 1">
-                    Delete order {{selectedOrder.ID}}
+                    Delete order {{selectedOrders[0].ID}}
                 </h4>
                 <h4 data-ng-show="selectedOrders.length > 1">
                     Delete selected orders
@@ -155,11 +164,16 @@
         </div>
     </div>
 </div>
+
 <div class="container-fluid">
     <div id="orders" class="row">
         <table class="table">
             <thead>
                 <tr>
+                    <th data-ng-click="toggleAllCheckboxes()">
+                        <i style="padding-left:5px;"
+                            data-ng-class="{true:'fa fa-check-square-o', false:'fa fa-square-o'}[selectedOrders.length == jsonorders.length]"></i>
+                    </th>
                     <th>Order Number</th>
                     <th>Order Date</th>
                     <th>Description</th>
@@ -173,11 +187,16 @@
             <tbody>
                 <tr ng-repeat="obj in jsonorders"
                     selection-model
+                    selection-model-type="checkbox"
                     selection-model-mode="multiple"
                     selection-model-selected-class="active"
                     selection-model-cleanup-strategy="deselect"
+                    selection-model-selected-attribute="selected"
                     selection-model-selected-items="selectedOrders"
-                    ng-click="showActionsFor(obj)" id="order-{{obj.ID}}">
+                    id="order-{{obj.ID}}">
+                    <td class="hidden-checkbox"><input type="checkbox" id="hidden-checkbox-{{obj.ID}}" name=""/>
+                                                <label for="hidden-checkbox-{{obj.ID}}"></label>
+                    </td>
                     <td>{{obj.ID}}</td>
                     <td>{{obj.Date}}</td>
                     <td>{{obj.Description}}</td>

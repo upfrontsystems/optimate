@@ -515,3 +515,31 @@ table.modal-table {
     padding-bottom: 20px;
     z-index: 999;
 }
+
+/* with the listing selection model
+    style the custom checkbox over the hidden checkbox*/
+.hidden-checkbox input[type=checkbox] {
+    opacity: 0;
+    cursor: pointer;
+    position: absolute;
+    z-index: 0;
+    padding-left: 5px;
+}
+
+.hidden-checkbox label {
+    font-weight: normal;
+    cursor: pointer;
+    position: absolute;
+    z-index: 1;
+    padding-left: 5px;
+}
+
+.hidden-checkbox label:after {
+    content: "\f096";
+    font-family: FontAwesome;
+}
+
+.hidden-checkbox input[type=checkbox]:checked + label:after {
+    content: "\f046";
+    font-family: FontAwesome;
+}

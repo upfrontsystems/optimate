@@ -50,15 +50,6 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
         $scope.clientsList = [];
         $scope.clearFilters();
 
-        $scope.invoicesLengthCheck = function() {
-            if ($scope.jsoninvoices.length == 0) {
-               $scope.invoicesReportEnabled = false;
-            }
-            else {
-               $scope.invoicesReportEnabled = true;
-            }
-        }
-
         $scope.loadInvoiceSection = function() {
             var req = {
                 method: 'GET',
@@ -68,7 +59,6 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
             $http(req).success(function(response) {
                 $scope.amounts = response.amounts;
                 $scope.jsoninvoices = response.invoices;
-                $scope.invoicesLengthCheck();
                 console.log("Invoices loaded");
             });
         }
@@ -183,7 +173,6 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
                 var idB = b.id;
                 return (idA > idB) ? -1 : (idA < idB) ? 1 : 0;
             });
-            $scope.invoicesLengthCheck();
             console.log ("Invoice added");
         }
 
@@ -200,11 +189,6 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
             console.log ("Invoice edited");
         };
 
-        // Set the selected invoice and change the css
-        $scope.showActionsFor = function(obj) {
-            $scope.selectedInvoice = obj;
-        };
-
         // When the Add button is pressed change the state and form data
         $scope.addingState = function () {
             $scope.formData = {'NodeType': 'invoice',
@@ -219,10 +203,7 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
                                         {'name': 'VAT', 'amount': ''},
                                         {'name': 'Total', 'amount': ''},
                                         {'name': 'Order total', 'amount': ''}];
-            if ($scope.selectedInvoice) {
-                $('#invoice-'+$scope.selectedInvoice.id).removeClass('active');
-                $scope.selectedInvoice = undefined;
-            }
+            $scope.clearSelectedInvoices();
             $scope.ordersList = [];
             $scope.saveInvoiceModalForm.$setPristine();
         }
@@ -234,7 +215,7 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
             $scope.modalState = "Edit";
             $http({
                 method: 'GET',
-                url: globalServerURL + 'invoice/' + $scope.selectedInvoice.id + '/'
+                url: globalServerURL + 'invoice/' + $scope.selectedInvoices[0].id + '/'
             }).success(function(response) {
                 $scope.formData = response;
                 $scope.formData.selected = {'ID': response.OrderID,
@@ -267,15 +248,14 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
                     $scope.deleteInvoice(index);
                 }
                 else{
-                    $scope.selectedInvoice = undefined;
                     for (var i in $scope.selectedInvoices){
                         var result = $.grep($scope.jsoninvoices, function(e) {
                             return e.id == $scope.selectedInvoices[i].ID;
                         });
                         var ind = $scope.jsoninvoices.indexOf(result[0]);
                         if (ind>-1) {
+                            $scope.jsoninvoices[ind].selected = false;
                             $scope.jsoninvoices.splice(ind, 1);
-                            $scope.invoicesLengthCheck();
                         }
                     }
                 }
@@ -363,6 +343,32 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
                 }
             })
         };
+
+        // set each invoice selected/unselected
+        $scope.toggleAllCheckboxes = function(){
+            var state = $scope.selectedInvoices.length != $scope.jsoninvoices.length;
+            for (var i in $scope.jsoninvoices){
+                $scope.jsoninvoices[i].selected = state;
+            }
+        }
+
+        // deselect all the selected orders
+        $scope.clearSelectedInvoices = function(){
+            if ($scope.selectedInvoices.length == $scope.jsoninvoices.length){
+                $scope.toggleAllCheckboxes();
+            }
+            else{
+                for (var i in $scope.selectedInvoices){
+                    var result = $.grep($scope.jsoninvoices, function(e) {
+                        return e.ID == $scope.selectedInvoices[i].ID;
+                    });
+                    var ind = $scope.jsoninvoices.indexOf(result[0]);
+                    if (ind>-1) {
+                        $scope.jsoninvoices[ind].selected = false;
+                    }
+                }
+            }
+        }
 
         $scope.setReportType = function(type){
             $scope.selectedReportType = type;

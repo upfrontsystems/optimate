@@ -1664,8 +1664,7 @@ class OrderItem(Base):
         """
         if not self._Total:
             self._Total = Decimal(
-                    (float(self.Subtotal) - float(
-                    self.Subtotal) * self.Discount/100.0
+                    (float(self.Subtotal) - self.Discount/100.0
                 ) * (1 + self.VAT/100.0)).quantize(Decimal('.01'))
         return self._Total
 
@@ -1693,8 +1692,7 @@ class OrderItem(Base):
         """
         self._Rate = Decimal(rate).quantize(Decimal('.01'))
         # when the rate changes recalculate the total
-        self.Total = (float(self.Subtotal) - float(self.Subtotal
-                    ) * self.Discount/100.0
+        self.Total = (float(self.Subtotal) - self.Discount/100.0
                 ) * (1 + self.VAT/100.0)
 
     @hybrid_property
@@ -1708,8 +1706,7 @@ class OrderItem(Base):
         """ Set the Quantity and recalculate the Total
         """
         self._Quantity = float(quantity)
-        self.Total = (float(self.Subtotal) - float(
-                        self.Subtotal) * self.Discount/100
+        self.Total = (float(self.Subtotal) - self.Discount/100
                         ) * (1 + self.VAT/100.0)
 
     @hybrid_property
@@ -1723,8 +1720,7 @@ class OrderItem(Base):
         """ Set the Discount and recalculate the Total
         """
         self._Discount = float(discount)
-        self.Total = (float(self.Subtotal) - float(self.Subtotal
-                        ) * self.Discount/100
+        self.Total = (float(self.Subtotal) - self.Discount/100
                         ) * (1 + self.VAT/100.0)
 
     def dict(self):

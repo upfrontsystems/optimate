@@ -2035,8 +2035,7 @@ def orderview(request):
                 quantity = float(budgetitem.get('Quantity', 0))
                 rate = budgetitem.get('Rate', 0)
                 rate = Decimal(rate).quantize(Decimal('.01'))
-                discount = Decimal(budgetitem.get('Discount', 0)
-                                ).quantize(Decimal('.01'))
+                discount = float(budgetitem.get('Discount', 0))
                 vat = budgetitem.get('VAT', False)
                 vatpercentage = 0
                 if vat:

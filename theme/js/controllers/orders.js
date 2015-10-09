@@ -196,11 +196,6 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
             console.log ("Order edited");
         };
 
-        // Set the selected order and change the css
-        $scope.showActionsFor = function(obj) {
-            $scope.selectedOrder = obj;
-        };
-
         // When the Add button is pressed change the state and form data
         $scope.addingState = function () {
             $scope.formData = {'NodeType': 'order'};
@@ -214,10 +209,8 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
             $scope.selectedOrderingOn = {};
             $scope.dateTimeNow();
             $scope.formData['Date'] = $scope.date;
-            if ($scope.selectedOrder) {
-                $('#order-'+$scope.selectedOrder.ID).removeClass('active');
-                $scope.selectedOrder = undefined;
-            }
+            // clear the order selection
+            $scope.clearSelectedOrders();
             $scope.saveOrderModalForm.$setPristine();
         }
 
@@ -231,7 +224,7 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
             $scope.selectedOrderingOn = {};
             $http({
                 method: 'GET',
-                url: globalServerURL + 'order/' + $scope.selectedOrder.ID + '/'
+                url: globalServerURL + 'order/' + $scope.selectedOrders[0].ID + '/'
             }).success(function(response) {
                 $scope.formData = response;
                 $scope.loadProject();
@@ -239,7 +232,7 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
                 $scope.date = new Date($scope.formData['Date']);
                 $scope.formData.NodeType = 'order';
                 // if the order is processed set the grid read only
-                if ($scope.selectedOrder.Status == 'Processed'){
+                if ($scope.selectedOrders[0].Status == 'Processed'){
                     $scope.gridSetEditable(false);
                 }
                 if ( $scope.budgetItemsList.length != 0 ) {
@@ -267,13 +260,13 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
                     $scope.deleteOrder(index);
                 }
                 else{
-                    $scope.selectedOrder = undefined;
                     for (var i in $scope.selectedOrders){
                         var result = $.grep($scope.jsonorders, function(e) {
                             return e.ID == $scope.selectedOrders[i].ID;
                         });
                         var ind = $scope.jsonorders.indexOf(result[0]);
                         if (ind>-1) {
+                            $scope.jsonorders[ind].selected = false;
                             $scope.jsonorders.splice(ind, 1);
                         }
                     }
@@ -599,13 +592,39 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
             }
         }
 
+        // set each order selected/unselected
+        $scope.toggleAllCheckboxes = function(){
+            var state = $scope.selectedOrders.length != $scope.jsonorders.length;
+            for (var i in $scope.jsonorders){
+                $scope.jsonorders[i].selected = state;
+            }
+        }
+
+        // deselect all the selected orders
+        $scope.clearSelectedOrders = function(){
+            if ($scope.selectedOrders.length == $scope.jsonorders.length){
+                $scope.toggleAllCheckboxes();
+            }
+            else{
+                for (var i in $scope.selectedOrders){
+                    var result = $.grep($scope.jsonorders, function(e) {
+                        return e.ID == $scope.selectedOrders[i].ID;
+                    });
+                    var ind = $scope.jsonorders.indexOf(result[0]);
+                    if (ind>-1) {
+                        $scope.jsonorders[ind].selected = false;
+                    }
+                }
+            }
+        }
+
         $scope.getReport = function (report) {
             if ( report == 'order' ) {
                 var target = document.getElementsByClassName('pdf_download');
                 var spinner = new Spinner().spin(target[0]);
                 $http({
                     method: 'POST',
-                    url: globalServerURL + 'order_report/' + $scope.selectedOrder.ID + '/',
+                    url: globalServerURL + 'order_report/' + $scope.selectedOrders[0].ID + '/',
                     responseType: 'arraybuffer'
                 }).success(function (response, status, headers, config) {
                     spinner.stop();
@@ -630,7 +649,7 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
                 var spinner = new Spinner().spin(target[0]);
                 $http({
                     method: 'POST',
-                    url: globalServerURL + 'excel_order_report/' + $scope.selectedOrder.ID + '/',
+                    url: globalServerURL + 'excel_order_report/' + $scope.selectedOrders[0].ID + '/',
                     responseType: 'arraybuffer'
                 }).success(function (response, status, headers, config) {
                     spinner.stop();
