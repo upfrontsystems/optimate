@@ -79,9 +79,7 @@
                 <li data-ng-show="user.permissions.projects == 'edit'">
                     <a role="button"
                         a-disabled="currentNode.Status == 'Approved'"
-                        data-target="#deleteConfirmation"
-                        data-backdrop="static"
-                        data-toggle="modal"
+                        data-ng-click="deleteConfirmation()"
                         title="Delete Project">
                         <i class="fa fa-trash"></i>
                     </a>
@@ -235,6 +233,12 @@
                         title="Paste Budget Item">
                         <i class="fa fa-clipboard"></i>
                     </a>
+                    <a data-ng-switch-when="SimpleBudgetItem"
+                        role="button"
+                        data-ng-click="pasteThisNode(currentNode)"
+                        title="Paste Budget Item">
+                        <i class="fa fa-clipboard"></i>
+                    </a>
                     <a data-ng-switch-default
                         role="button"
                         style="color: gray;">
@@ -243,9 +247,7 @@
                 <li data-ng-show="user.permissions.projects == 'edit'">
                     <a role="button"
                         a-disabled="currentNode.Status == 'Approved'"
-                        data-target="#deleteConfirmation"
-                        data-backdrop="static"
-                        data-toggle="modal"
+                        data-ng-click="deleteConfirmation()"
                         title="Delete Budget Group">
                         <i class="fa fa-trash"></i>
                     </a>
@@ -313,9 +315,7 @@
                 <li data-ng-show="user.permissions.projects == 'edit' && currentNode.ParentType != 'BudgetItem'">
                     <a role="button"
                         a-disabled="currentNode.Status == 'Approved'"
-                        data-target="#deleteConfirmation"
-                        data-backdrop="static"
-                        data-toggle="modal"
+                        data-ng-click="deleteConfirmation()"
                         title="Delete Budget Item">
                         <i class="fa fa-trash"></i>
                     </a>
@@ -376,9 +376,7 @@
                 <li data-ng-show="user.permissions.projects == 'edit'">
                     <a role="button"
                         a-disabled="currentNode.Status == 'Approved'"
-                        data-target="#deleteConfirmation"
-                        data-backdrop="static"
-                        data-toggle="modal"
+                        data-ng-click="deleteConfirmation()"
                         title="Delete Budget Item">
                         <i class="fa fa-trash"></i>
                     </a>
@@ -502,9 +500,7 @@
                 <li data-ng-show="user.permissions.projects == 'edit'">
                     <a role="button"
                         a-disabled="currentNode.Status == 'Approved'"
-                        data-target="#deleteConfirmation"
-                        data-backdrop="static"
-                        data-toggle="modal"
+                        data-ng-click="deleteConfirmation()"
                         title="Delete Resource List">
                         <i class="fa fa-trash"></i>
                     </a>
@@ -582,9 +578,7 @@
                 <li data-ng-show="user.permissions.projects == 'edit'">
                     <a role="button"
                         a-disabled="currentNode.Status == 'Approved'"
-                        data-target="#deleteConfirmation"
-                        data-backdrop="static"
-                        data-toggle="modal"
+                        data-ng-click="deleteConfirmation()"
                         title="Delete Resource">
                         <i class="fa fa-trash"></i>
                     </a>
@@ -660,9 +654,7 @@
                 <li data-ng-show="user.permissions.projects == 'edit'">
                     <a role="button"
                         a-disabled="currentNode.Status == 'Approved'"
-                        data-target="#deleteConfirmation"
-                        data-backdrop="static"
-                        data-toggle="modal"
+                        data-ng-click="deleteConfirmation()"
                         title="Delete Resource Unit">
                         <i class="fa fa-trash"></i>
                     </a>
@@ -722,9 +714,7 @@
                 <li data-ng-show="user.permissions.projects == 'edit'">
                     <a role="button"
                         a-disabled="currentNode.Status == 'Approved'"
-                        data-target="#deleteConfirmation"
-                        data-backdrop="static"
-                        data-toggle="modal"
+                        data-ng-click="deleteConfirmation()"
                         title="Delete Resource Part">
                         <i class="fa fa-trash"></i>
                     </a>

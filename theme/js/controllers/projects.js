@@ -23,7 +23,7 @@ angular.module('myApp').controller('duplicateModalController', duplicateModalCon
 var checkRateAndQuantityController = function ($scope, $modalInstance, selections) {
     $scope.selections = selections;
     $scope.modaltitle = selections.length > 1 ? "Paste rate and/or quantity" :
-                                        "Paste quantity";
+                                                "Paste quantity";
     $scope.done = function () {
         $modalInstance.close($scope.selections);
     };
@@ -32,8 +32,8 @@ var checkRateAndQuantityController = function ($scope, $modalInstance, selection
 angular.module('myApp').controller('checkRateAndQuantityController', checkRateAndQuantityController);
 
 // Controller for the projects and treeview
-myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'globalServerURL', '$timeout', '$modal', 'SessionService', '$q', 'FileSaver',
-    function($scope, $http, $cacheFactory, globalServerURL, $timeout, $modal, SessionService, $q, FileSaver) {
+myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'globalServerURL', '$timeout', '$modal', 'SessionService', '$q', 'FileSaver', 'hotkeys',
+    function($scope, $http, $cacheFactory, globalServerURL, $timeout, $modal, SessionService, $q, FileSaver, hotkeys) {
 
         toggleMenu('projects');
         // variable for disabling submit button after user clicked it
@@ -43,6 +43,104 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
         $scope.showBudgetActions = false;
         $scope.projectStates = ['Draft', 'Approved', 'Completed'];
         $scope.selectedReportType = "something";
+
+        // bind the hotkeys
+        hotkeys.bindTo($scope)
+        .add({
+            combo: 'ctrl+c',
+            description: 'Copy',
+            callback: function() {
+                if ($scope.user.permissions.projects == 'edit'){
+                    if ($scope.rowsSelected){
+                        // call the copy rows function
+                        $scope.copySelectedRecords($scope.currentNode);
+                    }
+                    else if ($scope.currentNode){
+                        // call the copy node function
+                        $scope.copyThisNode($scope.currentNode);
+                    }
+                }
+            }
+        })
+        .add({
+            combo: 'ctrl+x',
+            description: 'Cut',
+            callback: function() {
+                if ($scope.user.permissions.projects == 'edit' && $scope.currentNode){
+                    if ($scope.currentNode.Status != 'Approved'){
+                        if ($scope.currentNode.ParentType != 'BudgetItem'){
+                            if ($scope.rowsSelected){
+                                // call the cut rows function
+                                $scope.cutSelectedRecords($scope.currentNode);
+                            }
+                            else {
+                                // call the cut node function
+                                $scope.cutThisNode($scope.currentNode);
+                            }
+                        }
+                    }
+                }
+            }
+        })
+        .add({
+            combo: 'ctrl+v',
+            description: 'Paste',
+            callback: function() {
+                if ($scope.user.permissions.projects == 'edit' && $scope.currentNode && $scope.copiedNode){
+                    if ($scope.copiedNode.NodeType == 'Project'){
+                        $scope.pasteThisNode($scope.projectsRoot);
+                    }
+                    else if ($scope.currentNode.ParentType != 'BudgetItem'){
+                        var nonPastingTypes = ["Resource", "ResourcePart", "ResourceUnit", "SimpleBudgetItem"];
+                        if (nonPastingTypes.indexOf($scope.currentNode.NodeType) == -1){
+                            if ($scope.copiedNode.NodeType == 'Records'){
+                                // paste records
+                                $scope.pasteSelectedRecords($scope.currentNode);
+                            }
+                            else{
+                                // check compatible types
+                                var testTypes = $scope.currentNode.NodeType + ':' + $scope.copiedNode.NodeType;
+                                switch (testTypes){
+                                    case 'Project:BudgetGroup':
+                                        $scope.pasteThisNode($scope.currentNode);
+                                        break;
+                                    case 'BudgetGroup:BudgetGroup':
+                                        $scope.pasteThisNode($scope.currentNode);
+                                        break;
+                                    case 'BudgetGroup:BudgetItem':
+                                        $scope.pasteThisNode($scope.currentNode);
+                                        break;
+                                    case 'BudgetGroup:SimpleBudgetItem':
+                                        $scope.pasteThisNode($scope.currentNode);
+                                        break;
+                                    case 'ResourceCategory:ResourceCategory':
+                                        $scope.pasteThisNode($scope.currentNode);
+                                        break;
+                                    case 'ResourceCategory:Resource':
+                                        $scope.pasteThisNode($scope.currentNode);
+                                        break;
+                                    case 'ResourceCategory:ResourceUnit':
+                                        $scope.pasteThisNode($scope.currentNode);
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        })
+        .add({
+            combo: 'del',
+            description: 'Delete',
+            callback: function() {
+                if ($scope.user.permissions.projects == 'edit' && $scope.currentNode){
+                    if ($scope.currentNode.Status != 'Approved' && $scope.currentNode.ParentType != 'BudgetItem'){
+                        $scope.deleteConfirmation();
+                    }
+                }
+            }
+        });
+
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
@@ -289,7 +387,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
         // set the allowed types to be dropped
         $scope.allowed = {};
         $scope.allowed['Project'] = ['BudgetGroup'];
-        $scope.allowed['BudgetGroup'] = ['BudgetGroup', 'BudgetItem'];
+        $scope.allowed['BudgetGroup'] = ['BudgetGroup', 'BudgetItem', 'SimpleBudgetItem'];
         $scope.allowed['BudgetItem'] = ['BudgetItem'];
         $scope.allowed['ResourceCategory'] = ['ResourceCategory', 'Resource'];
         $scope.allowed['Resource'] = [];
@@ -865,6 +963,15 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             }
         };
 
+        // open a modal confirmation window
+        $scope.deleteConfirmation = function(){
+            $scope.modalInstance=$modal.open({
+                templateUrl: 'deleteConfirmationModal.html',
+                scope:$scope,
+                backdrop : 'static'
+            });
+        };
+
         // Deleting a node. It receives the id of the node
         // The id is sent to the server to be deleted and the node
         // removed from the treemodel
@@ -1055,6 +1162,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 var modalInstance = $modal.open({
                     templateUrl: 'duplicateConfirmationModal.html',
                     controller: duplicateModalController,
+                    backdrop : 'static',
                     resolve: {
                         selections: function () {
                             return $scope.selections;
@@ -1066,6 +1174,8 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                     if (selections.doAll) {
                         doAll = selections.doAll;
                     }
+                }, function () {
+                    $scope.statusMessage("Stopped", 2000, 'alert-info');
                 });
             };
             (function checkItems() {
@@ -1078,7 +1188,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                                         'doAll': doAll,
                                         'resourceName': duplicateResource.Name};
                     // continue when response from modal is returned
-                    openModal().finally(function() {
+                    openModal().then(function() {
                         selectionlist[duplicateResource.Code] = overwrite;
                         if (keys.length) {
                             checkItems();
@@ -1086,6 +1196,9 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                         else {
                             $scope.pasteAction(node, selectionlist, index);
                         }
+                    // modal dismissed, stop
+                    },function () {
+                        $scope.statusMessage("Stopped", 2000, 'alert-info');
                     });
                 }
                 else {
@@ -1108,12 +1221,14 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 var modalInstance = $modal.open({
                     templateUrl: 'checkRateAndQuantityModal.html',
                     controller: checkRateAndQuantityController,
+                    backdrop : 'static',
                     resolve: {
                         selections: function () {
                             return selections;
                         }
                     }
                 });
+
                 return modalInstance.result.then(function (sel) {
                     selections = sel;
                 });
@@ -1125,11 +1240,14 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             }
             else{
                 // continue when response from modal is returned
-                openModal().finally(function() {
+                openModal().then(function() {
                     if (index == 0){
                         $scope.rateAndQuantityselections = selections;
                     }
                     $scope.pasteAction(node, selections, index);
+                // modal dismissed, stop
+                },function () {
+                    $scope.statusMessage("Stopped", 2000, 'alert-info');
                 });
             }
         };

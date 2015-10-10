@@ -37,9 +37,7 @@
             <li data-ng-show="user.permissions.projects == 'edit'">
                 <a role="button"
                     a-disabled="currentNode.Status == 'Approved'"
-                    data-target="#deleteRecordsConfirmation"
-                    data-backdrop="static"
-                    data-toggle="modal"
+                    data-ng-click="deleteConfirmation()"
                     title="Delete records">
                     <i class="fa fa-trash"></i>
                 </a>
@@ -114,34 +112,6 @@
             </div>
             <div class="modal-footer">
                 <button type="select" class="btn btn-primary" data-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="deleteConfirmation" class="modal" tabindex='-1'>
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-body">
-                <h4>Are you sure you want to delete {{currentNode.Name}}?</h4>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary delete-node" data-dismiss="modal" data-ng-click="deleteThisNode(currentNode.ID)">Delete</button>
-                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="deleteRecordsConfirmation" class="modal" tabindex='-1'>
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-body">
-                <h4>Are you sure you want to deleted the selected records?</h4>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary delete-node" data-dismiss="modal" data-ng-click="deleteSelectedRecords(currentNode.ID)">Delete</button>
-                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
             </div>
         </div>
     </div>
@@ -222,6 +192,20 @@
     </div>
 </div>
 
+<script type="text/ng-template" id="deleteConfirmationModal.html">
+    <div class="modal-body">
+        <h4 data-ng-show="!rowsSelected">
+            Are you sure you want to delete {{currentNode.Name}}?</h4>
+        <h4 data-ng-show="rowsSelected">
+            Are you sure you want to deleted the selected records?</h4>
+    </div>
+    <div class="modal-footer">
+        <button data-ng-show="!rowsSelected" type="submit" class="btn btn-primary delete-node" data-ng-click="deleteThisNode(currentNode.ID); $close()" autofocus="true">Delete</button>
+        <button data-ng-show="rowsSelected" type="submit" class="btn btn-primary delete-node" data-ng-click="deleteSelectedRecords(currentNode.ID); $close()">Delete</button>
+        <button type="button" class="btn btn-default" data-ng-click="$dismiss()">Cancel</button>
+    </div>
+</script>
+
 <script type="text/ng-template" id="duplicateConfirmationModal.html">
     <div class="modal-header">
         <h3 class="modal-title">{{selections.resourceName}} already exists in this resource list.</h3>
@@ -240,8 +224,9 @@
         </table>
     </div>
     <div class="modal-footer">
-        <button class="btn btn-primary" data-ng-click="skip()">Skip</button>
-        <button class="btn btn-warning" data-ng-click="overwrite()">Overwrite</button>
+        <button class="btn btn-primary" type="submit" data-ng-click="skip()">Skip</button>
+        <button class="btn btn-warning" type="button" data-ng-click="overwrite()">Overwrite</button>
+        <button type="button" class="btn btn-default" data-ng-click="$dismiss()">Cancel</button>
     </div>
 </script>
 
@@ -264,7 +249,8 @@
         </table>
     </div>
     <div class="modal-footer">
-        <button class="btn btn-primary" data-ng-click="done()">Paste</button>
+        <button class="btn btn-primary" type="submit" data-ng-click="done()" autofocus="true">Paste</button>
+        <button type="button" class="btn btn-default" data-ng-click="$dismiss()">Cancel</button>
     </div>
 </script>
 
