@@ -201,14 +201,6 @@ i.checkbox-icon {
     background-color: white;
 }
 
-li.order-filters-flexbox {
-    display: inline-flex;
-    justify-content: flex-end;
-    align-items: center;
-    float: right;
-    width: 55vw;
-}
-
 li.invoice-filters-flexbox {
     display: inline-flex;
     justify-content: flex-end;
@@ -335,18 +327,6 @@ input.custom-datepicker{
 
 .LSHighlight {
     background-color: #2764d7;
-}
-
-.chosen-container{
-    width: 59% !important;
-}
-
-.chosen.width100 {
-    width: 100% !important;
-}
-
-.chosen.width20 {
-    width: 20% !important;
 }
 
 /* indents the form validation icon to the left so it shows in the input box */
@@ -542,4 +522,13 @@ table.modal-table {
 .hidden-checkbox input[type=checkbox]:checked + label:after {
     content: "\f046";
     font-family: FontAwesome;
+}
+
+/* action list and filter list */
+.action-list {
+    float: left;
+}
+
+.filter-unselected {
+    color: #606060;
 }

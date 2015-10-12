@@ -14,7 +14,7 @@ var myApp = angular.module('myApp', [
                     'ngSanitize',
                     'selectionModel',
                     'ngFileSaver',
-                    'cfp.hotkeys'
+                    'cfp.hotkeys',
                     ]);
 
 myApp.config(function(formValidationDecorationsProvider, formValidationErrorsProvider) {

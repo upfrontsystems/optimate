@@ -23,6 +23,8 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
         $scope.maxPageSize = 20;
         $scope.orderListLength = $scope.maxPageSize + 1;
 
+        $scope.projectsList = [{'ID': 0, 'Name': 'zero'}];
+
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
         SessionService.permissions().then(function(perm){
@@ -47,7 +49,7 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
 
         // loading the project, client and supplier list
         $scope.clearFilters = function() {
-            $scope.filters = [];
+            $scope.filters = {'Project': null};
             $http.get(globalServerURL + 'projects/')
             .success(function(data) {
                 $scope.projectsList = data;
