@@ -188,7 +188,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                                     return a.Name.localeCompare(b.Name)
                                 });
                             }
-                        }).then(function(){
+                        }).finally(function(){
                             deferred.resolve();
                         });
                     }
@@ -207,7 +207,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
         // build the root for the projects in the tree
         $scope.projectsRoot = {"Name": "Root", "ID": 0, "NodeType":"Root", "Subitem": []};
         // check if anything is stored in local storage
-        $scope.preloadProjects().then(function(){
+        $scope.preloadProjects().finally(function(){
             $scope.loadLists()
         });
 

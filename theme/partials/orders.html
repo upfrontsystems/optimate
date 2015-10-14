@@ -5,7 +5,7 @@
             $(this).hasClass('keep-open') && e.stopPropagation();
         });
     });
-    </script>
+</script>
 
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div class="container-fluid">
@@ -97,10 +97,11 @@
                 </a>
                 <ul class="dropdown-menu keep-open">
                     <li><input type="number"
-                       data-ng-model="filters.OrderNumber"
-                       data-ng-model-options="{ debounce: 500 }"
-                       placeholder="Order number"
-                       data-ng-change="loadOrderSection(); filterBy('ordernumber')"></li>
+                        class="filter-textbox"
+                        data-ng-model="filters.OrderNumber"
+                        data-ng-model-options="{debounce: 1000}"
+                        placeholder="Order number"
+                        data-ng-change="loadOrderSection(); filterBy('ordernumber')"></li>
                 </ul>
             </li>
             <li class="dropdown">
@@ -112,6 +113,8 @@
                <ul class="dropdown-menu keep-open">
                     <li>
                         <select chosen="{width: '100%'}"
+                                class="filter-selectbox"
+                                inherit_select_classes="true"
                                 id="projectFilter"
                                 data-ng-model="filters.Project"
                                 data-ng-options="project.ID as project.Name for project in projectsList"
@@ -121,7 +124,7 @@
                     </li>
                 </ul>
             </li>
-            <li>
+            <li class="dropdown">
                 <a href=""
                     data-toggle="dropdown"
                     data-ng-class="{undefined:'filter-unselected'}[filters.Client]">
@@ -138,7 +141,7 @@
                     </li>
                 </ul>
             </li>
-            <li>
+            <li class="dropdown">
                 <a href=""
                     data-toggle="dropdown"
                     data-ng-class="{undefined:'filter-unselected'}[filters.Supplier]">
@@ -155,7 +158,7 @@
                     </li>
                 </ul>
             </li>
-            <li>
+            <li class="dropdown">
                 <a href=""
                     data-toggle="dropdown"
                     data-ng-class="{undefined:'filter-unselected'}[filters.Status]">

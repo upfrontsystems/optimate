@@ -201,13 +201,6 @@ i.checkbox-icon {
     background-color: white;
 }
 
-li.invoice-filters-flexbox {
-    display: inline-flex;
-    justify-content: flex-end;
-    align-items: center;
-    float: right;
-    width: 60vw;
-}
 
 li.claim-filters-flexbox {
     display: inline-flex;
@@ -233,15 +226,6 @@ li.payment-filters-flexbox {
     width: 40vw;
 }
 
-.filter-bar {
-    flex: 1;
-}
-
-li.filters-label {
-    float: right;
-    margin-top: 3px;
-    font-weight: lighter;
-}
 
 .filter-datepicker{
     width: 50%;
@@ -524,11 +508,16 @@ table.modal-table {
     font-family: FontAwesome;
 }
 
-/* action list and filter list */
-.action-list {
-    float: left;
-}
-
+/* filter list navbar*/
 .filter-unselected {
     color: #606060;
+}
+
+.filter-textbox {
+    border: transparent;
+    padding-left: 5px;
+}
+
+.filter-selectbox > a.chosen-single {
+    display: none;
 }

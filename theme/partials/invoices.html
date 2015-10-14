@@ -1,6 +1,15 @@
+<script type="text/javascript">
+    // keep the dropdowns open on click
+    $(document).ready(function() {
+        $(document).on('click', '.dropdown-menu', function (e) {
+            $(this).hasClass('keep-open') && e.stopPropagation();
+        });
+    });
+    </script>
+
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div class="container-fluid">
-        <ul class="nav nav-pills">
+        <ul class="nav nav-pills navbar-left">
             <li data-ng-show="user.permissions.invoices == 'edit'"
                 data-ng-hide="selectedInvoices.length > 1">
                 <a title="Add Invoice"
@@ -91,79 +100,141 @@
                     class="excel_download">
                     <i class="fa fa-file-excel-o"></i></a>
             </li>
-            <li class="invoice-filters-flexbox active">
-                <input type="text"
-                       data-ng-model="filters.InvoiceNumber"
-                       data-ng-model-options="{ debounce: 500 }"
-                       placeholder="Invoice number"
-                       data-ng-change="loadInvoiceSection(); filterBy('invoicenumber')">
-                <input type="number"
-                       data-ng-model="filters.OrderNumber"
-                       data-ng-model-options="{ debounce: 500 }"
-                       placeholder="Order number"
-                       data-ng-change="loadInvoiceSection(); filterBy('ordernumber')">
-                <div class="filter-datepicker">
-                    <a class="dropdown-toggle"
-                        id="filterPaymentDropdown"
-                        role="button"
-                        data-toggle="dropdown" href="">
-                        <div class="input-group">
-                            <input type="text"
-                                    date-parser="DD MMMM YYYY"
-                                    class="col-sm-7 form-control custom-datepicker"
-                                    data-ng-model="filters.PaymentDate">
-                            <span class="input-group-addon">
-                                <i class="fa fa-calendar"></i>
-                            </span>
-                        </div>
-                    </a>
-                    <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-                        <datetimepicker data-ng-model="filters.PaymentDate"
-                            data-on-set-time="loadInvoiceSection(); filterBy('paymentdate')"
-                            data-datetimepicker-config="{ dropdownSelector: '#filterPaymentDropdown' ,
-                                                            minView:'day'}"/>
-                    </ul>
-                </div>
-                <select chosen
-                        class="filter-bar"
-                        id="projectFilter"
-                        data-ng-model="filters.Project"
-                        data-ng-options="project.ID as project.Name for project in projectsList"
-                        data-ng-change="loadInvoiceSection(); filterBy('project')">
-                    <option value="">Project</option>
-                </select>
-                <select chosen
-                        class="filter-bar"
-                        id="clientFilter"
-                        data-ng-model="filters.Client"
-                        data-ng-options="client.ID as client.Name for client in clientsList"
-                        data-ng-change="loadInvoiceSection(); filterBy('client')">
-                    <option value="">Client</option>
-                </select>
-                <select chosen
-                        class="filter-bar"
-                        id="supplierFilter"
-                        data-ng-model="filters.Supplier"
-                        data-ng-options="supplier.ID as supplier.Name for supplier in suppliersList"
-                        data-ng-change="loadInvoiceSection(); filterBy('supplier')">
-                    <option value="">Supplier</option>
-                </select>
-                <select chosen
-                        class="filter-bar"
-                        id="statusFilter"
-                        data-ng-model="filters.Status"
-                        data-ng-change="loadInvoiceSection(); filterBy('status')">
-                    <option value="">Status</option>
-                    <option value="Draft">Draft</option>
-                    <option value="Due">Due</option>
-                    <option value="Paid">Paid</option>
-                </select>
+        </ul>
+        <ul class="nav nav-pills navbar-right ">
+            <li class="dropdown">
                 <a href=""
-                        data-ng-click="clearFilters(); loadInvoiceSection()">
+                    data-toggle="dropdown"
+                    data-ng-class="{undefined:'filter-unselected'}[filters.InvoiceNumber]">
+                    Invoice Number <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu keep-open">
+                    <li><input type="text"
+                        class="filter-textbox"
+                        data-ng-model="filters.InvoiceNumber"
+                        data-ng-model-options="{ debounce: 1000 }"
+                        placeholder="Invoice number"
+                        data-ng-change="loadInvoiceSection(); filterBy('invoicenumber')"></li>
+                </ul>
+            </li>
+            <li class="dropdown">
+                <a href=""
+                    data-toggle="dropdown"
+                    data-ng-class="{undefined:'filter-unselected'}[filters.OrderNumber]">
+                    Order number <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu keep-open">
+                    <li><input type="number"
+                            class="filter-textbox"
+                            data-ng-model="filters.OrderNumber"
+                            data-ng-model-options="{ debounce: 1000 }"
+                            placeholder="Order number"
+                            data-ng-change="loadInvoiceSection(); filterBy('ordernumber')"></li>
+                </ul>
+            </li>
+            <li class="dropdown">
+                <a href=""
+                    data-toggle="dropdown"
+                    data-ng-class="{undefined:'filter-unselected'}[filters.PaymentDate]">
+                    Payment Date <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu keep-open">
+                    <li><div class="filter-datepicker">
+                        <a class="dropdown-toggle"
+                            id="filterPaymentDropdown"
+                            role="button"
+                            data-toggle="dropdown" href="">
+                            <div class="input-group">
+                                <input type="text"
+                                        date-parser="DD MMMM YYYY"
+                                        class="col-sm-7 form-control custom-datepicker"
+                                        data-ng-model="filters.PaymentDate">
+                                <span class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </span>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                            <datetimepicker data-ng-model="filters.PaymentDate"
+                                data-on-set-time="loadInvoiceSection(); filterBy('paymentdate')"
+                                data-datetimepicker-config="{ dropdownSelector: '#filterPaymentDropdown' ,
+                                                                minView:'day'}"/>
+                        </ul>
+                    </div></li>
+                </ul>
+            </li>
+            <li class="dropdown">
+                <a href=""
+                    data-toggle="dropdown"
+                    data-ng-class="{undefined:'filter-unselected'}[filters.Project]">
+                    Project <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu keep-open">
+                    <li><select chosen="{width: '100%'}"
+                            id="projectFilter"
+                            data-ng-model="filters.Project"
+                            data-ng-options="project.ID as project.Name for project in projectsList"
+                            data-ng-change="loadInvoiceSection(); filterBy('project')">
+                        <option value="">Project</option>
+                    </select></li>
+                </ul>
+            </li>
+            <li class="dropdown">
+                <a href=""
+                    data-toggle="dropdown"
+                    data-ng-class="{undefined:'filter-unselected'}[filters.Client]">
+                    Client <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu keep-open">
+                    <li><select chosen="{width: '100%'}"
+                            id="clientFilter"
+                            data-ng-model="filters.Client"
+                            data-ng-options="client.ID as client.Name for client in clientsList"
+                            data-ng-change="loadInvoiceSection(); filterBy('client')">
+                        <option value="">Client</option>
+                    </select></li>
+                </ul>
+            </li>
+            <li class="dropdown">
+                <a href=""
+                    data-toggle="dropdown"
+                    data-ng-class="{undefined:'filter-unselected'}[filters.Supplier]">
+                    Supplier <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu keep-open">
+                    <li><select chosen="{width: '100%'}"
+                            id="supplierFilter"
+                            data-ng-model="filters.Supplier"
+                            data-ng-options="supplier.ID as supplier.Name for supplier in suppliersList"
+                            data-ng-change="loadInvoiceSection(); filterBy('supplier')">
+                        <option value="">Supplier</option>
+                    </select></li>
+                </ul>
+            </li>
+            <li class="dropdown">
+                 <a href=""
+                    data-toggle="dropdown"
+                    data-ng-class="{undefined:'filter-unselected'}[filters.Status]">
+                    Status <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu keep-open">
+                    <li><select chosen="{width: '100%'}"
+                            id="statusFilter"
+                            data-ng-model="filters.Status"
+                            data-ng-change="loadInvoiceSection(); filterBy('status')">
+                        <option value="">Status</option>
+                        <option value="Draft">Draft</option>
+                        <option value="Due">Due</option>
+                        <option value="Paid">Paid</option>
+                    </select></li>
+                </ul>
+            </li>
+            <li>
+                <a href=""
+                    data-ng-click="clearFilters(); loadInvoiceSection()">
                     Clear
                 </a>
-            <li>
-            <li class="filters-label"><label>Filter by:</label></li>
+            </li>
         </ul>
     </div>
 </nav>

@@ -1,6 +1,15 @@
+<script type="text/javascript">
+    // keep the dropdowns open on click
+    $(document).ready(function() {
+        $(document).on('click', '.dropdown-menu', function (e) {
+            $(this).hasClass('keep-open') && e.stopPropagation();
+        });
+    });
+</script>
+
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div class="container-fluid">
-        <ul class="nav nav-pills">
+        <ul class="nav nav-pills navbar-left">
             <li data-ng-show="user.permissions.valuations == 'edit'">
                 <a title="Add Valuation"
                     data-ng-click="addingState()"
@@ -41,51 +50,79 @@
                 class="excel_download">
                 <i class="fa fa-file-excel-o"></i></a>
             </li>
-            <li class="valuation-filters-flexbox active">
-                <select chosen
-                        class="filter-bar"
-                        id="projectFilter"
-                        data-ng-model="filters.Project"
-                        data-ng-options="project.ID as project.Name for project in filteredProjectsList"
-                        data-ng-change="loadValuationSection()">
-                    <option value="">Project</option>
-                </select>
-                <div class="filter-datepicker">
-                    <a class="dropdown-toggle"
-                        id="filterDateDropdown"
-                        role="button"
-                        data-toggle="dropdown" href="">
-                        <div class="input-group">
-                            <input type="text"
-                                    date-parser="DD MMMM YYYY"
-                                    class="col-sm-7 form-control custom-datepicker"
-                                    data-ng-model="filters.Date">
-                            <span class="input-group-addon">
-                                <i class="fa fa-calendar"></i>
-                            </span>
-                        </div>
-                    </a>
-                    <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-                        <datetimepicker data-ng-model="filters.Date"
-                            data-on-set-time="loadValuationSection()"
-                            data-datetimepicker-config="{ dropdownSelector: '#filterDateDropdown' ,
-                                                            minView:'day'}"/>
-                    </ul>
-                </div>
-                <select chosen
-                        class="filter-bar"
-                        id="statusFilter"
-                        data-ng-model="filters.Status"
-                        data-ng-options="status as status for status in statusList"
-                        data-ng-change="loadValuationSection(); filterBy('status')">
-                    <option value="">Status</option>
-                </select>
+        </ul>
+        <ul class="nav nav-pills navbar-right ">
+            <li class="dropdown">
+                <a href=""
+                    data-toggle="dropdown"
+                    data-ng-class="{undefined:'filter-unselected'}[filters.Project]">
+                    Project <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu keep-open">
+                    <li><select chosen="{width: '100%'}"
+                            class="filter-bar"
+                            id="projectFilter"
+                            data-ng-model="filters.Project"
+                            data-ng-options="project.ID as project.Name for project in filteredProjectsList"
+                            data-ng-change="loadValuationSection()">
+                        <option value="">Project</option>
+                    </select></li>
+                </ul>
+            </li>
+            <li class="dropdown">
+                <a href=""
+                    data-toggle="dropdown"
+                    data-ng-class="{undefined:'filter-unselected'}[filters.Date]">
+                    Date <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu keep-open">
+                    <li><div class="filter-datepicker">
+                        <a class="dropdown-toggle"
+                            id="filterDateDropdown"
+                            role="button"
+                            data-toggle="dropdown" href="">
+                            <div class="input-group">
+                                <input type="text"
+                                        date-parser="DD MMMM YYYY"
+                                        class="col-sm-7 form-control custom-datepicker"
+                                        data-ng-model="filters.Date">
+                                <span class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </span>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                            <datetimepicker data-ng-model="filters.Date"
+                                data-on-set-time="loadValuationSection()"
+                                data-datetimepicker-config="{ dropdownSelector: '#filterDateDropdown' ,
+                                                                minView:'day'}"/>
+                        </ul>
+                    </div></li>
+                </ul>
+            </li>
+            <li class="dropdown">
+                <a href=""
+                    data-toggle="dropdown"
+                    data-ng-class="{undefined:'filter-unselected'}[filters.Status]">
+                    Status <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu keep-open">
+                    <li><select chosen="{width: '100%'}"
+                            class="filter-bar"
+                            id="statusFilter"
+                            data-ng-model="filters.Status"
+                            data-ng-options="status as status for status in statusList"
+                            data-ng-change="loadValuationSection(); filterBy('status')">
+                        <option value="">Status</option>
+                    </select></li>
+                </ul>
+            </li>
+            <li>
                 <a href=""
                         data-ng-click="clearFilters(); loadValuationSection()">
                     Clear
                 </a>
-            <li>
-            <li class="filters-label"><label>Filter by:</label></li>
+            </li>
         </ul>
     </div>
 </nav>
