@@ -22,6 +22,7 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
         };
         $scope.isDisabled = false;
         $scope.jsonvaluations = [];
+        $scope.selectedValuations = [];
         $scope.budgetgroupList = [];
         $scope.modalForm = [];
         $scope.statusList = [{'Status': 'Draft'}, {'Status': 'Paid'}];
@@ -175,15 +176,6 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
             console.log ("Valuation edited");
         };
 
-        // Set the selected valuation and change the css
-        $scope.showActionsFor = function(obj) {
-            if ($scope.selectedValuation){
-                $scope.selectedValuation.selected = undefined;
-            }
-            $scope.selectedValuation = obj;
-            $scope.selectedValuation.selected = true;
-        };
-
         // When the Add button is pressed change the state and form data
         $scope.addingState = function () {
             $scope.formData = {'NodeType': 'valuation',
@@ -194,10 +186,8 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
                                     'expanded': false};
             $scope.formData['Date'] = $scope.dateTimeNow();
             $scope.budgetgroupList = [];
-            if ($scope.selectedValuation) {
-                $scope.selectedValuation.selected = undefined;
-                $scope.selectedValuation = undefined;
-            }
+            // clear the item selection
+            $scope.clearSelectedValuations();
             $scope.saveValuationModalForm.$setPristine();
         }
 
@@ -209,7 +199,7 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
                                     'expanded': false};
             $http({
                 method: 'GET',
-                url: globalServerURL + 'valuation/' + $scope.selectedValuation.ID + '/'
+                url: globalServerURL + 'valuation/' + $scope.selectedValuations[0].ID + '/'
             }).success(function(response) {
                 $scope.formData = response;
                 $scope.formData['NodeType'] = 'valuation';
@@ -223,20 +213,28 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
         }
 
         // Delete a valuation and remove from the valuations list
-        $scope.deleteValuation = function() {
-            var deleteid = $scope.selectedValuation.ID;
-            $scope.selectedValuation = undefined;
+        $scope.deleteValuation = function(index) {
+            var deleteid = $scope.selectedValuations[index].ID;
             $http({
                 method: 'DELETE',
                 url: globalServerURL + $scope.formData['NodeType'] + '/' + deleteid + '/'
             }).success(function () {
-                var result = $.grep($scope.jsonvaluations, function(e) {
-                    return e.ID == deleteid;
-                });
-                var i = $scope.jsonvaluations.indexOf(result[0]);
-                if (i>-1) {
-                    $scope.jsonvaluations.splice(i, 1);
-                    console.log("Deleted valuation");
+                console.log("Deleted valuation " + $scope.selectedValuations[index].ID);
+                index+=1;
+                if (index < $scope.Valuations.length){
+                    $scope.deleteValuation(index);
+                }
+                else{
+                    for (var i in $scope.selectedValuations){
+                        var result = $.grep($scope.jsonvaluations, function(e) {
+                            return e.ID == $scope.selectedValuations[i].ID;
+                        });
+                        var ind = $scope.jsonvaluations.indexOf(result[0]);
+                        if (ind>-1) {
+                            $scope.jsonvaluations[ind].selected = false;
+                            $scope.jsonvaluations.splice(ind, 1);
+                        }
+                    }
                 }
             });
         };
@@ -320,13 +318,39 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
             $scope.handleReloadValuationSlickgrid();
         };
 
+        // set each item selected/unselected
+        $scope.toggleAllCheckboxes = function(){
+            var state = $scope.selectedValuations.length != $scope.jsonvaluations.length;
+            for (var i in $scope.jsonvaluations){
+                $scope.jsonvaluations[i].selected = state;
+            }
+        }
+
+        // deselect all the selected orders
+        $scope.clearSelectedValuations = function(){
+            if ($scope.selectedValuations.length == $scope.jsonvaluations.length){
+                $scope.toggleAllCheckboxes();
+            }
+            else{
+                for (var i in $scope.selectedValuations){
+                    var result = $.grep($scope.jsonvaluations, function(e) {
+                        return e.ID == $scope.selectedValuations[i].ID;
+                    });
+                    var ind = $scope.jsonvaluations.indexOf(result[0]);
+                    if (ind>-1) {
+                        $scope.jsonvaluations[ind].selected = false;
+                    }
+                }
+            }
+        }
+
         $scope.getReport = function (report) {
             if ( report == 'valuation' ) {
                 var target = document.getElementsByClassName('pdf_download');
                 var spinner = new Spinner().spin(target[0]);
                 $http({
                     method: 'POST',
-                    url: globalServerURL + 'valuation_report/' + $scope.selectedValuation.ID + '/',
+                    url: globalServerURL + 'valuation_report/' + $scope.selectedValuations[0].ID + '/',
                     responseType: 'arraybuffer'
                 }).success(function (response, status, headers, config) {
                     spinner.stop();
@@ -351,7 +375,7 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
                 var spinner = new Spinner().spin(target[0]);
                 $http({
                     method: 'POST',
-                    url: globalServerURL + 'excel_valuation_report/' + $scope.selectedValuation.ID + '/',
+                    url: globalServerURL + 'excel_valuation_report/' + $scope.selectedValuations[0].ID + '/',
                     responseType: 'arraybuffer'
                 }).success(function (response, status, headers, config) {
                     spinner.stop();

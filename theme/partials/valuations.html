@@ -21,7 +21,7 @@
             </li>
             <li data-ng-show="user.permissions.valuations == 'edit'">
                 <a title="Edit Valuation"
-                    data-ng-show="selectedValuation"
+                    data-ng-show="selectedValuations.length == 1"
                     data-ng-click="editingState()"
                     data-target="#saveValuationModal"
                     data-backdrop="static"
@@ -31,20 +31,29 @@
             </li>
             <li data-ng-show="user.permissions.valuations == 'edit'">
                 <a title="Delete Valuation"
-                    data-ng-show="selectedValuation"
+                    data-ng-show="selectedValuations.length == 1"
                     data-target="#deleteValuationModal"
                     data-backdrop="static"
                     data-toggle="modal">
                         <i class="fa fa-trash"></i>
                 </a>
             </li>
-            <li data-ng-show="selectedValuation">
+            <li data-ng-show="user.permissions.valuations == 'edit'">
+                <a title="Delete Valuations"
+                    data-ng-show="selectedValuations.length > 1"
+                    data-target="#deleteValuationModal"
+                    data-backdrop="static"
+                    data-toggle="modal">
+                        <i class="fa fa-trash"></i>
+                </a>
+            </li>
+            <li data-ng-show="selectedValuations.length == 1">
                 <a title="PDF Valuation Report"
                 data-ng-click="getReport('valuation')"
                 class="pdf_download">
                 <i class="fa fa-file-pdf-o"></i></a>
             </li>
-            <li data-ng-show="selectedValuation">
+            <li data-ng-show="selectedValuations.length == 1">
                 <a title="Excel Valuation Report"
                 data-ng-click="getExcelReport('valuation')"
                 class="excel_download">
@@ -140,11 +149,14 @@
 <div id="deleteValuationModal" class="modal" tabindex='-1'>
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
-            <div class="modal-body">
-                <h4>Delete valuation {{selectedValuation.ID}}</h4>
+            <div class="modal-body" data-ng-show="selectedValuations.length == 1">
+                <h4>Delete valuation {{selectedValuations[0].ID}}</h4>
+            </div>
+            <div class="modal-body" data-ng-show="selectedValuations.length > 1">
+                <h4>Delete selected valuations</h4>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-dismiss="modal" data-ng-click="deleteValuation()">Delete</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" data-ng-click="deleteValuation(0)">Delete</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
             </div>
         </div>
@@ -156,6 +168,10 @@
         <table class="table">
             <thead>
                 <tr>
+                    <th data-ng-click="toggleAllCheckboxes()">
+                        <i style="padding-left:5px;"
+                            data-ng-class="{true:'fa fa-check-square-o', false:'fa fa-square-o'}[selectedValuations.length == jsonvaluations.length]"></i>
+                    </th>
                     <th>Valuation Number</th>
                     <th>Project</th>
                     <th>Valuation Date</th>
@@ -166,9 +182,18 @@
             </thead>
             <tbody>
                 <tr ng-repeat="obj in jsonvaluations"
-                    ng-click="showActionsFor(obj)"
-                    data-ng-class="{active: obj.selected}"
-                    id="valuation-{{obj.ID}}">
+                    id="valuation-{{obj.ID}}"
+                    selection-model
+                    selection-model-type="checkbox"
+                    selection-model-mode="multiple"
+                    selection-model-selected-class="active"
+                    selection-model-cleanup-strategy="deselect"
+                    selection-model-selected-attribute="selected"
+                    selection-model-selected-items="selectedValuations">
+                    <td class="hidden-checkbox">
+                            <input type="checkbox" id="hidden-checkbox-{{obj.ID}}" name=""/>
+                            <label for="hidden-checkbox-{{obj.ID}}"></label>
+                    </td>
                     <td>{{obj.ID}}</td>
                     <td>{{obj.Project}}</td>
                     <td>{{obj.ReadableDate}}</td>

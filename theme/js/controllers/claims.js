@@ -8,6 +8,7 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
         $scope.jsonclaims = [];
         $scope.claimList = [];
         $scope.valuationsList = [];
+        $scope.selectedItems = [];
         $scope.statusList = [{'Status': 'Draft'}, {'Status': 'Claimed'}, {'Status': 'Paid'}];
 
         // get the user permissions
@@ -154,12 +155,6 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
             console.log ("Claim edited");
         };
 
-        // Set the selected claim and change the css
-        $scope.showActionsFor = function(obj) {
-            $scope.selectedClaim = obj;
-            $('#claim-'+obj.id).addClass('active').siblings().removeClass('active');
-        };
-
         // When the Add button is pressed change the state and form data
         $scope.addingState = function () {
             $scope.formData = {'NodeType': 'claim'};
@@ -169,10 +164,8 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
             $scope.valuationsList = [];
             $scope.dateTimeNow();
             $scope.formData['Date'] = $scope.date;
-            if ($scope.selectedClaim) {
-                $('#claim-'+$scope.selectedClaim.id).removeClass('active');
-                $scope.selectedClaim = undefined;
-            }
+            // clear the item selection
+            $scope.clearSelectedItems();
             $scope.saveClaimModalForm.$setPristine();
         }
 
@@ -183,7 +176,7 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
             $scope.modalState = "Edit";
             $http({
                 method: 'GET',
-                url: globalServerURL + 'claim/' + $scope.selectedClaim.id + '/'
+                url: globalServerURL + 'claim/' + $scope.selectedItems[0].ID + '/'
             }).success(function(response) {
                 $scope.loadProjectValuations(response.ProjectID);
                 $scope.formData = response;
@@ -197,21 +190,28 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
         }
 
         // Delete a claim and remove from the list
-        $scope.deleteClaim = function() {
-            var deleteid = $scope.selectedClaim.id;
+        $scope.deleteClaim = function(index) {
+            var deleteid = $scope.selectedItems[0].ID;
             $http({
                 method: 'DELETE',
                 url: globalServerURL + 'claim' + '/' + deleteid + '/'
             }).success(function () {
-                var result = $.grep($scope.jsonclaims, function(e) {
-                    return e.id == deleteid;
-                });
-                var i = $scope.jsonclaims.indexOf(result[0]);
-                if (i>-1) {
-                    $scope.jsonclaims.splice(i, 1);
-                    $scope.claimsLengthCheck();
-                    $scope.selectedClaim = undefined;
-                    console.log("Deleted claim");
+                console.log("Deleted claim " + $scope.selectedItems[index].ID);
+                index+=1;
+                if (index < $scope.selectedItems.length){
+                    $scope.deleteClaim(index);
+                }
+                else{
+                    for (var i in $scope.selectedItems){
+                        var result = $.grep($scope.jsonclaims, function(e) {
+                            return e.ID == $scope.selectedItems[i].ID;
+                        });
+                        var ind = $scope.jsonclaims.indexOf(result[0]);
+                        if (ind>-1) {
+                            $scope.jsonclaims[ind].selected = false;
+                            $scope.jsonclaims.splice(ind, 1);
+                        }
+                    }
                 }
             });
         };
@@ -220,17 +220,49 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
         $scope.toggleClaimStatus = function(status, index){
             $http({
                 method: 'POST',
-                url: globalServerURL + 'claim/' + $scope.selectedClaim.ID + '/status',
+                url: globalServerURL + 'claim/' + $scope.selectedItems[0].ID + '/status',
                 data: {'status':status}
             }).success(function(){
-                $scope.selectedClaim.Status = status;
-                console.log("Claim " + $scope.selectedClaim.ID + " status to " + status);
+                var result = $.grep($scope.jsonclaims, function(e) {
+                    return e.ID == $scope.selectedItems[0].ID;
+                });
+                var ind = $scope.jsonclaims.indexOf(result[0]);
+                if (ind>-1) {
+                    $scope.jsonclaims[ind].Status = status;
+                }
+                console.log("Claim " + $scope.selectedItems[0].ID + " status to " + status);
             })
+        }
+
+        // set each item selected/unselected
+        $scope.toggleAllCheckboxes = function(){
+            var state = $scope.selectedItems.length != $scope.jsonclaims.length;
+            for (var i in $scope.jsonclaims){
+                $scope.jsonclaims[i].selected = state;
+            }
+        }
+
+        // deselect all the selected orders
+        $scope.clearSelectedItems = function(){
+            if ($scope.selectedItems.length == $scope.jsonclaims.length){
+                $scope.toggleAllCheckboxes();
+            }
+            else{
+                for (var i in $scope.selectedItems){
+                    var result = $.grep($scope.jsonclaims, function(e) {
+                        return e.ID == $scope.selectedItems[i].ID;
+                    });
+                    var ind = $scope.jsonclaims.indexOf(result[0]);
+                    if (ind>-1) {
+                        $scope.jsonclaims[ind].selected = false;
+                    }
+                }
+            }
         }
 
         $scope.getReport = function (report) {
             if ( report == 'claim' ) {
-                var claimid = $scope.selectedClaim.ID;
+                var claimid = $scope.selectedItems[0].ID;
                 var target = document.getElementsByClassName('pdf_download');
                 var spinner = new Spinner().spin(target[0]);
                 $http({
@@ -257,7 +289,7 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
 
         $scope.getExcelReport = function (report) {
             if ( report == 'claim' ) {
-                var claimid = $scope.selectedClaim.ID;
+                var claimid = $scope.selectedItems[0].ID;
                 var target = document.getElementsByClassName('excel_download');
                 var spinner = new Spinner().spin(target[0]);
                 $http({

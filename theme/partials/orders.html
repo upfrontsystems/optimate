@@ -10,8 +10,7 @@
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div class="container-fluid">
         <ul class="nav nav-pills navbar-left">
-            <li data-ng-show="user.permissions.orders == 'edit'"
-                data-ng-hide="selectedOrders.length > 1">
+            <li data-ng-show="user.permissions.orders == 'edit'">
                 <a title="Add Order"
                     data-ng-click="addingState()"
                     data-target="#saveOrderModal"
@@ -251,8 +250,9 @@
                     selection-model-selected-attribute="selected"
                     selection-model-selected-items="selectedOrders"
                     id="order-{{obj.ID}}">
-                    <td class="hidden-checkbox"><input type="checkbox" id="hidden-checkbox-{{obj.ID}}" name=""/>
-                                                <label for="hidden-checkbox-{{obj.ID}}"></label>
+                    <td class="hidden-checkbox">
+                            <input type="checkbox" id="hidden-checkbox-{{obj.ID}}" name=""/>
+                            <label for="hidden-checkbox-{{obj.ID}}"></label>
                     </td>
                     <td>{{obj.ID}}</td>
                     <td>{{obj.Date}}</td>

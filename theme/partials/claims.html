@@ -21,7 +21,7 @@
             </li>
             <li data-ng-show="user.permissions.orders == 'edit'">
                 <a title="Edit Claim"
-                    data-ng-show="selectedClaim"
+                    data-ng-show="selectedItems.length == 1"
                     data-ng-click="editingState()"
                     data-target="#saveClaimModal"
                     data-backdrop="static"
@@ -31,7 +31,16 @@
             </li>
             <li data-ng-show="user.permissions.orders == 'edit'">
                 <a title="Delete Claim"
-                    data-ng-show="selectedClaim"
+                    data-ng-show="selectedItems.length == 1"
+                    data-target="#deleteClaimModal"
+                    data-backdrop="static"
+                    data-toggle="modal">
+                        <i class="fa fa-trash"></i>
+                </a>
+            </li>
+            <li data-ng-show="user.permissions.orders == 'edit'">
+                <a title="Delete Claims"
+                    data-ng-show="selectedItems.length > 1"
                     data-target="#deleteClaimModal"
                     data-backdrop="static"
                     data-toggle="modal">
@@ -40,25 +49,25 @@
             </li>
             <li data-ng-show="user.permissions.orders == 'edit'">
                 <a title="Submit for payment"
-                    data-ng-show="selectedClaim.Status == 'Draft'"
+                    data-ng-show="selectedItems[0].Status == 'Draft'"
                     data-ng-click="toggleClaimStatus('Claimed', 0)">
                         <i class="fa fa-arrow-right"></i>
                 </a>
             </li>
             <li data-ng-show="user.permissions.orders == 'edit'">
                 <a title="Retract"
-                    data-ng-show="selectedClaim.Status == 'Claimed'"
+                    data-ng-show="selectedItems[0].Status == 'Claimed'"
                     data-ng-click="toggleClaimStatus('Draft', 0)">
                         <i class="fa fa-arrow-left"></i>
                 </a>
             </li>
-            <li ng-show="selectedClaim">
+            <li ng-show="selectedItems.length == 1">
                 <a title="PDF Claim Report"
                 data-ng-click="getReport('claim')"
                 class="pdf_download">
                 <i class="fa fa-file-pdf-o"></i></a>
             </li>
-            <li ng-show="selectedClaim">
+            <li ng-show="selectedItems.length == 1">
                 <a title="Excel Claim Report"
                 data-ng-click="getExcelReport('claim')"
                 class="excel_download">
@@ -140,11 +149,14 @@
 <div id="deleteClaimModal" class="modal" tabindex='-1'>
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
-            <div class="modal-body">
-                <h4>Delete claim {{selectedClaim.ID}}</h4>
+            <div class="modal-body" data-ng-show="selectedItems.length == 1">
+                <h4>Delete claim {{selectedItems[0].ID}}</h4>
+            </div>
+            <div class="modal-body" data-ng-show="selectedItems.length > 1">
+                <h4>Delete selected claims</h4>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-dismiss="modal" data-ng-click="deleteClaim()">Delete</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" data-ng-click="deleteClaim(0)">Delete</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
             </div>
         </div>
@@ -156,6 +168,10 @@
         <table class="table">
             <thead>
                 <tr>
+                    <th data-ng-click="toggleAllCheckboxes()">
+                        <i style="padding-left:5px;"
+                            data-ng-class="{true:'fa fa-check-square-o', false:'fa fa-square-o'}[selectedItems.length == jsonclaims.length]"></i>
+                    </th>
                     <th>Claim Number</th>
                     <th>Claim Date</th>
                     <th>Project</th>
@@ -165,7 +181,18 @@
             </thead>
             <tbody>
                 <tr ng-repeat="obj in jsonclaims"
-                    ng-click="showActionsFor(obj)" id="claim-{{obj.ID}}">
+                    id="claim-{{obj.ID}}"
+                    selection-model
+                    selection-model-type="checkbox"
+                    selection-model-mode="multiple"
+                    selection-model-selected-class="active"
+                    selection-model-cleanup-strategy="deselect"
+                    selection-model-selected-attribute="selected"
+                    selection-model-selected-items="selectedItems">
+                    <td class="hidden-checkbox">
+                            <input type="checkbox" id="hidden-checkbox-{{obj.ID}}" name=""/>
+                            <label for="hidden-checkbox-{{obj.ID}}"></label>
+                    </td>
                     <td>{{obj.ID}}</td>
                     <td>{{obj.Date}}</td>
                     <td>{{obj.Project}}</td>

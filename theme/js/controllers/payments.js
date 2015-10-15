@@ -8,6 +8,7 @@ myApp.controller('paymentsController', ['$scope', '$http', 'globalServerURL', 'S
         $scope.jsonpayments = [];
         $scope.paymentList = [];
         $scope.claimsList = []
+        $scope.selectedItems = [];
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
@@ -138,12 +139,6 @@ myApp.controller('paymentsController', ['$scope', '$http', 'globalServerURL', 'S
             console.log ("Payment edited");
         };
 
-        // Set the selected payment and change the css
-        $scope.showActionsFor = function(obj) {
-            $scope.selectedPayment = obj;
-            $('#payment-'+obj.id).addClass('active').siblings().removeClass('active');
-        };
-
         // When the Add button is pressed change the state and form data
         $scope.addingState = function () {
             $scope.formData = {'NodeType': 'payment'};
@@ -153,10 +148,8 @@ myApp.controller('paymentsController', ['$scope', '$http', 'globalServerURL', 'S
             $scope.isDisabled = false;
             $scope.modalState = "Add";
             $scope.claimsList = [];
-            if ($scope.selectedPayment) {
-                $('#payment-'+$scope.selectedPayment.id).removeClass('active');
-                $scope.selectedPayment = undefined;
-            }
+            // clear the item selection
+            $scope.clearSelectedItems();
             $scope.savePaymentModalForm.$setPristine();
         }
 
@@ -167,7 +160,7 @@ myApp.controller('paymentsController', ['$scope', '$http', 'globalServerURL', 'S
             $scope.modalState = "Edit";
             $http({
                 method: 'GET',
-                url: globalServerURL + 'payment/' + $scope.selectedPayment.id + '/'
+                url: globalServerURL + 'payment/' + $scope.selectedItems[0].ID + '/'
             }).success(function(response) {
                 $scope.formData = response;
                 $scope.formData.Date = new Date($scope.formData.Date);
@@ -181,24 +174,57 @@ myApp.controller('paymentsController', ['$scope', '$http', 'globalServerURL', 'S
         }
 
         // Delete a payment and remove from the list
-        $scope.deletePayment = function() {
-            var deleteid = $scope.selectedPayment.id;
+        $scope.deletePayment = function(index) {
+            var deleteid = $scope.selectedItems[0].ID;
             $http({
                 method: 'DELETE',
                 url: globalServerURL + 'payment' + '/' + deleteid + '/'
             }).success(function () {
-                var result = $.grep($scope.jsonpayments, function(e) {
-                    return e.id == deleteid;
-                });
-                var i = $scope.jsonpayments.indexOf(result[0]);
-                if (i>-1) {
-                    $scope.jsonpayments.splice(i, 1);
-                    $scope.paymentsLengthCheck();
-                    $scope.selectedPayment = undefined;
-                    console.log("Deleted payment");
+                console.log("Deleted payment " + $scope.selectedItems[index].ID);
+                index+=1;
+                if (index < $scope.selectedItems.length){
+                    $scope.deletePayment(index);
+                }
+                else{
+                    for (var i in $scope.selectedItems){
+                        var result = $.grep($scope.jsonpayments, function(e) {
+                            return e.ID == $scope.selectedItems[i].ID;
+                        });
+                        var ind = $scope.jsonpayments.indexOf(result[0]);
+                        if (ind>-1) {
+                            $scope.jsonpayments[ind].selected = false;
+                            $scope.jsonpayments.splice(ind, 1);
+                        }
+                    }
                 }
             });
         };
+
+        // set each item selected/unselected
+        $scope.toggleAllCheckboxes = function(){
+            var state = $scope.selectedItems.length != $scope.jsonpayments.length;
+            for (var i in $scope.jsonpayments){
+                $scope.jsonpayments[i].selected = state;
+            }
+        }
+
+        // deselect all the selected orders
+        $scope.clearSelectedItems = function(){
+            if ($scope.selectedItems.length == $scope.jsonpayments.length){
+                $scope.toggleAllCheckboxes();
+            }
+            else{
+                for (var i in $scope.selectedItems){
+                    var result = $.grep($scope.jsonpayments, function(e) {
+                        return e.ID == $scope.selectedItems[i].ID;
+                    });
+                    var ind = $scope.jsonpayments.indexOf(result[0]);
+                    if (ind>-1) {
+                        $scope.jsonpayments[ind].selected = false;
+                    }
+                }
+            }
+        }
 
         // fetch the report filter options
         $scope.filterReportBy = function() {

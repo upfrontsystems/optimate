@@ -10,8 +10,7 @@
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div class="container-fluid">
         <ul class="nav nav-pills navbar-left">
-            <li data-ng-show="user.permissions.invoices == 'edit'"
-                data-ng-hide="selectedInvoices.length > 1">
+            <li data-ng-show="user.permissions.invoices == 'edit'">
                 <a title="Add Invoice"
                     data-ng-click="addingState()"
                     data-target="#saveInvoiceModal"
