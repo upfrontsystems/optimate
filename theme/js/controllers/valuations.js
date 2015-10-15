@@ -24,7 +24,7 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
         $scope.jsonvaluations = [];
         $scope.budgetgroupList = [];
         $scope.modalForm = [];
-        $scope.statusList = ['Draft', 'Claimed'];
+        $scope.statusList = [{'Status': 'Draft'}, {'Status': 'Paid'}];
         // Pagination variables and functions
         $scope.pageSize = 100;
         $scope.currentPage = 1;

@@ -15,7 +15,7 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
         $scope.invoiceList = [];
         $scope.selectedInvoices = [];
         $scope.amounts = {};
-
+        $scope.statusList = [{'Status':'Draft'}, {'Status': 'Due'}, {'Status': 'Paid'}];
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
         SessionService.permissions().then(function(perm){

@@ -69,17 +69,19 @@
             <li class="dropdown">
                 <a href=""
                     data-toggle="dropdown"
-                    data-ng-class="{undefined:'filter-unselected'}[filters.Project]">
+                    data-ng-class="{'filter-unselected': !filters.Project}">
                     Project <span class="caret"></span>
                 </a>
                 <ul class="dropdown-menu keep-open">
-                    <li><select chosen="{width: '100%'}"
-                            id="projectFilter"
-                            data-ng-model="filters.Project"
-                            data-ng-options="project.ID as project.Name for project in projectsList"
-                            data-ng-change="loadClaimSection()">
-                        <option value="">Project</option>
-                    </select></li>
+                    <li>
+                        <select class="ac-select"
+                                ac-model="filters.Project"
+                                ac-options="project.ID as project.Name for project in projectsList"
+                                ac-data="projectsList"
+                                ac-settings="{minWidth: '350px', maxWidth: '400px'}"
+                                ac-change="loadClaimSection()">
+                        </select>
+                    </li>
                 </ul>
             </li>
             <li>
@@ -89,7 +91,7 @@
                     role="button"
                     data-toggle="dropdown"
                     data-target=""
-                    data-ng-class="{undefined:'filter-unselected'}[filters.Date]">
+                    data-ng-class="{'filter-unselected': !filters.Date}">
                     Date <span class="caret"></span>
                 </a>
                 <ul class="dropdown-menu"
@@ -105,17 +107,19 @@
             <li class="dropdown">
                 <a href=""
                     data-toggle="dropdown"
-                    data-ng-class="{undefined:'filter-unselected'}[filters.Status]">
+                    data-ng-class="{'filter-unselected': !filters.Status}">
                     Status <span class="caret"></span>
                 </a>
                 <ul class="dropdown-menu keep-open">
-                    <li><select chosen="{width: '100%'}"
-                            id="statusFilter"
-                            data-ng-model="filters.Status"
-                            data-ng-options="status as status for status in statusList"
-                            data-ng-change="loadClaimSection(); filterBy('status')">
-                        <option value="">Status</option>
-                    </select></li>
+                    <li>
+                        <select class="ac-select"
+                                ac-model="filters.Status"
+                                ac-options="status.Status as status.Status for status in statusList"
+                                ac-data="statusList"
+                                ac-settings="{minWidth: '350px', maxWidth: '400px'}"
+                                ac-change="loadClaimSection(); filterBy('status')">
+                        </select>
+                    </li>
                 </ul>
             </li>
             <li>

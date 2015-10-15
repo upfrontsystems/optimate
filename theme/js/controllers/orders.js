@@ -23,7 +23,7 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
         $scope.maxPageSize = 20;
         $scope.orderListLength = $scope.maxPageSize + 1;
         $scope.filters = {};
-        $scope.statusList = [{'Status':'Draft'}, {'Status': 'Processed'}];
+        $scope.statusList = [{'Status': 'Draft'}, {'Status': 'Processed'}];
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
