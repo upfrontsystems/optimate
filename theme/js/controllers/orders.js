@@ -22,8 +22,8 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
         $scope.currentPage = 1;
         $scope.maxPageSize = 20;
         $scope.orderListLength = $scope.maxPageSize + 1;
-
-        $scope.projectsList = [{'ID': 0, 'Name': 'zero'}];
+        $scope.filters = {};
+        $scope.statusList = [{'Status':'Draft'}, {'Status': 'Processed'}];
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
@@ -49,9 +49,10 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
 
         // loading the project, client and supplier list
         $scope.clearFilters = function() {
-            $scope.filters = {'Project': null};
+            $scope.filters = {};
             $http.get(globalServerURL + 'projects/')
             .success(function(data) {
+                $scope.allStates = data;
                 $scope.projectsList = data;
             });
 

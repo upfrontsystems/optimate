@@ -15,6 +15,7 @@ var myApp = angular.module('myApp', [
                     'selectionModel',
                     'ngFileSaver',
                     'cfp.hotkeys',
+                    'acute.select',
                     ]);
 
 myApp.config(function(formValidationDecorationsProvider, formValidationErrorsProvider) {

@@ -92,7 +92,7 @@
             <li class="dropdown">
                 <a href=""
                     data-toggle="dropdown"
-                    data-ng-class="{undefined:'filter-unselected'}[filters.OrderNumber]">
+                    data-ng-class="{'filter-unselected': !filters.OrderNumber}">
                     Order number <span class="caret"></span>
                 </a>
                 <ul class="dropdown-menu keep-open">
@@ -107,19 +107,17 @@
             <li class="dropdown">
                 <a href=""
                     data-toggle="dropdown"
-                    data-ng-class="{undefined:'filter-unselected', null:'filter-unselected'}[filters.Project]">
+                    data-ng-class="{'filter-unselected': !filters.Project}">
                     Project <span class="caret"></span>
                 </a>
                <ul class="dropdown-menu keep-open">
                     <li>
-                        <select chosen="{width: '100%'}"
-                                class="filter-selectbox"
-                                inherit_select_classes="true"
-                                id="projectFilter"
-                                data-ng-model="filters.Project"
-                                data-ng-options="project.ID as project.Name for project in projectsList"
-                                data-ng-change="loadOrderSection(); filterBy('project')">
-                            <option value="">Project</option>
+                        <select class="ac-select"
+                                ac-model="filters.Project"
+                                ac-options="project.ID as project.Name for project in projectsList"
+                                ac-data="projectsList"
+                                ac-settings="{minWidth: '350px', maxWidth: '400px'}"
+                                ac-change="loadOrderSection(); filterBy('project')">
                         </select>
                     </li>
                 </ul>
@@ -127,16 +125,16 @@
             <li class="dropdown">
                 <a href=""
                     data-toggle="dropdown"
-                    data-ng-class="{undefined:'filter-unselected'}[filters.Client]">
+                    data-ng-class="{'filter-unselected': !filters.Client}">
                     Client <span class="caret"></span></a>
                 <ul class="dropdown-menu keep-open">
                     <li>
-                        <select chosen="{width: '100%'}"
-                                id="clientFilter"
-                                data-ng-model="filters.Client"
-                                data-ng-options="client.ID as client.Name for client in clientsList"
-                                data-ng-change="loadOrderSection(); filterBy('client')">
-                            <option value="">Client</option>
+                        <select class="ac-select"
+                                ac-model="filters.Client"
+                                ac-options="client.ID as client.Name for client in clientsList"
+                                ac-data="clientsList"
+                                ac-settings="{minWidth: '350px', maxWidth: '400px'}"
+                                ac-change="loadOrderSection(); filterBy('client')">
                         </select>
                     </li>
                 </ul>
@@ -144,16 +142,16 @@
             <li class="dropdown">
                 <a href=""
                     data-toggle="dropdown"
-                    data-ng-class="{undefined:'filter-unselected'}[filters.Supplier]">
+                    data-ng-class="{'filter-unselected': !filters.Supplier}">
                     Supplier <span class="caret"></span></a>
                 <ul class="dropdown-menu keep-open">
                     <li>
-                        <select chosen="{width: '100%'}"
-                                id="supplierFilter"
-                                data-ng-model="filters.Supplier"
-                                data-ng-options="supplier.ID as supplier.Name for supplier in filteredSuppliersList"
-                                data-ng-change="loadOrderSection(); filterBy('supplier')">
-                            <option value="">Supplier</option>
+                        <select class="ac-select"
+                                ac-model="filters.Supplier"
+                                ac-options="supplier.ID as supplier.Name for supplier in suppliersList"
+                                ac-data="suppliersList"
+                                ac-settings="{minWidth: '350px', maxWidth: '400px'}"
+                                ac-change="loadOrderSection(); filterBy('supplier')">
                         </select>
                     </li>
                 </ul>
@@ -161,17 +159,16 @@
             <li class="dropdown">
                 <a href=""
                     data-toggle="dropdown"
-                    data-ng-class="{undefined:'filter-unselected'}[filters.Status]">
+                    data-ng-class="{'filter-unselected': !filters.Status}">
                     Status <span class="caret"></span></a>
                 <ul class="dropdown-menu keep-open">
                     <li>
-                        <select chosen="{width: '100%'}"
-                                id="statusFilter"
-                                data-ng-model="filters.Status"
-                                data-ng-change="loadOrderSection(); filterBy('status')">
-                            <option value="">Status</option>
-                            <option value="Draft">Draft</option>
-                            <option value="Processed">Processed</option>
+                        <select class="ac-select"
+                                ac-model="filters.Status"
+                                ac-options="status.Status as status.Status for status in statusList"
+                                ac-data="statusList"
+                                ac-settings="{minWidth: '350px', maxWidth: '400px'}"
+                                ac-change="loadOrderSection(); filterBy('status')">
                         </select>
                     </li>
                 </ul>
@@ -199,6 +196,7 @@
             first-text="&laquo;"
             last-text="&raquo;">
 </pagination>
+
 
 <div custom-modals modal-id="saveOrderModal"
     modal-type="order"

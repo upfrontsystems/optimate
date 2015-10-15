@@ -1870,6 +1870,7 @@ def orders_filter(request):
     qry = DBSession.query(Order)
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
+
     # filter by the selected filters
     if 'Project' in paramkeys:
         qry = qry.filter_by(ProjectID=paramsdict['Project'][0])

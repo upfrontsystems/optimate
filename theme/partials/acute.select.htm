@@ -1,0 +1,41 @@
+﻿s<div ng-keydown="keyHandler($event)"
+    tabindex="999"
+    ac-focus="wrapperFocus"
+    ng-focus="comboFocus = true">
+    <div ng-style="{'minWidth': settings.minWidth, 'maxWidth': settings.maxWidth }">
+        <table class="ac-select-table" ng-click="comboFocus = true">
+            <tr>
+                <td>
+                    <div class="ac-select-text-wrapper">
+                        <input id="{{id}}"
+                                type="text"
+                                class="ac-select-text filter-textbox"
+                                ng-model="comboText"
+                                ac-focus="comboFocus"
+                                ac-select-on-focus="true"
+                                ng-change="comboTextChange()"/>
+                    </div>
+                </td>
+                <td class="filter-icon"><i class="fa fa-search"></i></td>
+            </tr>
+        </table>
+    </div>
+    <div class="ac-select-popup"
+        ng-style="{'minWidth': settings.minWidth}">
+        <div class="ac-select-list"
+            ng-style='{ "height": (listHeight + 6) + "px" }'
+            ac-scroll-to="scrollTo"
+            ac-on-scroll="listScrolled()">
+            <ul>
+                <li id="{{item.id}}"
+                    class="close-dropdown"
+                    ng-repeat="item in items track by $index | filter: search"
+                    ng-class="getItemClass($index)"
+                    ng-click="itemClick($index)"
+                    ng-style="{ height: settings.itemHeight + 'px', 'line-height': settings.itemHeight + 'px' }">
+                    {{item.text}}
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

@@ -516,8 +516,13 @@ table.modal-table {
 .filter-textbox {
     border: transparent;
     padding-left: 5px;
+    margin-top: -5px;
+    padding-top: 5px;
+    margin-bottom: -5px;
+    padding-bottom: 5px;
+    border-radius: 4px;
 }
 
-.filter-selectbox > a.chosen-single {
-    display: none;
+.filter-icon {
+    text-align:center;
 }
