@@ -16,6 +16,7 @@
                                id="inputName"
                                name="inputName"
                                data-ng-model="formData.Name"
+                               data-ng-disabled="formData.Status == 'Approved'"
                                required
                                autofocus>
                     </div>
@@ -25,6 +26,7 @@
                                   class="col-sm-7"
                                   name="inputDescription"
                                   data-ng-model="formData.Description"
+                                  data-ng-disabled="formData.Status == 'Approved'"
                                   rows="5" cols="40">
                         </textarea>
                     </div>
@@ -35,6 +37,7 @@
                                 name="inputClient"
                                 data-ng-model="formData.Client"
                                 data-ng-options="client.ID as client.Name for client in clientList"
+                                data-ng-disabled="formData.Status == 'Approved'"
                                 required>
                             <option value="">Select a client</option>
                         </select>
@@ -46,6 +49,7 @@
                                 name="inputCity"
                                 data-ng-model="formData.City"
                                 data-ng-options="city.ID as city.Name for city in cityList"
+                                data-ng-disabled="formData.Status == 'Approved'"
                                 required>
                             <option value="">Select a city</option>
                         </select>
@@ -53,6 +57,7 @@
                     <div class="form-group">
                         <label for="inputSiteAddress" class="col-sm-2 control-label">Site Address:</label>
                         <textarea id="inputSiteAddress"
+                                  data-ng-disabled="formData.Status == 'Approved'"
                                   class="col-sm-7"
                                   name="inputSiteAddress"
                                   data-ng-model="formData.SiteAddress"
@@ -62,6 +67,7 @@
                     <div class="form-group">
                         <label for="inputFileNumber" class="col-sm-2 control-label">File Number:</label>
                         <input type="text"
+                               data-ng-disabled="formData.Status == 'Approved'"
                                class="col-sm-7"
                                id="inputFileNumber"
                                name="inputFileNumber"

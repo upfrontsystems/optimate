@@ -962,6 +962,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                         }
                     }
                     $scope.currentNode.Description = $scope.formData.Description;
+                    $scope.currentNode.Status = $scope.formData.Status;
                     $scope.handleReloadSlickgrid($scope.currentNode.ID);
                 });
             }
