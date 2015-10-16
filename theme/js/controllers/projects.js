@@ -1077,9 +1077,10 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                                     $scope.cutScope.Subitem.splice(index, 1);
                                 }
                             }
+                            $scope.copiedRecords = undefined;
                             $scope.cutScope = undefined;
                         }
-                        $scope.copiedRecords = undefined;
+                        $scope.copiedNode = {'NodeType': 'Records'};
                         $scope.statusMessage("Records pasted.", 2000, 'alert-info');
                         $scope.handleReloadSlickgrid(node.ID);
                         $scope.loadNodeChildren(node.ID);
@@ -1144,7 +1145,10 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                     }
                     $scope.pastingFromDnd = false;
                 }
-                $scope.copiedNode = undefined;
+                // if the node was cut remove it from scope
+                if ($scope.copiedNode.cut){
+                    $scope.copiedNode = undefined;
+                }
             }).error(function() {
                 console.log("Server error");
                 $scope.statusMessage("Server error.", 2000, 'alert-warning');
