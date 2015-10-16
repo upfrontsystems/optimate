@@ -696,13 +696,13 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
 
         $scope.resourceSelected = function(item, nodetype) {
             if (nodetype != 'ResourcePart'){
-                var $addBudgetItem = $('#addBudgetItem'),
-                    $description = $addBudgetItem.find('#description');
+                var $addBudgetItem = $('#addBudgetItem');
                 if (item.ID == undefined) {
                     $scope.addBudgetItemForm.has_selection = false;
                     $scope.formData.NodeType = 'SimpleBudgetItem';
                     $scope.formData.Name = item.Name;
-                    $description.focus();
+                    $scope.formData.ResourceName = item.Name;
+                    $addBudgetItem.find('#description').focus();
                 }
                 else {
                     $scope.addBudgetItemForm.has_selection = true;
@@ -751,7 +751,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                     $scope.formData = {'NodeType':$scope.formData.NodeType};
                     // if the node parent is the current node
                     var node = response.node;
-                    if (node.ParentID == $scope.currentNode.ID) {
+                    if (node.ParentID === $scope.currentNode.ID) {
                         $scope.handleNew(node);
                     }
                     console.log("Node added");
@@ -854,21 +854,21 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             $scope.calculatorHidden = true;
             $scope.modalState = "Edit"
             $scope.isDisabled = false;
-            // editing the current node, no need to load it
-            if ($scope.currentNode){
-                var nodetype = $scope.currentNode.NodeType;
-                $scope.formData = $scope.currentNode;
+            $http.get(globalServerURL + 'node/' + $scope.currentNode.ID + '/')
+            .success(function(response) {
+                var nodetype = response.NodeType;
+                $scope.formData = response;
                 $scope.formData.selected = {};
                 // special case for budgetitem types
                 if (nodetype == 'BudgetItem') {
                     // populate the selection
-                    $scope.refreshResources($scope.currentNode.Name);
-                    $scope.formData.selected.ID = $scope.currentNode.ResourceID;
-                    $scope.formData.selected.Name = $scope.currentNode.Name;
+                    $scope.refreshResources(response.Name);
+                    $scope.formData.selected.ID = response.ResourceID;
+                    $scope.formData.selected.Name = response.Name;
                     $scope.resourceSelected($scope.formData);
                     // load budgetitem overhead list
-                    $scope.loadBudgetItemOverheads($scope.currentNode.ID).then(function(){
-                        var overheadlist = $scope.currentNode.OverheadList;
+                    $scope.loadBudgetItemOverheads(response.ID).then(function(){
+                        var overheadlist = response.OverheadList;
                         for (var i = 0; i < overheadlist.length; i++) {
                             var index = $scope.budgetItemOverheadList.map(function(e) {
                                 return e.ID; }).indexOf(overheadlist[i].ID);
@@ -881,22 +881,22 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 }
                 else if (nodetype == 'SimpleBudgetItem') {
                     // populate the selection
-                    $scope.formData.selected.Name = $scope.currentNode.Name;
+                    $scope.formData.selected.Name = response.Name;
                     $scope.resourceSelected($scope.formData.selected);
                     nodetype = 'BudgetItem';
                 }
                 else if (nodetype == 'ResourcePart'){
-                    $scope.refreshResources($scope.currentNode.Name);
-                    $scope.formData.selected.Quantity = $scope.currentNode.Quantity;
-                    $scope.formData.selected.ID = $scope.currentNode.ResourceID;
-                    $scope.formData.selected.Name = $scope.currentNode.Name;
+                    $scope.refreshResources(response.Name);
+                    $scope.formData.selected.Quantity = response.Quantity;
+                    $scope.formData.selected.ID = response.ResourceID;
+                    $scope.formData.selected.Name = response.Name;
                 }
                 $scope.formData.originalName = $scope.currentNode.Name;
                 // set each field dirty
                 angular.forEach($scope['add' + nodetype + 'Form'].$error.required, function(field) {
                     field.$setDirty();
                 });
-            }
+            });
         };
 
         // save changes made to the node's properties
@@ -904,11 +904,12 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             if (!$scope.isDisabled) {
                 $scope.isDisabled = true;
                 // if the node is a budgetitem set the selected data to the form
-                if ($scope.formData.NodeType == 'BudgetItem' || $scope.formData.NodeType == 'SimpleBudgetItem') {
+                var nodetype = $scope.formData.NodeType;
+                if (nodetype == 'BudgetItem' || nodetype == 'SimpleBudgetItem') {
                     $scope.formData.ResourceID = $scope.formData.selected.ID;
                     $scope.formData.Name = $scope.formData.selected.Name;
                 }
-                else if ($scope.formData.NodeType == 'ResourcePart') {
+                else if (nodetype == 'ResourcePart') {
                     $scope.formData.Name = $scope.formData.selected.Name;
                     $scope.formData.ResourceID = $scope.formData.selected.ID;
                     $scope.formData.selected = {};
@@ -920,12 +921,24 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                     data: $scope.formData,
                 }
                 $http(req).success(function(response) {
-                    console.log($scope.formData['NodeType'] + " edited")
+                    console.log(nodetype + " edited")
                     // check if the name has changed
-                    if ($scope.currentNode.Name != $scope.formData.originalName) {
-                        // only sort if its not a project's resource category
+                    if ($scope.currentNode.Name != $scope.formData.Name) {
+                        $scope.currentNode.Name = $scope.formData.Name;
                         var parent = $scope.currentNodeScope.$parentNodeScope || {'$modelValue':{'NodeType':'Project'}};
-                        if (!($scope.currentNode.NodeType == 'ResourceCategory' && parent.$modelValue.NodeType == 'Project')) {
+                        // if sorting children of a project
+                        if (parent.$modelValue.NodeType == 'Project') {
+                            $scope.currentNodeScope.$parentNodesScope.$modelValue.sort(function(a, b) {
+                                // makes sure the resource category stays the first item
+                                var textA = a.Name.toUpperCase();
+                                var textB = b.Name.toUpperCase();
+                                return (a.NodeType == 'ResourceCategory') ? -1 :
+                                            (b.NodeType == 'ResourceCategory') ? 0 :
+                                                (textA < textB) ? -1 :
+                                                    (textA > textB) ? 1 : 0;
+                            });
+                        }
+                        else{
                             $scope.currentNodeScope.$parentNodesScope.$modelValue.sort(function(a, b) {
                                 var textA = a.Name.toUpperCase();
                                 var textB = b.Name.toUpperCase();
@@ -934,7 +947,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                         }
                         // if it is a project, change it in the projects list
                         if ($scope.currentNode.NodeType == 'Project'){
-                             var result = $.grep($scope.projectsList, function(e) {
+                            var result = $.grep($scope.projectsList, function(e) {
                                 return e.ID == $scope.currentNode.ID;
                             });
                             var index = $scope.projectsList.indexOf(result[0]);
@@ -948,16 +961,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                             });
                         }
                     }
-                    if ($scope.formData.NodeType == 'BudgetItem'){
-                        $scope.formData.OverheadList = $scope.budgetItemOverheadList || [];
-                        var i = $scope.formData.OverheadList.length;
-                        while (i--){
-                            if (!$scope.formData.OverheadList[i].selected){
-                                $scope.formData.OverheadList.splice(i, 1);
-                            }
-                        }
-                    }
-                    $scope.currentNode = $scope.formData;
+                    $scope.currentNode.Description = $scope.formData.Description;
                     $scope.handleReloadSlickgrid($scope.currentNode.ID);
                 });
             }

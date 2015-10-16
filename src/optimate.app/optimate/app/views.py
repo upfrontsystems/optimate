@@ -472,7 +472,7 @@ def edititemview(request):
         simbi.Name = request.json_body['Name']
         simbi.Description = request.json_body.get('Description','')
         simbi.Rate=rate
-        simbi.Type=request.json_body['ResourceType']
+        simbi.Type=request.json_body['ResourceTypeID']
         simbi.Quantity=float(request.json_body.get('Quantity', 0))
 
     elif objecttype == 'ResourceCategory':
