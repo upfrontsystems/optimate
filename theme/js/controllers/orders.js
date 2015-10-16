@@ -24,6 +24,9 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
         $scope.orderListLength = $scope.maxPageSize + 1;
         $scope.filters = {};
         $scope.statusList = [{'Status': 'Draft'}, {'Status': 'Processed'}];
+        // semaphore for the slickgrid spinner
+        var semspinner = 0;
+        var slickspinner = new Spinner();
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
@@ -201,6 +204,7 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
 
         // When the Add button is pressed change the state and form data
         $scope.addingState = function () {
+            semspinner = 0;
             $scope.formData = {'NodeType': 'order'};
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
@@ -219,12 +223,15 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
 
         // When the edit button is pressed change the state and set the data
         $scope.editingState = function () {
+            semspinner = 0;
             $scope.isCollapsed = true;
             $scope.isDisabled = false;
             $scope.orderingOn = undefined;
             $scope.modalState = "Edit";
             $scope.resourceList = [];
             $scope.selectedOrderingOn = {};
+            var target = document.getElementsByClassName('slick-viewport');
+            var spinner = new Spinner().spin(target[0]);
             $http({
                 method: 'GET',
                 url: globalServerURL + 'order/' + $scope.selectedOrders[0].ID + '/'
@@ -244,6 +251,8 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
                 else {
                     $scope.orderFormProjectsDisabled = false;
                 }
+            }).finally(function(){
+                spinner.stop();
             });
             // set each field dirty
             angular.forEach($scope.saveOrderModalForm.$error.required, function(field) {
@@ -278,6 +287,7 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
         };
 
         $scope.toggleBudgetItems = function(bi) {
+            semspinner+=1
             // set the budgetitem selected or unselected
             var flag = (bi.selected === true) ? undefined : true;
             bi.selected = flag;
@@ -302,6 +312,10 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
                 else {
                     $scope.budgetItemsList.splice(index, 0, bi);
                 }
+            }
+            semspinner-=1;
+            if (semspinner == 0){
+                slickspinner.stop();
             }
         }
 
@@ -346,6 +360,7 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
             // flag the node, set the selection on all its children
             // load the budgetitems in the node and toggle them in the
             // budgetitem list
+            semspinner+=1
             var flag = (node.selected === true) ? undefined : true;
             node.selected = flag;
             var nodeid = node.ID;
@@ -391,6 +406,11 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
                             }
                         }
                     }
+                }
+            }).finally(function(){
+                semspinner-=1;
+                if (semspinner == 0){
+                    slickspinner.stop();
                 }
             });
         };
@@ -555,9 +575,10 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
             $scope.toggleBudgetItemsGrid();
             $scope.selectedOrderingOn = {};
             var target = document.getElementsByClassName('slick-viewport');
-            var spinner = new Spinner().spin(target[0]);
+            slickspinner = new Spinner().spin(target[0]);
 
             if (par){
+                semspinner+=1;
                 var req = {
                     method: 'GET',
                     url: globalServerURL + 'node/' + $scope.formData.ProjectID + '/budgetitems/',
@@ -587,11 +608,17 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
                             }
                         }
                     }
-                    spinner.stop();
+                }).finally(function(){
+                    semspinner-=1;
+                    if (semspinner == 0){
+                        slickspinner.stop();
+                    }
                 });
             }
             else{
-                spinner.stop();
+                if (semspinner == 0){
+                    slickspinner.stop();
+                }
             }
         }
 
@@ -630,7 +657,6 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
                     url: globalServerURL + 'order_report/' + $scope.selectedOrders[0].ID + '/',
                     responseType: 'arraybuffer'
                 }).success(function (response, status, headers, config) {
-                    spinner.stop();
                     var file = new Blob([response], {type: 'application/pdf'});
                     var filename_header = headers('Content-Disposition');
                     var filename = filename_header.split('filename=')[1];
@@ -642,6 +668,8 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
                     FileSaver.saveAs(config);
                 }).error(function(data, status, headers, config) {
                     console.log("Order pdf download error")
+                }).finally(function(){
+                    spinner.stop()
                 });
             }
         };
@@ -655,7 +683,6 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
                     url: globalServerURL + 'excel_order_report/' + $scope.selectedOrders[0].ID + '/',
                     responseType: 'arraybuffer'
                 }).success(function (response, status, headers, config) {
-                    spinner.stop();
                     var blob = new Blob([response], {
                         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                     });
@@ -669,6 +696,8 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
                     FileSaver.saveAs(config);
                 }).error(function(data, status, headers, config) {
                     console.log("Order excel download error")
+                }).finally(function(){
+                    spinner.stop()
                 });
             }
         };
