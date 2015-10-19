@@ -78,7 +78,7 @@ myApp.controller('paymentsController', ['$scope', '$http', 'globalServerURL', 'S
             if (claimid){
                 $http.get(globalServerURL + 'claim/' + claimid + '/'
                 ).success(function(response){
-                    $scope.formData.Amount = response['Total'];
+                    $scope.formData.Amount = parseFloat(response['Total']);
                 });
             }
         }

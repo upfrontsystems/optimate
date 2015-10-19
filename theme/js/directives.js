@@ -1437,7 +1437,8 @@ myApp.directive('smartFloat', function ($filter) {
 
             ctrl.$formatters.unshift(
                function (modelValue) {
-                   return $filter('number')(parseFloat(modelValue) , 2);
+                    ctrl.$setValidity('float', true);
+                    return $filter('number')(parseFloat(modelValue) , 2);
                }
            );
         }
