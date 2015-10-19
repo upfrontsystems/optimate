@@ -115,6 +115,11 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
                 };
                 $http(req).success(function(response) {
                     response.pop();
+                    // if nothing has been found, add a non-selectable option
+                    if (response.length == 0){
+                        response.push({'ID': 'No match found',
+                                        'nothingFound': true})
+                    }
                     $scope.ordersList = response;
                 });
             }

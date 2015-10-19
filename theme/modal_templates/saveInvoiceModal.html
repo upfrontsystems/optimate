@@ -30,9 +30,11 @@
                             <ui-select-match placeholder="Enter order number">
                                 {{$select.selected.ID}}
                             </ui-select-match>
-                            <ui-select-choices repeat="order in ordersList"
-                                             refresh="refreshOrders($select.search)"
-                                             refresh-delay="1000">
+                            <ui-select-choices
+                                    ui-disable-choice="order.nothingFound"
+                                    repeat="order in ordersList"
+                                    refresh="refreshOrders($select.search)"
+                                    refresh-delay="1000">
                                 <div ng-bind-html="''+order.ID | highlight: $select.search"></div>
                             </ui-select-choices>
                         </ui-select>

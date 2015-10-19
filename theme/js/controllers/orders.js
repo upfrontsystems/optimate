@@ -558,6 +558,11 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
                     params: {'search': searchterm}
                 };
                 $http(req).success(function(response) {
+                    // if nothing has been found, add a non-selectable option
+                    if (response.length == 0){
+                        response.push({'Name': 'No match found',
+                                        'nothingFound': true})
+                    }
                     $scope.resourceList = response;
                 });
             }

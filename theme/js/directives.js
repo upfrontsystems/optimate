@@ -1003,6 +1003,7 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
 
             $scope.clearSelectedRows = function(){
                 $scope.toggleRowsSelected(false);
+                grid.resetActiveCell()
                 grid.setSelectedRows([]);
                 grid.render();
             };
@@ -1103,6 +1104,7 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
             // resize the slickgrid when modal is shown
             $('#saveValuationModal').on('shown.bs.modal', function() {
                  grid.init();
+                 grid.resetActiveCell()
                  grid.setSelectedRows([]);
                  grid.resizeCanvas();
             });
@@ -1348,6 +1350,7 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
             }
 
             $scope.clearSelectedRows = function(){
+                grid.resetActiveCell()
                 grid.setSelectedRows([]);
                 grid.render();
             };

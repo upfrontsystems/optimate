@@ -28,9 +28,11 @@
                                 <ui-select-match placeholder="Search or enter a new name">
                                     {{$select.selected.Name}}
                                 </ui-select-match>
-                                <ui-select-choices repeat="resource in resourceList"
-                                                 refresh="refreshResources($select.search)"
-                                                 refresh-delay="1000">
+                                <ui-select-choices
+                                          ui-disable-choice="resource.nothingFound"
+                                          repeat="resource in resourceList"
+                                          refresh="refreshResources($select.search)"
+                                          refresh-delay="1000">
                                     <div ng-bind-html="resource.Name | highlight: $select.search"></div>
                                 </ui-select-choices>
                             </ui-select>

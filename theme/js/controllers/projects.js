@@ -689,12 +689,20 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                     params: {'search': searchterm}
                 };
                 $http(req).success(function(response) {
+                    // if nothing has been found, add a non-selectable option
+                    if (response.length == 0){
+                        response.push({'Name': 'No match found',
+                                        'nothingFound': true})
+                    }
                     $scope.resourceList = response;
                 });
             }
         }
 
         $scope.resourceSelected = function(item, nodetype) {
+            console.log("this selected");
+            console.log(item);
+            console.log(nodetype);
             if (nodetype != 'ResourcePart'){
                 var $addBudgetItem = $('#addBudgetItem');
                 if (item.ID == undefined) {

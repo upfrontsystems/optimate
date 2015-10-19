@@ -4,24 +4,23 @@
     <span tal:replace='structure string:<style>'/>
         /* The default style */
         @page {
-            size: a4 landscape;
             @frame {
-                margin: 2cm;
-                top :2cm;
+                margin: 1cm;
+                top :1cm;
             }
             @frame header {
                 -pdf-frame-content: headerContent;
                 top :1cm;
-                margin-left: 2cm;
-                margin-right: 2cm;
-                height: 2cm;
+                margin-left: 1cm;
+                margin-right: 1cm;
+                height: 1cm;
             }
             @frame footer {
                 -pdf-frame-content: pageNumber;
                 height: 1cm;
                 bottom: 1cm;
-                margin-left: 2cm;
-                margin-right: 2cm;
+                margin-left: 1cm;
+                margin-right: 1cm;
             }
         }
     <span tal:replace='structure string:</style>'/>
@@ -33,22 +32,21 @@
     <table class="order-font">
         <tr></tr>
         <tr>
-            <td style="width: 60px">To:</td>
-            <td class="bold" style="width: 400px; text-align:left" tal:content="client.Name|nothing"></td>
-            <td></td>
-            <td>TRE Bank Details</td>
-            <td></td>
+            <td style="width:70px;">To:</td>
+            <td class="bold" style="width: 400px;" tal:content="client.Name|nothing"></td>
+            <td style="width:60px;"></td>
+            <td colspan="2">TRE Bank Details</td>
         </tr>
         <tr>
-            <td style="width: 60px">Date:</td>
-            <td class="bold" style="width: 400px; text-align:right">${today}</td>
+            <td>Date:</td>
+            <td class="bold">${today}</td>
             <td></td>
-            <td>Bank:</td>
-            <td class="bold">${company_info.BankName}</td>
+            <td style="width: 100px;">Bank:</td>
+            <td class="bold" style="width: 300px;">${company_info.BankName}</td>
         </tr>
         <tr>
-            <td style="width: 60px">Project:</td>
-            <td class="bold" style="width: 400px; text-align:right">${project.Name}</td>
+            <td>Project:</td>
+            <td class="bold">${project.Name}</td>
             <td></td>
             <td>Bank Code:</td>
             <td class="bold">${company_info.BranchCode}</td>
@@ -85,25 +83,25 @@
     <div>&nbsp;</div>
     <table class="order-font">
         <tr style="border-top: 1px solid #000;">
-            <td></td>
+            <th></th>
         </tr>
         <tr>
-            <td></td>
-            <td></td>
-            <span tal:repeat="date dateheader">
-                <td colspan="2">${date}</td>
-            </span>
+            <th></th>
+            <th></th>
+            <th class="bold" style="width: 400px; text-align:right" colspan="2" tal:repeat="date dateheader">
+                ${date}
+            </th>
         </tr>
         <tr style="border-bottom: 1px solid #000;">
             <th class="bold" style="width: 400px; text-align:left" tal:repeat="header headers">
                 ${header}
             </th>
         </tr>
-        <tr><td></td></tr>
+        <tr><th></th></tr>
     </table>
     <table class="order-font">
         <tr tal:repeat="row rows">
-            <th class="bold" style="width: 400px; text-align:left">${row[0][0]}</th>
+            <td class="bold" style="width: 400px; text-align:left">${row[0][0]}</td>
             <td class="bold" style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(float(row[0][1])).strip()|nothing}</td>
             <span tal:repeat="cell row[1:]">
                 <td style="width: 100px; text-align:right">${str(cell[0]) + '%'}</td>

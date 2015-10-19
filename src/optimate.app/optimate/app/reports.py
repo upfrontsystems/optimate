@@ -1017,7 +1017,7 @@ def cashflow(request):
 
     # inject valuation data into template
     now = datetime.now()
-    today = now.strftime('%D%M%Y')
+    today = now.strftime("%d %B %Y")
     clientid = project.Client.ID
     client = project.Client
     template_data = render('templates/cashflowreport.pt',
