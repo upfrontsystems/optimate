@@ -278,7 +278,7 @@ myApp.directive('projectslickgridjs', ['globalServerURL', '$http',
                         }
                         else {
                             plaincolumns = [];
-                            var shown = ["Name", "Unit", "Quantity", "Rate",
+                            var shown = ["Name", "Unit", "Quantity", "ReadRate",
                                         "Subtotal","Markup", "Total", "Ordered", "Invoiced"];
                             for (var c in projects_columns){
                                 if (shown.indexOf(projects_columns[c]) > -1){
@@ -320,7 +320,7 @@ myApp.directive('projectslickgridjs', ['globalServerURL', '$http',
                     }
                 }
                 else {
-                    var shown = ["Name", "Unit", "Quantity", "Rate", "Subtotal",
+                    var shown = ["Name", "Unit", "Quantity", "ReadRate", "Subtotal",
                         "Markup", "Total", "Ordered", "Invoiced"];
                     for (var c in projects_columns){
                         if (shown.indexOf(projects_columns[c]) > -1){
