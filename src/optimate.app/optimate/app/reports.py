@@ -368,8 +368,11 @@ def costcomparison_nodes(node, data, level, level_limit):
             oc = 'red';
         if child.Invoiced > child.Total:
             ic = 'red';
+        normal = 'normal'
+        if child.Variation:
+            normal+=' red'
 
-        data.append([child, 'level' + str(level), 'normal', tc, oc, ic])
+        data.append([child,  'level' + str(level), normal, tc, oc, ic])
         # go to next level
         if len(child.Children) > 0:
             # restrict level as specified
@@ -405,9 +408,12 @@ def costcomparison(request):
                 oc = 'red';
             if qry.Invoiced > qry.Total:
                 ic = 'red';
+            bold = 'bold'
+            if qry.Variation:
+                bold+=' red'
 
             # start at the parent so we can display the context
-            nodes.append([qry, 'level1', 'bold', tc, oc, ic])
+            nodes.append([qry, 'level1', bold, tc, oc, ic])
             # group data
             nodes += costcomparison_nodes(qry, [], 1, level_limit+1)
             # add blank line seperator between groups
@@ -426,7 +432,7 @@ def costcomparison(request):
             while parent.ID !=0 and not found:
                 for node in nodes:
                     if node[0].ID == parent.ID:
-                        node[1] = str(node[1]) + " red"
+                        node[2] = str(node[2]) + " red"
                         found = True
                         break
                 parent = parent.Parent
@@ -1288,7 +1294,7 @@ def write_cost_comparison(worksheet, workbook, nodes, row, level, money):
             if currentlevel == level:
                 indent = workbook.add_format()
                 indent.set_indent(currentlevel)
-                if 'red' in node[1]:
+                if 'red' in node[2]:
                     indent = add_to_format(indent, {'font_color': 'red'}, workbook)
                 worksheet.write(row, 0, node[0].Name, indent)
                 worksheet.write(row, 1, node[0].Total, money)
@@ -1336,9 +1342,12 @@ def excelcostcomparison(request):
                 oc = 'red';
             if qry.Invoiced > qry.Total:
                 ic = 'red';
+            bold = 'bold'
+            if qry.Variation:
+                bold+=' red'
 
             # start at the parent so we can display the context
-            nodes.append([qry, 'level1', 'bold', tc, oc, ic])
+            nodes.append([qry, 'level1', bold, tc, oc, ic])
             # group data
             nodes += costcomparison_nodes(qry, [], 1, level_limit+1)
             # add blank line seperator between groups
@@ -1357,7 +1366,7 @@ def excelcostcomparison(request):
             while parent.ID !=0 and not found:
                 for node in nodes:
                     if node[0].ID == parent.ID:
-                        node[1] = str(node[1]) + " red"
+                        node[2] = str(node[2]) + " red"
                         found = True
                         break
                 parent = parent.Parent
@@ -1405,7 +1414,7 @@ def excelcostcomparison(request):
             if currentlevel == level:
                 indent = workbook.add_format()
                 indent.set_indent(currentlevel)
-                if 'red' in node[1]:
+                if 'red' in node[2]:
                     indent = add_to_format(indent, {'font_color': 'red'}, workbook)
                 worksheet.write(row, 0, node[0].Name, indent)
                 worksheet.write(row, 1, node[0].Total, money)

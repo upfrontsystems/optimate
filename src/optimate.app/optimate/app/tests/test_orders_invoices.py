@@ -642,7 +642,7 @@ class TestInvoicesViewSuccessCondition(unittest.TestCase):
         request.params = DummyMatchAll()
         response = self._callFUT(request)
         # the number of invoices should be 2
-        self.assertEqual(len(response), 2)
+        self.assertEqual(len(response['invoices']), 2)
 
     def test_match_project(self):
         _registerRoutes(self.config)
@@ -650,7 +650,7 @@ class TestInvoicesViewSuccessCondition(unittest.TestCase):
         request.params = DummyMatchProject()
         response = self._callFUT(request)
         # the number of invoices should be 1
-        self.assertEqual(len(response), 1)
+        self.assertEqual(len(response['invoices']), 1)
 
     def test_match_status(self):
         _registerRoutes(self.config)
@@ -658,7 +658,7 @@ class TestInvoicesViewSuccessCondition(unittest.TestCase):
         request.params = DummyMatchStatus()
         response = self._callFUT(request)
         # the number of invoices should be 2
-        self.assertEqual(len(response), 2)
+        self.assertEqual(len(response['invoices']), 2)
 
     def test_no_match(self):
         _registerRoutes(self.config)
@@ -666,7 +666,7 @@ class TestInvoicesViewSuccessCondition(unittest.TestCase):
         request.params = DummyMatchNone()
         response = self._callFUT(request)
         # the number of invoices should be 0
-        self.assertEqual(len(response), 0)
+        self.assertEqual(len(response['invoices']), 0)
 
 class TestInvoicesFilterViewSuccessCondition(unittest.TestCase):
     """ Test if the filter works on invoices

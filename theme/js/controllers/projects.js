@@ -700,9 +700,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
         }
 
         $scope.resourceSelected = function(item, nodetype) {
-            console.log("this selected");
-            console.log(item);
-            console.log(nodetype);
             if (nodetype != 'ResourcePart'){
                 var $addBudgetItem = $('#addBudgetItem');
                 if (item.ID == undefined) {
@@ -854,6 +851,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             $scope.modalState = "Add";
             $scope.resourceList = [];
             $scope.formData = {'NodeType': nodetype};
+            $scope.addBudgetItemForm.has_selection = false;
             $scope['add' + nodetype + 'Form'].$setPristine();
         }
 

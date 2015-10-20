@@ -106,6 +106,13 @@ class Node(Base):
         """
         return self.Parent.Status
 
+    def setVariation(self, var):
+        """ set the variation on this node and it's children
+        """
+        self.Variation = var
+        for child in self.Children:
+            child.setVariation(var)
+
     def getProjectID(self):
         """ Recursively calls the parent of this node until it finds the project
             whose parent is the root
@@ -327,6 +334,7 @@ class BudgetGroup(Node):
     _Total = Column('Total', Numeric)
     _Ordered = Column('Ordered', Numeric(12, 2), default=Decimal(0.00))
     _Invoiced = Column('Invoiced', Numeric(12, 2), default=Decimal(0.00))
+    Variation = Column(Boolean,default=False)
 
     ValuationItems = relationship('ValuationItem')
 
@@ -401,6 +409,15 @@ class BudgetGroup(Node):
         # update the parent with the new total
         self.Parent.Invoiced = self.Parent.Invoiced + difference
 
+    @property
+    def Status(self):
+        """ Return the Status of the parent.
+            If the budget group is a variation don't return the parent status
+        """
+        if self.Variation:
+            return 'ApprovedVariation'
+        return self.Parent.Status
+
     def copy(self, parentid):
         """ Copy returns an exact duplicate of this BudgetGroup,
             but with the ParentID specified.
@@ -455,7 +472,8 @@ class BudgetGroup(Node):
                 'Invoiced': str(self.Invoiced),
                 'NodeType': self.type,
                 'NodeTypeAbbr' : 'G',
-                'Status': self.Status}
+                'Status': self.Status,
+                'Variation': self.Variation}
 
     def valuation(self, level='1'):
         """ The data returned when performing a valuation on a budget group
@@ -687,7 +705,7 @@ class BudgetItem(Node):
             If the budget item is a variation don't return the parent status
         """
         if self.Variation:
-            return ''
+            return 'ApprovedVariation'
         return self.Parent.Status
 
     def updateQuantity(self):
@@ -787,8 +805,7 @@ class BudgetItem(Node):
                             IncomeReceived=self.IncomeReceived,
                             ClientCost=self.ClientCost,
                             ProjectedProfit=self.ProjectedProfit,
-                            ActualProfit=self.ActualProfit,
-                            Variation=self.Variation)
+                            ActualProfit=self.ActualProfit)
         # add the overheads
         copied.Overheads = self.Overheads
 
@@ -916,8 +933,7 @@ class SimpleBudgetItem(BudgetItem):
                                 IncomeReceived=self.IncomeReceived,
                                 ClientCost=self.ClientCost,
                                 ProjectedProfit=self.ProjectedProfit,
-                                ActualProfit=self.ActualProfit,
-                                Variation=self.Variation)
+                                ActualProfit=self.ActualProfit)
 
     def __repr__(self):
         """ return a representation of this simplebudgetitem
