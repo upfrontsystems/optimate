@@ -174,24 +174,24 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 }
                 catch (exception) {
                 }
-                if ( open_projects.length != 0 ) {
-                    for (var i = 0; i < open_projects.length; i++) {
-                        var id = open_projects[i];
-                        var url = globalServerURL + 'node/' + id + '/'
-                        $http.get(url).success(function(data) {
-                            if (data.NodeType != 'Project'){
-                                $scope.closeProject(id);
-                            }
-                            else{
-                                $scope.projectsRoot.Subitem.push(data);
-                                $scope.projectsRoot.Subitem.sort(function(a, b) {
-                                    return a.Name.localeCompare(b.Name)
-                                });
-                            }
-                        }).finally(function(){
-                            deferred.resolve();
-                        });
+                var open_length = open_projects.length;
+                if (open_length != 0) {
+                    // send the list to the server as one request
+                    var req = {
+                        method: 'GET',
+                        url: globalServerURL + 'projects/',
+                        params: {'open_projects': open_projects}
                     }
+                    $http(req).success(function(response){
+                        open_projects = response.pop();
+                        if (hasStorage) {
+                            // remove possibly deleted project ids from storage
+                            localStorage["open_projects"] = JSON.stringify(open_projects);
+                        }
+                        $scope.projectsRoot.Subitem = response;
+                    }).finally(function(){
+                        deferred.resolve();
+                    })
                 }
                 else{
                     deferred.resolve();
@@ -592,8 +592,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 url: globalServerURL + projectid + '/overheads/',
                 params: {}
             }
-            $http(req)
-            .success(function(data) {
+            $http(req).success(function(data) {
                 $scope.overheadList = data;
                 console.log("Overhead list loaded");
             });
@@ -608,8 +607,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 url: globalServerURL + nodeid + '/overheads/',
                 params: {'NodeType':'BudgetItem'}
             }
-            $http(req)
-            .success(function(data) {
+            $http(req).success(function(data) {
                 $scope.budgetItemOverheadList = data;
                 console.log("BudgetItem overhead list loaded");
                 deferred.resolve();

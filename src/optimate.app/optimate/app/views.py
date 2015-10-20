@@ -694,16 +694,34 @@ def node_expand_budgetgroup(request):
 
 @view_config(route_name="projects", renderer='json', permission='view')
 def projects(request):
-    """ Returns a list of all the Projects in the database
+    """ Returns a list of the Projects in the database
+        Accepts an optional list of a set of project Id's
     """
     projects = []
-    # Get all the Projects in the Project table
-    qry = DBSession.query(Project).all()
-    # build the list and only get the neccesary values
-    for project in qry:
-        projects.append({'Name': project.Name,
-                         'ID': project.ID})
-    return sorted(projects, key=lambda k: k['Name'].upper())
+    paramsdict = request.params.dict_of_lists()
+    paramkeys = paramsdict.keys()
+    # if only selected projects are required
+    if 'open_projects' in paramkeys:
+        open_projects = paramsdict['open_projects']
+        existing_projects = []
+        for projid in open_projects:
+            project = DBSession.query(Project).filter_by(ID=projid).first()
+            if project:
+                projects.append(project.dict())
+                existing_projects.append(projid)
+
+        projects = sorted(projects, key=lambda k: k['Name'].upper())
+        # append existing project id's to the response
+        projects.append(existing_projects)
+        return projects
+    else:
+        # Get all the Projects in the Project table
+        qry = DBSession.query(Project).all()
+        # build the list and only get the neccesary values
+        for project in qry:
+            projects.append({'Name': project.Name,
+                             'ID': project.ID})
+        return sorted(projects, key=lambda k: k['Name'].upper())
 
 def search_resources(categoryid, search):
     """ go through each child resource category and return resources which match
