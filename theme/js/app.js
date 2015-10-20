@@ -38,10 +38,21 @@ myApp.factory('RequestsErrorHandler', ['$q', function($q) {
                 && rejection.config.headers[HEADER_NAME]);
 
             if (shouldHandle) {
-                console.log(rejection.config.method + " error from " +
+              var text = "Server error.";
+              var method = rejection.config.method;
+                console.log(method + " error from " +
                             rejection.config.url);
+                if (method == 'GET'){
+                  text = 'Problem getting data.';
+                } else if (method == 'POST'){
+                  text = 'Problem posting data.';
+                } else if (method == 'PUT'){
+                  text = 'Problem updating data.';
+                } else if (method == 'DELETE'){
+                  text = 'Problem deleting data.';
+                }
                 // show an error status message
-                $('#status_message span').text("Server error.");
+                $('#status_message span').text(text);
                 $('#status_message span').addClass('alert-warning');
                 $('#status_message').show();
                 window.setTimeout(function () {
