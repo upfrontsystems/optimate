@@ -1007,9 +1007,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 else {
                     $scope.nodeDeleted();
                 }
-            }).error(function() {
-                console.log("Server error");
-                $scope.statusMessage("Server error.", 2000, 'alert-warning');
             });
         };
 
@@ -1156,9 +1153,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 if ($scope.copiedNode.cut){
                     $scope.copiedNode = undefined;
                 }
-            }).error(function() {
-                console.log("Server error");
-                $scope.statusMessage("Server error.", 2000, 'alert-warning');
             }).then(function() {
                 if (index !== undefined) {
                     index+=1;
