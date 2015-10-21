@@ -26,8 +26,7 @@
             <tbody>
                 <tr ng-repeat="obj in unitList" id="unit-{{obj.ID}}"
                     class="table-row-hover">
-                    <td>{{obj.Name}}
-                    </td>
+                    <td data-ng-bind-html="(obj.Name | superscriptFilter)"></td>
                     <td>
                         <button data-ng-show="user.permissions.setup == 'edit'"
                                 class="table-row-delete"

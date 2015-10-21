@@ -2406,6 +2406,19 @@ def csvinvoices(request):
                     'Split Tax Account'])
 
     for invoice in invoices:
+        discount = 0
+        subtotal = 0
+        discountperc = 0
+        for item in invoice.Order.OrderItems:
+            isub = float(item.Subtotal)
+            discount+=isub*item.Discount/100
+            subtotal+=isub
+
+        if subtotal > 0:
+            discountperc = (discount/subtotal)*100
+            discountperc =("%.2f" % discountperc)
+        discount = ("%.2f" % discount)
+
         writer.writerow([invoice.InvoiceDate.strftime('%x'),
                         '',
                         '',
@@ -2422,10 +2435,10 @@ def csvinvoices(request):
                         '',
                         '',
                         '',
+                        xstr(discountperc),
+                        xstr(discount),
                         '',
-                        '',
-                        '',
-                        '',
+                        xstr(discount),
                         '',
                         '',
                         xstr(invoice.ProjectID),

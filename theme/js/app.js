@@ -214,9 +214,21 @@ myApp.config(['$routeProvider', '$httpProvider',
             }
         }
     });
-}])
+}]);
 
-.run(['$rootScope', '$location', 'SessionService', function($rootScope, $location, SessionService){
+// a filter that replaces '^' characters with html <sup> superscript
+myApp.filter('superscriptFilter', function(){
+    return function (text) {
+        if (text.indexOf('^') > -1){
+            return text.replace('^', '<sup>') + '</sup>';
+        }
+        else{
+            return text;
+        }
+    }
+});
+
+myApp.run(['$rootScope', '$location', 'SessionService', function($rootScope, $location, SessionService){
     $rootScope.$on("$routeChangeStart", function(event, next, current){
         if (!(SessionService.authenticated("if") || next.public)){
             $location.path("/login");

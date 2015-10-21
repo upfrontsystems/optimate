@@ -435,7 +435,6 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
 
         $scope.getCSVReport = function (report) {
             if ( report == 'invoices' ) {
-                console.log("get csv report");
                 var target = document.getElementsByClassName('excel_download');
                 var spinner = new Spinner().spin(target[0]);
                 $http({
