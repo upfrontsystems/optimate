@@ -154,6 +154,7 @@ def main(global_config, **settings):
     config.add_route('excelvaluation', '/excel_valuation_report/{id}/', factory=makeProtectedFunction('valuations'))
     config.add_route('excelclaim', '/excel_claim_report/{id}/', factory=makeProtectedFunction('claims'))
     config.add_route('excelcashflow', '/excel_cash_flow_report/{id}/', factory=makeProtectedFunction('projects'))
+    config.add_route('csvinvoices', '/csv_invoices_report', factory=makeProtectedFunction('invoices'))
 
     # user rights
     config.add_route('userrights', '/rights/{username}/')

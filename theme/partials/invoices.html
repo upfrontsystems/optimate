@@ -83,7 +83,7 @@
                     <i class="fa fa-arrow-right"></i>
                 </a>
             </li>
-            <li data-ng-show="selectedInvoices.length == 1">
+            <li data-ng-show="jsoninvoices.length > 0">
                 <a title="PDF Invoices Report" data-target="#invoicesReport"
                     data-backdrop="static"
                     data-toggle="modal"
@@ -91,13 +91,11 @@
                     class="pdf_download">
                     <i class="fa fa-file-pdf-o"></i></a>
             </li>
-            <li data-ng-show="selectedInvoices.length == 1">
+            <li data-ng-show="jsoninvoices.length > 0">
                 <a class="dropdown-toggle excel_download"
                     title="Excel Invoices Report"
-                    data-backdrop="static"
-                    data-toggle="modal"
-                    data-ng-click="filterReportBy(); setReportType('excel')"
-                    class="excel_download">
+                    data-toggle="dropdown"
+                    data-ng-click="filterReportBy(); setReportType('excel')">
                     <i class="fa fa-file-excel-o"></i></a>
                     <ul class="dropdown-menu">
                         <li>
@@ -108,10 +106,7 @@
                                 Excel Report</a>
                         </li>
                         <li>
-                            <a data-target="#invoicesReport"
-                                data-backdrop="static"
-                                data-toggle="modal"
-                                data-ng-click="filterReportBy(); setReportType('csv')">
+                            <a data-ng-click="getCSVReport('invoices')">
                                 CSV Report</a>
                         </li>
                     </ul>

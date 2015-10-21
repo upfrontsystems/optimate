@@ -11,6 +11,7 @@ from StringIO import StringIO
 from xhtml2pdf import pisa
 import xlsxwriter
 from xlsxwriter.utility import xl_rowcol_to_cell
+import csv
 
 from optimate.app.models import (
     DBSession,
@@ -1039,9 +1040,6 @@ def cashflow(request):
     # render template
     html = StringIO(template_data.encode('utf-8'))
 
-    # fd = open ('test.html', 'w')
-    # fd.write (html.getvalue())
-
     # Generate the pdf
     pdf = StringIO()
     pisadoc = pisa.CreatePDF(html, pdf, raise_exception=False)
@@ -1708,7 +1706,7 @@ def excelinvoices(request):
     filter_by_status = request.json_body.get('FilterByStatus', False)
     currency = currencies[DBSession.query(CompanyInformation).first().Currency]
 
-    qry = DBSession.query(Invoice)
+    qry = DBSession.query(Invoice).order_by(Invoice.ID.desc())
     invoices = []
     headings= []
     if filter_by_project and 'Project' in request.json_body:
@@ -1735,7 +1733,6 @@ def excelinvoices(request):
     for invoice in qry:
         invoices.append(invoice.dict())
 
-    sorted_invoices = sorted(invoices, key=lambda k: k['ID'])
     # render template
     output = StringIO()
 
@@ -1786,7 +1783,7 @@ def excelinvoices(request):
     worksheet.write(row, 5, 'Payment Date', boldborder)
     worksheet.write(row, 6, 'Status', boldborder)
     row+=2
-    for invoice in sorted_invoices:
+    for invoice in invoices:
         worksheet.write(row, 0, invoice['InvoiceNumber'])
         worksheet.write(row, 1, invoice['OrderID'])
         worksheet.write(row, 2, invoice['Project'])
@@ -2354,4 +2351,116 @@ def excelcashflow(request):
     response.headers.add("Cache-Control", "no-store")
     response.headers.add("Pragma", "no-cache")
 
+    return response
+
+def xstr(s):
+    """ Return empty string for None type, otherwise string of argument
+    """
+    if s is None:
+        return ''
+    return str(s)
+
+
+@view_config(route_name="csvinvoices")
+def csvinvoices(request):
+    logging.info("Generating CSV Invoices Report")
+    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
+
+    invoices = DBSession.query(Invoice).order_by(Invoice.ID.desc()).all()
+
+    # render template
+    output = StringIO()
+    writer = csv.writer(output, delimiter=',')
+    writer.writerow(['Trans Date',
+                    'Account',
+                    'Module',
+                    'Trans Code',
+                    'Post Dated',
+                    'Reference',
+                    'Description',
+                    'Order Number',
+                    'Amount Excl',
+                    'Tax Type',
+                    'Tax Account',
+                    'Is Debit',
+                    'Amount Incl',
+                    'Exchange Rate',
+                    'Foreign Amount Excl',
+                    'Foreign Amount Incl',
+                    'Discount Percent',
+                    'Discount Amount Excl',
+                    'Discount Tax Type',
+                    'Discount Amount Incl',
+                    'Foreign Discount Amount Excl',
+                    'Foreign Discount Amount Incl',
+                    'Project Code',
+                    'Rep Code',
+                    'Split Group',
+                    'Split GL Account',
+                    'Split Description',
+                    'Split Amount',
+                    'Foreign Split Amount',
+                    'Split Project Code',
+                    'GL Contra Code',
+                    'Split Tax Type',
+                    'Split Tax Account'])
+
+    for invoice in invoices:
+        writer.writerow([invoice.InvoiceDate.strftime('%x'),
+                        '',
+                        '',
+                        '',
+                        '',
+                        xstr(invoice.InvoiceNumber),
+                        xstr(invoice.Order.Description),
+                        xstr(invoice.OrderID),
+                        xstr(invoice.Amount),
+                        '',
+                        '',
+                        '',
+                        xstr(invoice.Total),
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        xstr(invoice.ProjectID),
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        '',
+                        ''])
+
+
+    csvcontent = output.getvalue()
+    logging.info("csv rendered")
+
+    # fd = open ('test.csv', 'w')
+    # fd.write (csvcontent)
+
+    filename = "invoice_report"
+    now = datetime.now()
+    nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
+    last_modified = formatdate(time.mktime(now.timetuple()))
+    response = Response(content_type='application/csv',
+                        body=csvcontent)
+    response.headers.add('Content-Disposition',
+                         "attachment; filename=%s.csv" % nice_filename)
+    # needed so that in a cross-domain situation the header is visible
+    response.headers.add('Access-Control-Expose-Headers','Content-Disposition')
+    response.headers.add("Content-Length", str(len(csvcontent)))
+    response.headers.add('Last-Modified', last_modified)
+    response.headers.add("Cache-Control", "no-store")
+    response.headers.add("Pragma", "no-cache")
+
+    # return response
     return response

@@ -1595,7 +1595,7 @@ class Order(Base):
     DeliveryAddress = Column(Text(100))
     Date = Column(DateTime)
     Status = Column(Text(50), default='Draft')
-    Description = Column(Text(100))
+    Description = Column(Text(100), default='')
 
     Project = relationship('Project')
     Supplier = relationship('Supplier')

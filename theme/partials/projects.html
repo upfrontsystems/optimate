@@ -175,8 +175,6 @@
     // keep the dropdowns open on click
     $(document).ready(function() {
         $(document).on('click', '.dropdown-menu', function (e) {
-            console.log("clicked");
-            console.log($(this));
             $(this).hasClass('keep-open') && e.stopPropagation();
         });
     });
