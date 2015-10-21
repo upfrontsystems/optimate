@@ -198,6 +198,7 @@ button.treenode {
 
 div.tree-node-content {
     white-space: nowrap;
+    display:inline-block;
 }
 
 input.tree-control {

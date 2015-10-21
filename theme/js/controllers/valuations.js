@@ -221,7 +221,7 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
             }).success(function () {
                 console.log("Deleted valuation " + $scope.selectedValuations[index].ID);
                 index+=1;
-                if (index < $scope.Valuations.length){
+                if (index < $scope.selectedValuations.length){
                     $scope.deleteValuation(index);
                 }
                 else{

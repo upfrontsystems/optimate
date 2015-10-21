@@ -191,6 +191,8 @@ if __name__ == '__main__':
                 if name != 'Profit & Attendance':
                     resourcetype = ResourceType(ID=code, Name=name)
                     DBSession.add(resourcetype)
+        # add "Equipment" type
+        DBSession.add(ResourceType(Name="Equipment"))
         transaction.commit()
         # add a none type resource type
         resourcetype = ResourceType(ID=0, Name="")

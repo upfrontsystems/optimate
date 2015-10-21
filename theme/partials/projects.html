@@ -22,7 +22,7 @@
                                 ac-model="selectedProject"
                                 ac-options="project.ID as project.Name for project in projectsList"
                                 ac-data="projectsList"
-                                ac-settings="{minWidth: '350px', maxWidth: '400px'}"
+                                ac-settings="{minWidth: '350px', maxWidth: '500px', itemHeight: '25', itemsInView: '15',}"
                                 ac-change="loadProject()">
                         </select>
                     </li>
@@ -175,6 +175,8 @@
     // keep the dropdowns open on click
     $(document).ready(function() {
         $(document).on('click', '.dropdown-menu', function (e) {
+            console.log("clicked");
+            console.log($(this));
             $(this).hasClass('keep-open') && e.stopPropagation();
         });
     });

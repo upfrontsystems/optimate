@@ -433,5 +433,34 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
             }
         };
 
+        $scope.getCSVReport = function (report) {
+            if ( report == 'invoices' ) {
+                console.log("get csv report");
+            //     var target = document.getElementsByClassName('excel_download');
+            //     var spinner = new Spinner().spin(target[0]);
+            //     $http({
+            //         method: 'POST',
+            //         url: globalServerURL + 'excel_invoices_report',
+            //         data: $scope.formData,
+            //         responseType: 'arraybuffer'
+            //     }).success(function (response, status, headers, config) {
+            //         spinner.stop();
+            //         var blob = new Blob([response], {
+            //             type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            //         });
+            //         var filename_header = headers('Content-Disposition');
+            //         var filename = filename_header.split('filename=')[1];
+            //         var config = {
+            //           data: blob,
+            //           filename: filename,
+            //         };
+
+            //         FileSaver.saveAs(config);
+            //     }).error(function(data, status, headers, config) {
+            //         console.log("Invoice excel download error")
+            //     });
+            // }
+        };
+
     }
 ]);
