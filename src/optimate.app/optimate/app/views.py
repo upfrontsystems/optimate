@@ -1763,7 +1763,7 @@ def unitview(request):
         if existing:
             return
         unit = DBSession.query(
-                    Unit).filter_by(ID=request.matchdict['ID']).first()
+                    Unit).filter_by(ID=request.matchdict['id']).first()
         unit.Name=request.json_body['Name']
         transaction.commit()
         return HTTPOk()

@@ -289,6 +289,8 @@ myApp.controller('unitsController', ['$scope', '$http', '$modal', '$log', 'globa
 
         toggleMenu('setup');
         $scope.newUnit = [];
+        $scope.unitList = [];
+        $scope.selectedItem = undefined;
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
@@ -301,33 +303,38 @@ myApp.controller('unitsController', ['$scope', '$http', '$modal', '$log', 'globa
             console.log("Unit list loaded");
         });
 
-        // clear the unit input fields
-        $scope.clearInput = function() {
-            $scope.newUnit = undefined;
-        }
-
-        $scope.unitList = [];
-        $scope.loadUnits = function() {
-            var req = {
-                method: 'GET',
-                url: globalServerURL + 'units'
+        $scope.showActionsFor = function(item){
+            if ($scope.selectedItem){
+                $scope.selectedItem.active = undefined;
             }
-            $http(req).success(function(data) {
-                $scope.unitList = data;
-                console.log("Unit list loaded");
-            });
+            item.active = 'active';
+            $scope.selectedItem = item;
         };
 
+        $scope.setState = function(state, item){
+            $scope.savingState = state;
+            $scope.newUnit = item;
+        }
+
         // delete a unit by id
-        $scope.deleteUnit = function(unitid, index) {
+        $scope.deleteUnit = function(unitid) {
             var req = {
                 method: 'DELETE',
                 url: globalServerURL + 'unit/' + unitid + '/',
             }
             $http(req).success(function(result) {
                 if ( result.status == 'remove' ) {
-                    $scope.unitList.splice(index, 1);
+                    for (var i = 0; i < $scope.unitList.length; i++) {
+                        if ($scope.unitList[i].ID === unitid) {
+                            $scope.unitList.splice(i, 1);
+                            break;
+                        }
+                    }
+                    $scope.selectedItem = undefined;
                     console.log("Unit deleted");
+                }
+                else{
+                    console.log("Unit in use");
                 }
             });
         }
@@ -340,10 +347,36 @@ myApp.controller('unitsController', ['$scope', '$http', '$modal', '$log', 'globa
                     url: globalServerURL + 'unit/0/',
                     data: {'Name':$scope.newUnit.Name}
                 }
-                $http(req).success(function() {
-                    $scope.clearInput();
-                    $scope.loadUnits();
+                $http(req).success(function(response) {
+                    $scope.savingState = undefined;
+                    $scope.newUnit.ID = response.newid;
+                    $scope.unitList.push($scope.newUnit);
+                    $scope.unitList.sort(function(a, b) {
+                        var textA = a.Name.toUpperCase();
+                        var textB = b.Name.toUpperCase();
+                        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+                    });
                     console.log("Unit added");
+                });
+            }
+        }
+
+        // edit a unit
+        $scope.editUnit = function() {
+            if ($scope.newUnit) {
+                var req = {
+                    method: 'PUT',
+                    url: globalServerURL + 'unit/' + $scope.newUnit.ID + '/',
+                    data: {'Name':$scope.newUnit.Name}
+                }
+                $http(req).success(function() {
+                    $scope.savingState = undefined;
+                    $scope.unitList.sort(function(a, b) {
+                        var textA = a.Name.toUpperCase();
+                        var textB = b.Name.toUpperCase();
+                        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+                    });
+                    console.log("Unit edited");
                 });
             }
         }
