@@ -193,6 +193,9 @@ def nodeview(request):
     """ Manage single operations on a node
         The operation is determined by the HTTP method
     """
+    # DBSession.add(Unit(Name=u"m\u00B2"))
+    # transaction.commit()
+    print "added"
     if request.method == 'POST':
         if not request.has_permission('edit'):
             return HTTPForbidden()
@@ -1694,7 +1697,17 @@ def unitview(request):
     """ The unitview handles different cases for units
         depending on the http method
     """
-    # if the method is delete, delete the unit, granted it is not in use by any resources
+    sups = {u'0': u'\u2070',
+            u'1': u'\xb9',
+            u'2': u'\xb2',
+            u'3': u'\xb3',
+            u'4': u'\u2074',
+            u'5': u'\u2075',
+            u'6': u'\u2076',
+            u'7': u'\u2077',
+            u'8': u'\u2078',
+            u'9': u'\u2079'}
+    # delete the unit, granted it is not in use by any resources
     if request.method == 'DELETE':
         if not request.has_permission('edit'):
             return HTTPForbidden()
@@ -1714,23 +1727,43 @@ def unitview(request):
     if request.method == 'POST':
         if not request.has_permission('edit'):
             return HTTPForbidden()
-        newunit = Unit(Name=request.json_body['Name'])
-        qry = DBSession.query(Unit).all()
-        existing_unitlist = []
-        for unit in qry:
-            existing_unitlist.append(str(unit.Name).upper())
-        if str(request.json_body['Name']).upper() not in existing_unitlist:
-            DBSession.add(newunit)
-            DBSession.flush()
-            return {'newid': newunit.ID}
-        return
+
+        unitname = request.json_body['Name']
+        # check for carets in the name, and make it superscript
+        if '^' in unitname:
+            splitted = unitname.split('^')
+            name = splitted[0].strip()
+            exp = ''.join(sups.get(char, char) for char in splitted[1].strip())
+            unitname = name+exp
+
+        # check if the unit already exists
+        existing = DBSession.query(Unit).filter_by(Name=unitname).first()
+        if existing:
+            return
+        newunit = Unit(Name=unitname)
+        DBSession.add(newunit)
+        DBSession.flush()
+        return {'newid': newunit.ID}
 
     # if the method is put, edit an existing unit
     if request.method == 'PUT':
         if not request.has_permission('edit'):
             return HTTPForbidden()
+
+        unitname = request.json_body['Name']
+        # check for carets in the name, and make it superscript
+        if '^' in unitname:
+            splitted = unitname.split('^')
+            name = splitted[0].strip()
+            exp = ''.join(sups.get(char, char) for char in splitted[1].strip())
+            unitname = name+exp
+
+        # check if the unit already exists
+        existing = DBSession.query(Unit).filter_by(Name=unitname).first()
+        if existing:
+            return
         unit = DBSession.query(
-                    Unit).filter_by(Name=request.matchdict['id']).first()
+                    Unit).filter_by(ID=request.matchdict['ID']).first()
         unit.Name=request.json_body['Name']
         transaction.commit()
         return HTTPOk()
