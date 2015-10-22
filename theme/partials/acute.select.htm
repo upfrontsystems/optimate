@@ -1,7 +1,4 @@
-﻿s<div ng-keydown="keyHandler($event)"
-    tabindex="999"
-    ac-focus="wrapperFocus"
-    ng-focus="comboFocus = true">
+﻿<div tabindex="999">
     <div ng-style="{'minWidth': settings.minWidth, 'maxWidth': settings.maxWidth }">
         <table class="ac-select-table" ng-click="comboFocus = true">
             <tr>
@@ -16,7 +13,11 @@
                                 ng-change="comboTextChange()"/>
                     </div>
                 </td>
-                <td class="filter-icon"><i class="fa fa-search"></i></td>
+                <td title="Clear"
+                    ng-click="clearSelection()"
+                    class="filter-icon">
+                    <i class="fa fa-close"></i>
+                </td>
             </tr>
         </table>
     </div>

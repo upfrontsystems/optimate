@@ -1,12 +1,3 @@
-<script type="text/javascript">
-    // keep the dropdowns open on click
-    $(document).ready(function() {
-        $(document).on('click', '.dropdown-menu', function (e) {
-            $(this).hasClass('keep-open') && e.stopPropagation();
-        });
-    });
-</script>
-
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div class="container-fluid">
         <ul class="nav nav-pills navbar-left">
@@ -64,6 +55,7 @@
             <li class="dropdown">
                 <a href=""
                     data-toggle="dropdown"
+                    data-ng-click="focusproject = !focusproject"
                     data-ng-class="{'filter-unselected': !filters.Project}">
                     Project <span class="caret"></span>
                 </a>
@@ -73,6 +65,7 @@
                                 ac-model="filters.Project"
                                 ac-options="project.ID as project.Name for project in filteredProjectsList"
                                 ac-data="filteredProjectsList"
+                                ac-focus-when="focusproject"
                                 ac-settings="{minWidth: '350px', maxWidth: '400px'}"
                                 ac-change="loadValuationSection()">
                         </select>
@@ -102,6 +95,7 @@
             <li class="dropdown">
                 <a href=""
                     data-toggle="dropdown"
+                    data-ng-click="focusstatus = !focusstatus"
                     data-ng-class="{'filter-unselected': !filters.Status}">
                     Status <span class="caret"></span>
                 </a>
@@ -111,6 +105,7 @@
                                 ac-model="filters.Status"
                                 ac-options="status.Status as status.Status for status in statusList"
                                 ac-data="statusList"
+                                ac-focus-when="focusstatus"
                                 ac-settings="{minWidth: '350px', maxWidth: '400px'}"
                                 ac-change="loadValuationSection(); filterBy('status')">
                         </select>

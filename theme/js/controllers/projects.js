@@ -315,40 +315,42 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
 
         // load the project that has been selected into the tree
         $scope.loadProject = function () {
-            var id = $scope.selectedProject;
-            var url = globalServerURL + 'node/' + id + '/'
-            $http.get(url).success(function(data) {
-                if (!(containsObject(data, $scope.projectsRoot.Subitem))) {
-                    // add latest select project, if not already in the list
-                    $scope.projectsRoot.Subitem.push(data);
-                    // sort alphabetically by project name
-                    $scope.projectsRoot.Subitem.sort(function(a, b) {
-                        var textA = a.Name.toUpperCase();
-                        var textB = b.Name.toUpperCase();
-                        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
-                    });
-                    if (hasStorage) {
-                        // add id of project to local storage
-                        var open_projects;
-                        try {
-                            // attempt to add an id to open_projects storage
-                            open_projects = JSON.parse(localStorage["open_projects"])
-                            open_projects.push(data.ID);
-                            localStorage["open_projects"] = JSON.stringify(open_projects);
+            if ($scope.selectedProject){
+                var id = $scope.selectedProject;
+                var url = globalServerURL + 'node/' + id + '/'
+                $http.get(url).success(function(data) {
+                    if (!(containsObject(data, $scope.projectsRoot.Subitem))) {
+                        // add latest select project, if not already in the list
+                        $scope.projectsRoot.Subitem.push(data);
+                        // sort alphabetically by project name
+                        $scope.projectsRoot.Subitem.sort(function(a, b) {
+                            var textA = a.Name.toUpperCase();
+                            var textB = b.Name.toUpperCase();
+                            return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+                        });
+                        if (hasStorage) {
+                            // add id of project to local storage
+                            var open_projects;
+                            try {
+                                // attempt to add an id to open_projects storage
+                                open_projects = JSON.parse(localStorage["open_projects"])
+                                open_projects.push(data.ID);
+                                localStorage["open_projects"] = JSON.stringify(open_projects);
+                            }
+                            catch (exception) {
+                                // create a new open_projects storage as one doesnt exist
+                                localStorage.setItem("open_projects", []);
+                                open_projects = []
+                                open_projects.push(data.ID);
+                                localStorage["open_projects"] = JSON.stringify(open_projects);
+                            }
                         }
-                        catch (exception) {
-                            // create a new open_projects storage as one doesnt exist
-                            localStorage.setItem("open_projects", []);
-                            open_projects = []
-                            open_projects.push(data.ID);
-                            localStorage["open_projects"] = JSON.stringify(open_projects);
+                        else {
+                            console.log("LOCAL STORAGE NOT SUPPORTED!")
                         }
                     }
-                    else {
-                        console.log("LOCAL STORAGE NOT SUPPORTED!")
-                    }
-                }
-            });
+                });
+            }
         };
 
         // Close a project and remove it from the tree

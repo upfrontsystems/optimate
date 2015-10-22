@@ -83,21 +83,14 @@ angular.module("acute.select", [])
                 }
             };
 
-            // Handle ac-focus-when attribute. When set to true
-            // give focus to either the combo or search text box
-            if ($scope.acFocusWhen !== undefined) {
-                $scope.$watch("acFocusWhen", function(newValue, oldValue) {
-                    if (newValue === true && newValue !== oldValue) {
-                        $scope.acFocusWhen = false;
-                        giveFocusToTextbox();
-                    }
-                });
-            }
-
-            function giveFocusToTextbox() {
-                // Set flag to fire the ac-focus directive
-                $scope.comboFocus = true;
-            }
+            // Handle ac-focus-when attribute. When changed
+            // give focus to the search text box
+            $scope.$watch("acFocusWhen", function(focus) {
+                if (focus !== undefined) {
+                    // Set flag to fire the ac-focus directive
+                    $scope.comboFocus = !$scope.comboFocus;
+                }
+            });
 
             $scope.setInitialSelection = function() {
                 if ($scope.model) {
@@ -300,8 +293,9 @@ angular.module("acute.select", [])
 
             $scope.comboTextChange = function() {
                 $scope.searchText = $scope.comboText;
+                console.log($scope.comboText);
                 if ($scope.comboText == '') {
-                    clearSelection();
+                    $scope.clearSelection();
                 }
 
                 $scope.filterData();
@@ -326,11 +320,10 @@ angular.module("acute.select", [])
 
             // Private functions
 
-            function confirmSelection(item, forceClose) {
+            function confirmSelection(item) {
                 $scope.selectedItem = item;
 
                 var oldConfirmedItem = $scope.confirmedItem;
-                var close = false;
                 if ($scope.selectedItem) {
                     $scope.confirmedItem = angular.copy($scope.selectedItem);
                     $scope.modelUpdating = true;
@@ -341,7 +334,6 @@ angular.module("acute.select", [])
                         $scope.model = $scope.selectedItem.value;
                     }
                     $scope.comboText = $scope.selectedItem.text;
-                    close = true;
                 }
 
                 fireChangeEvent();
@@ -349,10 +341,6 @@ angular.module("acute.select", [])
                 // Clear any initial selection
                 $scope.initialSelection = null;
                 $scope.initialItem == null;
-
-                if (close || forceClose) {
-                    $scope.wrapperFocus = true;
-                }
             }
 
             function fireChangeEvent() {
@@ -364,7 +352,7 @@ angular.module("acute.select", [])
                 }
             }
 
-            function clearSelection() {
+            $scope.clearSelection = function() {
                 var oldConfirmedItem = $scope.confirmedItem;
                 $scope.selectedItem = null;
                 $scope.confirmedItem = null;
@@ -455,8 +443,8 @@ angular.module("acute.select", [])
         restrict: "A",
         link: function(scope, element, attributes) {
             var setFocus = $parse(attributes.acFocus);
-            scope.$watch(setFocus, function(newValue, oldValue) {
-                if (newValue === true && newValue != oldValue) {
+            scope.$watch(setFocus, function(focus) {
+                if (focus !== undefined) {
                     $timeout(function() {
                         element[0].focus();
                     }, 100);

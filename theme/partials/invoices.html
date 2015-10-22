@@ -1,12 +1,3 @@
-<script type="text/javascript">
-    // keep the dropdowns open on click
-    $(document).ready(function() {
-        $(document).on('click', '.dropdown-menu', function (e) {
-            $(this).hasClass('keep-open') && e.stopPropagation();
-        });
-    });
-</script>
-
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div class="container-fluid">
         <ul class="nav nav-pills navbar-left">
@@ -166,6 +157,7 @@
             <li class="dropdown">
                 <a href=""
                     data-toggle="dropdown"
+                    data-ng-click="focusproject = !focusproject"
                     data-ng-class="{'filter-unselected': !filters.Project}">
                     Project <span class="caret"></span>
                 </a>
@@ -175,6 +167,7 @@
                                 ac-model="filters.Project"
                                 ac-options="project.ID as project.Name for project in projectsList"
                                 ac-data="projectsList"
+                                ac-focus-when="focusproject"
                                 ac-settings="{minWidth: '350px', maxWidth: '400px'}"
                                 ac-change="loadInvoiceSection(); filterBy('project')">
                         </select>
@@ -184,6 +177,7 @@
             <li class="dropdown">
                 <a href=""
                     data-toggle="dropdown"
+                    data-ng-click="focusclient = !focusclient"
                     data-ng-class="{'filter-unselected': !filters.Client}">
                     Client <span class="caret"></span>
                 </a>
@@ -193,6 +187,7 @@
                                 ac-model="filters.Client"
                                 ac-options="client.ID as client.Name for client in clientsList"
                                 ac-data="clientsList"
+                                ac-focus-when="focusclient"
                                 ac-settings="{minWidth: '350px', maxWidth: '400px'}"
                                 ac-change="loadInvoiceSection(); filterBy('client')">
                         </select>
@@ -202,6 +197,7 @@
             <li class="dropdown">
                 <a href=""
                     data-toggle="dropdown"
+                    data-ng-click="focussupplier = !focussupplier"
                     data-ng-class="{'filter-unselected': !filters.Supplier}">
                     Supplier <span class="caret"></span>
                 </a>
@@ -211,6 +207,7 @@
                                 ac-model="filters.Supplier"
                                 ac-options="supplier.ID as supplier.Name for supplier in suppliersList"
                                 ac-data="suppliersList"
+                                ac-focus-when="focussupplier"
                                 ac-settings="{minWidth: '350px', maxWidth: '400px'}"
                                 ac-change="loadInvoiceSection(); filterBy('supplier')">
                         </select>
@@ -220,6 +217,7 @@
             <li class="dropdown">
                  <a href=""
                     data-toggle="dropdown"
+                    data-ng-click="focusstatus = !focusstatus"
                     data-ng-class="{'filter-unselected': !filters.Status}">
                     Status <span class="caret"></span>
                 </a>
@@ -229,6 +227,7 @@
                                 ac-model="filters.Status"
                                 ac-options="status.Status as status.Status for status in statusList"
                                 ac-data="statusList"
+                                ac-focus-when="focusstatus"
                                 ac-settings="{minWidth: '350px', maxWidth: '400px'}"
                                 ac-change="loadInvoiceSection(); filterBy('status')">
                         </select>

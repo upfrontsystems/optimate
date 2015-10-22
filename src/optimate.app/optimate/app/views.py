@@ -193,9 +193,6 @@ def nodeview(request):
     """ Manage single operations on a node
         The operation is determined by the HTTP method
     """
-    # DBSession.add(Unit(Name=u"m\u00B2"))
-    # transaction.commit()
-    print "added"
     if request.method == 'POST':
         if not request.has_permission('edit'):
             return HTTPForbidden()
@@ -1739,7 +1736,7 @@ def unitview(request):
         # check if the unit already exists
         existing = DBSession.query(Unit).filter_by(Name=unitname).first()
         if existing:
-            return
+            return HTTPConflict('Unit already exists')
         newunit = Unit(Name=unitname)
         DBSession.add(newunit)
         DBSession.flush()

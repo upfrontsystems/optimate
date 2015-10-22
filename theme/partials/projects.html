@@ -13,7 +13,7 @@
                 <a href=""
                     title="Open Project"
                     data-toggle="dropdown"
-                    data-ng-click="selectedProject = undefined">
+                    data-ng-click="selectedProject = undefined; focusproject = !focusproject">
                     <i class="fa fa-folder-open"></i></span>
                 </a>
                 <ul class="dropdown-menu keep-open">
@@ -22,6 +22,7 @@
                                 ac-model="selectedProject"
                                 ac-options="project.ID as project.Name for project in projectsList"
                                 ac-data="projectsList"
+                                ac-focus-when="focusproject"
                                 ac-settings="{minWidth: '350px', maxWidth: '500px', itemHeight: '25', itemsInView: '15',}"
                                 ac-change="loadProject()">
                         </select>
@@ -170,15 +171,6 @@
         </div>
     </div>
 </div>
-
-<script type="text/javascript">
-    // keep the dropdowns open on click
-    $(document).ready(function() {
-        $(document).on('click', '.dropdown-menu', function (e) {
-            $(this).hasClass('keep-open') && e.stopPropagation();
-        });
-    });
-</script>
 
 <script type="text/ng-template" id="deleteConfirmationModal.html">
     <div class="modal-body">
