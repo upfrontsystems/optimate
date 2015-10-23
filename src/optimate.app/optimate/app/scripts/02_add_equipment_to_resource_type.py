@@ -1,4 +1,7 @@
-from optimate.app.models import Base
+from optimate.app.models import (
+    Base,
+    ResourceType
+    )
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -23,11 +26,11 @@ if __name__ == '__main__':
     session.configure(bind=engine)
     s = session()
     try:
-        engine.execute('ALTER TABLE BudgetGroup ADD COLUMN Variation Boolean')
+        s.add(ResourceType(Name="Equipment"))
         s.commit()
-        print "Added column Variation to table BudgetGroup"
+        print "Added Equipment to ResourceType"
     except:
         s.rollback()
-        print "Error altering table"
+        print "Error adding Equipment"
     finally:
         s.close()

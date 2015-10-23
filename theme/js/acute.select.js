@@ -63,8 +63,6 @@ angular.module("acute.select", [])
                 $scope.listHeight = 0;
                 $scope.matchFound = false;
 
-                console.log($scope.settings.minWidth);
-
                 processSettings();
 
                 // Value should be in the form "label for value in array" or "for value in array"
