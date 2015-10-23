@@ -38,27 +38,33 @@ myApp.factory('RequestsErrorHandler', ['$q', function($q) {
                 && rejection.config.headers[HEADER_NAME]);
 
             if (shouldHandle) {
-              var text = "Server error.";
-              var method = rejection.config.method;
-                console.log(method + " error from " +
+                if (rejection.config.url.indexOf("rights") == -1){
+                      var text = "Server error.";
+                      var method = rejection.config.method;
+                        console.log(method + " error from " +
+                                    rejection.config.url);
+                        if (method == 'GET'){
+                          text = 'Problem getting data.';
+                        } else if (method == 'POST'){
+                          text = 'Problem posting data.';
+                        } else if (method == 'PUT'){
+                          text = 'Problem updating data.';
+                        } else if (method == 'DELETE'){
+                          text = 'Problem deleting data.';
+                        }
+                        // show an error status message
+                        $('#status_message span').text(text);
+                        $('#status_message span').addClass('alert-warning');
+                        $('#status_message').show();
+                        window.setTimeout(function () {
+                            $("#status_message").hide();
+                            $('#status_message span').removeClass('alert-warning');
+                        }, 2000);
+                    }
+                else{
+                    console.log("Rights error from " +
                             rejection.config.url);
-                if (method == 'GET'){
-                  text = 'Problem getting data.';
-                } else if (method == 'POST'){
-                  text = 'Problem posting data.';
-                } else if (method == 'PUT'){
-                  text = 'Problem updating data.';
-                } else if (method == 'DELETE'){
-                  text = 'Problem deleting data.';
                 }
-                // show an error status message
-                $('#status_message span').text(text);
-                $('#status_message span').addClass('alert-warning');
-                $('#status_message').show();
-                window.setTimeout(function () {
-                    $("#status_message").hide();
-                    $('#status_message span').removeClass('alert-warning');
-                }, 2000);
             }
 
             return $q.reject(rejection);

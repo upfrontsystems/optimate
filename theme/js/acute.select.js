@@ -14,7 +14,7 @@ angular.module("acute.select", [])
 .directive("acSelect", function($parse) {
     var defaultSettings = {
         "itemHeight": 24,
-        "itemsInView": 10,
+        "itemsInView": 15,
         "minWidth": "100px",
         "maxWidth": "",
     };
@@ -62,6 +62,8 @@ angular.module("acute.select", [])
                 $scope.scrollPosition = 0;   // Reported scroll position
                 $scope.listHeight = 0;
                 $scope.matchFound = false;
+
+                console.log($scope.settings.minWidth);
 
                 processSettings();
 
@@ -189,7 +191,6 @@ angular.module("acute.select", [])
                 // If maxWidth is set, limit textbox size, allowing room for dropdown icon
                 if ($scope.settings.maxWidth) {
                     var maxWidth = parseInt($scope.settings.maxWidth);
-                    console.log(maxWidth);
                     // Set an approximate limit to the number of characters to allow in $scope.longestText
                     $scope.maxCharacters = Math.round(maxWidth / 6);
                     $scope.maxTextWidth = (maxWidth - 100) + "px";

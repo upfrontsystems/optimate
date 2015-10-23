@@ -33,7 +33,7 @@
                     ng-repeat="item in items track by $index | filter: search"
                     ng-class="getItemClass($index)"
                     ng-click="itemClick($index)"
-                    ng-style="{ height: settings.itemHeight + 'px', 'line-height': settings.itemHeight + 'px' }">
+                    ng-style="{'line-height': settings.itemHeight + 'px'}">
                     {{item.text}}
                 </li>
             </ul>
