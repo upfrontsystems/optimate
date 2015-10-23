@@ -12,14 +12,14 @@ describe('Orders page', function() {
     it('should add an order', function(){
         // open the add order modal and fill in the form
         var addOrderModal = element(by.id('saveOrderModal'));
-        var projectname = "";
+        var projectname = 'TestProject';
         element(by.css('nav ul li a i.fa-plus-square')).click();
         expect(addOrderModal.isDisplayed()).toBe(true);
         var projectselect = addOrderModal.element(by.id('inputProject_chosen'))
         projectselect.click();
+        projectselect.element(by.css('.chosen-search input')).sendKeys(projectname);
         projectselect.all(by.css('.chosen-results li')).then(function(items) {
-            items[1].getText().then(function(name){projectname = name;});
-            items[1].click();
+          items[0].click();
         });
         var supplierselect = addOrderModal.element(by.id('inputSupplier_chosen'))
         supplierselect.click();

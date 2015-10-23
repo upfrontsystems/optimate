@@ -53,15 +53,10 @@ describe('Projects Page', function () {
         // open the open project modal
         expect(element(by.css('nav ul li a i.fa-folder-open')).isDisplayed()).toBe(true);
         element(by.css('nav ul li a i.fa-folder-open')).click();
-        var selectProjectModal = element(by.id('selectProjectModal'));
-        expect(selectProjectModal.isDisplayed()).toBe(true);
-        var projectselect = selectProjectModal.element(by.id('project_select_chosen'))
-        projectselect.click();
-        projectselect.element(by.css('.chosen-search input')).sendKeys('TestProject');
-        projectselect.all(by.css('.chosen-results li')).then(function(items) {
+        browser.switchTo().activeElement().sendKeys('TestProject');
+        element.all(by.css('.ac-select-list ul li')).then(function(items) {
           items[0].click();
         });
-        selectProjectModal.element(by.css('.modal-footer .btn-primary')).click();
 
         // check the project was opened
         expect(element(by.id('left')).element(by.buttonText('TestProject')).isPresent()).toBeTruthy();
@@ -124,11 +119,6 @@ describe('Projects Page', function () {
 
         // check the copied project name
         expect(element(by.id('left')).element(by.buttonText('Copy of TestProject')).isDisplayed()).toBe(true);
-        // delete it
-        element(by.id('left')).element(by.buttonText('Copy of TestProject')).click();
-        element(by.css('nav ul li a i.fa-trash')).click();
-        element(by.id('deleteConfirmation')).element(by.buttonText('Delete')).click();
-        expect(element(by.id('left')).element(by.buttonText('Copy of TestProject')).isPresent()).toBe(false);
     });
 
     // edit markups
@@ -165,7 +155,7 @@ describe('Projects Page', function () {
     // delete a project
     it('should delete a project', function () {
         // select the project
-        element(by.id('left')).element(by.buttonText('TestProject')).click();
+        element(by.id('left')).element(by.buttonText('Copy of TestProject')).click();
         expect(element(by.css('nav ul li a i.fa-trash')).isDisplayed()).toBe(true);
         element(by.css('nav ul li a i.fa-trash')).click();
 
@@ -174,6 +164,6 @@ describe('Projects Page', function () {
         element(by.id('deleteConfirmation')).element(by.buttonText('Delete')).click();
 
         // check the project has been deleted
-        expect(element(by.id('left')).element(by.buttonText('TestProject')).isPresent()).toBe(false);
+        expect(element(by.id('left')).element(by.buttonText('Copy of TestProject')).isPresent()).toBe(false);
     });
 });
