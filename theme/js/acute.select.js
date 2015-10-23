@@ -189,6 +189,7 @@ angular.module("acute.select", [])
                 // If maxWidth is set, limit textbox size, allowing room for dropdown icon
                 if ($scope.settings.maxWidth) {
                     var maxWidth = parseInt($scope.settings.maxWidth);
+                    console.log(maxWidth);
                     // Set an approximate limit to the number of characters to allow in $scope.longestText
                     $scope.maxCharacters = Math.round(maxWidth / 6);
                     $scope.maxTextWidth = (maxWidth - 100) + "px";

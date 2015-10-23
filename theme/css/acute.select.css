@@ -69,7 +69,6 @@ div.ac-select-no-items {
 
 .ac-select-popup li {
     padding-left: 5px;
-    white-space: nowrap;
 }
 
 .ac-select-popup li:hover {
