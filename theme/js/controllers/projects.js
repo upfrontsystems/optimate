@@ -374,8 +374,11 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 }
                 localStorage["open_projects"] = JSON.stringify(open_projects);
             }
-            else {
-                console.log("LOCAL STORAGE NOT SUPPORTED!")
+
+            // clear the current node
+            if ($scope.currentNode.ID == project_id){
+                $scope.currentNode = undefined;
+                $scope.currentNodeScope = undefined;
             }
         };
 

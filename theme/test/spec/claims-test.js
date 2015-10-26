@@ -12,14 +12,14 @@ describe('Claims page', function() {
     it('should add a claim', function(){
         // open the add claim modal and fill in the form
         var addClaimModal = element(by.id('saveClaimModal'));
-        var projectname = "";
+        var projectname = "TestProject";
         element(by.css('nav ul li a i.fa-plus-square')).click();
         expect(addClaimModal.isDisplayed()).toBe(true);
         var projectselect = addClaimModal.element(by.id('inputProject_chosen'))
         projectselect.click();
+        browser.actions().sendKeys(projectname).perform();
         projectselect.all(by.css('.chosen-results li')).then(function(items) {
-            items[1].getText().then(function(name){projectname = name;});
-            items[1].click();
+            items[0].click();
         });
 
         var valselect = addClaimModal.element(by.id('inputValuation_chosen'))
@@ -36,14 +36,5 @@ describe('Claims page', function() {
        element(by.repeater('obj in jsonclaims').row(0).column('obj.Project')).getText().then(function(name){
             expect(name).toBe(projectname);
        });
-    });
-
-    // delete claim
-    it('should delete a claim', function(){
-        // click the claim
-        element(by.repeater('obj in jsonclaims').row(0)).click();
-        // delete
-        element(by.css('nav ul li a i.fa-trash')).click();
-        element(by.buttonText('Delete')).click();
     });
 });

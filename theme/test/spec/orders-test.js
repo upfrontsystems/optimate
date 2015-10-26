@@ -28,6 +28,7 @@ describe('Orders page', function() {
         });
         addOrderModal.element(by.css('#inputDate i.fa-calendar')).click();
         addOrderModal.element(by.css('#inputDate ul table tbody tr td.day.active')).click()
+        // addOrderModal.element(by.model('formData.Description')).sendKeys('Test order description');
 
         // add budget items from the tree
         // expect(addOrderModal.element(by.css('.modal-footer i.fa-plus')).isEnabled()).toBe(true);
@@ -53,8 +54,8 @@ describe('Orders page', function() {
         addOrderModal.element(by.buttonText('Save')).click();
 
         // check the order was added
-       element(by.repeater('obj in jsonorders').row(0).column('obj.Project')).getText().then(function(name){
+        element(by.repeater('obj in jsonorders').row(0).column('obj.Project')).getText().then(function(name){
             expect(name).toBe(projectname);
-       });
+        });
     });
 });

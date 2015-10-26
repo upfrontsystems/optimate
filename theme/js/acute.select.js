@@ -42,11 +42,12 @@ angular.module("acute.select", [])
             // watch the data and load the items
             $scope.$watch("acData()", function(items){
                 if (items){
+                    $scope.items = [];
                     $scope.loadItems(items, $scope.model);
                     $scope.confirmedItem = angular.copy($scope.selectedItem);
                     $scope.allDataLoaded = true;
                 }
-            });
+            }, true);
 
             $scope.initialise = function(attr) {
                 $scope.settings = defaultSettings;

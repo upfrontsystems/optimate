@@ -174,17 +174,22 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
         // add a new order to the list and sort
         $scope.handleNew = function(neworder) {
             // the new order is added to the list
-            var high = $scope.jsonorders[0].ID + 2;
-            var low = $scope.jsonorders[$scope.jsonorders.length - 1].ID + 2;
-            // only need to add it if it's id falls in the current section
-            if (neworder.ID > low && neworder.ID < high) {
+            if ($scope.jsonorders.length > 0){
+                var high = $scope.jsonorders[0].ID + 2;
+                var low = $scope.jsonorders[$scope.jsonorders.length - 1].ID + 2;
+                // only need to add it if it's id falls in the current section
+                if (neworder.ID > low && neworder.ID < high) {
+                    $scope.jsonorders.push(neworder);
+                    // sort by order id
+                    $scope.jsonorders.sort(function(a, b) {
+                        var idA = a.ID;
+                        var idB = b.ID;
+                        return (idA > idB) ? -1 : (idA < idB) ? 1 : 0;
+                    });
+                }
+            }
+            else{
                 $scope.jsonorders.push(neworder);
-                // sort by order id
-                $scope.jsonorders.sort(function(a, b) {
-                    var idA = a.ID;
-                    var idB = b.ID;
-                    return (idA > idB) ? -1 : (idA < idB) ? 1 : 0;
-                });
             }
             console.log ("Order added");
         }

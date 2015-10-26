@@ -1973,7 +1973,8 @@ def orderview(request):
         deletethis = DBSession.query(Order).filter_by(ID=deleteid).first()
         # update the budgetitem ordered amounts
         for orderitem in deletethis.OrderItems:
-            orderitem.BudgetItem.Ordered = (orderitem.BudgetItem.Ordered -
+            if orderitem.BudgetItem:
+                orderitem.BudgetItem.Ordered = (orderitem.BudgetItem.Ordered -
                                                 orderitem.Total)
         qry = DBSession.delete(deletethis)
         transaction.commit()

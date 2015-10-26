@@ -81,6 +81,76 @@ describe('Projects Page', function () {
         expect(element(by.id('left')).element(by.buttonText('TestBudgetGroup')).isDisplayed()).toBe(true);
     });
 
+    // add a resource
+    it('should add a resource to a project', function () {
+        // expand
+        element(by.id('left')).element(by.css('input.tree-control.collapsed')).isDisplayed().then(function (isVisible) {
+            if (isVisible) {
+                element(by.id('left')).element(by.css('input.tree-control.collapsed')).click();
+            }
+        });
+        element(by.id('left')).element(by.buttonText('Resource List')).click();
+        expect(element(by.css('nav ul li a.resource-button')).isDisplayed()).toBe(true);
+        element(by.css('nav ul li a.resource-button')).click();
+
+        // check the resource modal displays
+        var addResourceModal = element(by.id('addResource'));
+        expect(addResourceModal.isDisplayed()).toBe(true);
+        // send the data
+        addResourceModal.element(by.model('formData.Name')).sendKeys('TestResource');
+        addResourceModal.element(by.model('formData.Description')).sendKeys('Testing Resource');
+        addResourceModal.element(by.model('formData.Rate')).sendKeys(10);
+        var unitselect = addResourceModal.element(by.id('inputUnit_chosen'))
+        unitselect.click();
+        unitselect.all(by.css('.chosen-results li')).then(function(items) {
+          items[2].click();
+        });
+        var typeselect = addResourceModal.element(by.id('inputType_chosen'))
+        typeselect.click();
+        typeselect.all(by.css('.chosen-results li')).then(function(items) {
+          items[2].click();
+        });
+        var supplierselect = addResourceModal.element(by.id('inputSupplier_chosen'))
+        supplierselect.click();
+        supplierselect.all(by.css('.chosen-results li')).then(function(items) {
+          items[2].click();
+        });
+        addResourceModal.element(by.buttonText('Save')).click();
+
+        // check the resource was added to the project
+        expect(element(by.id('left')).element(by.buttonText('TestResource')).isDisplayed()).toBe(true);
+    });
+
+    // add a budgetitem
+    it('should add a budget item to a project', function () {
+        // expand
+        element(by.id('left')).element(by.css('input.tree-control.collapsed')).isDisplayed().then(function (isVisible) {
+            if (isVisible) {
+                element(by.id('left')).element(by.css('input.tree-control.collapsed')).click();
+            }
+        });
+        element(by.id('left')).element(by.buttonText('TestBudgetGroup')).click();
+        expect(element(by.css('nav ul li a.budget-item-button')).isDisplayed()).toBe(true);
+        element(by.css('nav ul li a.budget-item-button')).click();
+
+        // check the item modal displays
+        var addModal = element(by.id('addBudgetItem'));
+        expect(addModal.isDisplayed()).toBe(true);
+        var selectButton = addModal.element(by.css('div.ui-select-container'));
+        var selectInput = selectButton.element(by.css('.ui-select-search'));
+        // click to open select
+        addModal.element(by.css('div.ui-select-container div.ui-select-match span.ui-select-input')).click();
+        // send text
+        selectInput.sendKeys('TestResource');
+        // select first element
+        element.all(by.css('.ui-select-choices-row-inner span')).first().click();
+        addModal.element(by.model('formData.Quantity')).sendKeys(10);
+        addModal.element(by.buttonText('Save')).click();
+
+        // check the budget item was added to the project
+        expect(element(by.id('left')).element(by.buttonText('TestResource')).isDisplayed()).toBe(true);
+    });
+
     // edit a project
     it('should edit a project name', function () {
         // select the project
@@ -102,23 +172,6 @@ describe('Projects Page', function () {
         editProjectModal.element(by.model('formData.Name')).clear().sendKeys('TestProject');
         editProjectModal.element(by.buttonText('Update')).click();
         expect(element(by.id('left')).element(by.buttonText('TestProject')).isDisplayed()).toBe(true);
-    });
-
-    // copy and paste a project
-    it('should copy and paste a project', function () {
-        // select the project
-        element(by.id('left')).element(by.buttonText('TestProject')).click();
-        expect(element(by.css('nav ul li a i.fa-files-o')).isDisplayed()).toBe(true);
-        element(by.css('nav ul li a i.fa-files-o')).click();
-
-        // check the paste function displays
-        expect(element(by.css('nav ul li a i.fa-clipboard')).isDisplayed()).toBe(true);
-        element(by.css('nav ul li a i.fa-clipboard')).click();
-        expect(element(by.buttonText('Paste')).isDisplayed()).toBe(true);
-        element(by.buttonText('Paste')).click();
-
-        // check the copied project name
-        expect(element(by.id('left')).element(by.buttonText('Copy of TestProject')).isDisplayed()).toBe(true);
     });
 
     // edit markups
@@ -152,6 +205,23 @@ describe('Projects Page', function () {
         overheadModal.element(by.buttonText('Done')).click();
     });
 
+    // copy and paste a project
+    it('should copy and paste a project', function () {
+        // select the project
+        element(by.id('left')).element(by.buttonText('TestProject')).click();
+        expect(element(by.css('nav ul li a i.fa-files-o')).isDisplayed()).toBe(true);
+        element(by.css('nav ul li a i.fa-files-o')).click();
+
+        // check the paste function displays
+        expect(element(by.css('nav ul li a i.fa-clipboard')).isDisplayed()).toBe(true);
+        element(by.css('nav ul li a i.fa-clipboard')).click();
+        expect(element(by.buttonText('Paste')).isDisplayed()).toBe(true);
+        element(by.buttonText('Paste')).click();
+
+        // check the copied project name
+        expect(element(by.id('left')).element(by.buttonText('Copy of TestProject')).isDisplayed()).toBe(true);
+    });
+
     // delete a project
     it('should delete a project', function () {
         // select the project
@@ -160,8 +230,8 @@ describe('Projects Page', function () {
         element(by.css('nav ul li a i.fa-trash')).click();
 
         // check the confirmation modal
-        expect(element(by.id('deleteConfirmation')).isDisplayed()).toBe(true);
-        element(by.id('deleteConfirmation')).element(by.buttonText('Delete')).click();
+        expect(element(by.css('div.modal:nth-child(4) > div:nth-child(1) > div:nth-child(1)')).isDisplayed()).toBe(true);
+        element(by.css('div.modal:nth-child(4) > div:nth-child(1) > div:nth-child(1)')).element(by.buttonText('Delete')).click();
 
         // check the project has been deleted
         expect(element(by.id('left')).element(by.buttonText('Copy of TestProject')).isPresent()).toBe(false);
