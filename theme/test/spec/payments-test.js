@@ -39,7 +39,7 @@ describe('Payments Page', function () {
         expect(paymentModal.element(by.buttonText('Save')).isEnabled()).toBe(true);
         paymentModal.element(by.buttonText('Save')).click();
 
-        // check the claim was added
+        // check the payment was added
         element(by.repeater('obj in jsonpayments').row(0).column('obj.Project')).getText().then(function(name){
             expect(name).toBe(projectname);
        });

@@ -50,7 +50,7 @@
 
 <div class="container-fluid">
     <div id="clients" class="row">
-        <table class="table">
+        <table class="table table-hover">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -61,7 +61,11 @@
                 </tr>
             </thead>
             <tbody>
-                <tr ng-repeat="obj in jsonclients" ng-click="showActionsFor(obj)" id="client-{{obj.ID}}">
+                <tr data-ng-repeat="obj in jsonclients"
+                    data-ng-click="showActionsFor(obj)"
+                    id="client-{{obj.ID}}"
+                    data-ng-class="{active:obj.active}"
+                    class="table-row-hover">
                     <td>{{obj.Name}}</td>
                     <td>{{obj.Address}}</td>
                     <td>{{obj.Phone}}</td>

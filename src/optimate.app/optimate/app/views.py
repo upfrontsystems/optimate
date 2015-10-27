@@ -1811,24 +1811,30 @@ def cityview(request):
     if request.method == 'POST':
         if not request.has_permission('edit'):
             return HTTPForbidden()
-        newcity = City(Name=request.json_body['Name'])
-        qry = DBSession.query(City).all()
-        existing_citylist = []
-        for city in qry:
-            existing_citylist.append(str(city.Name).upper())
-        if str(request.json_body['Name']).upper() not in existing_citylist:
-            DBSession.add(newcity)
-            DBSession.flush()
-            return {'newid': newcity.ID}
-        return
+
+        name = request.json_body['Name']
+        # check if the city already exists
+        existing = DBSession.query(City).filter_by(Name=name).first()
+        if existing:
+            return HTTPConflict('City already exists')
+        newcity = City(Name=name)
+        DBSession.add(newcity)
+        DBSession.flush()
+        return {'newid': newcity.ID}
 
     # if the method is put, edit an existing city
     if request.method == 'PUT':
         if not request.has_permission('edit'):
             return HTTPForbidden()
+
+        name = request.json_body['Name']
+        # check if the city already exists
+        existing = DBSession.query(City).filter_by(Name=name).first()
+        if existing:
+            return HTTPConflict('Name already exists')
         city = DBSession.query(
-                    City).filter_by(Name=request.matchdict['id']).first()
-        city.Name=request.json_body['Name']
+                    City).filter_by(ID=request.matchdict['id']).first()
+        city.Name=name
         transaction.commit()
         return HTTPOk()
 

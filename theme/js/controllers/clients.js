@@ -86,8 +86,11 @@ myApp.controller('clientsController', ['$scope', '$http', 'globalServerURL', 'Se
 
         // Set the selected client and change the css
         $scope.showActionsFor = function(obj) {
+            if ($scope.selectedClient){
+                $scope.selectedClient.active = undefined;
+            }
+            obj.active = 'active';
             $scope.selectedClient = obj;
-            $('#client-'+obj.ID).addClass('active').siblings().removeClass('active');
         };
 
         // When the Add button is pressed change the state and form data
@@ -95,10 +98,7 @@ myApp.controller('clientsController', ['$scope', '$http', 'globalServerURL', 'Se
             $scope.isDisabled = false;
             $scope.modalState = "Add";
             $scope.formData = {'NodeType': 'client'};
-            if ($scope.selectedClient) {
-                $('#client-'+$scope.selectedClient.ID).removeClass('active');
-                $scope.selectedClient = undefined;
-            }
+            $scope.selectedClient = undefined;
             $scope.saveModalForm.$setPristine();
         }
 

@@ -6,18 +6,18 @@
                 <h3 class="modal-title">{{modalState}} a {{formData.NodeType}}</h3>
             </div>
             <div class="modal-body">
-                <form class="form-horizontal"  name="saveModalForm" novalidate>
+                <form class="form-horizontal" name="saveModalForm" novalidate>
                     <div class="form-group">
                         <label for="inputName" class="col-sm-2 control-label">Name:</label>
                         <input type="text"
                                class="col-sm-7"
                                id="inputName"
                                name="inputName"
-                               ng-model="formData['Name']"
+                               ng-model="formData.Name"
                                required
                                autofocus>
                     </div>
-                    <div data-ng-show="formData.NodeType == 'supplier'" class="form-group">
+                    <div data-ng-if="formData.NodeType == 'supplier'" class="form-group">
                         <label for="inputSupplierCode" class="col-sm-2 control-label">Code:</label>
                         <input type="text"
                                class="col-sm-7"
@@ -31,7 +31,7 @@
                         <textarea id="inputAddress"
                                   class="col-sm-7"
                                   name="inputAddress"
-                                  ng-model="formData['Address']"
+                                  ng-model="formData.Address"
                                   rows="5" cols="40">
                         </textarea>
                     </div>
@@ -51,7 +51,7 @@
                                class="col-sm-7"
                                id="inputStateProvince"
                                name="inputStateProvince"
-                               ng-model="formData['StateProvince']">
+                               ng-model="formData.StateProvince">
                     </div>
                     <div class="form-group">
                         <label for="inputStateCountry" class="col-sm-2 control-label">Country:</label>
@@ -59,7 +59,7 @@
                                class="col-sm-7"
                                id="inputStateCountry"
                                name="inputStateCountry"
-                               ng-model="formData['Country']">
+                               ng-model="formData.Country">
                     </div>
                     <div class="form-group">
                         <label for="inputZip" class="col-sm-2 control-label">Zip Code:</label>
@@ -67,7 +67,7 @@
                                class="col-sm-7"
                                id="inputZip"
                                name="inputZip"
-                               ng-model="formData['Zipcode']">
+                               ng-model="formData.Zipcode">
                     </div>
                     <div class="form-group">
                         <label for="inputPhone" class="col-sm-2 control-label">Phone:</label>
@@ -75,7 +75,7 @@
                                class="col-sm-7"
                                id="inputPhone"
                                name="inputPhone"
-                               ng-model="formData['Phone']">
+                               ng-model="formData.Phone">
                     </div>
                     <div class="form-group">
                         <label for="inputFax" class="col-sm-2 control-label">Fax:</label>
@@ -83,7 +83,7 @@
                                class="col-sm-7"
                                id="inputFax"
                                name="inputFax"
-                               ng-model="formData['Fax']">
+                               ng-model="formData.Fax">
                     </div>
                     <div class="form-group">
                         <label for="inputCellular" class="col-sm-2 control-label">Cellular:</label>
@@ -91,7 +91,7 @@
                                class="col-sm-7"
                                id="inputCellular"
                                name="inputCellular"
-                               ng-model="formData['Cellular']">
+                               ng-model="formData.Cellular">
                     </div>
                     <div class="form-group">
                         <label for="inputContact" class="col-sm-2 control-label">Contact:</label>
@@ -99,7 +99,7 @@
                                class="col-sm-7"
                                id="inputContact"
                                name="inputContact"
-                               ng-model="formData['Contact']">
+                               ng-model="formData.Contact">
                     </div>
                 </form>
             </div>

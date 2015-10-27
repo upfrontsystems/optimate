@@ -224,7 +224,9 @@ myApp.controller('citiesController', ['$scope', '$http', '$modal', '$log', 'glob
     function($scope, $http, $modal, $log, globalServerURL, SessionService) {
 
         toggleMenu('setup');
-        $scope.newCity = [];
+        $scope.newItem = {};
+        $scope.cityList = [];
+        $scope.selectedItem = undefined;
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
@@ -232,16 +234,6 @@ myApp.controller('citiesController', ['$scope', '$http', '$modal', '$log', 'glob
             $scope.user.permissions = perm;
         });
 
-        $http.get(globalServerURL + 'cities').success(function(data) {
-            $scope.cityList = data;
-        });
-
-        // clear the city input fields
-        $scope.clearInput = function() {
-            $scope.newCity = [];
-        }
-
-        $scope.cityList = [];
         $scope.loadCities = function() {
             $http.get(globalServerURL + 'cities')
             .success(function(data) {
@@ -249,33 +241,81 @@ myApp.controller('citiesController', ['$scope', '$http', '$modal', '$log', 'glob
                 console.log("City list loaded");
             });
         };
+        $scope.loadCities();
+
+        $scope.showActionsFor = function(item){
+            if ($scope.selectedItem){
+                $scope.selectedItem.active = undefined;
+            }
+            item.active = 'active';
+            $scope.selectedItem = item;
+        };
+
+        $scope.setState = function(state, item){
+            $scope.savingState = state;
+            $scope.newItem = item;
+        }
 
         // delete a city by id
-        $scope.deleteCity = function(cityid, index) {
-            var req = {
-                method: 'DELETE',
-                url: globalServerURL + 'city/' + cityid + '/',
-            }
-            $http(req).success(function(result) {
-                if ( result.status == 'remove' ) {
-                    $scope.cityList.splice(index, 1);
-                    console.log("City deleted");
+        $scope.deleteCity = function() {
+            if ($scope.selectedItem){
+                var req = {
+                    method: 'DELETE',
+                    url: globalServerURL + 'city/' + $scope.selectedItem.ID + '/',
                 }
-            });
+                $http(req).success(function(result) {
+                    if ( result.status == 'remove' ) {
+                        for (var i = 0; i < $scope.cityList.length; i++) {
+                            if ($scope.cityList[i].ID === $scope.selectedItem.ID) {
+                                $scope.cityList.splice(i, 1);
+                                break;
+                            }
+                        }
+                        $scope.selectedItem = undefined;
+                        $scope.savingState = undefined;
+                        console.log("City deleted");
+                    }
+                    else{
+                        console.log("City in use");
+                    }
+                });
+            }
         }
 
         // add a city
         $scope.addCity = function() {
-            if ($scope.newCity) {
+            if ($scope.newItem) {
                 var req = {
                     method: 'POST',
                     url: globalServerURL + 'city/0/',
-                    data: {'Name':$scope.newCity.Name}
+                    data: {'Name':$scope.newItem.Name}
                 }
                 $http(req).success(function() {
-                    $scope.clearInput();
+                    $scope.savingState = undefined;
+                    $scope.selectedItem = undefined;
                     $scope.loadCities();
                     console.log("City added");
+                });
+            }
+        }
+
+        // edit a city
+        $scope.editCity = function() {
+            if ($scope.newItem) {
+                var req = {
+                    method: 'PUT',
+                    url: globalServerURL + 'city/' + $scope.newItem.ID + '/',
+                    data: {'Name':$scope.newItem.Name}
+                }
+                $http(req).success(function() {
+                    $scope.selectedItem.Name = $scope.newItem.Name;
+                    $scope.savingState = undefined;
+                    $scope.cityList.sort(function(a, b) {
+                        var textA = a.Name.toUpperCase();
+                        var textB = b.Name.toUpperCase();
+                        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+                    });
+                    console.log("Unit edited");
                 });
             }
         }
@@ -288,7 +328,7 @@ myApp.controller('unitsController', ['$scope', '$http', '$modal', '$log', 'globa
     function($scope, $http, $modal, $log, globalServerURL, SessionService) {
 
         toggleMenu('setup');
-        $scope.newUnit = [];
+        $scope.newUnit = {};
         $scope.unitList = [];
         $scope.selectedItem = undefined;
 
@@ -298,10 +338,13 @@ myApp.controller('unitsController', ['$scope', '$http', '$modal', '$log', 'globa
             $scope.user.permissions = perm;
         });
 
-        $http.get(globalServerURL + 'units').success(function(data) {
-            $scope.unitList = data;
-            console.log("Unit list loaded");
-        });
+        $scope.loadUnits = function(){
+            $http.get(globalServerURL + 'units').success(function(data) {
+                $scope.unitList = data;
+                console.log("Unit list loaded");
+            });
+        }
+        $scope.loadUnits()
 
         $scope.showActionsFor = function(item){
             if ($scope.selectedItem){
@@ -317,26 +360,29 @@ myApp.controller('unitsController', ['$scope', '$http', '$modal', '$log', 'globa
         }
 
         // delete a unit by id
-        $scope.deleteUnit = function(unitid) {
-            var req = {
-                method: 'DELETE',
-                url: globalServerURL + 'unit/' + unitid + '/',
-            }
-            $http(req).success(function(result) {
-                if ( result.status == 'remove' ) {
-                    for (var i = 0; i < $scope.unitList.length; i++) {
-                        if ($scope.unitList[i].ID === unitid) {
-                            $scope.unitList.splice(i, 1);
-                            break;
+        $scope.deleteUnit = function() {
+            if ($scope.selectedItem){
+                var req = {
+                    method: 'DELETE',
+                    url: globalServerURL + 'unit/' + $scope.selectedItem.ID + '/',
+                }
+                $http(req).success(function(result) {
+                    if ( result.status == 'remove' ) {
+                        for (var i = 0; i < $scope.unitList.length; i++) {
+                            if ($scope.unitList[i].ID === $scope.selectedItem.ID) {
+                                $scope.unitList.splice(i, 1);
+                                break;
+                            }
                         }
+                        $scope.selectedItem = undefined;
+                        $scope.savingState = undefined;
+                        console.log("Unit deleted");
                     }
-                    $scope.selectedItem = undefined;
-                    console.log("Unit deleted");
-                }
-                else{
-                    console.log("Unit in use");
-                }
-            });
+                    else{
+                        console.log("Unit in use");
+                    }
+                });
+            }
         }
 
         // add a unit
@@ -349,13 +395,8 @@ myApp.controller('unitsController', ['$scope', '$http', '$modal', '$log', 'globa
                 }
                 $http(req).success(function(response) {
                     $scope.savingState = undefined;
-                    $scope.newUnit.ID = response.newid;
-                    $scope.unitList.push($scope.newUnit);
-                    $scope.unitList.sort(function(a, b) {
-                        var textA = a.Name.toUpperCase();
-                        var textB = b.Name.toUpperCase();
-                        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
-                    });
+                    $scope.selectedItem = undefined;
+                    $scope.loadUnits();
                     console.log("Unit added");
                 });
             }
@@ -370,6 +411,7 @@ myApp.controller('unitsController', ['$scope', '$http', '$modal', '$log', 'globa
                     data: {'Name':$scope.newUnit.Name}
                 }
                 $http(req).success(function() {
+                    $scope.selectedItem.Name = $scope.newUnit.Name;
                     $scope.savingState = undefined;
                     $scope.unitList.sort(function(a, b) {
                         var textA = a.Name.toUpperCase();
@@ -380,6 +422,5 @@ myApp.controller('unitsController', ['$scope', '$http', '$modal', '$log', 'globa
                 });
             }
         }
-
     }
 ]);
