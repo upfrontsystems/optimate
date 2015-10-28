@@ -1,11 +1,22 @@
 // run test on the suppliers page
-describe('Clients Page', function () {
+describe('Suppliers Page', function () {
+
+    var getTableElements = function(text) {
+                    return element.all(by.cssContainingText('td.ng-binding', text))
+                };
+
+    var checkResult = function(name) {
+        return getTableElements(name).then(function(found) {
+            return found.length > 0;
+        });
+    };
+
     beforeEach(function () {
         browser.get('http://127.0.0.1:8000/#/suppliers');
     });
 
-    // tests its on the clients page
-    it('should be on the clients page', function() {
+    // tests its on the suppliers page
+    it('should be on the suppliers page', function() {
         expect(browser.driver.getCurrentUrl()).toBe('http://127.0.0.1:8000/#/suppliers');
     });
 
@@ -36,12 +47,6 @@ describe('Clients Page', function () {
         saveModal.element(by.buttonText('Save')).click();
 
         // check the supplier was added
-        // element.all(by.repeater('obj in jsonsuppliers')).filter(function(row) {
-        //     return row.getText().then(function(txt) {
-        //         return (txt.indexOf('TestSupplier') > -1);
-        //     });
-        // }).then(function(elem){
-        //     expect(elem[0]).toBeTruthy();
-        // })
+        expect(checkResult('TestSupplier')).toBe(true);
     });
 });

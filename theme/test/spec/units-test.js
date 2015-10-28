@@ -1,5 +1,16 @@
 // run test on the units page
 describe('Units Page', function () {
+
+    var getTableElements = function(text) {
+                    return element.all(by.cssContainingText('td.ng-binding', text))
+                };
+
+    var checkResult = function(name) {
+        return getTableElements(name).then(function(found) {
+            return found.length > 0;
+        });
+    };
+
     beforeEach(function () {
         browser.get('http://127.0.0.1:8000/#/units');
     });
@@ -18,14 +29,6 @@ describe('Units Page', function () {
         element(by.css('ul.nav:nth-child(1) > li:nth-child(1) > button:nth-child(2)')).click()
 
         // check the unit was added
-        element.all(by.repeater('obj in unitList')).filter(function(row) {
-            return row.getText().then(function(txt) {
-                return (txt.indexOf('TestUnit') > -1);
-            });
-        }).then(function(elem){
-            elem[0].getText().then(function(text){
-                expect(text.split(" ")[0]).toBe('TestUnit');
-            });
-        })
+        expect(checkResult('TestUnit')).toBe(true);
     });
 });

@@ -19,13 +19,15 @@ describe('Projects Page', function () {
         addProjectModal.element(by.model('formData.Description')).sendKeys('Testing Project');
         var clientselect = addProjectModal.element(by.id('inputClient_chosen'))
         clientselect.click();
+        browser.actions().sendKeys('TestClient').perform();
         clientselect.all(by.css('.chosen-results li')).then(function(items) {
-          items[2].click();
+          items[0].click();
         });
         var cityselect = addProjectModal.element(by.id('inputCity_chosen'))
         cityselect.click();
+        browser.actions().sendKeys('TestCity').perform();
         cityselect.all(by.css('.chosen-results li')).then(function(items) {
-          items[2].click();
+          items[0].click();
         });
         addProjectModal.element(by.model('formData.SiteAddress')).sendKeys('Testing Address');
         addProjectModal.element(by.model('formData.FileNumber')).sendKeys('TEST000');
@@ -81,6 +83,33 @@ describe('Projects Page', function () {
         expect(element(by.id('left')).element(by.buttonText('TestBudgetGroup')).isDisplayed()).toBe(true);
     });
 
+    it('should edit a budget group', function () {
+        // expand
+        element(by.id('left')).element(by.css('input.tree-control.collapsed')).isDisplayed().then(function (isVisible) {
+            if (isVisible) {
+                element(by.id('left')).element(by.css('input.tree-control.collapsed')).click();
+            }
+        });
+        element(by.id('left')).element(by.buttonText('TestBudgetGroup')).click();
+        expect(element(by.css('nav ul li a i.fa-pencil')).isDisplayed()).toBe(true);
+        element(by.css('nav ul li a i.fa-pencil')).click();
+
+        // check the edit modal displays
+        var editModal = element(by.id('addBudgetGroup'));
+        expect(editModal.isDisplayed()).toBe(true);
+        editModal.element(by.model('formData.Name')).clear().sendKeys('EditBudgetGroup');
+        editModal.element(by.buttonText('Update')).click();
+
+        // check the name
+        expect(element(by.id('left')).element(by.buttonText('EditBudgetGroup')).isDisplayed()).toBe(true);
+
+        // change the name back
+        element(by.css('nav ul li a i.fa-pencil')).click();
+        editModal.element(by.model('formData.Name')).clear().sendKeys('TestBudgetGroup');
+        editModal.element(by.buttonText('Update')).click();
+        expect(element(by.id('left')).element(by.buttonText('TestBudgetGroup')).isDisplayed()).toBe(true);
+    });
+
     // add a resource
     it('should add a resource to a project', function () {
         // expand
@@ -102,8 +131,9 @@ describe('Projects Page', function () {
         addResourceModal.element(by.model('formData.Rate')).sendKeys(10);
         var unitselect = addResourceModal.element(by.id('inputUnit_chosen'))
         unitselect.click();
+        browser.actions().sendKeys('TestUnit').perform();
         unitselect.all(by.css('.chosen-results li')).then(function(items) {
-          items[2].click();
+          items[0].click();
         });
         var typeselect = addResourceModal.element(by.id('inputType_chosen'))
         typeselect.click();
@@ -112,8 +142,9 @@ describe('Projects Page', function () {
         });
         var supplierselect = addResourceModal.element(by.id('inputSupplier_chosen'))
         supplierselect.click();
+        browser.actions().sendKeys('TestSupplier').perform();
         supplierselect.all(by.css('.chosen-results li')).then(function(items) {
-          items[2].click();
+          items[0].click();
         });
         addResourceModal.element(by.buttonText('Save')).click();
 
@@ -121,34 +152,20 @@ describe('Projects Page', function () {
         expect(element(by.id('left')).element(by.buttonText('TestResource')).isDisplayed()).toBe(true);
     });
 
-    // add a budgetitem
-    it('should add a budget item to a project', function () {
-        // expand
-        element(by.id('left')).element(by.css('input.tree-control.collapsed')).isDisplayed().then(function (isVisible) {
-            if (isVisible) {
-                element(by.id('left')).element(by.css('input.tree-control.collapsed')).click();
-            }
+    it('should edit a resource', function () {
+        element(by.buttonText('TestResource')).click();
+        browser.waitForAngular();
+        var slickgrid = element(by.id('optimate-data-grid'));
+        slickgrid.element(by.css('div.ui-widget-content:nth-child(1) > div:nth-child(1)')).getText().then(function(txt){
+            expect(txt).toBe('TestResource');
         });
-        element(by.id('left')).element(by.buttonText('TestBudgetGroup')).click();
-        expect(element(by.css('nav ul li a.budget-item-button')).isDisplayed()).toBe(true);
-        element(by.css('nav ul li a.budget-item-button')).click();
-
-        // check the item modal displays
-        var addModal = element(by.id('addBudgetItem'));
-        expect(addModal.isDisplayed()).toBe(true);
-        var selectButton = addModal.element(by.css('div.ui-select-container'));
-        var selectInput = selectButton.element(by.css('.ui-select-search'));
-        // click to open select
-        addModal.element(by.css('div.ui-select-container div.ui-select-match span.ui-select-input')).click();
-        // send text
-        selectInput.sendKeys('TestResource');
-        // select first element
-        element.all(by.css('.ui-select-choices-row-inner span')).first().click();
-        addModal.element(by.model('formData.Quantity')).sendKeys(10);
-        addModal.element(by.buttonText('Save')).click();
-
-        // check the budget item was added to the project
-        expect(element(by.id('left')).element(by.buttonText('TestResource')).isDisplayed()).toBe(true);
+        slickgrid.element(by.css('div.ui-widget-content:nth-child(1) > div:nth-child(4)')).click();
+        slickgrid.element(by.css('.editor-text')).sendKeys(5);
+        slickgrid.element(by.css('div.ui-widget-content:nth-child(1) > div:nth-child(1)')).click();
+        // check the total has updated
+        slickgrid.element(by.css('div.ui-widget-content:nth-child(1) > div:nth-child(4)')).getText().then(function(txt){
+            expect(txt).toBe('R5.00');
+        });
     });
 
     // edit a project
@@ -186,11 +203,14 @@ describe('Projects Page', function () {
         expect(overheadModal.isDisplayed()).toBe(true);
 
         // add a markup
-        overheadModal.element(by.model('newOverhead.Name')).sendKeys('TestOverhead');
+        overheadModal.element(by.model('newOverhead.Name')).sendKeys('ExtraOverhead');
         overheadModal.element(by.model('newOverhead.Percentage')).sendKeys('50');
         overheadModal.element(by.css('td button i.fa-plus')).click();
 
         // edit the markup
+        overheadModal.element(by.model('newOverhead.Name')).sendKeys('TestOverhead');
+        overheadModal.element(by.model('newOverhead.Percentage')).sendKeys('10');
+        overheadModal.element(by.css('td button i.fa-plus')).click();
         expect(overheadModal.element(by.css('td button i.fa-pencil')).isDisplayed()).toBe(true);
         overheadModal.element(by.css('td button i.fa-pencil')).click();
         overheadModal.element(by.model('overhead.Name')).clear().sendKeys('edited overhead');
@@ -200,9 +220,58 @@ describe('Projects Page', function () {
         // delete the markup
         expect(overheadModal.element(by.css('td button i.fa-trash')).isDisplayed()).toBe(true);
         overheadModal.element(by.css('td button i.fa-trash')).click();
-        expect(overheadModal.element(by.css('td button i.fa-trash')).isPresent()).toBe(false);
 
         overheadModal.element(by.buttonText('Done')).click();
+    });
+
+    // add a budgetitem
+    it('should add a budget item to a project', function () {
+        // expand
+        element(by.id('left')).element(by.css('input.tree-control.collapsed')).isDisplayed().then(function (isVisible) {
+            if (isVisible) {
+                element(by.id('left')).element(by.css('input.tree-control.collapsed')).click();
+            }
+        });
+        element(by.id('left')).element(by.buttonText('TestBudgetGroup')).click();
+        expect(element(by.css('nav ul li a.budget-item-button')).isDisplayed()).toBe(true);
+        element(by.css('nav ul li a.budget-item-button')).click();
+
+        // check the item modal displays
+        var addModal = element(by.id('addBudgetItem'));
+        expect(addModal.isDisplayed()).toBe(true);
+        var selectButton = addModal.element(by.css('div.ui-select-container'));
+        var selectInput = selectButton.element(by.css('.ui-select-search'));
+        // click to open select
+        addModal.element(by.css('div.ui-select-container div.ui-select-match span.ui-select-input')).click();
+        // send text
+        selectInput.sendKeys('TestResource');
+        // select first element
+        element.all(by.css('.ui-select-choices-row-inner span')).first().click();
+        addModal.element(by.model('formData.Quantity')).sendKeys(10);
+        addModal.element(by.css('button.custom-checkbox')).click();
+        addModal.element(by.buttonText('Save')).click();
+
+        // check the budget item was added to the project
+        expect(element(by.id('left')).element(by.buttonText('TestResource')).isDisplayed()).toBe(true);
+    });
+
+    it('should edit a budget item', function () {
+        element.all(by.buttonText('TestResource')).then(function(items) {
+            items[1].click();
+        });
+        browser.waitForAngular();
+        var slickgrid = element(by.id('optimate-data-grid'));
+        slickgrid.element(by.css('div.ui-widget-content:nth-child(1) > div:nth-child(1)')).getText().then(function(txt){
+            expect(txt).toBe('TestResource');
+        });
+        slickgrid.element(by.css('div.ui-widget-content:nth-child(1) > div:nth-child(3)')).click();
+        slickgrid.element(by.css('.editor-text')).sendKeys(20);
+        slickgrid.element(by.css('div.ui-widget-content:nth-child(1) > div:nth-child(1)')).click();
+        // check the total has updated
+        element(by.id('left')).element(by.buttonText('TestBudgetGroup')).click();
+        slickgrid.element(by.css('div.ui-widget-content:nth-child(2) > div:nth-child(7)')).getText().then(function(txt){
+            expect(txt).toBe('R110.00');
+        });
     });
 
     // copy and paste a project
@@ -230,8 +299,7 @@ describe('Projects Page', function () {
         element(by.css('nav ul li a i.fa-trash')).click();
 
         // check the confirmation modal
-        expect(element(by.css('div.modal:nth-child(4) > div:nth-child(1) > div:nth-child(1)')).isDisplayed()).toBe(true);
-        element(by.css('div.modal:nth-child(4) > div:nth-child(1) > div:nth-child(1)')).element(by.buttonText('Delete')).click();
+        element(by.buttonText('Delete')).click();
 
         // check the project has been deleted
         expect(element(by.id('left')).element(by.buttonText('Copy of TestProject')).isPresent()).toBe(false);

@@ -23,8 +23,9 @@ describe('Orders page', function() {
         });
         var supplierselect = addOrderModal.element(by.id('inputSupplier_chosen'))
         supplierselect.click();
+        browser.actions().sendKeys('TestSupplier').perform();
         supplierselect.all(by.css('.chosen-results li')).then(function(items) {
-          items[1].click();
+          items[0].click();
         });
         addOrderModal.element(by.css('#inputDate i.fa-calendar')).click();
         addOrderModal.element(by.css('#inputDate ul table tbody tr td.day.active')).click()
@@ -47,8 +48,9 @@ describe('Orders page', function() {
         addOrderModal.element(by.linkText('Supplier')).click();
         var supplierselect = addOrderModal.element(by.id('selectSupplier_chosen'));
         supplierselect.click();
+        browser.actions().sendKeys('TestSupplier').perform();
         supplierselect.all(by.css('.chosen-results li')).then(function(items) {
-          items[2].click();
+          items[0].click();
         });
         addOrderModal.element(by.buttonText('Submit')).click();
         addOrderModal.element(by.buttonText('Save')).click();

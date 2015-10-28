@@ -1,5 +1,16 @@
 // run test on the clients page
 describe('Clients Page', function () {
+
+    var getTableElements = function(text) {
+        return element.all(by.cssContainingText('td.ng-binding', text))
+    };
+
+    var checkResult = function(name) {
+        return getTableElements(name).then(function(found) {
+            return found.length > 0;
+        });
+    };
+
     beforeEach(function () {
         browser.get('http://127.0.0.1:8000/#/clients');
     });
@@ -35,12 +46,6 @@ describe('Clients Page', function () {
         saveModal.element(by.buttonText('Save')).click();
 
         // check the client was added
-        element.all(by.repeater('obj in jsonclients')).filter(function(row) {
-            return row.getText().then(function(txt) {
-                return (txt.indexOf('TestClient') > -1);
-            });
-        }).then(function(elem){
-            expect(elem[0]).toBeTruthy();
-        })
+        expect(checkResult('TestClient')).toBeTruthy();
     });
 });
