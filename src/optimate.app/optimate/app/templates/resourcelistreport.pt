@@ -28,6 +28,7 @@
 
 <body>
     <div id="headerContent">
+        <img class="image-content" src='${company_info.Header}'/>
         <h1>Resource List for ${project_name}&nbsp;&nbsp;${filtered_by_string}</h1>
         <table>
             <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding-top: 6px; padding-bottom: 3px;">
@@ -56,6 +57,7 @@
                 <td style="text-align:right;"><h3>${print_date}</h3></td>
             </tr>
         </table>
+        <img class="image-content" src='${company_info.Footer}'/>
         <pdf:pagenumber>
     </div>
 

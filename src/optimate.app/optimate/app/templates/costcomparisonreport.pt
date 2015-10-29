@@ -28,6 +28,7 @@
 
 <body>
     <div id="headerContent">
+        <img class="image-content" src='${company_info.Header}'/>
         <h1>Cost Comparison for ${project_name}</h1>
         <table>
             <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding-top:6px; padding-bottom: 3px;">
@@ -66,6 +67,7 @@
                 <td style="text-align:right;"><h3>${print_date}</h3></td>
             </tr>
         </table>
+        <img class="image-content" src='${company_info.Footer}'/>
         <pdf:pagenumber>
     </div>
 

@@ -526,3 +526,10 @@ table.modal-table {
 .filter-icon {
     text-align:center;
 }
+
+/* displaying images */
+.thumb{
+    height:50px;
+    margin:5px;
+    float:left;
+}

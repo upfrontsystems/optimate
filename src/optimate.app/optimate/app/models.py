@@ -28,7 +28,8 @@ from sqlalchemy import (
     ForeignKeyConstraint,
     func,
     select,
-    case
+    case,
+    LargeBinary
 )
 
 from sqlalchemy.orm import (
@@ -1573,6 +1574,8 @@ class CompanyInformation(Base):
     AccountName = Column(Text(50))
     DefaultTaxrate = Column(Float)
     Currency = Column(Text(50), default='ZAR')
+    Header = Column(LargeBinary)
+    Footer = Column(LargeBinary)
 
     def __repr__(self):
         """Return a representation of this company information

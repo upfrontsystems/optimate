@@ -13,11 +13,11 @@
                 top :1cm;
                 margin-left: 1cm;
                 margin-right: 1cm;
-                height: 1cm;
+                height: 2cm;
             }
             @frame footer {
-                -pdf-frame-content: pageNumber;
-                height: 1cm;
+                -pdf-frame-content: footerContent;
+                height: 2cm;
                 bottom: 1cm;
                 margin-left: 1cm;
                 margin-right: 1cm;
@@ -28,6 +28,7 @@
 <body>
     <div id="headerContent">
         <h1>Project Cashflow Projection</h1>
+        <img class="image-content" src='${company_info.Header}'/>
     </div>
     <table class="order-font">
         <tr></tr>
@@ -110,7 +111,8 @@
         </tr>
     </table>
 
-    <div id="pageNumber">
+    <div id="footerContent">
+        <img class="image-content" src='${company_info.Footer}'/>
         <pdf:pagenumber>
     </div>
 </body>

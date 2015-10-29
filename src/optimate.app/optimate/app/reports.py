@@ -267,7 +267,8 @@ def projectbudget(request):
         if record['selected']]
 
     project = DBSession.query(Node).filter_by(ID=nodeid).first()
-    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
+    compinfo = DBSession.query(CompanyInformation).first()
+    currency = currencies[compinfo.Currency]
 
     # inject node data into template
     nodes = []
@@ -322,7 +323,8 @@ def projectbudget(request):
                             'markups': markups,
                             'subtotal': projectsubtotal,
                             'total': projecttotal,
-                            'currency': currency},
+                            'currency': currency,
+                            'company_info': compinfo},
                            request=request)
     html = StringIO(template_data.encode('utf-8'))
     logging.info("template rendered")
@@ -391,7 +393,8 @@ def costcomparison(request):
     bgroup_list = request.json_body['BudgetGroupList']
 
     project = DBSession.query(Node).filter_by(ID=nodeid).first()
-    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
+    compinfo = DBSession.query(CompanyInformation).first()
+    currency = currencies[compinfo.Currency]
 
     # inject node data into template
     nodes = []
@@ -444,7 +447,8 @@ def costcomparison(request):
                            {'nodes': nodes,
                             'project_name': project.Name,
                             'print_date' : now.strftime("%d %B %Y - %k:%M"),
-                            'currency': currency},
+                            'currency': currency,
+                            'company_info': compinfo},
                            request=request)
     html = StringIO(template_data.encode('utf-8'))
     logging.info("template rendered")
@@ -527,8 +531,8 @@ def resourcelist(request):
     nodeid = request.matchdict['id']
     project = DBSession.query(Node).filter_by(ID=nodeid).first()
     filter_by_supplier = request.json_body['FilterBySupplier']
-
-    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
+    compinfo = DBSession.query(CompanyInformation).first()
+    currency = currencies[compinfo.Currency]
 
     # inject node data into template
     nodes = []
@@ -548,7 +552,8 @@ def resourcelist(request):
                             'filtered_by_string': filtered_by,
                             'project_name': project.Name,
                             'print_date' : now.strftime("%d %B %Y - %k:%M"),
-                            'currency': currency},
+                            'currency': currency,
+                            'company_info': compinfo},
                            request=request)
     html = StringIO(template_data.encode('utf-8'))
 
@@ -581,7 +586,8 @@ def order(request):
     logging.info("Generating Order Report")
     orderid = request.matchdict['id']
     order = DBSession.query(Order).filter_by(ID=orderid).first()
-    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
+    compinfo = DBSession.query(CompanyInformation).first()
+    currency = currencies[compinfo.Currency]
 
     orderitems = []
     for orderitem in order.OrderItems:
@@ -636,7 +642,8 @@ def order(request):
                            {'order': order,
                             'order_items': orderitems,
                             'order_date': order.Date.strftime("%d %B %Y"),
-                            'currency': currency},
+                            'currency': currency,
+                            'company_info': compinfo},
                             request=request)
     # render template
     html = StringIO(template_data.encode('utf-8'))
@@ -671,7 +678,8 @@ def valuation(request):
     logging.info("Generating Valuation Report")
     valuationid = request.matchdict['id']
     valuation = DBSession.query(Valuation).filter_by(ID=valuationid).first()
-    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
+    compinfo = DBSession.query(CompanyInformation).first()
+    currency = currencies[compinfo.Currency]
 
     budget_total = 0
     itemlist = []
@@ -741,7 +749,8 @@ def valuation(request):
                             'valuation_date': vdate,
                             'markup_list': markup_list,
                             'grand_total': grandtotal,
-                            'currency': currency},
+                            'currency': currency,
+                            'company_info': compinfo},
                             request=request)
     # render template
     html = StringIO(template_data.encode('utf-8'))
@@ -812,7 +821,8 @@ def invoices(request):
     filter_by_supplier = request.json_body.get('FilterBySupplier', False)
     filter_by_paymentdate = request.json_body.get('FilterByPaymentDate', False)
     filter_by_status = request.json_body.get('FilterByStatus', False)
-    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
+    compinfo = DBSession.query(CompanyInformation).first()
+    currency = currencies[compinfo.Currency]
 
     qry = DBSession.query(Invoice)
     invoices = []
@@ -847,7 +857,8 @@ def invoices(request):
     template_data = render('templates/invoicesreport.pt',
                            {'invoices': sorted_invoices,
                             'report_headings': headings,
-                            'currency': currency},
+                            'currency': currency,
+                            'company_info': compinfo},
                             request=request)
     # render template
     html = StringIO(template_data.encode('utf-8'))
@@ -883,7 +894,8 @@ def claim(request):
 
     claim = DBSession.query(Claim).filter_by(ID=claimid).first()
     valuation = claim.Valuation
-    currency = currencies[DBSession.query(CompanyInformation).first().Currency]
+    compinfo = DBSession.query(CompanyInformation).first()
+    currency = currencies[compinfo.Currency]
 
     budget_total = 0
     for valuationitem in valuation.ValuationItems:
@@ -903,7 +915,7 @@ def claim(request):
         due -= payment.Amount
         paymenttotal += payment.Amount
 
-    taxrate = DBSession.query(CompanyInformation).first().DefaultTaxrate
+    taxrate = compinfo.DefaultTaxrate
     vatamount = float(due) * (taxrate/100.0)
 
     # inject claim data into template
@@ -921,8 +933,8 @@ def claim(request):
                             'due': due,
                             'paymenttotal': paymenttotal,
                             'vatamount': vatamount,
-                            'taxrate': taxrate,
-                            'currency': currency},
+                            'currency': currency,
+                            'company_info': compinfo},
                             request=request)
     # render template
     html = StringIO(template_data.encode('utf-8'))

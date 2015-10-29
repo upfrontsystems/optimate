@@ -60,3 +60,12 @@ div#pageNumber {
 .table-border{
     border: 1px solid red;
 }
+
+.image-content {
+    height:50px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    display: table-cell;
+    vertical-align: middle
+}

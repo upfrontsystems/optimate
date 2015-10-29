@@ -209,11 +209,32 @@ myApp.controller('companyinformationController', ['$scope', '$http', '$modal', '
                 url: globalServerURL + 'company_information',
                 data: $scope.formData
             }).success(function(response) {
-                $scope.company_information = $scope.formData
+                $scope.company_information = $scope.formData;
+                console.log("Company information saved");
             });
             $scope.EditCompanyInformationForm.$setPristine();
         };
 
+
+        $scope.headerUpload = function(element){
+            var reader = new FileReader();
+            reader.onload = function(e){
+                $scope.$apply(function() {
+                    $scope.formData.Header = e.target.result;
+                });
+            };
+            reader.readAsDataURL(element.files[0]);
+        }
+
+        $scope.footerUpload = function(element){
+            var reader = new FileReader();
+            reader.onload = function(e){
+                $scope.$apply(function() {
+                    $scope.formData.Footer = e.target.result;
+                });
+            };
+            reader.readAsDataURL(element.files[0]);
+        }
     }
 ]);
 

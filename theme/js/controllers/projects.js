@@ -1576,16 +1576,16 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 $scope.formData.BudgetItemTypeList.unshift({'ID': 0, 'selected': $scope.allBudgetItemTypes});
                 $scope.formData['PrintSelectedBudgerGroups'] = $scope.printSelectedBudgetGroups;
                 $scope.formData['BudgetGroupList'] = $scope.budgetgroupList || [];
-                var url = globalServerURL + 'project_budget_report/' + nodeid + '/'
+                var url = globalServerURL + 'project_budget_report/' + nodeid + '/';
             }
             else if ( report == 'costcomparison' ) {
                 $scope.formData['PrintSelectedBudgerGroups'] = $scope.printSelectedBudgetGroups;
                 $scope.formData['BudgetGroupList'] = $scope.budgetgroupList || [];
-                var url = globalServerURL + 'cost_comparison_report/' + nodeid + '/'
+                var url = globalServerURL + 'cost_comparison_report/' + nodeid + '/';
             }
             else if ( report == 'resourcelist' ) {
                 $scope.formData['FilterBySupplier'] = $scope.filterBySupplier;
-                var url = globalServerURL + 'resource_list_report/' + nodeid + '/'
+                var url = globalServerURL + 'resource_list_report/' + nodeid + '/';
             }
             else if (report == 'cashflow'){
                 $scope.formData = {};
@@ -1597,7 +1597,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 data: $scope.formData,
                 responseType: 'arraybuffer'
             }).success(function (response, status, headers, config) {
-                spinner.stop();
                 var file = new Blob([response], {type: 'application/pdf'});
                 var filename_header = headers('Content-Disposition');
                 var filename = filename_header.split('filename=')[1];
@@ -1605,10 +1604,11 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                   data: file,
                   filename: filename,
                 };
-
                 FileSaver.saveAs(config);
             }).error(function(data, status, headers, config) {
                 console.log("Report pdf download error")
+            }).finally(function(){
+                spinner.stop();
             });
         };
 
@@ -1640,7 +1640,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 data: $scope.formData,
                 responseType: 'arraybuffer'
             }).success(function (response, status, headers, config) {
-                spinner.stop();
                 var blob = new Blob([response], {
                     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                 });
@@ -1654,6 +1653,8 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 FileSaver.saveAs(config);
             }).error(function(data, status, headers, config) {
                 console.log("Report excel download error")
+            }).finally(function(){
+                spinner.stop();
             });
         };
 

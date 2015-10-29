@@ -28,6 +28,7 @@
 
 <body>
     <div id="headerContent">
+        <img class="image-content" src='${company_info.Header}'/>
         <table class="order-font">
             <tr>
                 <td style="width: 180px;">To Messers.</td>
@@ -94,6 +95,7 @@
     </table>
 
     <div id="pageNumber">
+        <img class="image-content" src='${company_info.Footer}'/>
         <pdf:pagenumber>
     </div>
 </body>

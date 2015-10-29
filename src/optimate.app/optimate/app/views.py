@@ -1627,7 +1627,9 @@ def company_information(request):
     if request.method == 'PUT':
         if not request.has_permission('edit'):
             return HTTPForbidden()
+
         company_information = DBSession.query(CompanyInformation).first()
+
         company_information.Name=request.json_body.get('Name', '')
         company_information.Address=request.json_body.get('Address', '')
         company_information.Tel=request.json_body.get('Tel', '')
@@ -1639,6 +1641,8 @@ def company_information(request):
         company_information.AccountName=request.json_body.get('AccountName', '')
         company_information.DefaultTaxrate=request.json_body.get('DefaultTaxrate', 0)
         company_information.Currency=request.json_body.get('Currency', 'R')
+        company_information.Footer = request.json_body.get('Footer', None)
+        company_information.Header = request.json_body.get('Header', None)
 
         DBSession.flush()
         transaction.commit()
@@ -1647,7 +1651,7 @@ def company_information(request):
     # otherwise return the company information data
     qry = DBSession.query(CompanyInformation).first()
     if qry == None:
-        # if the company information has never been entered, supply these defaults
+        # if the company information has never been entered, enter the defaults
         company_information = CompanyInformation(ID=0,
                                  Name='TETIUS RABE PROPERTY SERVICES',
                                  Address='173 KLEINBOS AVENUE, SOMERSET-WEST',
@@ -1673,7 +1677,9 @@ def company_information(request):
             'AccountNo': qry.AccountNo,
             'AccountName': qry.AccountName,
             'DefaultTaxrate': qry.DefaultTaxrate,
-            'Currency': qry.Currency}
+            'Currency': qry.Currency,
+            'Header': qry.Header,
+            'Footer': qry.Footer}
 
 
 @view_config(route_name='unitsview', renderer='json', permission='view')

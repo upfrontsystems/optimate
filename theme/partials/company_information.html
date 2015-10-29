@@ -18,53 +18,71 @@
 </div>
 
 <div class="container-fluid">
-    <div>COMPANY INFORMATION</div>
-    </br>
-    <div>
-        <span>Name: </span>
-        <span>{{company_information['Name']}}</span>
-    </div>
-    <div>
-        <span>Address: </span>
-        <span>{{company_information['Address']}}</span>
-    </div>
-    <div>
-        <span>Tel: </span>
-        <span>{{company_information['Tel']}}</span>
-    </div>
-    <div>
-        <span>Fax: </span>
-        <span>{{company_information['Fax']}}</span>
-    </div>
-    <div>
-        <span>Cell: </span>
-        <span>{{company_information['Cell']}}</span>
-    </div>
-    </br>
-    <div>FINANCIAL DETAIL</div>
-    </br>
-    <div>
-        <span>Bank name: </span>
-        <span>{{company_information['BankName']}}</span>
-    </div>
-    <div>
-        <span>Branch Code: </span>
-        <span>{{company_information['BranchCode']}}</span>
-    </div>
-    <div>
-        <span>Account No: </span>
-        <span>{{company_information['AccountNo']}}</span>
-    </div>
-    <div>
-        <span>Account Name: </span>
-        <span>{{company_information['AccountName']}}</span>
-    </div>
-    <div>
-        <span>Default Taxrate: </span>
-        <span>{{company_information['DefaultTaxrate']}}</span><span>%</span>
-    </div>
-    <div>
-        <span>Currency: </span>
-        <span>{{company_information['Currency']}}</span>
-    </div>
+    <table>
+        <tbody>
+            <tr>
+                <td style="font-weight: bold">COMPANY INFORMATION</td>
+            <tr>
+                <td>Name: </td>
+                <td>{{company_information['Name']}}</td>
+            </tr>
+            <tr>
+                <td>Address: </td>
+                <td>{{company_information['Address']}}</td>
+            </tr>
+            <tr>
+                <td>Telephone number: </td>
+                <td>{{company_information['Tel']}}</td>
+            </tr>
+            <tr>
+                <td>Fax number: </td>
+                <td>{{company_information['Fax']}}</td>
+            </tr>
+            <tr>
+                <td>Cellphone number: </td>
+                <td>{{company_information['Cell']}}</td>
+            </tr>
+            <tr><td></br></td></tr>
+            <tr>
+                <td style="font-weight: bold">FINANCIAL DETAIL</td>
+            </tr>
+            <tr>
+                <td>Bank name: </td>
+                <td>{{company_information['BankName']}}</td>
+            </tr>
+            <tr>
+                <td>Branch code: </td>
+                <td>{{company_information['BranchCode']}}</td>
+            </tr>
+            <tr>
+                <td>Account number: </td>
+                <td>{{company_information['AccountNo']}}</td>
+            </tr>
+            <tr>
+                <td>Account name: </td>
+                <td>{{company_information['AccountName']}}</td>
+            </tr>
+            <tr>
+                <td>Default taxrate: </td>
+                <td>{{company_information['DefaultTaxrate']}} %</td>
+            </tr>
+            <tr>
+                <td>Currency: </td>
+                <td>{{company_information['Currency']}}</td>
+            </tr>
+            <tr><td></br></td></tr>
+            <tr>
+                <td style="font-weight: bold">REPORT HEADER</td>
+            </tr>
+            <tr><td colspan="2">
+            <img class="thumb" ng-src="{{company_information.Header}}" />
+            </td></tr>
+            <tr>
+                <td style="font-weight: bold">REPORT FOOTER</td>
+            </tr>
+            <tr><td colspan="2">
+                <img class="thumb" ng-src="{{company_information.Footer}}" />
+            </td></tr>
+        </tbody>
+    </table>
 </div>

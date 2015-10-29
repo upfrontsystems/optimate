@@ -103,6 +103,16 @@
                             <option value="">Select a currency</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="inputHeader" class="col-sm-2 control-label">Header image:</label>
+                        <img class="thumb" ng-src="{{formData.Header}}" />
+                        <input type='file' ng-model-instant onchange="angular.element(this).scope().headerUpload(this)" />
+                    </div>
+                    <div class="form-group">
+                        <label for="inputFooter" class="col-sm-2 control-label">Footer image:</label>
+                        <img class="thumb" ng-src="{{formData.Footer}}" />
+                        <input type='file' ng-model-instant onchange="angular.element(this).scope().footerUpload(this)" />
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">

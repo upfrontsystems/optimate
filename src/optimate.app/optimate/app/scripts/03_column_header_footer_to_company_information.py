@@ -23,9 +23,10 @@ if __name__ == '__main__':
     session.configure(bind=engine)
     s = session()
     try:
-        engine.execute('ALTER TABLE BudgetGroup ADD COLUMN Variation Boolean')
+        engine.execute('ALTER TABLE CompanyInformation ADD COLUMN Header LargeBinary')
+        engine.execute('ALTER TABLE CompanyInformation ADD COLUMN Footer LargeBinary')
         s.commit()
-        print "Added column Variation to table BudgetGroup"
+        print "Added column Header and Footer to table CompanyInformation"
     except:
         s.rollback()
         print "Error altering table"

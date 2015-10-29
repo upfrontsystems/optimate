@@ -27,6 +27,7 @@
 
 <body>
     <div id="headerContent">
+        <img class="image-content" src='${company_info.Header}'/>
         <h1>Pro Forma Claim</h1>
         <table class="order-font">
             <tr></tr>
@@ -102,7 +103,7 @@
         <tr style="padding-top: 2px;">
             <td style="width: 300px">VALUE ADDED TAX</td>
             <td style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(float(due)).strip()}</td>
-            <td style="width: 80px; text-align:right">${str(taxrate) + '%'}</td>
+            <td style="width: 80px; text-align:right">${str(company_info.DefaultTaxrate) + '%'}</td>
             <td style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(vatamount).strip()}</td>
         </tr>
         <tr style="border-bottom: 1px solid #000;">
@@ -117,6 +118,7 @@
     </table>
 
     <div id="pageNumber">
+        <img class="image-content" src='${company_info.Footer}'/>
         <pdf:pagenumber>
     </div>
 </body>
