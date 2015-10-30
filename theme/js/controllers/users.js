@@ -4,6 +4,24 @@ myApp.controller('usersController', ['$scope', '$http', '$modal', 'globalServerU
         toggleMenu('setup');
         $scope.users = [];
         $scope.isDisabled = false;
+        var basicworkflow = [
+                {'Function': 'projects workflow',
+                    'Permission': [{'Name': 'Draft'},
+                                {'Name': 'Approved'},
+                                {'Name': 'Completed'}]},
+                {'Function': 'orders workflow',
+                    'Permission': [{'Name': 'Draft'},
+                                {'Name': 'Processed'}]},
+                {'Function': 'invoices workflow',
+                    'Permission': [{'Name': 'Draft'},
+                                {'Name': 'Due'},
+                                {'Name': 'Paid'}]},
+                {'Function': 'valuations workflow',
+                    'Permission': [{'Name': 'Draft'},
+                                {'Name': 'Paid'}]},
+                {'Function': 'claims workflow',
+                    'Permission': [{'Name': 'Draft'},
+                                {'Name': 'Claimed'}]}]
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
@@ -46,9 +64,28 @@ myApp.controller('usersController', ['$scope', '$http', '$modal', 'globalServerU
                 {'Function': 'claims'},
                 {'Function': 'payments'},
                 {'Function': 'setup'}
-            ]
+            ],
+            workflowpermissions: basicworkflow
         }
         $scope.addingState = function () {
+            var basicworkflow = [
+                {'Function': 'projects workflow',
+                    'Permission': [{'Name': 'Draft'},
+                                {'Name': 'Approved'},
+                                {'Name': 'Completed'}]},
+                {'Function': 'orders workflow',
+                    'Permission': [{'Name': 'Draft'},
+                                {'Name': 'Processed'}]},
+                {'Function': 'invoices workflow',
+                    'Permission': [{'Name': 'Draft'},
+                                {'Name': 'Due'},
+                                {'Name': 'Paid'}]},
+                {'Function': 'valuations workflow',
+                    'Permission': [{'Name': 'Draft'},
+                                {'Name': 'Paid'}]},
+                {'Function': 'claims workflow',
+                    'Permission': [{'Name': 'Draft'},
+                                {'Name': 'Claimed'}]}]
             $scope.isDisabled = false;
             $scope.modalState = "Add";
             $scope.newuser.username = '';
@@ -56,6 +93,7 @@ myApp.controller('usersController', ['$scope', '$http', '$modal', 'globalServerU
             $scope.newuser.permissions.forEach(function(v) {
                 v.Permission = null;
             });
+            $scope.newuser.workflowpermissions = basicworkflow;
             if ($scope.selectedUser) {
                 $scope.selectedUser.selected = false;
                 $scope.selectedUser = null;
@@ -63,53 +101,76 @@ myApp.controller('usersController', ['$scope', '$http', '$modal', 'globalServerU
         };
 
         $scope.editingState = function () {
+            var basicworkflow = [
+                {'Function': 'projects workflow',
+                    'Permission': [{'Name': 'Draft'},
+                                {'Name': 'Approved'},
+                                {'Name': 'Completed'}]},
+                {'Function': 'orders workflow',
+                    'Permission': [{'Name': 'Draft'},
+                                {'Name': 'Processed'}]},
+                {'Function': 'invoices workflow',
+                    'Permission': [{'Name': 'Draft'},
+                                {'Name': 'Due'},
+                                {'Name': 'Paid'}]},
+                {'Function': 'valuations workflow',
+                    'Permission': [{'Name': 'Draft'},
+                                {'Name': 'Paid'}]},
+                {'Function': 'claims workflow',
+                    'Permission': [{'Name': 'Draft'},
+                                {'Name': 'Claimed'}]}]
             $scope.isDisabled = false;
             $scope.modalState = "Edit";
             $scope.newuser.password = '';
             $http({
                 method: 'GET',
                 url: globalServerURL + 'users/' + $scope.selectedUser.username
-            }).then(
-                function(response) {
-                    $scope.newuser = response.data;
-                },
-                function() {
-                    alert('Error while fetching user information');
+            }).success(function(response) {
+                $scope.newuser = response;
+                // set the selected workflow permissions
+                var userworkflow = response.workflowpermissions;
+                var selectedworkflow = [];
+                for (var i in basicworkflow){
+                    var selectedpermissions = basicworkflow.slice(i, i+1)[0];
+                    for (var b in userworkflow){
+                        if (userworkflow[b].Function === basicworkflow[i].Function){
+                            for (var p in selectedpermissions.Permission){
+                                if (userworkflow[b].Permission.indexOf(selectedpermissions.Permission[p].Name) > -1){
+                                    selectedpermissions.Permission[p].selected = true;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    selectedworkflow.push(selectedpermissions);
                 }
-            );
+                $scope.newuser.workflowpermissions = selectedworkflow;
+            });
         };
 
         $scope.saveUser = function() {
             if (!$scope.isDisabled) {
                 $scope.isDisabled = true;
                 if ($scope.selectedUser) {
-                    // Update the password (and later also the roles)
+                    // Update the user
                     $http({
                         method: "POST",
                         url: globalServerURL + 'users/' + $scope.selectedUser.username,
                         data: $scope.newuser
-                    }).then(
-                        function(response) {
-                            $scope.selectedUser.username = $scope.newuser.username;
-                            $scope.selectedUser.roles = response.data.roles;
-                        },
-                        function() {
-                            alert('Error while saving user details');
-                        }
-                    );
+                    }).success(function(response) {
+                        $scope.selectedUser.username = $scope.newuser.username;
+                        console.log("User edited");
+                    });
                 } else {
+                    // add a user
                     $http({
                         method: "POST",
                         url: globalServerURL + 'users',
                         data: $scope.newuser
-                    }).then(
-                        function() {
-                            $scope.repopulate();
-                        },
-                        function() {
-                            alert('Error while saving user details');
-                        }
-                    );
+                    }).success(function() {
+                        $scope.repopulate();
+                        console.log("User added");
+                    });
                 }
             }
         };
@@ -137,6 +198,7 @@ myApp.controller('usersController', ['$scope', '$http', '$modal', 'globalServerU
         }
 
         $scope.toggleView = function(item){
-            (item.Permission == 'view') ? (item.Permission = null) : (item.Permission = 'view');
+            (item.Permission == 'view') ? (item.Permission = null) :
+                (item.Permission == 'edit') ? (item.Permission = null) : (item.Permission = 'view');
         }
 }]);

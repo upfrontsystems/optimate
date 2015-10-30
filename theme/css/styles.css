@@ -8,6 +8,10 @@ body {
     padding-top: 85px;
 }
 
+.bold {
+    font-weight: bold;
+}
+
 /* nav-pills custom styling */
 .nav > li > a {
     padding: 5px 15px;

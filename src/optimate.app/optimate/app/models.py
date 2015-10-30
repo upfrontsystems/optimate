@@ -1798,12 +1798,17 @@ class User(Base):
     def dict(self):
         """ Return a dictionary of this user """
         permissions = []
+        workflowpermissions = []
         for right in self.UserRights:
-            permissions.append(right.dict())
+            if 'workflow' in right.Function:
+                workflowpermissions.append(right.dict())
+            else:
+                permissions.append(right.dict())
 
         return {'ID': self.ID,
                 'username': self.username,
-                'permissions': permissions}
+                'permissions': permissions,
+                'workflowpermissions': workflowpermissions}
 
     def __repr__(self):
         """Return a representation of this user
@@ -1825,7 +1830,11 @@ class UserRight(Base):
     def dict(self):
         """ Return a dictionary of the user right
         """
-        return {'Function': self.Function,
+        function = self.Function
+        if 'workflow' in function:
+            function = function.replace('_', ' ')
+
+        return {'Function': function,
                 'Permission': self.Permission}
 
     def __repr__(self):

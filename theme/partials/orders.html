@@ -49,7 +49,7 @@
                         <i class="fa fa-trash"></i>
                 </a>
             </li>
-            <li data-ng-show="user.permissions.orders == 'edit'">
+            <li data-ng-disable="user.permissions.orders_workflow != 'Processed'">
                 <a title="Process"
                     data-ng-show="selectedOrders[0].Status == 'Draft'"
                     data-ng-click="toggleOrderStatus('Processed', 0)">

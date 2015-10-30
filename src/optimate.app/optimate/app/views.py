@@ -1442,7 +1442,7 @@ def node_paste(request):
 def node_cost(request):
     """ The costview is called using the address from the node to be costed.
         The node ID is sent in the request, and the total cost of that node
-        is calculated recursively from it's children.
+        is calculated recursively from its children.
     """
 
     # Get the id of the node to be costed
@@ -2487,6 +2487,19 @@ def usersview(request):
                                     Permission=permission)
             user.UserRights.append(userright)
 
+        # add workflow rights
+        permissions = request.json_body.get('workflowpermissions', [])
+        for perm in permissions:
+            function = perm['Function'].strip().replace(' ', '_')
+            rights = ''
+            for status in perm['Permission']:
+                if status.get('selected', None):
+                    rights+=(status['Name'] + ' ')
+            rights = rights.strip().replace(' ', '_')
+
+            userright = UserRight(Function=function, Permission=rights)
+            user.UserRights.append(userright)
+
         DBSession().merge(user)
         ProtectedFunction.invalidate_acls() # Invalidate cache
 
@@ -2522,8 +2535,32 @@ def userview(request):
             permission = right.get('Permission', None)
             userright = DBSession.query(UserRight).filter_by(UserID=user.ID,
                                             Function=right['Function']).first()
-            userright.Permission = permission
-            ProtectedFunction.invalidate_acls() # Invalidate cache
+            if userright:
+                userright.Permission = permission
+            else:
+                userright = UserRight(Function=right['Function'],
+                                        Permission=permission)
+                user.UserRights.append(userright)
+
+        # add workflow rights
+        permissions = request.json_body.get('workflowpermissions', [])
+        for perm in permissions:
+            function = perm['Function'].strip().replace(' ', '_')
+            rights = ''
+            for status in perm['Permission']:
+                if status.get('selected', None):
+                    rights+=(status['Name'] + ' ')
+            rights = rights.strip().replace(' ', '_')
+
+            userright = DBSession.query(UserRight).filter_by(UserID=user.ID,
+                                            Function=function).first()
+            if userright:
+                userright.Permission = rights
+            else:
+                userright = UserRight(Function=function, Permission=rights)
+                user.UserRights.append(userright)
+
+        ProtectedFunction.invalidate_acls() # Invalidate cache
 
     # delete a user
     elif request.method == 'DELETE':
@@ -2979,8 +3016,8 @@ def paymentview(request):
         if 'Amount' in request.json_body.keys():
             amount = Decimal(request.json_body['Amount']
                                 ).quantize(Decimal('.01'))
-        # if the total payment on a claim is equal or bigger than it's total
-        # update it's status to 'Paid'
+        # if the total payment on a claim is equal or bigger than its total
+        # update its status to 'Paid'
         claimid = request.json_body['ClaimID']
         claim = DBSession.query(Claim).filter_by(ID=claimid).first()
 
@@ -3017,6 +3054,12 @@ def paymentview(request):
         payment.Date = date
 
         transaction.commit()
+
+        # check if the claim has been paid
+        claim = DBSession.query(Claim).filter_by(
+                                        ID=request.json_body['ClaimID']).first()
+        if claim.Total <= Decimal(0):
+            claim.Status = 'Paid'
         # return the edited payment
         payment = DBSession.query(Payment
                                 ).filter_by(ID=request.matchdict['id']).first()

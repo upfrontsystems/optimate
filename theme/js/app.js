@@ -39,27 +39,33 @@ myApp.factory('RequestsErrorHandler', ['$q', function($q) {
 
             if (shouldHandle) {
                 if (rejection.config.url.indexOf("rights") == -1){
-                      var text = "Server error.";
-                      var method = rejection.config.method;
-                        console.log(method + " error from " +
-                                    rejection.config.url);
-                        if (method == 'GET'){
-                          text = 'Problem getting data.';
-                        } else if (method == 'POST'){
-                          text = 'Problem posting data.';
-                        } else if (method == 'PUT'){
-                          text = 'Problem updating data.';
-                        } else if (method == 'DELETE'){
-                          text = 'Problem deleting data.';
+                        if (rejection.status == 403){
+                            console.log("Action not allowed for " +
+                                            rejection.config.url);
                         }
-                        // show an error status message
-                        $('#status_message span').text(text);
-                        $('#status_message span').addClass('alert-warning');
-                        $('#status_message').show();
-                        window.setTimeout(function () {
-                            $("#status_message").hide();
-                            $('#status_message span').removeClass('alert-warning');
-                        }, 2000);
+                        else{
+                            var text = "Server error.";
+                            var method = rejection.config.method;
+                            console.log(method + " error from " +
+                                        rejection.config.url);
+                            if (method == 'GET'){
+                              text = 'Problem getting data.';
+                            } else if (method == 'POST'){
+                              text = 'Problem posting data.';
+                            } else if (method == 'PUT'){
+                              text = 'Problem updating data.';
+                            } else if (method == 'DELETE'){
+                              text = 'Problem deleting data.';
+                            }
+                            // show an error status message
+                            $('#status_message span').text(text);
+                            $('#status_message span').addClass('alert-warning');
+                            $('#status_message').show();
+                            window.setTimeout(function () {
+                                $("#status_message").hide();
+                                $('#status_message span').removeClass('alert-warning');
+                            }, 2000);
+                        }
                     }
                 else{
                     console.log("Rights error from " +
