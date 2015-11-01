@@ -843,7 +843,8 @@ class BudgetItem(Node):
                 'Subtotal': str(subtotal),
                 'Discount': '0.00',
                 'NodeType': 'OrderItem',
-                'NodeTypeAbbr' : 'I'}
+                'NodeTypeAbbr' : 'I',
+                'Variation': self.Variation}
 
     def __repr__(self):
         """ return a representation of this BudgetItem

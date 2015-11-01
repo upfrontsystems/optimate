@@ -434,6 +434,12 @@ th.modal-table-row{
     color: red;
 }
 
+.variation-icon {
+    color: red;
+    font-size: 0.7em;
+    vertical-align: super;
+}
+
  /* custom input type styling for ui-select*/
 .ui-select-input {
     padding: 1px !important;

@@ -34,6 +34,7 @@
               class="checkbox-icon">
           </i>
       </button>
+      <i data-ng-show="node.Variation" class="fa fa-circle variation-icon"></i>
   </div>
   <ol ui-tree-nodes ng-model="node.Subitem" data-ng-hide="!node.expanded" data-type="{{node.NodeType}}">
       <li ng-repeat="node in node.Subitem"
