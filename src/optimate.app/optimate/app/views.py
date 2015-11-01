@@ -2168,11 +2168,17 @@ def orderview(request):
     return data
 
 
-@view_config(route_name='orderstatus', renderer='json', permission='edit')
+@view_config(route_name='orderstatus', renderer='json', permission='view')
 def orderstatus(request):
     """ Perform operations on the status of an order
     """
     if request.method == 'POST':
+        if request.json_body['status'] == 'Draft':
+            if not request.has_permission('Retract'):
+                return HTTPForbidden()
+        elif request.json_body['status'] == 'Processed':
+            if not request.has_permission('Process'):
+                return HTTPForbidden()
         order = DBSession.query(Order).filter_by(
                                             ID=request.matchdict['id']).first()
         order.Status = request.json_body['status']
@@ -2812,13 +2818,28 @@ def invoiceview(request):
     return invoice.dict()
 
 
-@view_config(route_name='invoicestatus', renderer='json', permission='edit')
+@view_config(route_name='invoicestatus', renderer='json', permission='view')
 def invoicestatus(request):
     """ Perform operations on the status of an invoice
     """
     if request.method == 'POST':
         invoice = DBSession.query(Invoice).filter_by(
                                             ID=request.matchdict['id']).first()
+
+        if request.json_body['status'] == 'Draft':
+            if not request.has_permission('Revert'):
+                return HTTPForbidden()
+        elif request.json_body['status'] == 'Due':
+            if invoice.Status == 'Paid':
+                if not request.has_permission('Revert'):
+                    return HTTPForbidden()
+            elif invoice.Status == 'Draft':
+                if not request.has_permission('Submit'):
+                    return HTTPForbidden()
+        elif request.json_body['status'] == 'Paid':
+            if not request.has_permission('Pay'):
+                return HTTPForbidden()
+
         invoice.Status = request.json_body['status']
         transaction.commit()
         return HTTPOk()
@@ -2884,11 +2905,17 @@ def claims_filter(request):
     return {'projects': sorted(projectlist, key=lambda k: k['Name'].upper())}
 
 
-@view_config(route_name='claimstatus', renderer='json', permission='edit')
+@view_config(route_name='claimstatus', renderer='json', permission='view')
 def claimstatus(request):
     """ Perform operations on the status of a claim
     """
     if request.method == 'POST':
+        if request.json_body['status'] == 'Draft':
+            if not request.has_permission('Retract'):
+                return HTTPForbidden()
+        elif request.json_body['status'] == 'Claimed':
+            if not request.has_permission('Submit'):
+                return HTTPForbidden()
         claim = DBSession.query(Claim).filter_by(
                                             ID=request.matchdict['id']).first()
         claim.Status = request.json_body['status']

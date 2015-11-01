@@ -22,15 +22,13 @@ if __name__ == '__main__':
 
     workflowpermissions = [
                 {'Function': 'projects_workflow',
-                    'Permission': 'Draft_Approved_Completed'},
+                 'Permission': 'Draft_Approved_Completed'},
                 {'Function': 'orders_workflow',
-                    'Permission': 'Draft_Processed'},
+                 'Permission': 'Process_Retract'},
                 {'Function': 'invoices_workflow',
-                    'Permission': 'Draft_Due_Paid'},
-                {'Function': 'valuations_workflow',
-                    'Permission': 'Draft_Paid'},
+                 'Permission': 'Revert_Submit_Pay'},
                 {'Function': 'claims_workflow',
-                    'Permission': 'Draft_Claimed'}]
+                 'Permission': 'Submit_Retract'}]
 
     # create the engine
     engine = create_engine('sqlite:///' + production_uri)
@@ -47,6 +45,8 @@ if __name__ == '__main__':
                 right = UserRight(Function=perm['Function'],
                                     Permission=perm['Permission'])
                 admin.UserRights.append(right)
+            else:
+                right.Permission = perm['Permission']
         s.commit()
         print "Added workflow permissions to admin"
     except Exception, e:

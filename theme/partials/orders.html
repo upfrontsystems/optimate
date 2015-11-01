@@ -49,16 +49,16 @@
                         <i class="fa fa-trash"></i>
                 </a>
             </li>
-            <li data-ng-disable="user.permissions.orders_workflow != 'Processed'">
+            <li data-ng-show="selectedOrders[0].Status == 'Draft'">
                 <a title="Process"
-                    data-ng-show="selectedOrders[0].Status == 'Draft'"
+                    a-disabled="(!user.permissions.orders_workflow) || (user.permissions.orders_workflow.indexOf('Process') == -1)"
                     data-ng-click="toggleOrderStatus('Processed', 0)">
                         <i class="fa fa-arrow-right"></i>
                 </a>
             </li>
-            <li data-ng-show="user.permissions.orders == 'edit'">
+            <li data-ng-show="selectedOrders[0].Status == 'Processed'">
                 <a title="Retract"
-                    data-ng-show="selectedOrders[0].Status == 'Processed'"
+                    a-disabled="(!user.permissions.orders_workflow) || (user.permissions.orders_workflow.indexOf('Retract') == -1)"
                     data-ng-click="toggleOrderStatus('Draft', 0)">
                         <i class="fa fa-arrow-left"></i>
                 </a>

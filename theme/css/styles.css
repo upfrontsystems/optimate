@@ -398,11 +398,22 @@ td > input:disabled {
 
 /* styling for the user permissions table*/
 table.modal-table {
-    width: 68%;
     border-collapse: collapse;
+    cursor: pointer;
+    margin-bottom: 20px;
 }
 .modal-table-row{
     border: none !important;
+}
+th.modal-table-row{
+    padding-right: 5em !important;
+}
+.modal-table-row-label{
+    border: none !important;
+    float: right;
+    color: black;
+    padding-right: 5em;
+    font-weight: 700;
 }
 
 /* only show the trash icon on hover*/

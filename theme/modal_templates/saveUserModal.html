@@ -27,7 +27,74 @@
                                required />
                     </div>
                     <div class="form-group">
-                        <label class="col-sm-2 control-label">Page Permissions:</label>
+                        <table class="table-condensed table-hover modal-table">
+                            <thead>
+                                <tr>
+                                    <th class="modal-table-row-label">Page Permissions: </th>
+                                    <th class="modal-table-row"></th>
+                                    <th class="modal-table-row"></th>
+                                    <th class="modal-table-row"></th>
+                                </tr>
+                                <tr>
+                                    <th class="modal-table-row"></th>
+                                    <th class="modal-table-row"></th>
+                                    <th class="modal-table-row">Edit</th>
+                                    <th class="modal-table-row">View</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr ng-repeat="item in newuser.permissions">
+                                    <td class="modal-table-row"></td>
+                                    <td class="modal-table-row text-capitalize">{{item.Function}}</td>
+                                    <td class="modal-table-row">
+                                        <button class="custom-checkbox"
+                                              data-ng-click="toggleEdit(item)">
+                                            <i data-ng-class="{'edit':'fa fa-check-square-o', null:'fa fa-square-o', undefined:'fa fa-square-o', 'view':'fa fa-square-o'}[item.Permission]">
+                                            </i>
+                                        </button>
+                                    </td>
+                                    <td class="modal-table-row">
+                                        <button class="custom-checkbox"
+                                              data-ng-click="toggleView(item)">
+                                            <i data-ng-class="{'view':'fa fa-check-square-o','edit':'fa fa-check-square-o', null:'fa fa-square-o', undefined:'fa fa-square-o'}[item.Permission]">
+                                            </i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <thead>
+                                <tr>
+                                    <th class="modal-table-row-label">Workflow Permissions: </th>
+                                    <th class="modal-table-row"></th>
+                                    <th class="modal-table-row"></th>
+                                    <th class="modal-table-row"></th>
+                                </tr>
+                            </thead>
+                            <tbody ng-repeat="item in newuser.workflowpermissions">
+                                <tr>
+                                    <th class="modal-table-row"></th>
+                                    <th class="modal-table-row text-capitalize bold">{{item.Function}}</th>
+                                    <th class="modal-table-row"></th>
+                                    <th class="modal-table-row"></th>
+                                </tr>
+                                <tr ng-repeat="status in item.Permission">
+                                    <td class="modal-table-row"></td>
+                                    <td style="padding-left:3em;"
+                                        class="modal-table-row">
+                                        {{status.Name}}
+                                    </td>
+                                    <td class="modal-table-row"></td>
+                                    <td class="modal-table-row"
+                                        data-ng-click="status.selected = !status.selected">
+                                        <button class="custom-checkbox">
+                                            <i data-ng-class="{true:'fa fa-check-square-o', false:'fa fa-square-o', undefined:'fa fa-square-o'}[status.selected]">
+                                            </i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <!-- <label class="col-sm-2 control-label">Page Permissions:</label>
                         <div></br></div>
                         <table class="table table-condensed table-hover modal-table">
                             <thead>
@@ -43,14 +110,14 @@
                                     <td class="modal-table-row">
                                         <button class="custom-checkbox"
                                               data-ng-click="toggleEdit(item)">
-                                            <i data-ng-class="{'edit':'fa fa-check-square-o',null:'fa fa-square-o', 'view':'fa fa-square-o'}[item.Permission]">
+                                            <i data-ng-class="{'edit':'fa fa-check-square-o', null:'fa fa-square-o', undefined:'fa fa-square-o', 'view':'fa fa-square-o'}[item.Permission]">
                                             </i>
                                         </button>
                                     </td>
                                     <td class="modal-table-row">
                                         <button class="custom-checkbox"
                                               data-ng-click="toggleView(item)">
-                                            <i data-ng-class="{'view':'fa fa-check-square-o','edit':'fa fa-check-square-o', null:'fa fa-square-o'}[item.Permission]">
+                                            <i data-ng-class="{'view':'fa fa-check-square-o','edit':'fa fa-check-square-o', null:'fa fa-square-o', undefined:'fa fa-square-o'}[item.Permission]">
                                             </i>
                                         </button>
                                     </td>
@@ -65,22 +132,24 @@
                             <tbody ng-repeat="item in newuser.workflowpermissions">
                                 <tr><td class="modal-table-row text-capitalize bold">{{item.Function}}</td>
                                     <td class="modal-table-row"></td>
+                                    <td class="modal-table-row"></td>
                                 </tr>
                                 <tr ng-repeat="status in item.Permission">
-                                  <td style="padding-left:2em;"
-                                      class="modal-table-row">
-                                      {{status.Name}}
-                                  </td>
-                                  <td class="modal-table-row"
-                                      data-ng-click="status.selected = !status.selected">
-                                      <button class="custom-checkbox">
-                                          <i data-ng-class="{true:'fa fa-check-square-o', false:'fa fa-square-o', undefined:'fa fa-square-o'}[status.selected]">
-                                          </i>
-                                      </button>
-                                  </td>
+                                    <td style="padding-left:2em;"
+                                        class="modal-table-row">
+                                        {{status.Name}}
+                                    </td>
+                                    <td class="modal-table-row"
+                                        data-ng-click="status.selected = !status.selected">
+                                        <button class="custom-checkbox">
+                                            <i data-ng-class="{true:'fa fa-check-square-o', false:'fa fa-square-o', undefined:'fa fa-square-o'}[status.selected]">
+                                            </i>
+                                        </button>
+                                    </td>
+                                    <td class="modal-table-row"></td>
                                 </tr>
                             </tbody>
-                        </table>
+                        </table> -->
                     </div>
                 </form>
             </div>

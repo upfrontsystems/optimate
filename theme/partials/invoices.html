@@ -49,28 +49,34 @@
                 </a>
             </li>
             <li data-ng-switch="selectedInvoices[0].Status" data-ng-show="user.permissions.invoices == 'edit'">
-                <a data-ng-switch-when="Draft" style="color: gray;">
+                <a data-ng-switch-when="Draft"
+                    a-disabled="true">
                     <i class="fa fa-arrow-left"></i>
                 </a>
                 <a data-ng-switch-when="Due" title="Revert"
+                    a-disabled="(!user.permissions.invoices_workflow) || (user.permissions.invoices_workflow.indexOf('Revert') == -1)"
                     data-ng-click="toggleInvoiceStatus('Draft', 0)">
                     <i class="fa fa-arrow-left"></i>
                 </a>
                 <a data-ng-switch-when="Paid" title="Revert"
+                    a-disabled="(!user.permissions.invoices_workflow) || (user.permissions.invoices_workflow.indexOf('Revert') == -1)"
                     data-ng-click="toggleInvoiceStatus('Due', 0)">
                     <i class="fa fa-arrow-left"></i>
                 </a>
             </li>
             <li data-ng-switch="selectedInvoices[0].Status" data-ng-show="user.permissions.invoices == 'edit'">
                 <a data-ng-switch-when="Draft" title="Submit for Payment"
+                    a-disabled="(!user.permissions.invoices_workflow) || (user.permissions.invoices_workflow.indexOf('Submit') == -1)"
                     data-ng-click="toggleInvoiceStatus('Due', 0)">
                         <i class="fa fa-arrow-right"></i>
                 </a>
                 <a data-ng-switch-when="Due" title="Mark as Paid"
+                    a-disabled="(!user.permissions.invoices_workflow) || (user.permissions.invoices_workflow.indexOf('Pay') == -1)"
                     data-ng-click="toggleInvoiceStatus('Paid', 0)">
                         <i class="fa fa-arrow-right"></i>
                 </a>
-                <a data-ng-switch-when="Paid" style="color: gray;">
+                <a data-ng-switch-when="Paid"
+                    a-disabled="true">
                     <i class="fa fa-arrow-right"></i>
                 </a>
             </li>

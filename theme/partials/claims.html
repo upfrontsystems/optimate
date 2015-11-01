@@ -38,16 +38,16 @@
                         <i class="fa fa-trash"></i>
                 </a>
             </li>
-            <li data-ng-show="user.permissions.orders == 'edit'">
+            <li data-ng-show="selectedItems[0].Status == 'Draft'">
                 <a title="Submit for payment"
-                    data-ng-show="selectedItems[0].Status == 'Draft'"
+                    a-disabled="(!user.permissions.claims_workflow) || (user.permissions.claims_workflow.indexOf('Submit') == -1)"
                     data-ng-click="toggleClaimStatus('Claimed', 0)">
                         <i class="fa fa-arrow-right"></i>
                 </a>
             </li>
-            <li data-ng-show="user.permissions.orders == 'edit'">
+            <li data-ng-show="selectedItems[0].Status == 'Claimed'">
                 <a title="Retract"
-                    data-ng-show="selectedItems[0].Status == 'Claimed'"
+                    a-disabled="(!user.permissions.claims_workflow) || (user.permissions.claims_workflow.indexOf('Retract') == -1)"
                     data-ng-click="toggleClaimStatus('Draft', 0)">
                         <i class="fa fa-arrow-left"></i>
                 </a>

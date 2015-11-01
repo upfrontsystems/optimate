@@ -4,24 +4,6 @@ myApp.controller('usersController', ['$scope', '$http', '$modal', 'globalServerU
         toggleMenu('setup');
         $scope.users = [];
         $scope.isDisabled = false;
-        var basicworkflow = [
-                {'Function': 'projects workflow',
-                    'Permission': [{'Name': 'Draft'},
-                                {'Name': 'Approved'},
-                                {'Name': 'Completed'}]},
-                {'Function': 'orders workflow',
-                    'Permission': [{'Name': 'Draft'},
-                                {'Name': 'Processed'}]},
-                {'Function': 'invoices workflow',
-                    'Permission': [{'Name': 'Draft'},
-                                {'Name': 'Due'},
-                                {'Name': 'Paid'}]},
-                {'Function': 'valuations workflow',
-                    'Permission': [{'Name': 'Draft'},
-                                {'Name': 'Paid'}]},
-                {'Function': 'claims workflow',
-                    'Permission': [{'Name': 'Draft'},
-                                {'Name': 'Claimed'}]}]
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
@@ -53,47 +35,39 @@ myApp.controller('usersController', ['$scope', '$http', '$modal', 'globalServerU
             obj.selected = true;
         };
 
-        $scope.newuser = {
-            username: '',
-            password: '',
-            permissions: [
-                {'Function': 'projects'},
-                {'Function': 'orders'},
-                {'Function': 'invoices'},
-                {'Function': 'valuations'},
-                {'Function': 'claims'},
-                {'Function': 'payments'},
-                {'Function': 'setup'}
-            ],
-            workflowpermissions: basicworkflow
-        }
+
         $scope.addingState = function () {
-            var basicworkflow = [
-                {'Function': 'projects workflow',
-                    'Permission': [{'Name': 'Draft'},
-                                {'Name': 'Approved'},
-                                {'Name': 'Completed'}]},
-                {'Function': 'orders workflow',
-                    'Permission': [{'Name': 'Draft'},
-                                {'Name': 'Processed'}]},
-                {'Function': 'invoices workflow',
-                    'Permission': [{'Name': 'Draft'},
-                                {'Name': 'Due'},
-                                {'Name': 'Paid'}]},
-                {'Function': 'valuations workflow',
-                    'Permission': [{'Name': 'Draft'},
-                                {'Name': 'Paid'}]},
-                {'Function': 'claims workflow',
-                    'Permission': [{'Name': 'Draft'},
-                                {'Name': 'Claimed'}]}]
+            $scope.newuser = {
+                username: '',
+                password: '',
+                permissions: [
+                    {'Function': 'projects'},
+                    {'Function': 'orders'},
+                    {'Function': 'invoices'},
+                    {'Function': 'valuations'},
+                    {'Function': 'claims'},
+                    {'Function': 'payments'},
+                    {'Function': 'setup'}
+                ],
+                workflowpermissions: [
+                    {'Function': 'projects workflow',
+                     'Permission': [{'Name': 'Draft'},
+                                    {'Name': 'Approved'},
+                                    {'Name': 'Completed'}]},
+                    {'Function': 'orders workflow',
+                     'Permission': [{'Name': 'Process'},
+                                    {'Name': 'Retract'}]},
+                    {'Function': 'invoices workflow',
+                     'Permission': [{'Name': 'Revert'},
+                                    {'Name': 'Submit'},
+                                    {'Name': 'Pay'}]},
+                    {'Function': 'claims workflow',
+                     'Permission': [{'Name': 'Submit'},
+                                    {'Name': 'Retract'}]}
+                ]
+            }
             $scope.isDisabled = false;
             $scope.modalState = "Add";
-            $scope.newuser.username = '';
-            $scope.newuser.password = '';
-            $scope.newuser.permissions.forEach(function(v) {
-                v.Permission = null;
-            });
-            $scope.newuser.workflowpermissions = basicworkflow;
             if ($scope.selectedUser) {
                 $scope.selectedUser.selected = false;
                 $scope.selectedUser = null;
@@ -103,25 +77,21 @@ myApp.controller('usersController', ['$scope', '$http', '$modal', 'globalServerU
         $scope.editingState = function () {
             var basicworkflow = [
                 {'Function': 'projects workflow',
-                    'Permission': [{'Name': 'Draft'},
+                 'Permission': [{'Name': 'Draft'},
                                 {'Name': 'Approved'},
                                 {'Name': 'Completed'}]},
                 {'Function': 'orders workflow',
-                    'Permission': [{'Name': 'Draft'},
-                                {'Name': 'Processed'}]},
+                 'Permission': [{'Name': 'Process'},
+                                {'Name': 'Retract'}]},
                 {'Function': 'invoices workflow',
-                    'Permission': [{'Name': 'Draft'},
-                                {'Name': 'Due'},
-                                {'Name': 'Paid'}]},
-                {'Function': 'valuations workflow',
-                    'Permission': [{'Name': 'Draft'},
-                                {'Name': 'Paid'}]},
+                 'Permission': [{'Name': 'Revert'},
+                                {'Name': 'Submit'},
+                                {'Name': 'Pay'}]},
                 {'Function': 'claims workflow',
-                    'Permission': [{'Name': 'Draft'},
-                                {'Name': 'Claimed'}]}]
+                 'Permission': [{'Name': 'Submit'},
+                                {'Name': 'Retract'}]}]
             $scope.isDisabled = false;
             $scope.modalState = "Edit";
-            $scope.newuser.password = '';
             $http({
                 method: 'GET',
                 url: globalServerURL + 'users/' + $scope.selectedUser.username

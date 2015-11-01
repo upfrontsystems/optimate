@@ -80,7 +80,7 @@
                             <div data-ng-repeat="status in projectStates">
                             <label>
                                 <input type="radio"
-                                      data-ng-disabled="(!user.permissions.project_workflow) || (user.permissions.project_workflow.indexOf(status) == -1)"
+                                      data-ng-disabled="(!user.permissions.projects_workflow) || (user.permissions.projects_workflow.indexOf(status) == -1)"
                                       data-ng-model="formData.Status"
                                       value="{{status}}">
                                 {{status}}

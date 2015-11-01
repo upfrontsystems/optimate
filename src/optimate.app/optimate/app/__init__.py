@@ -100,14 +100,14 @@ def main(global_config, **settings):
     # orders
     config.add_route('ordersview', '/orders', factory=makeProtectedFunction('orders'))
     config.add_route('orderview', '/order/{id}/', factory=makeProtectedFunction('orders'))
-    config.add_route('orderstatus', '/order/{id}/status', factory=makeProtectedFunction('orders'))
+    config.add_route('orderstatus', '/order/{id}/status', factory=makeProtectedFunction('orders_workflow'))
     config.add_route('orders_length', '/orders/length', factory=makeProtectedFunction('orders'))
     config.add_route('orders_filter', '/orders/filter', factory=makeProtectedFunction('orders'))
     config.add_route('orders_tree_view', '/orders/tree/{id}/', factory=makeProtectedFunction('orders'))
 
     # invoices
     config.add_route('invoicesview', '/invoices', factory=makeProtectedFunction('invoices'))
-    config.add_route('invoicestatus', '/invoice/{id}/status', factory=makeProtectedFunction('invoices'))
+    config.add_route('invoicestatus', '/invoice/{id}/status', factory=makeProtectedFunction('invoices_workflow'))
     config.add_route('invoices_filter', '/invoices/filter', factory=makeProtectedFunction('invoices'))
     config.add_route('invoiceview', '/invoice/{id}/', factory=makeProtectedFunction('invoices'))
 
@@ -120,7 +120,7 @@ def main(global_config, **settings):
     # claims
     config.add_route('claimsview', '/claims', factory=makeProtectedFunction('claims'))
     config.add_route('claimview', '/claim/{id}/', factory=makeProtectedFunction('claims'))
-    config.add_route('claimstatus', '/claim/{id}/status', factory=makeProtectedFunction('claims'))
+    config.add_route('claimstatus', '/claim/{id}/status', factory=makeProtectedFunction('claims_workflow'))
     config.add_route('claims_filter', '/claims/filter', factory=makeProtectedFunction('claims'))
     config.add_route('claim_valuations', '/claim/valuations', factory=makeProtectedFunction('claims'))
 
