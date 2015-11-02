@@ -6,19 +6,20 @@
         @page {
             @frame {
                 margin: 2cm;
-                top :4.6cm;
+                top :4.5cm;
+                bottom: 1cm;
             }
             @frame header {
                 -pdf-frame-content: headerContent;
-                top :1cm;
+                top: 0.5cm;
+                height: 6cm;
                 margin-left: 2cm;
                 margin-right: 2cm;
-                height: 5.2cm;
             }
             @frame footer {
-                -pdf-frame-content: pageNumber;
-                height: 1cm;
-                bottom: 1cm;
+                -pdf-frame-content: footerContent;
+                bottom: 0.5cm;
+                height: 2.5cm;
                 margin-left: 2cm;
                 margin-right: 2cm;
             }
@@ -34,7 +35,6 @@
         <img class="image-content" src='${company_info.Header}'/>
         <h1>Valuation for Certificate #</h1>
         <table class="order-font">
-            <tr></tr>
             <tr>
                 <td style="width: 60px">To:</td>
                 <td class="bold" style="width: 400px; text-align:left" tal:content="client.Name|nothing"></td>
@@ -49,15 +49,12 @@
             </tr>
         </table>
         <div>&nbsp;</div>
-        <table class="order-font">
-            <tr style="border-top: 1px solid #000;">
-                <td></td>
-            </tr>
-            <tr style="border-bottom: 1px solid #000;">
-                <th class="bold" style="width: 300px; text-align:left">Details</th>
-                <th class="bold" style="width: 200px; text-align:right">${valuation_date}</th>
-                <th class="bold" style="width: 80px; text-align:right">% Claim</th>
-                <th class="bold" style="width: 200px; text-align:right">Total</th>
+        <table class="order-font border-bottom-top">
+            <tr>
+                <td class="bold" style="width: 300px; text-align:left">Details</td>
+                <td class="bold" style="width: 200px; text-align:right">${valuation_date}</td>
+                <td class="bold" style="width: 80px; text-align:right">% Claim</td>
+                <td class="bold" style="width: 200px; text-align:right">Total</td>
             </tr>
         </table>
     </div>
@@ -71,13 +68,13 @@
         <tr style="border-bottom: 1px solid #000;">
             <td></td>
         </tr>
-        <tr style="padding-top: 6px; border-bottom: 1px solid #000;">
+        <tr style="padding-top: 6px;">
             <td style="width: 300px;">Subtotal</td>
             <td style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(budget_total).strip()|nothing}</td>
             <td style="width: 80px; text-align:right"></td>
             <td style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(valuation.Total).strip()|nothing}</td>
         </tr>
-        <tr style="padding-top: 6px;" tal:repeat="markup markup_list">
+        <tr style="padding-top: 6px; border-top: 1px solid #000;" tal:repeat="markup markup_list">
             <td style="width: 300px" tal:content="markup['Name']|nothing"></td>
             <td style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(float(markup['TotalBudget'])).strip()|nothing}</td>
             <td style="width: 80px; text-align:right" tal:content="markup['PercentageComplete']|nothing"></td>
@@ -94,8 +91,15 @@
         </tr>
     </table>
 
-    <div id="pageNumber">
+    <div id="footerContent">
+        <table>
+            <tr>
+                <td style="text-align:left; width: 800px;"><h3>Valuation report for ${valuation.Project.Name}</h3></td>
+                <td style="text-align:right;"><h3>${print_date}</h3></td>
+            </tr>
+        </table>
         <img class="image-content" src='${company_info.Footer}'/>
+        <br>
         <pdf:pagenumber>
     </div>
 </body>

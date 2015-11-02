@@ -554,3 +554,8 @@ th.modal-table-row{
     margin:5px;
     float:left;
 }
+
+/* highlight the order tree on hover */
+div.order-tree-node-content:hover {
+    background-color: #f5f5f5;
+}

@@ -636,12 +636,14 @@ def order(request):
             consolidated.append(backup)
 
     orderitems = sorted(consolidated, key=lambda k: k['Name'].upper())
+    now = datetime.now()
 
     # inject order data into template
     template_data = render('templates/orderreport.pt',
                            {'order': order,
                             'order_items': orderitems,
                             'order_date': order.Date.strftime("%d %B %Y"),
+                            'print_date' : now.strftime("%d %B %Y - %k:%M"),
                             'currency': currency,
                             'company_info': compinfo},
                             request=request)
@@ -657,7 +659,6 @@ def order(request):
     pdf.close()
 
     filename = "order_report"
-    now = datetime.now()
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
     last_modified = formatdate(time.mktime(now.timetuple()))
     response = Response(content_type='application/pdf',
@@ -747,6 +748,7 @@ def valuation(request):
                             'client': client,
                             'budget_total': budget_total,
                             'valuation_date': vdate,
+                            'print_date' : now.strftime("%d %B %Y - %k:%M"),
                             'markup_list': markup_list,
                             'grand_total': grandtotal,
                             'currency': currency,
@@ -852,11 +854,13 @@ def invoices(request):
         invoices.append(invoice.dict())
 
     sorted_invoices = sorted(invoices, key=lambda k: k['ID'])
+    now = datetime.now()
 
     # inject invoice data into template
     template_data = render('templates/invoicesreport.pt',
                            {'invoices': sorted_invoices,
                             'report_headings': headings,
+                            'print_date' : now.strftime("%d %B %Y - %k:%M"),
                             'currency': currency,
                             'company_info': compinfo},
                             request=request)
@@ -872,7 +876,6 @@ def invoices(request):
     pdf.close()
 
     filename = "invoice_report"
-    now = datetime.now()
     nice_filename = '%s_%s' % (filename, now.strftime('%Y%m%d'))
     last_modified = formatdate(time.mktime(now.timetuple()))
     response = Response(content_type='application/pdf',
@@ -928,6 +931,7 @@ def claim(request):
                             'client': client,
                             'budget_total': budget_total,
                             'date': date,
+                            'print_date' : now.strftime("%d %B %Y - %k:%M"),
                             'percentage': percentage,
                             'payments': payments,
                             'due': due,
@@ -1043,6 +1047,7 @@ def cashflow(request):
                            {'project': project,
                             'company_info': compinfo,
                             'today': today,
+                            'print_date' : now.strftime("%d %B %Y - %k:%M"),
                             'dateheader': dateheader,
                             'headers': headers,
                             'rows': rows,

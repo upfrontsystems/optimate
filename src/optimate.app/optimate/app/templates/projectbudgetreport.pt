@@ -1,4 +1,5 @@
 <html>
+    <link rel="stylesheet" tal:attributes="href string:${request.application_url}/static/css/reports.css">
     <span tal:replace='structure string:<style>'/>
         /* The default style */
         @page {
@@ -9,80 +10,21 @@
             }
             @frame header {
                 -pdf-frame-content: headerContent;
-                top :2cm;
+                top: 0.5cm;
+                height: 4cm;
                 margin-left: 2cm;
                 margin-right: 2cm;
-                height: 2.5cm;
             }
             @frame footer {
-                -pdf-frame-content: pageNumber;
-                height: 1.5cm;
-                bottom: 1cm;
+                -pdf-frame-content: footerContent;
+                bottom: 0.5cm;
+                height: 2.5cm;
                 margin-left: 2cm;
                 margin-right: 2cm;
             }
         }
         td {
             height: 20px;
-        }
-
-        .bold {
-            font-weight: bold;
-        }
-        .normal {
-            font-weight: normal;
-        }
-
-        .normal-space {
-            font-weight: normal;
-            padding-top: 4px;
-        }
-
-        td.level2 {
-            padding-left: 8px;
-        }
-        td.level3 {
-            padding-left: 16px;
-        }
-        td.level4 {
-            padding-left: 24px;
-        }
-        td.level5 {
-            padding-left: 32px;
-        }
-        td.level6 {
-            padding-left: 40px;
-        }
-        td.level7 {
-            padding-left: 48px;
-        }
-        td.level8 {
-            padding-left: 56px;
-        }
-
-        div#pageNumber {
-            text-align: center;
-        }
-
-        .order-font {
-            font-size: 14px;
-        }
-
-        .project-heading-font {
-            font-size: 13px;
-        }
-
-        .resourcelist-heading-font {
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .red {
-            color: #f00;
-        }
-
-        .black {
-            color: #000;
         }
     <span tal:replace='structure string:</style>'/>
 
@@ -91,7 +33,7 @@
         <img class="image-content" src='${company_info.Header}'/>
         <h1>Project Budget for ${project_name}</h1>
         <table>
-            <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding-top: 6px; padding-bottom: 3px;">
+            <tr class="border-bottom-top">
                 <td class="project-heading-font" style="width: 450px; text-align:left">Description</td>
                 <td class="project-heading-font" style="width: 70px; text-align:right">Unit</td>
                 <td class="project-heading-font" style="width: 70px; text-align:right">Quantity</td>
@@ -157,7 +99,7 @@
         </tr>
     </table>
 
-    <div id="pageNumber">
+    <div id="footerContent">
         <table>
             <tr>
                 <td style="text-align:left; width: 800px;"><h3>Project Budget for ${project_name}</h3></td>
@@ -165,8 +107,8 @@
             </tr>
         </table>
         <img class="image-content" src='${company_info.Footer}'/>
+        <br>
         <pdf:pagenumber>
     </div>
-
 </body>
 </html>

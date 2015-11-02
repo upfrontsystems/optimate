@@ -7,19 +7,20 @@
         @page {
             @frame {
                 margin: 2cm;
-                top :3.6cm;
+                top :4.5cm;
+                bottom: 1cm;
             }
             @frame header {
                 -pdf-frame-content: headerContent;
-                top :1cm;
+                top: 0.5cm;
+                height: 6cm;
                 margin-left: 2cm;
                 margin-right: 2cm;
-                height: 4.2cm;
             }
             @frame footer {
-                -pdf-frame-content: pageNumber;
-                height: 1cm;
-                bottom: 1cm;
+                -pdf-frame-content: footerContent;
+                bottom: 0.5cm;
+                height: 2.5cm;
                 margin-left: 2cm;
                 margin-right: 2cm;
             }
@@ -29,6 +30,7 @@
 <body>
     <div id="headerContent">
         <img class="image-content" src='${company_info.Header}'/>
+        <div>&nbsp;</div>
         <table class="order-font">
             <tr>
                 <td style="width: 180px;">To Messers.</td>
@@ -63,6 +65,7 @@
             </tr>
         </table>
     </div>
+
     <table class="order-font">
         <tr tal:repeat="order_item order_items">
             <td style="width: 200px" tal:content="order_item['Name']"></td>
@@ -94,8 +97,15 @@
         </tr>
     </table>
 
-    <div id="pageNumber">
+    <div id="footerContent">
+        <table>
+            <tr>
+                <td style="text-align:left; width: 800px;"><h3>Orders for ${order.Project.Name}</h3></td>
+                <td style="text-align:right;"><h3>${print_date}</h3></td>
+            </tr>
+        </table>
         <img class="image-content" src='${company_info.Footer}'/>
+        <br>
         <pdf:pagenumber>
     </div>
 </body>

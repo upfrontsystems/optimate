@@ -5,20 +5,21 @@
         /* The default style */
         @page {
             @frame {
-                margin: 1cm;
-                top :1cm;
+                margin: 2cm;
+                top :1.5cm;
+                bottom: 1cm;
             }
             @frame header {
                 -pdf-frame-content: headerContent;
-                top :1cm;
+                top: 0.5cm;
+                height: 3cm;
                 margin-left: 1cm;
                 margin-right: 1cm;
-                height: 2cm;
             }
             @frame footer {
                 -pdf-frame-content: footerContent;
-                height: 2cm;
-                bottom: 1cm;
+                bottom: 0.5cm;
+                height: 2.5cm;
                 margin-left: 1cm;
                 margin-right: 1cm;
             }
@@ -27,9 +28,10 @@
 
 <body>
     <div id="headerContent">
-        <h1>Project Cashflow Projection</h1>
         <img class="image-content" src='${company_info.Header}'/>
+        <h1>Project Cashflow Projection for ${project.Name}</h1>
     </div>
+
     <table class="order-font">
         <tr></tr>
         <tr>
@@ -112,7 +114,14 @@
     </table>
 
     <div id="footerContent">
+        <table>
+            <tr>
+                <td style="text-align:left; width: 800px;"><h3>Cashflow for ${project.Name}</h3></td>
+                <td style="text-align:right;"><h3>${print_date}</h3></td>
+            </tr>
+        </table>
         <img class="image-content" src='${company_info.Footer}'/>
+        <br>
         <pdf:pagenumber>
     </div>
 </body>

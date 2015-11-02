@@ -32,7 +32,7 @@ td.level8 {
     padding-left: 56px;
 }
 
-div#pageNumber {
+div#footerContent {
     text-align: center;
 }
 
@@ -68,4 +68,10 @@ div#pageNumber {
     text-align: center;
     display: table-cell;
     vertical-align: middle
+}
+
+.border-bottom-top {
+    border-bottom: 1px solid #000;
+    border-top: 1px solid #000;
+    padding-top: 5px;
 }
