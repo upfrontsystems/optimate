@@ -285,20 +285,15 @@ myApp.controller('citiesController', ['$scope', '$http', '$modal', '$log', 'glob
                     url: globalServerURL + 'city/' + $scope.selectedItem.ID + '/',
                 }
                 $http(req).success(function(result) {
-                    if ( result.status == 'remove' ) {
-                        for (var i = 0; i < $scope.cityList.length; i++) {
-                            if ($scope.cityList[i].ID === $scope.selectedItem.ID) {
-                                $scope.cityList.splice(i, 1);
-                                break;
-                            }
+                    for (var i = 0; i < $scope.cityList.length; i++) {
+                        if ($scope.cityList[i].ID === $scope.selectedItem.ID) {
+                            $scope.cityList.splice(i, 1);
+                            break;
                         }
-                        $scope.selectedItem = undefined;
-                        $scope.savingState = undefined;
-                        console.log("City deleted");
                     }
-                    else{
-                        console.log("City in use");
-                    }
+                    $scope.selectedItem = undefined;
+                    $scope.savingState = undefined;
+                    console.log("City deleted");
                 });
             }
         }
@@ -388,20 +383,15 @@ myApp.controller('unitsController', ['$scope', '$http', '$modal', '$log', 'globa
                     url: globalServerURL + 'unit/' + $scope.selectedItem.ID + '/',
                 }
                 $http(req).success(function(result) {
-                    if ( result.status == 'remove' ) {
-                        for (var i = 0; i < $scope.unitList.length; i++) {
-                            if ($scope.unitList[i].ID === $scope.selectedItem.ID) {
-                                $scope.unitList.splice(i, 1);
-                                break;
-                            }
+                    for (var i = 0; i < $scope.unitList.length; i++) {
+                        if ($scope.unitList[i].ID === $scope.selectedItem.ID) {
+                            $scope.unitList.splice(i, 1);
+                            break;
                         }
-                        $scope.selectedItem = undefined;
-                        $scope.savingState = undefined;
-                        console.log("Unit deleted");
                     }
-                    else{
-                        console.log("Unit in use");
-                    }
+                    $scope.selectedItem = undefined;
+                    $scope.savingState = undefined;
+                    console.log("Unit deleted");
                 });
             }
         }

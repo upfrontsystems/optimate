@@ -105,22 +105,11 @@ describe('Clean up tests', function () {
         browser.get('http://127.0.0.1:8000/#/units');
 
         deleteResult('TestUnit');
-
     });
 
     it('should delete the added user', function(){
         browser.get('http://127.0.0.1:8000/#/users');
 
-        // get the unit
-        element.all(by.repeater('obj in users')).filter(function(row) {
-            return row.getText().then(function(txt) {
-                return (txt.indexOf('TestUser') > -1);
-            });
-        }).then(function(elem){
-            // click it
-            elem[0].click();
-            element(by.css('nav ul li a i.fa-trash')).click();
-            element(by.buttonText('Delete')).click();
-        });
+        deleteResult('TestUser');
     });
 });

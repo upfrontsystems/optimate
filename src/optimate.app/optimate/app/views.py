@@ -126,12 +126,13 @@ def auth(request):
     """
     if request.method != 'POST':
         return HTTPMethodNotAllowed(
-            'This endpoint only supports the POST method.')
+            text=u'ServerResponse: This endpoint only supports the POST method.')
 
     username = request.json_body.get('username', None)
     password = request.json_body.get('password', None)
     if username is None or password is None:
-        return HTTPBadRequest('Username and password must be provided')
+        return HTTPBadRequest(
+            text=u'ServerResponse: Username and password must be provided')
 
     request.response.headerlist.extend((
         ('Cache-Control', 'no-store'),
@@ -140,10 +141,10 @@ def auth(request):
     try:
         user = DBSession().query(User).filter(User.username==username).one()
     except NoResultFound:
-        return HTTPUnauthorized('Authentication failed')
+        return HTTPUnauthorized(text=u'ServerResponse: Authentication failed')
     else:
         if not user.validate_password(password):
-            return HTTPUnauthorized('Authentication failed')
+            return HTTPUnauthorized(text=u'ServerResponse: Authentication failed')
 
     return {
         "access_token": create_token(request, username,
@@ -177,7 +178,7 @@ def node_children(request):
             else:
                 childrenlist.append(child.dict())
     else:
-        return HTTPInternalServerError("Node does not exist")
+        return HTTPNotFound(text=u'ServerResponse: Object not found')
 
     # sort childrenlist
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'].upper())
@@ -217,7 +218,7 @@ def nodeview(request):
     if qry:
         return qry.dict()
     else:
-        return HTTPNotFound()
+        return HTTPNotFound(text=u'ServerResponse: Object not found')
 
 
 def additemview(request):
@@ -277,7 +278,8 @@ def additemview(request):
         # check the resource exists
         resource = DBSession.query(Resource).filter_by(ID=uid).first()
         if not resource:
-            return HTTPInternalServerError("No Resource for the Budget Item")
+            return HTTPInternalServerError(
+                        text=u'ServerResponse: No Resource for the Budget Item')
         newnode = BudgetItem(ResourceID=resource.ID,
                         ParentID=parentid)
         # get the list of overheads used in the checkboxes
@@ -368,7 +370,8 @@ def additemview(request):
         # check the resource exists
         resource = DBSession.query(Resource).filter_by(ID=uid).first()
         if not resource:
-            return HTTPInternalServerError("The resource does not exist")
+            return HTTPNotFound(
+                        text=u'ServerResponse: Resource not found')
         # make sure the parent rate is set
         parent.Rate
         newnode = ResourcePart(ResourceID=uid,
@@ -391,7 +394,8 @@ def additemview(request):
         parent.Rate += newnode.Total
 
     else:
-        return HTTPInternalServerError()
+        return HTTPInternalServerError(
+                        text=u'ServerResponse: Object type not defined')
 
     DBSession.flush()
     newid = newnode.ID
@@ -530,7 +534,8 @@ def edititemview(request):
             rpart.ResourceID = uid
 
     else:
-        return HTTPInternalServerError()
+        return HTTPInternalServerError(
+                                text=u'ServerResponse: Object type not defined')
 
     DBSession.flush()
     transaction.commit()
@@ -547,7 +552,7 @@ def deleteitemview(request):
     # Delete it from the table
     deletethis = DBSession.query(Node).filter_by(ID=deleteid).first()
     if not deletethis:
-        return HTTPInternalServerError("Node not found")
+        return HTTPNotFound(text=u'ServerResponse: Object not found')
     parent = deletethis.Parent
     parentid = parent.ID
     # update the parent costs
@@ -935,7 +940,7 @@ def overheadview(request):
         qry = DBSession.delete(deletethis)
 
         if qry == 0:
-            return HTTPNotFound()
+            return HTTPNotFound(text=u'ServerResponse: Overhead not found')
         transaction.commit()
 
         return HTTPOk()
@@ -1145,7 +1150,8 @@ def node_paste(request):
         if request.json_body["cut"]:
             for resource in sourceresources:
                 if len(resource.BudgetItems) > 0:
-                    return HTTPInternalServerError("Can't cut resources that are used")
+                    return HTTPInternalServerError(
+                        text=u"ServerResponse: Can't cut resources that are in use")
         projectid = dest.getProjectID()
         resourcecategory = DBSession.query(
                 ResourceCategory).filter_by(ParentID=projectid).first()
@@ -1212,7 +1218,8 @@ def node_paste(request):
                     sourceresources = source.getResources()
                     for resource in sourceresources:
                         if len(resource.BudgetItems) > 0:
-                            return HTTPInternalServerError("Can't cut resources that are used")
+                            return HTTPInternalServerError(
+                            text=u"ServerResponse: Can't cut resources that are in use")
                     source.ParentID = destinationid
                     pasted_id = source.ID
                 else:
@@ -1230,9 +1237,11 @@ def node_paste(request):
                         source.ParentID = destinationid
                         pasted_id = source.ID
                     else:
-                        return HTTPConflict()
+                        return HTTPConflict(
+                            text=u"ServerResponse: Can't cut and paste a Resource here")
                 else:
-                    return HTTPConflict()
+                    return HTTPConflict(
+                            text=u"ServerResponse: Can't copy and paste a Resource here")
         # else for budget type nodes
         # if the source is to be cut and pasted into the destination
         elif request.json_body["cut"]:
@@ -1451,7 +1460,7 @@ def node_cost(request):
     costid = request.matchdict['id']
     qry = DBSession.query(Node).filter_by(ID=costid).first()
     if qry == None:
-        return HTTPNotFound()
+        return HTTPNotFound(text=u'ServerResponse: Object not found')
     totalcost = str(qry.Total)
     transaction.commit()
 
@@ -1489,7 +1498,7 @@ def clientview(request):
         qry = DBSession.delete(deletethis)
 
         if qry == 0:
-            return HTTPNotFound()
+            return HTTPNotFound(text=u'ServerResponse: Client not found')
         transaction.commit()
 
         return HTTPOk()
@@ -1569,7 +1578,7 @@ def supplierview(request):
         qry = DBSession.delete(deletethis)
 
         if qry == 0:
-            return HTTPNotFound()
+            return HTTPNotFound(text=u'ServerResponse: Supplier not found')
         transaction.commit()
 
         return HTTPOk()
@@ -1723,10 +1732,10 @@ def unitview(request):
         if len(deletethis.Resources) == 0:
             qry = DBSession.delete(deletethis)
             if qry == 0:
-                return HTTPNotFound()
+                return HTTPNotFound(text=u'ServerResponse: Unit not found')
             transaction.commit()
-            return {'status': 'remove'}
-        return {'status': 'keep'}
+            return HTTPOk()
+        return HTTPConflict(text=u'ServerResponse: Unit in use')
 
     # if the method is post, add a new unit
     if request.method == 'POST':
@@ -1744,7 +1753,7 @@ def unitview(request):
         # check if the unit already exists
         existing = DBSession.query(Unit).filter_by(Name=unitname).first()
         if existing:
-            return HTTPConflict('Unit already exists')
+            return HTTPConflict(text=u'ServerResponse: Unit already exists')
         newunit = Unit(Name=unitname)
         DBSession.add(newunit)
         DBSession.flush()
@@ -1756,6 +1765,10 @@ def unitview(request):
             return HTTPForbidden()
 
         unitname = request.json_body['Name']
+        unit = DBSession.query(
+                    Unit).filter_by(ID=request.matchdict['id']).first()
+        if unit.Name == unitname:
+            return HTTPOk()
         # check for carets in the name, and make it superscript
         if '^' in unitname:
             splitted = unitname.split('^')
@@ -1766,9 +1779,8 @@ def unitview(request):
         # check if the unit already exists
         existing = DBSession.query(Unit).filter_by(Name=unitname).first()
         if existing:
-            return
-        unit = DBSession.query(
-                    Unit).filter_by(ID=request.matchdict['id']).first()
+            return HTTPConflict(text=u'ServerResponse: Name already exists')
+
         unit.Name=request.json_body['Name']
         transaction.commit()
         return HTTPOk()
@@ -1810,10 +1822,11 @@ def cityview(request):
                 if len(deletethis.Suppliers) == 0:
                     qry = DBSession.delete(deletethis)
                     if qry == 0:
-                        return HTTPNotFound()
+                        return HTTPNotFound(
+                                        text=u'ServerResponse: City not found')
                     transaction.commit()
-                    return {'status': 'remove'}
-        return {'status': 'keep'}
+                    return HTTPOk()
+        return HTTPConflict(text=u'ServerResponse: City in use')
 
     # if the method is post, add a new city
     if request.method == 'POST':
@@ -1824,7 +1837,7 @@ def cityview(request):
         # check if the city already exists
         existing = DBSession.query(City).filter_by(Name=name).first()
         if existing:
-            return HTTPConflict('City already exists')
+            return HTTPConflict(text=u'ServerResponse: City already exists')
         newcity = City(Name=name)
         DBSession.add(newcity)
         DBSession.flush()
@@ -1836,12 +1849,15 @@ def cityview(request):
             return HTTPForbidden()
 
         name = request.json_body['Name']
+        city = DBSession.query(
+            City).filter_by(ID=request.matchdict['id']).first()
+        if city.Name == name:
+            return HTTPOk()
         # check if the city already exists
         existing = DBSession.query(City).filter_by(Name=name).first()
         if existing:
-            return HTTPConflict('Name already exists')
-        city = DBSession.query(
-                    City).filter_by(ID=request.matchdict['id']).first()
+            return HTTPConflict(text=u'ServerResponse: Name already exists')
+
         city.Name=name
         transaction.commit()
         return HTTPOk()
@@ -2156,7 +2172,8 @@ def orderview(request):
     orderid = request.matchdict['id']
     order = DBSession.query(Order).filter_by(ID=orderid).first()
     if not order:
-        return HTTPInternalServerError()
+        return HTTPInternalServerError(
+                            text=u'ServerResponse: The order does not exist')
     # build a list of the budgetitem used in the order from the order items
     budgetitemslist = []
     for orderitem in order.OrderItems:
@@ -2265,7 +2282,7 @@ def valuationview(request):
         deletethis = DBSession.query(Valuation).filter_by(ID=deleteid).first()
         qry = DBSession.delete(deletethis)
         if qry == 0:
-            return HTTPNotFound()
+            return HTTPNotFound(text=u'ServerResponse: Valuation not found')
         transaction.commit()
 
         return HTTPOk()
@@ -2481,7 +2498,7 @@ def usersview(request):
 
         # Check for existing user
         if DBSession.query(User).filter(User.username==username).count() > 0:
-            return HTTPConflict('user exists')
+            return HTTPConflict(text=u'ServerResponse: User name already exists')
 
         # create user
         user = User(username=username)
@@ -2528,7 +2545,7 @@ def userview(request):
     try:
         user = session.query(User).filter(User.username==username).one()
     except NoResultFound:
-        return HTTPNotFound('No such user')
+        return HTTPNotFound(text=u'ServerResponse: User not found')
 
     # edit a user
     if request.method == 'POST':
@@ -2723,7 +2740,7 @@ def invoiceview(request):
 
         qry = DBSession.delete(deletethis)
         if qry == 0:
-            return HTTPNotFound()
+            return HTTPNotFound(text=u'ServerResponse: Invoice not found')
         transaction.commit()
 
         return HTTPOk()
@@ -2940,7 +2957,7 @@ def claimview(request):
 
         qry = DBSession.delete(deletethis)
         if qry == 0:
-            return HTTPNotFound()
+            return HTTPNotFound(text=u'ServerResponse: Claim not found')
         transaction.commit()
 
         return HTTPOk()
@@ -3026,7 +3043,7 @@ def paymentview(request):
 
         qry = DBSession.delete(deletethis)
         if qry == 0:
-            return HTTPNotFound()
+            return HTTPNotFound(text=u'ServerResponse: Payment not found')
         transaction.commit()
 
         return HTTPOk()

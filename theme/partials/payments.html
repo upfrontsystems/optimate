@@ -38,17 +38,25 @@
                         <i class="fa fa-trash"></i>
                 </a>
             </li>
-            <li ng-show="paymentsReportEnabled">
-                <a title="Payments Report"
+            <li data-ng-show="paymentsReportEnabled">
+                <a title="PDF Payments Report"
                     data-ng-show="selectedItems.length == 1"
                     data-target="#paymentsReport"
                     data-backdrop="static"
                     data-toggle="modal"
-                    data-ng-click="filterReportBy()"
+                    data-ng-click="filterReportBy(); setReportType('pdf')"
                     class="pdf_download">
                     <i class="fa fa-file-pdf-o"></i></a>
-                     <!-- hidden anchor for download hook -->
-                    <a class="pdf_hidden_download"></a>
+            </li>
+            <li data-ng-show="paymentsReportEnabled">
+                <a title="Excel Payments Report"
+                    data-ng-show="selectedItems.length == 1"
+                    data-target="#paymentsReport"
+                    data-backdrop="static"
+                    data-toggle="modal"
+                    data-ng-click="filterReportBy(); setReportType('excel')"
+                    class="excel_download">
+                    <i class="fa fa-file-excel-o"></i></a>
             </li>
         </ul>
         <ul class="nav nav-pills navbar-right ">

@@ -163,9 +163,9 @@ describe('Projects Page', function () {
         slickgrid.element(by.css('.editor-text')).sendKeys(5);
         slickgrid.element(by.css('div.ui-widget-content:nth-child(1) > div:nth-child(1)')).click();
         // check the total has updated
-        slickgrid.element(by.css('div.ui-widget-content:nth-child(1) > div:nth-child(4)')).getText().then(function(txt){
-            expect(txt).toBe('R5.00');
-        });
+        slickgrid.element(by.css('div.ui-widget-content:nth-child(1) > div:nth-child(4)')).getText().then(function(text){
+            expect(text).toBe('R5.00');
+        })
     });
 
     // edit a project

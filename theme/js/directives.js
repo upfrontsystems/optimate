@@ -1104,8 +1104,8 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
             // resize the slickgrid when modal is shown
             $('#saveValuationModal').on('shown.bs.modal', function() {
                  grid.init();
-                 grid.resetActiveCell()
                  grid.setSelectedRows([]);
+                 grid.resetActiveCell()
                  grid.resizeCanvas();
             });
 
@@ -1350,7 +1350,6 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
             }
 
             $scope.clearSelectedRows = function(){
-                grid.resetActiveCell()
                 grid.setSelectedRows([]);
                 grid.render();
             };

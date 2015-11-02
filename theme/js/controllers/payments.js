@@ -32,12 +32,14 @@ myApp.controller('paymentsController', ['$scope', '$http', 'globalServerURL', 'S
         $scope.clearFilters();
 
         $scope.paymentsLengthCheck = function() {
-            if ($scope.jsonpayments.length == 0) {
-               $scope.paymentsReportEnabled = false;
-            }
-            else {
-               $scope.paymentsReportEnabled = true;
-            }
+            // no payment report yet
+            $scope.paymentsReportEnabled = false;
+            // if ($scope.jsonpayments.length == 0) {
+            //    $scope.paymentsReportEnabled = false;
+            // }
+            // else {
+            //    $scope.paymentsReportEnabled = true;
+            // }
         }
 
         $scope.loadPaymentSection = function() {
@@ -225,6 +227,10 @@ myApp.controller('paymentsController', ['$scope', '$http', 'globalServerURL', 'S
                 }
             }
         }
+
+        $scope.setReportType = function(type){
+            $scope.selectedReportType = type;
+        };
 
         // fetch the report filter options
         $scope.filterReportBy = function() {
