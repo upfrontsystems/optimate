@@ -150,6 +150,20 @@ class ProtectedFunction(object):
                     acl.append((Allow, u'user:{}'.format(user.username), perm))
         # for page permissions
         else:
+            acl = []
+            # add the project workflow permission to the project permission
+            if self.function == 'projects':
+                users_with_project_workflow = DBSession.query(User).join(
+                            User.UserRights, aliased=True).filter_by(
+                            Function='projects_workflow').all()
+
+                for user in users_with_project_workflow:
+                    right = DBSession.query(UserRight).filter_by(
+                            UserID=user.ID, Function='projects_workflow').first()
+
+                    for perm in right.Permission.split('_'):
+                        acl.append((Allow, u'user:{}'.format(user.username), perm))
+
             users_with_edit = DBSession.query(User).join(
                             User.UserRights, aliased=True).filter_by(
                             Function=self.function, Permission='edit').all()
@@ -164,7 +178,7 @@ class ProtectedFunction(object):
             users_with_view = dict.fromkeys(
                 users_with_edit + users_with_view).keys()
 
-            acl = [(Allow, u'user:{}'.format(u), 'view')
+            acl += [(Allow, u'user:{}'.format(u), 'view')
                 for u in users_with_view] + [
                 (Allow, u'user:{}'.format(u), 'edit')
                 for u in users_with_edit] + [

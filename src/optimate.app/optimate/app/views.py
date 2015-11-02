@@ -420,7 +420,9 @@ def edititemview(request):
         project.CityID=city
         project.SiteAddress=siteaddress
         project.FileNumber=filenumber
-        project.Status = request.json_body['Status']
+        # check if the user has permission for this status
+        if request.has_permission(request.json_body['Status']):
+            project.Status = request.json_body['Status']
 
     elif objecttype == 'BudgetGroup':
         budgetgroup = DBSession.query(BudgetGroup).filter_by(ID=nodeid).first()
