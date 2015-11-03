@@ -136,6 +136,20 @@
     </div>
 </nav>
 
+<pagination data-ng-show="itemListLength > maxPageSize"
+            boundary-links="true"
+            total-items="itemListLength"
+            items-per-page="pageSize"
+            data-ng-model="currentPage"
+            data-ng-change="loadItemSection()"
+            max-size="maxPageSize"
+            class="pagination-sm nav-center"
+            previous-text="&lsaquo;"
+            next-text="&rsaquo;"
+            first-text="&laquo;"
+            last-text="&raquo;">
+</pagination>
+
 <div custom-modals modal-id="saveClaimModal"
     modal-type="claim"
     modal-src="modal_templates/saveClaimModal.html">

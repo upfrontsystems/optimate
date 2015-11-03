@@ -123,6 +123,7 @@ def main(global_config, **settings):
     config.add_route('claimstatus', '/claim/{id}/status', factory=makeProtectedFunction('claims_workflow'))
     config.add_route('claims_filter', '/claims/filter', factory=makeProtectedFunction('claims'))
     config.add_route('claim_valuations', '/claim/valuations', factory=makeProtectedFunction('claims'))
+    config.add_route('claims_length', '/claims/length', factory=makeProtectedFunction('claims'))
 
     # payments
     config.add_route('paymentsview', '/payments', factory=makeProtectedFunction('payments'))

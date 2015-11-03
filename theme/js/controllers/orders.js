@@ -92,10 +92,9 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
                         'Status': $scope.filters.Status}
             };
             $http(req).success(function(response) {
-                var length = response.pop();
-                $scope.jsonorders = response;
-                if (length) {
-                    $scope.orderListLength = length;
+                $scope.jsonorders = response['orders'];
+                if (response['length']) {
+                    $scope.orderListLength = response['length'];
                 }
                 console.log("Orders loaded");
             });

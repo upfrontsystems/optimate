@@ -1936,8 +1936,7 @@ def ordersview(request):
     length = None
     if setLength:
         length = qry.count()
-    orderlist.append(length)
-    return orderlist
+    return {'orders': orderlist, 'length': length}
 
 
 @view_config(route_name='orders_filter', renderer='json', permission='view')
@@ -2889,18 +2888,28 @@ def claimsview(request):
     qry = DBSession.query(Claim).order_by(Claim.ID.desc())
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
+
+    # filter the claims
+    setLength = False
     if 'Project' in paramkeys:
+        setLength = True
         qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
     if 'Date' in paramkeys:
+        setLength = True
         date = ''.join(paramsdict['Date'])
         date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
         qry = qry.filter_by(Date=date)
     if 'Status' in paramkeys:
+        setLength = True
         qry =qry.filter_by(Status=paramsdict['Status'][0])
 
     for claim in qry:
         claimslist.append(claim.dict())
-    return claimslist
+    # check if the length needs to change
+    length = None
+    if setLength:
+        length = qry.count()
+    return {'claims': claimslist, 'length': length}
 
 
 @view_config(route_name='claims_filter', renderer='json', permission='view')
@@ -2922,6 +2931,14 @@ def claims_filter(request):
         if project.Project:
             projectlist.append({'Name': project.Project.Name, 'ID': project.ProjectID})
     return {'projects': sorted(projectlist, key=lambda k: k['Name'].upper())}
+
+
+@view_config(route_name='claims_length', renderer='json', permission='view')
+def claims_length(request):
+    """ Returns the number of claims in the database
+    """
+    rows = DBSession.query(func.count(Claim.ID)).scalar()
+    return {'length': rows}
 
 
 @view_config(route_name='claimstatus', renderer='json', permission='view')
