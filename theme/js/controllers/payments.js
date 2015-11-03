@@ -9,6 +9,11 @@ myApp.controller('paymentsController', ['$scope', '$http', 'globalServerURL', 'S
         $scope.paymentList = [];
         $scope.claimsList = []
         $scope.selectedItems = [];
+        // Pagination variables
+        $scope.pageSize = 100;
+        $scope.currentPage = 1;
+        $scope.maxPageSize = 20;
+        $scope.itemListLength = $scope.maxPageSize;
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
@@ -27,20 +32,14 @@ myApp.controller('paymentsController', ['$scope', '$http', 'globalServerURL', 'S
             .success(function(data) {
                 $scope.projectsList = data;
             });
+
+            // get the length of all the payments
+            $http.get(globalServerURL + 'payments/length').success(function(data) {
+                $scope.itemListLength = data['length'];
+            });
         }
         $scope.projectsList = [];
         $scope.clearFilters();
-
-        $scope.paymentsLengthCheck = function() {
-            // no payment report yet
-            $scope.paymentsReportEnabled = false;
-            // if ($scope.jsonpayments.length == 0) {
-            //    $scope.paymentsReportEnabled = false;
-            // }
-            // else {
-            //    $scope.paymentsReportEnabled = true;
-            // }
-        }
 
         $scope.loadPaymentSection = function() {
             var req = {
@@ -50,8 +49,10 @@ myApp.controller('paymentsController', ['$scope', '$http', 'globalServerURL', 'S
                         'Date': $scope.filters.Date}
             };
             $http(req).success(function(response) {
-                $scope.jsonpayments = response;
-                $scope.paymentsLengthCheck();
+                $scope.jsonpayments = response['payments'];
+                if (response['length']){
+                    $scope.itemListLength = response['length']
+                }
                 console.log("Payments loaded");
             });
         }
@@ -124,7 +125,6 @@ myApp.controller('paymentsController', ['$scope', '$http', 'globalServerURL', 'S
                 var idB = b.id;
                 return (idA > idB) ? -1 : (idA < idB) ? 1 : 0;
             });
-            $scope.paymentsLengthCheck();
             console.log ("Payment added");
         }
 

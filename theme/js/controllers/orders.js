@@ -17,11 +17,11 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
         $scope.budgetItemsList = [];
         $scope.invoiceList = [];
         $scope.selectedOrderingOn = {};
-        // Pagination variables and functions
+        // Pagination variables
         $scope.pageSize = 100;
         $scope.currentPage = 1;
         $scope.maxPageSize = 20;
-        $scope.orderListLength = $scope.maxPageSize + 1;
+        $scope.orderListLength = $scope.maxPageSize;
         $scope.filters = {};
         $scope.statusList = [{'Status': 'Draft'}, {'Status': 'Processed'}];
         // semaphore for the slickgrid spinner

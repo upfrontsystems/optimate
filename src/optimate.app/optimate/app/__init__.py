@@ -110,6 +110,7 @@ def main(global_config, **settings):
     config.add_route('invoicestatus', '/invoice/{id}/status', factory=makeProtectedFunction('invoices_workflow'))
     config.add_route('invoices_filter', '/invoices/filter', factory=makeProtectedFunction('invoices'))
     config.add_route('invoiceview', '/invoice/{id}/', factory=makeProtectedFunction('invoices'))
+    config.add_route('invoices_length', '/invoices/length', factory=makeProtectedFunction('invoices'))
 
     # valuations
     config.add_route('valuationsview', '/valuations', factory=makeProtectedFunction('valuations'))
@@ -129,6 +130,7 @@ def main(global_config, **settings):
     config.add_route('paymentsview', '/payments', factory=makeProtectedFunction('payments'))
     config.add_route('paymentview', '/payment/{id}/', factory=makeProtectedFunction('payments'))
     config.add_route('payment_claims', '/payment/claims', factory=makeProtectedFunction('payments'))
+    config.add_route('payments_length', '/payments/length', factory=makeProtectedFunction('payments'))
 
     # Editing users
     config.add_route('usersview', '/users', factory=makeProtectedFunction('setup'))

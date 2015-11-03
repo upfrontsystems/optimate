@@ -26,11 +26,11 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
         $scope.budgetgroupList = [];
         $scope.modalForm = [];
         $scope.statusList = [{'Status': 'Draft'}, {'Status': 'Paid'}];
-        // Pagination variables and functions
+        // Pagination variables
         $scope.pageSize = 100;
         $scope.currentPage = 1;
         $scope.maxPageSize = 20;
-        $scope.valuationListLength = $scope.maxPageSize + 1;
+        $scope.valuationListLength = $scope.maxPageSize;
 
         // get the length of the list of all the valuations
         $http.get(globalServerURL + 'valuations/length').success(function(data) {

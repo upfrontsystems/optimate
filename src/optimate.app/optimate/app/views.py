@@ -2624,23 +2624,33 @@ def invoicesview(request):
     qry = DBSession.query(Invoice).order_by(Invoice.ID.desc())
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
+
+    # filter the invoices
+    setLength = False
     if 'InvoiceNumber' in paramkeys:
         qry = qry.filter(Invoice.InvoiceNumber.like(
                                         paramsdict['InvoiceNumber'][0]+'%'))
+        setLength = True
     if 'OrderNumber' in paramkeys:
         qry = qry.filter(Invoice.OrderID.like(paramsdict['OrderNumber'][0]+'%'))
+        setLength = True
     if 'Client' in paramkeys:
         qry = qry.filter_by(ClientID=paramsdict['Client'][0])
+        setLength = True
     if 'Supplier' in paramkeys:
         qry = qry.filter_by(SupplierID=paramsdict['Supplier'][0])
+        setLength = True
     if 'PaymentDate' in paramkeys:
         date = ''.join(paramsdict['PaymentDate'])
         date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
         qry = qry.filter_by(PaymentDate=date)
+        setLength = True
     if 'Status' in paramkeys:
         qry = qry.filter(Invoice.Status.like(paramsdict['Status'][0]+'%'))
+        setLength = True
     if 'Project' in paramkeys:
         qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
+        setLength = True
 
         # if invoices are filtered by project get totals
         for invoice in qry.all():
@@ -2657,11 +2667,16 @@ def invoicesview(request):
 
     for invoice in qry.all():
         invoicelist.append(invoice.dict())
+    # check if the length needs to change
+    length = None
+    if setLength:
+        length = qry.count()
     return {'invoices':invoicelist,
             'amounts': {'total': str(invoicetotal),
                         'paid': str(paidtotal),
                         'received': str(receivedtotal),
-                        'available': str(available)}
+                        'available': str(available)},
+            'length': length
             }
 
 
@@ -2712,6 +2727,12 @@ def invoices_filter(request):
             'clients': sorted(clientslist, key=lambda k: k['Name'].upper()),
             'suppliers': sorted(supplierslist, key=lambda k: k['Name'].upper())}
 
+@view_config(route_name='invoices_length', renderer='json', permission='view')
+def invoices_length(request):
+    """ Returns the number of invoices in the database
+    """
+    rows = DBSession.query(func.count(Invoice.ID)).scalar()
+    return {'length': rows}
 
 @view_config(route_name='invoiceview', renderer='json', permission='view')
 def invoiceview(request):
@@ -3024,6 +3045,15 @@ def claimview(request):
 
     return claim.dict()
 
+
+@view_config(route_name='payments_length', renderer='json', permission='view')
+def payments_length(request):
+    """ Returns the number of claims in the database
+    """
+    rows = DBSession.query(func.count(Claim.ID)).scalar()
+    return {'length': rows}
+
+
 @view_config(route_name='paymentsview', renderer='json', permission='view')
 def paymentsview(request):
     """ The paymentsview returns a list in json format of all the payments
@@ -3033,16 +3063,22 @@ def paymentsview(request):
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
 
+    setLength = False
     if 'Project' in paramkeys:
         qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
+        setLength = True
     if 'Date' in paramkeys:
         date = ''.join(paramsdict['Date'])
         date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
         qry = qry.filter_by(Date=date)
+        setLength = True
 
     for payment in qry:
         paymentslist.append(payment.dict())
-    return paymentslist
+    length = None
+    if setLength:
+        length = qry.count()
+    return {'payments': paymentslist, 'length': length}
 
 
 @view_config(route_name='paymentview', renderer='json', permission='view')

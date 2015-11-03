@@ -12,11 +12,11 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
         $scope.statusList = [{'Status': 'Draft'},
                             {'Status': 'Claimed'},
                             {'Status': 'Paid'}];
-        // Pagination variables and functions
+        // Pagination variables
         $scope.pageSize = 100;
         $scope.currentPage = 1;
         $scope.maxPageSize = 20;
-        $scope.itemListLength = $scope.maxPageSize + 1;
+        $scope.itemListLength = $scope.maxPageSize;
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
