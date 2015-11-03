@@ -29,7 +29,7 @@
                                     {{$select.selected.Name}}
                                 </ui-select-match>
                                 <ui-select-choices
-                                          ui-disable-choice="resource.nothingFound"
+                                          ui-disable-choice="resource.nothingFound == true"
                                           repeat="resource in resourceList"
                                           refresh="refreshResources($select.search)"
                                           refresh-delay="1000">
