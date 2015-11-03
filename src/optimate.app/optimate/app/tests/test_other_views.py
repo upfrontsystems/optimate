@@ -486,7 +486,7 @@ class TestUnitViewSuccessCondition(unittest.TestCase):
         request.matchdict['id'] = 5
         response = self._callFUT(request)
         # the unit is not used so it is deleted
-        self.assertEqual(response['status'], 'remove')
+        self.assertEqual(response.code, 200)
 
     def test_delete_keep(self):
         _registerRoutes(self.config)
@@ -495,7 +495,7 @@ class TestUnitViewSuccessCondition(unittest.TestCase):
         request.matchdict['id'] = 1
         response = self._callFUT(request)
         # the unit is used so it should be kept
-        self.assertEqual(response['status'], 'keep')
+        self.assertEqual(response.code, 409)
 
 class TestCitiesViewSuccessCondition(unittest.TestCase):
     """ Test the citiesview
@@ -552,7 +552,7 @@ class TestCityViewSuccessCondition(unittest.TestCase):
         request.matchdict['id'] = 4
         response = self._callFUT(request)
         # the city is not used so it is deleted
-        self.assertEqual(response['status'], 'remove')
+        self.assertEqual(response.code, 200)
 
     def test_delete_keep(self):
         _registerRoutes(self.config)
@@ -561,7 +561,7 @@ class TestCityViewSuccessCondition(unittest.TestCase):
         request.matchdict['id'] = 1
         response = self._callFUT(request)
         # the city is used so it should be kept
-        self.assertEqual(response['status'], 'keep')
+        self.assertEqual(response.code, 409)
 
     def test_add(self):
         _registerRoutes(self.config)

@@ -430,7 +430,7 @@ class TestOrdersViewSuccessCondition(unittest.TestCase):
         request.params = DummyOrder()
         response = self._callFUT(request)
         # should return one order
-        self.assertEqual(response[1], 1)
+        self.assertEqual(len(response['orders']), 1)
 
 class TestOrdersFilterViewSuccessCondition(unittest.TestCase):
     """ Test if the filter works on orders

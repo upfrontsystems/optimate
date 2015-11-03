@@ -206,7 +206,7 @@ class TestValuationsView(unittest.TestCase):
         response = self._callFUT(request)
         # test if the correct number of valuations are returned
         valuations = DBSession.query(Valuation).all()
-        self.assertEqual(len(response), len(valuations))
+        self.assertEqual(len(response['valuations']), len(valuations))
 
 class TestValuationsLength(unittest.TestCase):
     """ Test the valuations length responds correctly
@@ -394,7 +394,7 @@ class TestClaimsView(unittest.TestCase):
         response = self._callFUT(request)
         # test if the correct number of claims are returned
         claims = DBSession.query(Claim).all()
-        self.assertEqual(len(response), len(claims))
+        self.assertEqual(len(response['claims']), len(claims))
 
     def test_filter(self):
         _registerRoutes(self.config)
@@ -403,7 +403,7 @@ class TestClaimsView(unittest.TestCase):
         response = self._callFUT(request)
         # test if the correct number of claims are returned
         claims = DBSession.query(Claim).filter_by(ProjectID=1).all()
-        self.assertEqual(len(response), len(claims))
+        self.assertEqual(response['length'], len(claims))
 
 class TestClaimView(unittest.TestCase):
     """ Test the claim view responds correctly

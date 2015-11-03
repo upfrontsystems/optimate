@@ -150,12 +150,6 @@ def initdb():
         transaction.commit()
     return DBSession
 
-def _registerRoutes(config):
-    config.add_route('valuationsview', '/valuations')
-    config.add_route('valuationview', '/valuation/{id}/')
-    config.add_route('valuations_length', '/valuations/length')
-    config.add_route('valuations_tree_view', '/valuations/tree/{id}/')
-
 class DummyValuation(object):
     def dict_of_lists(self):
         return {}
@@ -177,7 +171,6 @@ class TestClaimView(unittest.TestCase):
         return claimview(request)
 
     def test_total(self):
-        _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.method = 'GET'
         request.matchdict = {'id': 1}
@@ -211,22 +204,20 @@ class TestPaymentsView(unittest.TestCase):
         return paymentsview(request)
 
     def test_payments(self):
-        _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.params = DummyPayment({})
         response = self._callFUT(request)
         # test if the correct number of payments are returned
         payments = DBSession.query(Payment).all()
-        self.assertEqual(len(response), len(payments))
+        self.assertEqual(len(response['payments']), len(payments))
 
     def test_filter(self):
-        _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.params = DummyPayment({'Project': [1]})
         response = self._callFUT(request)
         # test if the correct number of payments are returned
         payments = DBSession.query(Payment).filter_by(ProjectID=1).all()
-        self.assertEqual(len(response), len(payments))
+        self.assertEqual(response['length'], len(payments))
 
 class TestPaymentView(unittest.TestCase):
     """ Test the payment view responds correctly
@@ -245,7 +236,6 @@ class TestPaymentView(unittest.TestCase):
         return paymentview(request)
 
     def test_delete(self):
-        _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.method = 'DELETE'
         request.matchdict = {'id': 1}
@@ -254,7 +244,6 @@ class TestPaymentView(unittest.TestCase):
         self.assertEqual(response.code, 200)
 
     def test_get(self):
-        _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.method = 'GET'
         request.matchdict = {'id': 1}
@@ -263,7 +252,6 @@ class TestPaymentView(unittest.TestCase):
         self.assertEqual(response['ID'], 1)
 
     def test_post(self):
-        _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.method = 'POST'
         request.matchdict = {'id': 0}
@@ -276,7 +264,6 @@ class TestPaymentView(unittest.TestCase):
         self.assertEqual(response['Project'], 'Project 1')
 
     def test_put(self):
-        _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.method = 'PUT'
         request.matchdict = {'id': 1}

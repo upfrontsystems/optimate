@@ -2215,14 +2215,18 @@ def valuationsview(request):
     qry = DBSession.query(Valuation).order_by(Valuation.ID.desc())
 
     # filter by filters
+    setLength = False
     if 'Project' in paramkeys:
         qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
+        setLength = True
     if 'Date' in paramkeys:
         date = ''.join(paramsdict['Date'])
         date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
         qry = qry.filter_by(Date=date)
+        setLength = True
     if 'Status' in paramkeys:
         qry = qry.filter_by(Status=paramsdict['Status'][0])
+        setLength = True
 
     # cut the section
     if 'start' not in paramkeys:
@@ -2235,7 +2239,10 @@ def valuationsview(request):
     valuationlist = []
     for valuation in section:
         valuationlist.append(valuation.dict())
-    return valuationlist
+    length = None
+    if setLength:
+        length = section.count()
+    return {'valuations': valuationlist, 'length': length}
 
 
 @view_config(route_name='valuations_filter', renderer='json', permission='view')
