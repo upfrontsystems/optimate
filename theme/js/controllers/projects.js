@@ -684,7 +684,8 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
         };
 
         // search for the resources in the node's category that match the search term
-        $scope.refreshResources = function(searchterm) {
+        $scope.refreshResources = function($search) {
+            var searchterm = $search.search;
             if ($scope.currentNode && searchterm) {
                 var req = {
                     method: 'GET',
@@ -692,10 +693,11 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                     params: {'search': searchterm}
                 };
                 $http(req).success(function(response) {
-                    // if we are adding a budget item, insert add option
+                    // for budget types add the search term as
+                    // the current selected item
                     if ($scope.currentNode.NodeType.indexOf('Budget') > -1){
-                        response.unshift({'Name': searchterm,
-                                    'nothingFound': 'add'})
+                        $search.selected = $scope.tagTransform(searchterm);
+                        $scope.resourceSelected($search.selected, undefined);
                     }
                     // if nothing has been found, add a non-selectable option
                     else if (response.length == 0){
@@ -709,13 +711,11 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
 
         $scope.resourceSelected = function(item, nodetype) {
             if (nodetype != 'ResourcePart'){
-                var $addBudgetItem = $('#addBudgetItem');
                 if (item.ID == undefined) {
                     $scope.addBudgetItemForm.has_selection = false;
                     $scope.formData.NodeType = 'SimpleBudgetItem';
                     $scope.formData.Name = item.Name;
                     $scope.formData.ResourceName = item.Name;
-                    $addBudgetItem.find('#description').focus();
                 }
                 else {
                     $scope.addBudgetItemForm.has_selection = true;
@@ -724,7 +724,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                     $scope.formData.ResourceTypeID = item.ResourceTypeID;
                     $scope.formData.NodeType = 'BudgetItem';
                     $scope.formData.Name = item.Name;
-                    $addBudgetItem.find('#inputQuantity').focus();
                 }
             }
         };

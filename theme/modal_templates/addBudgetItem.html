@@ -29,9 +29,9 @@
                                     {{$select.selected.Name}}
                                 </ui-select-match>
                                 <ui-select-choices
-                                          ui-disable-choice="resource.nothingFound == true"
+                                          ui-disable-choice="resource.nothingFound"
                                           repeat="resource in resourceList"
-                                          refresh="refreshResources($select.search)"
+                                          refresh="refreshResources($select)"
                                           refresh-delay="1000">
                                     <div ng-bind-html="resource.Name | highlight: $select.search"></div>
                                 </ui-select-choices>
