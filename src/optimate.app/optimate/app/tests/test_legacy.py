@@ -481,7 +481,7 @@ class DummyRouteName(object):
     def __init__ (self, name):
         self.name = name
 
-class DummyBudgetItemRequest(object):
+class DummyParamsRequest(object):
     def dict_of_lists(self):
         return {}
 
@@ -557,7 +557,7 @@ class TestNodeBudgetItemsViewSuccessCondition(unittest.TestCase):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.matchdict['id'] = 4
-        request.params = DummyBudgetItemRequest()
+        request.params = DummyParamsRequest()
         response = self._callFUT(request)
 
         # should return two budgetitems
@@ -567,7 +567,7 @@ class TestNodeBudgetItemsViewSuccessCondition(unittest.TestCase):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.matchdict['id'] = 22
-        request.params = DummyBudgetItemRequest()
+        request.params = DummyParamsRequest()
         response = self._callFUT(request)
 
         # should return one budgetitem
@@ -877,6 +877,7 @@ class TestProjectListingSuccessCondition(unittest.TestCase):
     def test_it(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
+        request.params = DummyParamsRequest()
         response = self._callFUT(request)
 
         # assert returns true if the projects are returned in the correct order

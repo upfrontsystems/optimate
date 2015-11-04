@@ -2241,7 +2241,7 @@ def valuationsview(request):
         valuationlist.append(valuation.dict())
     length = None
     if setLength:
-        length = section.count()
+        length = qry.count()
     return {'valuations': valuationlist, 'length': length}
 
 
@@ -2672,12 +2672,23 @@ def invoicesview(request):
             receivedtotal+=payment.Amount
         available = receivedtotal - paidtotal
 
-    for invoice in qry.all():
-        invoicelist.append(invoice.dict())
     # check if the length needs to change
     length = None
     if setLength:
         length = qry.count()
+
+    # cut the section
+    if 'start' not in paramkeys:
+        start = 0
+        end = -1
+    else:
+        start = int(paramsdict['start'][0])
+        end = int(paramsdict['end'][0])
+    section = qry.slice(start,end).all()
+    invoicelist = []
+    for item in section:
+        invoicelist.append(item.dict())
+
     return {'invoices':invoicelist,
             'amounts': {'total': str(invoicetotal),
                         'paid': str(paidtotal),
@@ -2931,12 +2942,22 @@ def claimsview(request):
         setLength = True
         qry =qry.filter_by(Status=paramsdict['Status'][0])
 
-    for claim in qry:
-        claimslist.append(claim.dict())
     # check if the length needs to change
     length = None
     if setLength:
         length = qry.count()
+
+    # cut the section
+    if 'start' not in paramkeys:
+        start = 0
+        end = -1
+    else:
+        start = int(paramsdict['start'][0])
+        end = int(paramsdict['end'][0])
+    section = qry.slice(start,end).all()
+    for item in section:
+        claimslist.append(item.dict())
+
     return {'claims': claimslist, 'length': length}
 
 
@@ -3080,11 +3101,22 @@ def paymentsview(request):
         qry = qry.filter_by(Date=date)
         setLength = True
 
-    for payment in qry:
-        paymentslist.append(payment.dict())
+    # check if the length needs to change
     length = None
     if setLength:
         length = qry.count()
+
+    # cut the section
+    if 'start' not in paramkeys:
+        start = 0
+        end = -1
+    else:
+        start = int(paramsdict['start'][0])
+        end = int(paramsdict['end'][0])
+    section = qry.slice(start,end).all()
+    for item in section:
+        paymentslist.append(item.dict())
+
     return {'payments': paymentslist, 'length': length}
 
 

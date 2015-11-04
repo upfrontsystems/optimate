@@ -42,11 +42,12 @@ myApp.controller('paymentsController', ['$scope', '$http', 'globalServerURL', 'S
         $scope.clearFilters();
 
         $scope.loadPaymentSection = function() {
+            $scope.filters.start = ($scope.currentPage-1)*$scope.pageSize;
+            $scope.filters.end = $scope.filters.start + $scope.pageSize;
             var req = {
                 method: 'GET',
                 url: globalServerURL + 'payments',
-                params: {'Project': $scope.filters.Project,
-                        'Date': $scope.filters.Date}
+                params: $scope.filters
             };
             $http(req).success(function(response) {
                 $scope.jsonpayments = response['payments'];

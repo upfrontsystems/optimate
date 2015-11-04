@@ -64,6 +64,8 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
         $scope.clearFilters();
 
         $scope.loadInvoiceSection = function() {
+            $scope.filters.start = ($scope.currentPage-1)*$scope.pageSize;
+            $scope.filters.end = $scope.filters.start + $scope.pageSize;
             var req = {
                 method: 'GET',
                 url: globalServerURL + 'invoices',

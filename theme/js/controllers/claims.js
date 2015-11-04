@@ -52,6 +52,8 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
         $scope.clearFilters();
 
         $scope.loadClaimSection = function() {
+            $scope.filters.start = ($scope.currentPage-1)*$scope.pageSize;
+            $scope.filters.end = $scope.filters.start + $scope.pageSize;
             var req = {
                 method: 'GET',
                 url: globalServerURL + 'claims',
