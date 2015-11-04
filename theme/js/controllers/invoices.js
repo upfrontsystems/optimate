@@ -132,13 +132,12 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
                     params: {'OrderNumber': searchterm}
                 };
                 $http(req).success(function(response) {
-                    response.pop();
+                    $scope.ordersList = response['orders'];
                     // if nothing has been found, add a non-selectable option
-                    if (response.length == 0){
-                        response.push({'ID': 'No match found',
+                    if ($scope.ordersList.length == 0){
+                        $scope.ordersList.push({'ID': 'No match found',
                                         'nothingFound': true})
                     }
-                    $scope.ordersList = response;
                 });
             }
         };

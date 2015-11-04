@@ -1989,8 +1989,12 @@ class Valuation(Base):
     def Status(cls):
         """ Expression to filter Valuation by Status
         """
-        return case([(select([Claim.Status]).where(cls.ID == Claim.ValuationID).as_scalar() == None, 'Draft')],
-                    else_=select([Claim.Status]).where(cls.ID == Claim.ValuationID).as_scalar()).label('Status')
+        return case([(select([Claim.Status]).where(
+                                        cls.ID == Claim.ValuationID
+                                        ).as_scalar() == None, 'Draft')],
+                    else_=select([Claim.Status]).where(
+                                        cls.ID == Claim.ValuationID
+                                        ).as_scalar()).label('Status')
 
     @property
     def TotalPercentage(self):

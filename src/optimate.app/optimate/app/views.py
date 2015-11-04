@@ -707,6 +707,7 @@ def projects(request):
     projects = []
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
+
     # if only selected projects are required
     if 'open_projects' in paramkeys:
         open_projects = paramsdict['open_projects']

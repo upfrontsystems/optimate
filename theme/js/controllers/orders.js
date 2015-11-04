@@ -172,7 +172,6 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
 
         // add a new order to the list and sort
         $scope.handleNew = function(neworder) {
-            console.log($scope.filters == true);
             // reload the list if filters are applied
             if ($scope.filters){
                 $scope.loadOrderSection();
