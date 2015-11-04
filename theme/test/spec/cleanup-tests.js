@@ -68,6 +68,12 @@ describe('Clean up tests', function () {
         element(by.css('div.modal:nth-child(4) > div:nth-child(1) > div:nth-child(1)')).element(by.buttonText('Delete')).click();
     });
 
+    it('should delete the added user', function(){
+        browser.get('http://127.0.0.1:8000/#/users');
+
+        deleteResult('TestUser');
+    });
+
     it('should delete the added project', function () {
         browser.get('http://127.0.0.1:8000/#/projects');
         // select the project
@@ -105,11 +111,5 @@ describe('Clean up tests', function () {
         browser.get('http://127.0.0.1:8000/#/units');
 
         deleteResult('TestUnit');
-    });
-
-    it('should delete the added user', function(){
-        browser.get('http://127.0.0.1:8000/#/users');
-
-        deleteResult('TestUser');
     });
 });

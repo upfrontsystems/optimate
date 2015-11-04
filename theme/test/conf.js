@@ -3,7 +3,6 @@ exports.config = {
   seleniumAddress: 'http://localhost:4444/wd/hub',
   specs: [
         'spec/login-test.js',
-        'spec/company-info-test.js',
         'spec/units-test.js',
         'spec/cities-test.js',
         'spec/clients-test.js',
@@ -15,6 +14,7 @@ exports.config = {
         'spec/claims-test.js',
         'spec/payments-test.js',
         'spec/users-test.js',
+        'spec/company-info-test.js',
         'spec/cleanup-tests.js'
         ],
   capabilities: {

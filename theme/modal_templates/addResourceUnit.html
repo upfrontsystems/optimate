@@ -15,7 +15,7 @@
                                class="col-sm-7"
                                id="inputName"
                                name="inputName"
-                               data-ng-model="formData['Name']"
+                               data-ng-model="formData.Name"
                                required
                                autofocus>
                     </div>
@@ -24,7 +24,7 @@
                         <textarea id="inputDescription"
                                   class="col-sm-7"
                                   name="inputDescription"
-                                  ng-model="formData['Description']"
+                                  ng-model="formData.Description"
                                   rows="5" cols="40">
                         </textarea>
                     </div>
@@ -33,7 +33,7 @@
                         <select chosen="{width: '59%'}"
                                 id="inputUnit"
                                 name="inputUnit"
-                                data-ng-model="formData['UnitID']"
+                                data-ng-model="formData.UnitID"
                                 data-ng-options="unit.ID as unit.Name for unit in unitList"
                                 required>
                             <option value="">Select a unit</option>
@@ -44,7 +44,7 @@
                         <select chosen="{width: '59%'}"
                                 id="inputType"
                                 name="inputType"
-                                data-ng-model="formData['ResourceTypeID']"
+                                data-ng-model="formData.ResourceTypeID"
                                 data-ng-options="type.ID as type.Name for type in restypeList"
                                 required>
                             <option value="">Select a type</option>
@@ -55,7 +55,7 @@
                         <select chosen="{width: '59%'}"
                                 id="inputSupplier"
                                 name="inputSupplier"
-                                data-ng-model="formData['Supplier']"
+                                data-ng-model="formData.Supplier"
                                 data-ng-options="supplier.ID as supplier.Name for supplier in supplierList">
                             <option value="">Select a supplier</option>
                         </select>
