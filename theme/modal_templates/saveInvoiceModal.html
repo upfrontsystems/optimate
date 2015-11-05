@@ -23,7 +23,7 @@
                                     name="inputOrderNumber"
                                     on-select="orderSelected($item)"
                                     theme="bootstrap"
-                                    ng-disabled="disabled"
+                                    ng-disabled="modalState == 'Edit'"
                                     reset-search-input="true"
                                     class="col-sm-7"
                                     required>

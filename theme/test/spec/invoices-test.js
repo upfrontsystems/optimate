@@ -49,6 +49,7 @@ describe('Invoices page', function() {
         element.all(by.css('.ui-select-choices-row-inner span')).first().click();
 
         addInvoiceModal.element(by.model('formData.Amount')).clear().sendKeys('80');
+        addInvoiceModal.element(by.model('formData.VAT')).clear().sendKeys('20');
 
         addInvoiceModal.element(by.buttonText('Save')).click();
         browser.waitForAngular();
@@ -56,5 +57,27 @@ describe('Invoices page', function() {
        element(by.repeater('obj in jsoninvoices').row(0).column('obj.InvoiceNumber')).getText().then(function(name){
             expect(name).toBe('A10000');
        });
+    });
+
+    it('should edit an invoice', function(){
+        element(by.repeater('obj in jsoninvoices').row(0)).click();
+        element(by.css('nav ul li a i.fa-pencil')).click();
+
+        var addInvoiceModal = element(by.id('saveInvoiceModal'));
+        expect(addInvoiceModal.isDisplayed()).toBe(true);
+
+        addInvoiceModal.element(by.css('#amountsTable > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(3) > td:nth-child(2)')
+            ).getText().then(function(total){
+                expect(total).toBe('R100.00');
+        });
+
+        addInvoiceModal.element(by.model('formData.Amount')).clear().sendKeys('50');
+
+        addInvoiceModal.element(by.css('#amountsTable > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(3) > td:nth-child(2)')
+            ).getText().then(function(total){
+                expect(total).toBe('R70.00');
+        });
+
+        addInvoiceModal.element(by.buttonText('Update')).click();
     });
 });
