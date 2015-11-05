@@ -16,14 +16,9 @@ myApp.controller('usersController', ['$scope', '$http', '$modal', 'globalServerU
             $http({
                 method: 'GET',
                 url: globalServerURL + 'users',
-            }).then(
-                function(response) {
-                    $scope.users = response.data;
-                },
-                function() {
-                    alert('Error while fetching user list');
-                }
-            );
+            }).success(function(response) {
+                $scope.users = response;
+            });
         })();
 
         $scope.selectedUser = null;
@@ -153,14 +148,9 @@ myApp.controller('usersController', ['$scope', '$http', '$modal', 'globalServerU
             $http({
                 method: "DELETE",
                 url: globalServerURL + 'users/' + user.username
-            }).then(
-                function() {
-                    $scope.repopulate();
-                },
-                function() {
-                    alert('Error deleting user');
-                }
-            );
+            }).success(function() {
+                $scope.repopulate();
+            });
         };
 
         $scope.toggleEdit = function(item){
