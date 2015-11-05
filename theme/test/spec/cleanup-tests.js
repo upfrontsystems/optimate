@@ -77,6 +77,11 @@ describe('Clean up tests', function () {
     it('should delete the added project', function () {
         browser.get('http://127.0.0.1:8000/#/projects');
         // select the project
+        element(by.css('nav ul li a i.fa-folder-open')).click();
+        browser.switchTo().activeElement().sendKeys('TestProject');
+        element.all(by.css('.ac-select-list ul li')).then(function(items) {
+          items[0].click();
+        });
         element(by.id('left')).element(by.buttonText('TestProject')).click();
         expect(element(by.css('nav ul li a i.fa-trash')).isDisplayed()).toBe(true);
         element(by.css('nav ul li a i.fa-trash')).click();

@@ -663,7 +663,7 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                                 cssClass: "cell non-editable-column",
                                 formatter: CurrencyFormatter}
                 vat_column = {id: "VAT", field: "VAT",
-                                name: "<i class='fa fa-square-o fa-lg'></i>",
+                                name: "<i class='fa fa-check-square-o fa-lg'></i>",
                                 maxWidth: 20,
                                 toolTip: "VAT on/off for all",
                                 cssClass: "slick-cell-checkboxsel",

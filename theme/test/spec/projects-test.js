@@ -293,7 +293,7 @@ describe('Projects Page', function () {
         // check the total has updated
         element(by.css('div.ui-widget-content:nth-child(2) > div:nth-child(4)')).getText().then(function(txt){
             expect(txt).toBe('R28.40');
-        })
+        });
     });
 
     // add a budget group
