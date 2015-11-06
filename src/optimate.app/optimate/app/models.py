@@ -1997,37 +1997,41 @@ class Valuation(Base):
                                         ).as_scalar()).label('Status')
 
     @property
-    def TotalPercentage(self):
-        if self.Project.Total == 0:
-            return 0.0
-        totalp = (self.Total/self.Project.Total)*100
-        return '{:20,.2f}'.format(float(totalp)).strip()
-
-    @property
     def Total(self):
         total = 0
-        for valuationitem in self.ValuationItems:
-            total += valuationitem.Total
+        for item in self.ValuationItems:
+            bgtotal = 0
+            if item.BudgetGroupTotal:
+                bgtotal = float(item.BudgetGroupTotal)
+            perc = 0
+            if item.PercentageComplete:
+                perc = item.PercentageComplete/100
+            total += bgtotal * perc
         return Decimal(total).quantize(Decimal('.01'))
 
     def dict(self):
         """ Override the dict function
         """
+        date = ''
+        readable_date = ''
         if self.Date:
             date = self.Date.isoformat()
             date = date + '.000Z'
             readable_date = self.Date.strftime("%d %B %Y")
-        else:
-            date = ''
-            readable_date = ''
+
+        total = self.Total
+        percentage = self.Project.Total
+        if percentage > 0:
+            percentage = (total/percentage)*100
+            percentage = '{:20,.2f}'.format(float(percentage)).strip()
 
         return {'ID': self.ID,
                 'id': self.ID,
                 'Project': self.Project.Name,
                 'Date': date,
                 'ReadableDate': readable_date,
-                'PercentageClaimed': self.TotalPercentage,
-                'AmountClaimed': str(self.Total),
+                'PercentageClaimed': percentage,
+                'AmountClaimed': str(total),
                 'Status': self.Status}
 
     def __repr__(self):

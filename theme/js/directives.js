@@ -1301,8 +1301,8 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                         var ids = dataView.mapRowsToIds(grid.getSelectedRows());
                         for (var i in ids){
                             var node = dataView.getItemById(ids[i]);
-                            // if any of the nodes are level 2, cant select
-                            if (node.level == '2'){
+                            // can only select level 1 budgetgroups
+                            if (node.level != '1'){
                                 selectable = false;
                                 break;
                             }

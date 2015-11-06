@@ -526,6 +526,28 @@ describe('Projects Page', function () {
         });
     });
 
+    it('should cut and paste a budget group', function(){
+        element(by.buttonText('TestBudgetGroup')).click();
+        // cut the budget group
+        expect(element(by.css('nav ul li a i.fa-cut')).isDisplayed()).toBe(true);
+        element(by.css('nav ul li a i.fa-cut')).click();
+        // expand the other project
+        element(by.id('left')).element(by.buttonText('TestProject')
+            ).element(by.xpath('..')).element(by.css('input.collapsed')).click();
+        // click the budget group
+        element(by.id('left')).element(by.buttonText('TestProject')
+            ).element(by.xpath('..')
+            ).element(by.xpath('..')
+            ).element(by.buttonText('TestBudgetGroup')).click();
+        expect(element(by.css('nav ul li i.fa-clipboard')).isDisplayed()).toBe(true);
+        element(by.css('nav ul li i.fa-clipboard')).click();
+
+        // check the budgetgroup pasted
+        element.all(by.buttonText('TestBudgetGroup')).then(function(bgs){
+            console.log(bgs.length);
+        })
+    });
+
     // delete a project
     it('should delete a project', function () {
         // select the project

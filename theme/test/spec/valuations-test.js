@@ -36,4 +36,33 @@ describe('Valuations page', function() {
             expect(name).toBe(projectname);
         });
     });
+
+    it('should edit a valuation', function(){
+        element(by.repeater('obj in jsonvaluations').row(0)).click();
+        expect(element(by.css('nav ul li a i.fa-pencil')).isDisplayed()).toBe(true);
+        element(by.css('nav ul li a i.fa-pencil')).click();
+
+        var addValuationModal = element(by.id('saveValuationModal'));
+        expect(addValuationModal.isDisplayed()).toBe(true);
+
+        // expand a budgetgroup
+        addValuationModal.element(by.css('div.slick-cell.l0.r0')).click();
+        expect(addValuationModal.element(
+            by.css('i.fa-caret-square-o-down')
+            ).isDisplayed()).toBe(true);
+        addValuationModal.element(by.css('i.fa-caret-square-o-down')).click();
+        // edit the budget total
+        addValuationModal.element(by.css('div:nth-child(2) > div.slick-cell.l1.r1.cell.editable-column')).click();
+        addValuationModal.element(by.css('.editor-text')).sendKeys(1000);
+        addValuationModal.element(by.css('div:nth-child(2) > div.slick-cell.l2.r2.cell.editable-column')).click();
+        addValuationModal.element(by.css('.editor-text')).sendKeys(95);
+        addValuationModal.element(by.css('div.ui-widget-content:nth-child(4) > div:nth-child(4)')).click();
+        addValuationModal.element(by.buttonText('Update')).click();
+
+        // check the total has changed
+        element(by.repeater('obj in jsonvaluations').row(0).column('obj.AmountClaimed')
+            ).getText().then(function(amount){
+            expect(amount).toBe('R950.00');
+        });
+    });
 });

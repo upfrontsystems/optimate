@@ -297,7 +297,7 @@ def additemview(request):
         if resource.type == 'ResourceUnit':
             expandBudgetItem(newnode.ID, resource)
         # set the node's quantity
-        # this will set it's total and the quantity of any children it may have
+        # this will set its total and the quantity of any children it may have
         newnode.Quantity=quantity
 
         # if the parent is already approved, the budgetitem is a variation
@@ -599,7 +599,7 @@ def node_budgetitems(request):
 
 @view_config(route_name="node_budgetgroups", renderer='json', permission='view')
 def node_budgetgroups(request):
-    """ Returns a list of the first level budget groups in a node
+    """ Returns a list of the valuation budget groups in a node
     """
     proj_id = request.matchdict['id']
     itemlist = []
@@ -622,7 +622,13 @@ def node_budgetgroups(request):
                 childrenlist.append(data)
             # get data and append parents valuation items to parent list
             else:
-                data = bg.valuation()
+                # check if the bg has child budget groups
+                level = '1'
+                children = DBSession.query(BudgetGroup
+                                        ).filter_by(ParentID=bg.ID).first()
+                if not children:
+                    level = '0'
+                data = bg.valuation(level)
                 if len(item.Children) > 0:
                     data['expanded'] = True
                 data['AmountComplete'] = str(item.Total)
@@ -644,7 +650,12 @@ def node_budgetgroups(request):
         # add the project's budgetgroup children to the list
         bgs = DBSession.query(BudgetGroup).filter_by(ParentID=proj_id).all()
         for child in bgs:
-            itemlist.append(child.valuation())
+            level = '1'
+            children = DBSession.query(BudgetGroup
+                                    ).filter_by(ParentID=child.ID).first()
+            if not children:
+                level = '0'
+            itemlist.append(child.valuation(level))
         itemlist = sorted(itemlist, key=lambda k: k['Name'].upper())
 
     return itemlist
@@ -665,9 +676,7 @@ def node_expand_budgetgroup(request):
     parentnode = DBSession.query(BudgetGroup).filter_by(ID=bg_id).first()
     parent = parentnode.valuation()
     if not bgroups:
-        parent['expanded'] = True
-        parent['PercentageComplete'] = None
-        return parent
+        return [parent]
 
     children = []
     for bg in bgroups:
@@ -774,7 +783,7 @@ def project_resources(request):
         elif currentnode.type == 'ResourceUnit':
             # add it to the excluded nodes
             excludedlist.append(currentnode)
-            # and go through all it's resource parts and add their parents
+            # and go through all its resource parts and add their parents
             for part in currentnode.ResourceParts:
                 excludedlist.append(part.Parent)
             # add all the children
@@ -865,7 +874,8 @@ def overheadsview(request):
         # if the type is specified, filter by it
         if 'NodeType' in paramkeys:
             overheads = DBSession.query(
-                    Overhead).filter_by(ProjectID=projectid, Type=paramsdict['NodeType'][0]).all()
+                    Overhead).filter_by(ProjectID=projectid,
+                                        Type=paramsdict['NodeType'][0]).all()
         else:
             overheads = DBSession.query(
                     Overhead).filter_by(ProjectID=projectid).all()
@@ -1206,7 +1216,7 @@ def node_paste(request):
             # the category had already existed, so don't return an id
             pasted_id = None
         transaction.commit()
-    # check the node isnt being pasted into it's parent
+    # check the node isnt being pasted into its parent
     elif destinationid != source.ParentID:
         if source.type == 'Resource' or source.type == 'ResourceUnit':
             # check the resource is not being duplicated
@@ -2319,10 +2329,19 @@ def valuationview(request):
             bgid = budgetgroup['ID']
             level = budgetgroup['level']
             total = budgetgroup.get('TotalBudget', None)
+
             if total is not None:
                 total = Decimal(total).quantize(Decimal('01'))
             bg = DBSession.query(BudgetGroup).filter_by(ID=bgid).first()
-            if level == '1':
+            # add a second level valuation item using the parent id
+            # that was generated previously
+            if level == '2':
+                DBSession.add(ValuationItem(ValuationID=newid,
+                                            ParentID=parentid,
+                                            BudgetGroupID=bgid,
+                                            BudgetGroupTotal=total,
+                                            PercentageComplete=p_complete))
+            else:
                 newitem = ValuationItem(ValuationID=newid,
                                         ParentID=0,
                                         BudgetGroupID=bgid,
@@ -2331,14 +2350,6 @@ def valuationview(request):
                 DBSession.add(newitem)
                 DBSession.flush()
                 parentid = newitem.ID
-            # add a second level valuation item using the parent id
-            # that was generated previously
-            elif level == '2':
-                DBSession.add(ValuationItem(ValuationID=newid,
-                                            ParentID=parentid,
-                                            BudgetGroupID=bgid,
-                                            BudgetGroupTotal=total,
-                                            PercentageComplete=p_complete))
 
         # add the valuation markups
         markuplist = request.json_body.get('ValuationMarkups', [])
@@ -2372,13 +2383,13 @@ def valuationview(request):
 
         valuation.ProjectID = proj
         valuation.Date = date
-        # get a list of id's used in the valuationitems
+        # get a list of ids used in the valuationitems
         iddict = {}
         for valuationitem in valuation.ValuationItems:
             iddict[valuationitem.BudgetGroupID] = valuationitem.ID
         # get the list of budget groups used in the slickgrid
         budgetgrouplist = request.json_body.get('BudgetGroupList', [])
-        # iterate through the new id's and add any new valuations
+        # iterate through the new ids and add any new valuations
         # remove the id from the list if it is there already
         for budgetgroup in budgetgrouplist:
             p_complete = budgetgroup.get('PercentageComplete', None)
@@ -2389,14 +2400,7 @@ def valuationview(request):
                 total = Decimal(total).quantize(Decimal('01'))
             if budgetgroup['ID'] not in iddict.keys():
                 # add the new valuation item
-                if budgetgroup['level'] == '1':
-                    DBSession.add(ValuationItem(ValuationID=vid,
-                                            ParentID=0,
-                                            BudgetGroupID=budgetgroup['ID'],
-                                            BudgetGroupTotal=total,
-                                            PercentageComplete=p_complete))
-                    DBSession.flush()
-                else:
+                if budgetgroup['level'] == '2':
                     # find the parent of the second level valuation item
                     parent = DBSession.query(ValuationItem).filter_by(
                                 ValuationID=vid,
@@ -2406,6 +2410,13 @@ def valuationview(request):
                                             BudgetGroupID=budgetgroup['ID'],
                                             BudgetGroupTotal=total,
                                             PercentageComplete=p_complete))
+                else:
+                    DBSession.add(ValuationItem(ValuationID=vid,
+                                            ParentID=0,
+                                            BudgetGroupID=budgetgroup['ID'],
+                                            BudgetGroupTotal=total,
+                                            PercentageComplete=p_complete))
+                    DBSession.flush()
             else:
                 # otherwise remove the id from the list and update the
                 # percentage complete & total
@@ -2423,9 +2434,17 @@ def valuationview(request):
         # go through the markups and update the percentages
         markuplist = request.json_body.get('ValuationMarkups', [])
         for markup in markuplist:
-            valuationmarkup = DBSession.query(ValuationMarkup
+            complete = float(markup.get('PercentageComplete', 0))
+            vmarkup = DBSession.query(ValuationMarkup
                                             ).filter_by(ID=markup['ID']).first()
-            valuationmarkup.PercentageComplete = float(markup['PercentageComplete'])
+            if not vmarkup:
+                overheadid = markup['ID']
+                budgettotal = markup['TotalBudget']
+                DBSession.add(ValuationMarkup(ValuationID=vid,
+                                        OverheadID=overheadid,
+                                        PercentageComplete=complete))
+            else:
+                vmarkup.PercentageComplete = complete
         transaction.commit()
         # return the edited valuation
         valuation = DBSession.query(Valuation).filter_by(ID=vid).first()
@@ -2462,6 +2481,11 @@ def valuationview(request):
             data = bg.valuation()
             if len(item.Children) > 0:
                 data['expanded'] = True
+            else:
+                children = DBSession.query(BudgetGroup
+                                        ).filter_by(ParentID=bg.ID).first()
+                if not children:
+                    data['level'] = '0'
             data['AmountComplete'] = str(item.Total)
             data['PercentageComplete'] = item.PercentageComplete
             totalbudget = item.BudgetGroupTotal
@@ -2483,10 +2507,26 @@ def valuationview(request):
 
     # get a list of valuation markups
     markuplist = []
+    existing_overheads = []
     for markup in valuation.MarkupList:
+        existing_overheads.append(markup.OverheadID)
         data = markup.dict()
         data['AmountComplete'] = float(data['TotalBudget'])*(markup.PercentageComplete/100)
         markuplist.append(data)
+    # add any project markups that are not in the list
+    extras = DBSession.query(Overhead).filter_by(ProjectID=valuation.ProjectID,
+                                                    Type='Project').all()
+
+    for overhead in extras:
+        if overhead.ID not in existing_overheads:
+            data = overhead.dict()
+            data['TotalBudget'] = data['Amount']
+            data['PercentageComplete'] = 0
+            data['ValuationID'] = valuation.ID
+            data['NodeType'] = 'ValuationMarkup'
+            markuplist.append(data)
+    markuplist = sorted(markuplist, key=lambda k: k['Name'].upper())
+
     return {'ID': valuation.ID,
             'ProjectID': valuation.ProjectID,
             'BudgetGroupList': itemlist,

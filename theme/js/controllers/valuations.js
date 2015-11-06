@@ -273,7 +273,6 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
                 // on the last loop reload the slickgrid and node
                 if (index == rows.length-1) {
                     // on the last loop reload the slickgrid and node
-                    // $scope.setSelectedRows();
                     $scope.toggleRowsSelected(true, true);
                     $scope.handleReloadValuationSlickgrid();
                 }
