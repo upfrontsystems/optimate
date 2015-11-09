@@ -587,7 +587,8 @@ def node_budgetitems(request):
     if 'supplier' in paramkeys:
         supid = int(paramsdict['supplier'][0])
         budgetitemslist = [
-                x for x in budgetitemslist if x.Resource.SupplierID == supid]
+                x for x in budgetitemslist if (x.Resource and
+                                            x.Resource.SupplierID == supid)]
 
     itemlist = []
     for bi in budgetitemslist:

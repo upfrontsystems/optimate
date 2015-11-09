@@ -37,4 +37,17 @@ describe('Claims page', function() {
             expect(name).toBe(projectname);
        });
     });
+
+    it('should submit a claim', function(){
+        // click the claim that was added
+        element(by.repeater('obj in jsonclaims').row(0)).click();
+        expect(element(by.css('nav ul li a i.fa-arrow-right')).isDisplayed()).toBe(true);
+        element(by.css('nav ul li a i.fa-arrow-right')).click();
+
+        // check the claim status has changed
+        element(by.repeater('obj in jsonclaims').row(0).column('obj.Status')
+            ).getText().then(function(status){
+                expect(status).toBe('Claimed');
+        });
+    });
 });
