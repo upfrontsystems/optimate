@@ -1156,7 +1156,12 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                         parts.push('00');
                     }
                     else if (parts.length > 1) {
-                        parts[parts.length-1] = parts[parts.length-1].slice(0,2);
+                        if(parts[parts.length-1].length == 1){
+                            parts[parts.length-1]+='0';
+                        }
+                        else{
+                            parts[parts.length-1] = parts[parts.length-1].slice(0,2);
+                        }
                     }
                     return $scope.currency + parts.join(".");
                 }

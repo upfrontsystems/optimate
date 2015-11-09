@@ -56,13 +56,16 @@ describe('Valuations page', function() {
         addValuationModal.element(by.css('.editor-text')).sendKeys(1000);
         addValuationModal.element(by.css('div:nth-child(2) > div.slick-cell.l2.r2.cell.editable-column')).click();
         addValuationModal.element(by.css('.editor-text')).sendKeys(95);
-        addValuationModal.element(by.css('div.ui-widget-content:nth-child(4) > div:nth-child(4)')).click();
+        addValuationModal.element(by.css('div.ui-widget-content:nth-child(4) > div:nth-child(2)')).click();
+        addValuationModal.element(by.css('.editor-text')).sendKeys(100);
+        addValuationModal.element(by.css('div.ui-widget-content:nth-child(4) > div:nth-child(3)')).click();
+        addValuationModal.element(by.css('.editor-text')).sendKeys(20);
+        addValuationModal.element(by.css('div.ui-widget-content:nth-child(4) > div:nth-child(1)')).click();
         addValuationModal.element(by.buttonText('Update')).click();
-
         // check the total has changed
         element(by.repeater('obj in jsonvaluations').row(0).column('obj.AmountClaimed')
             ).getText().then(function(amount){
-            expect(amount).toBe('R950.00');
+            expect(amount).toBe('R970.00');
         });
     });
 });

@@ -63,7 +63,7 @@ describe('Projects Page', function () {
     });
 
     // edit markups
-    it('add, edit and delete a project markups', function () {
+    it('add, edit and delete markups', function () {
         // select the project
         element(by.id('left')).element(by.buttonText('TestProject')).click();
         expect(element(by.css('nav ul li a i.fa-money')).isDisplayed()).toBe(true);
@@ -91,6 +91,26 @@ describe('Projects Page', function () {
         // delete the markup
         expect(overheadModal.element(by.css('td button i.fa-trash')).isDisplayed()).toBe(true);
         overheadModal.element(by.css('td button i.fa-trash')).click();
+
+        overheadModal.element(by.buttonText('Done')).click();
+    });
+
+    // add a project markup
+    it('add a project markup', function () {
+        // select the project
+        element(by.id('left')).element(by.buttonText('TestProject')).click();
+        expect(element(by.css('nav ul li a i.fa-money')).isDisplayed()).toBe(true);
+        element(by.css('nav ul li a i.fa-money')).click();
+
+        // check the overhead modal
+        var overheadModal = element(by.id('editOverheads'));
+        expect(overheadModal.isDisplayed()).toBe(true);
+
+        // add a markup
+        overheadModal.element(by.model('newOverhead.Name')).sendKeys('TestProjectOverhead');
+        overheadModal.element(by.model('newOverhead.Percentage')).sendKeys('10.09');
+        overheadModal.element(by.css('.table > tbody:nth-child(2) > tr:nth-child(2) > td:nth-child(3) > label:nth-child(1) > input:nth-child(1)')).click();
+        overheadModal.element(by.css('td button i.fa-plus')).click();
 
         overheadModal.element(by.buttonText('Done')).click();
     });

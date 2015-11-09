@@ -43,6 +43,8 @@ def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
     engine = engine_from_config(settings, 'sqlalchemy.')
+    # fix for association_table cascade delete issues
+    engine.dialect.supports_sane_rowcount = engine.dialect.supports_sane_multi_rowcount = False
     DBSession.configure(bind=engine)
     Base.metadata.bind = engine
 

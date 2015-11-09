@@ -2361,6 +2361,7 @@ def valuationview(request):
             budgettotal = markup['TotalBudget']
             DBSession.add(ValuationMarkup(ValuationID=newid,
                                         OverheadID=overheadid,
+                                        BudgetTotal=budgettotal,
                                         PercentageComplete=p_complete))
 
         transaction.commit()
@@ -2435,15 +2436,17 @@ def valuationview(request):
         markuplist = request.json_body.get('ValuationMarkups', [])
         for markup in markuplist:
             complete = float(markup.get('PercentageComplete', 0))
+            budgettotal = markup['TotalBudget']
             vmarkup = DBSession.query(ValuationMarkup
                                             ).filter_by(ID=markup['ID']).first()
             if not vmarkup:
                 overheadid = markup['ID']
-                budgettotal = markup['TotalBudget']
                 DBSession.add(ValuationMarkup(ValuationID=vid,
                                         OverheadID=overheadid,
+                                        BudgetTotal=budgettotal,
                                         PercentageComplete=complete))
             else:
+                vmarkup.BudgetTotal = budgettotal
                 vmarkup.PercentageComplete = complete
         transaction.commit()
         # return the edited valuation

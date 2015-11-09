@@ -183,7 +183,7 @@ class Project(Node):
     _Total = Column('Total', Numeric)
 
     Client = relationship('Client')
-    OverheadList = relationship('Overhead')
+    OverheadList = relationship('Overhead', cascade='all')
     City = relationship('City')
     Orders = relationship('Order')
     Valuations = relationship('Valuation')
@@ -1998,6 +1998,9 @@ class Valuation(Base):
 
     @property
     def Total(self):
+        """ Return the total of a valuation
+            Total equals sum of valuation items plus valuation markup
+        """
         total = 0
         for item in self.ValuationItems:
             bgtotal = 0
@@ -2007,6 +2010,9 @@ class Valuation(Base):
             if item.PercentageComplete:
                 perc = item.PercentageComplete/100
             total += bgtotal * perc
+
+        for markup in self.MarkupList:
+            total+=float(markup.Total)
         return Decimal(total).quantize(Decimal('.01'))
 
     def dict(self):
@@ -2187,6 +2193,7 @@ class ValuationMarkup(Base):
     ID = Column(Integer, primary_key=True)
     OverheadID = Column(Integer,ForeignKey('Overhead.ID'))
     PercentageComplete = Column(Float, default=0.0)
+    BudgetTotal = Column(Numeric, default=Decimal(0))
     ValuationID = Column(Integer, ForeignKey('Valuation.ID'))
 
     Overhead = relationship('Overhead')
@@ -2200,14 +2207,30 @@ class ValuationMarkup(Base):
                             BudgetGroupTotal=self.BudgetGroupTotal,
                             ValuationID=valuationid)
 
+    @property
+    def Total(self):
+        """ The Total of a valuation markup is the budget total times
+            percentage complete
+        """
+        return Decimal(float(self.BudgetTotal) * (self.PercentageComplete/100)
+                        ).quantize(Decimal('.01'))
+
+    @property
+    def Name(self):
+        return self.Overhead.Name
+
+    @property
+    def Percentage(self):
+        return self.Overhead.Percentage
+
     def dict(self):
         """ Override the dict function
         """
         return {'ID': self.ID,
                 'id': self.ID,
-                'Name': self.Overhead.Name,
-                'Percentage': self.Overhead.Percentage,
-                'TotalBudget': self.Overhead.Amount,
+                'Name': self.Name,
+                'Percentage': self.Percentage,
+                'TotalBudget': str(self.BudgetTotal),
                 'PercentageComplete': self.PercentageComplete,
                 'ValuationID': self.ValuationID,
                 'NodeType': 'ValuationMarkup'}
@@ -2223,4 +2246,4 @@ class ValuationMarkup(Base):
         """Return a representation of this markup
         """
         return '<ValuationMarkup(Name="%s", Percentage="%f", ID="%s", ValuationID="%s")>' % (
-            self.Name, self.Percentage, self.Type, self.ID, self.ValuationID)
+            self.Name, self.Percentage, self.ID, self.ValuationID)

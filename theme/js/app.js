@@ -38,44 +38,38 @@ myApp.factory('RequestsErrorHandler', ['$q', function($q) {
                 && rejection.config.headers[HEADER_NAME]);
 
             if (shouldHandle) {
-                if (rejection.config.url.indexOf("rights") == -1){
-                    if (rejection.status == 403){
-                        console.log("Action not allowed for " +
-                                        rejection.config.url);
-                    }
-                    else{
-                        // get the 'ServerReponse' message
-                        var custom_reponse = '';
-                        if (rejection.data.indexOf('ServerResponse') > -1){
-                            custom_reponse = rejection.data.replace('ServerResponse', '');
-                        }
-                        var text = "Server error";
-                        var method = rejection.config.method;
-                        console.log(method + " error from " +
+                if (rejection.status == 403){
+                    console.log("Action not allowed for " +
                                     rejection.config.url);
-                        if (method == 'GET'){
-                          text = 'Problem getting data';
-                        } else if (method == 'POST'){
-                          text = 'Problem posting data';
-                        } else if (method == 'PUT'){
-                          text = 'Problem updating data';
-                        } else if (method == 'DELETE'){
-                          text = 'Problem deleting data';
-                        }
-                        text = text + custom_reponse;
-                        // show an error status message
-                        $('#status_message span').text(text);
-                        $('#status_message span').addClass('alert-warning');
-                        $('#status_message').show();
-                        window.setTimeout(function () {
-                            $("#status_message").hide();
-                            $('#status_message span').removeClass('alert-warning');
-                        }, 3000);
-                    }
                 }
                 else{
-                    console.log("Rights error from " +
-                            rejection.config.url);
+                    // get the 'ServerReponse' message
+                    var custom_reponse = '';
+                    if (rejection.data.indexOf('ServerResponse') > -1){
+                        custom_reponse = rejection.data.replace('ServerResponse', '');
+                    }
+                    var text = "Server error";
+                    var method = rejection.config.method;
+                    console.log(method + " error from " +
+                                rejection.config.url);
+                    if (method == 'GET'){
+                      text = 'Problem getting data';
+                    } else if (method == 'POST'){
+                      text = 'Problem posting data';
+                    } else if (method == 'PUT'){
+                      text = 'Problem updating data';
+                    } else if (method == 'DELETE'){
+                      text = 'Problem deleting data';
+                    }
+                    text = text + custom_reponse;
+                    // show an error status message
+                    $('#status_message span').text(text);
+                    $('#status_message span').addClass('alert-warning');
+                    $('#status_message').show();
+                    window.setTimeout(function () {
+                        $("#status_message").hide();
+                        $('#status_message span').removeClass('alert-warning');
+                    }, 3000);
                 }
             }
 
