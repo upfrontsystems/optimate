@@ -564,11 +564,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             // if the node is collapsed, get the data and expand the node
             if (!selectedNode.expanded) {
                 selectedNode.expanded = true;
-                var parentid = selectedNode.ID;
-                $http.get(globalServerURL + 'node/' + parentid + '/children/').success(function(data) {
-                    selectedNode.Subitem = data;
-                    console.log("Children loaded");
-                });
+                $scope.loadNodeChildren(selectedNode);
             }
             else {
                 selectedNode.expanded = false;
@@ -697,7 +693,9 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                     // the current selected item
                     if ($scope.currentNode.NodeType.indexOf('Budget') > -1){
                         $search.selected = $scope.tagTransform(searchterm);
-                        $scope.resourceSelected($search.selected, undefined);
+                        if($search.selected){
+                            $scope.resourceSelected($search.selected, undefined);
+                        }
                     }
                     // if nothing has been found, add a non-selectable option
                     else if (response.length == 0){
@@ -878,7 +876,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                     $scope.refreshResources(response.Name);
                     $scope.formData.selected.ID = response.ResourceID;
                     $scope.formData.selected.Name = response.Name;
-                    $scope.resourceSelected($scope.formData);
+                    $scope.resourceSelected($scope.formData, 'BudgetItem');
                     // load budgetitem overhead list
                     $scope.loadBudgetItemOverheads(response.ID).then(function(){
                         var overheadlist = response.OverheadList;
@@ -895,7 +893,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 else if (nodetype == 'SimpleBudgetItem') {
                     // populate the selection
                     $scope.formData.selected.Name = response.Name;
-                    $scope.resourceSelected($scope.formData.selected);
+                    $scope.resourceSelected($scope.formData.selected, 'SimpleBudgetItem');
                     nodetype = 'BudgetItem';
                 }
                 else if (nodetype == 'ResourcePart'){
@@ -1094,7 +1092,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                         $scope.copiedNode = {'NodeType': 'Records'};
                         $scope.statusMessage("Records pasted.", 2000, 'alert-info');
                         $scope.handleReloadSlickgrid(node.ID);
-                        $scope.loadNodeChildren(node.ID);
+                        $scope.loadNodeChildren(node);
                     }
                 }
                 else {
@@ -1127,7 +1125,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                             // if the response id equals the current id
                             // it acts as a signal to reload the node
                             if (node.ID == response.newId) {
-                                $scope.loadNodeChildren(node.ID);
+                                $scope.loadNodeChildren(node);
                             }
                         }
                     }
@@ -1367,17 +1365,62 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
         }
 
         // Load the children and add to the tree
-        $scope.loadNodeChildren = function(parentid) {
+        $scope.loadNodeChildren = function(parent) {
             // if the parent id is 0 reload the projectslist
-            if (parentid == 0) {
-                $scope.preloadProjects();
-            }
-            else if ($scope.currentNode) {
-                $http.get(globalServerURL + 'node/' + parentid + '/children/')
-                .success(function(data) {
-                    $scope.currentNode.Subitem = data;
-                    console.log("Children loaded");
-                });
+            if (parent){
+                if (parent.ID == 0) {
+                    $scope.preloadProjects();
+                }
+                else {
+                    $http.get(globalServerURL + 'node/' + parent.ID + '/children/')
+                    .success(function(response) {
+                        // overwrite the existing children data with the response
+                        // keeping existing subitems and expanded data
+                        var newchildren = [];
+                        while (response){
+                            var i = newchildren.length;
+                            if (parent.Subitem[i]){
+                                var insert = response.shift();
+                                // overwrite the old data with the new
+                                if (parent.Subitem[i].ID == insert.ID){
+                                    insert.selected = parent.Subitem[i].selected;
+                                    if (parent.Subitem[i].expanded){
+                                        insert.expanded = parent.Subitem[i].expanded;
+                                        if (insert.Subitem){
+                                            insert.Subitem = parent.Subitem[i].Subitem;
+                                        }
+                                    }
+                                }
+                                // otherwise search for the child in the parent
+                                else{
+                                    for (var p in parent.Subitem){
+                                        if (parent.Subitem[p].ID == insert.ID){
+                                            insert.selected = parent.Subitem[i].selected;
+                                            if (parent.Subitem[p].expanded){
+                                                insert.expanded = parent.Subitem[p].expanded;
+                                                if (insert.Subitem){
+                                                    insert.Subitem = parent.Subitem[p].Subitem;
+                                                }
+                                            }
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (insert.selected){
+                                    $scope.currentNode = insert;
+                                }
+                                newchildren.push(insert);
+                            }
+                            // no more parent items, add the rest of the response
+                            else{
+                                newchildren = newchildren.concat(response);
+                                response = undefined;
+                            }
+                        }
+                        parent.Subitem = newchildren;
+                        console.log("Children loaded");
+                    });
+                }
             }
         }
 
@@ -1449,7 +1492,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             }
         }
 
-        $scope.deleteSelectedRecords = function(nodeid) {
+        $scope.deleteSelectedRecords = function(node) {
             // all the currently selected records in the slickgrid are
             // deleted from the database and the grid is reloaded
             if ($scope.rowsSelected) {
@@ -1463,12 +1506,12 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                         if (i == selectedRows.length-1) {
                             // if the deleted id equals the selected id
                             // simply remove it from the tree
-                            if (nodeid == selectedRows[i].ID) {
+                            if (node.ID == selectedRows[i].ID) {
                                 $scope.nodeDeleted();
                             }
                             else {
-                                $scope.loadNodeChildren(nodeid);
-                                $scope.handleReloadSlickgrid(nodeid);
+                                $scope.loadNodeChildren(node);
+                                $scope.handleReloadSlickgrid(node.ID);
                             }
                             $scope.statusMessage("Deleted records", 2000, 'alert-info');
                             $scope.toggleRowsSelected(false);
@@ -1534,7 +1577,8 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 $http(req).success(function() {
                     console.log("Overheads applied to " + selectedRows[count].ID);
                     if (count == selectedRows.length -1){
-                        $scope.loadNodeChildren($scope.currentNode.ID);
+                        $scope.loadNodeChildren($scope.currentNode);
+                        $scope.handleReloadSlickgrid($scope.currentNode.ID);
                     }
                     count +=1;
                 });

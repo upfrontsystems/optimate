@@ -375,10 +375,20 @@ span.fa-asterisk{
 }
 
 /* centering nav-bar icons */
-ul.nav-pills-center {
-    width: 100%;
-    display: inline-flex;
-    justify-content: center;
+.centered-pills {
+    text-align: center
+}
+.centered-pills ul.nav-pills {
+    display: inline-block
+}
+.centered-pills li {
+    display: inline
+}
+.centered-pills a {
+    float: left
+}
+* html .centered-pills ul.nav-pills, *+html .centered-pills ul.nav-pills {
+    display: inline
 }
 
 /* change the styling of disabled inputs in tables */

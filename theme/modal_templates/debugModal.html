@@ -1,0 +1,28 @@
+<div id="debugModal" class="modal fade" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close"
+                        data-dismiss="modal" aria-hidden="true">&times;
+                </button>
+                <h3 class="modal-title">Selected node information</h3>
+            </div>
+            <div class="modal-body">
+                <div class="info-box">
+                    <span>
+                        <b>ID: </b>{{currentNode.ID}}<br>
+                        <b>Parent ID: </b>{{currentNode.ParentID}}<br>
+                        <b>Description: </b>{{currentNode.Description}}<br>
+                        <b>Type: </b>{{currentNode.NodeType}}<br>
+                        <b>Ordered: </b>{{currentNode.Ordered}}<br>
+                        <b>Invoiced: </b>{{currentNode.Invoiced}}<br>
+                        <b>Total: </b>{{currentNode.Total}}<br>
+                    </span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="select" class="btn btn-primary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

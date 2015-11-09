@@ -31,72 +31,45 @@
             </li>
             <div ng-include="'partials/treeview_menu.html'"></div>
         </ul>
-        <ul data-ng-show="rowsSelected" class="nav nav-pills nav-pills-center">
-            <li data-ng-show="user.permissions.projects == 'edit'">
-                <a role="button" data-ng-click="copySelectedRecords(currentNode)"
-                   title="Copy records">
-                    <i class="fa fa-files-o"></i>
-                </a>
-            </li>
-            <li data-ng-show="user.permissions.projects == 'edit'">
-                <a role="button"
-                    a-disabled="currentNode.Status == 'Approved'"
-                    data-ng-click="cutSelectedRecords(currentNode)"
-                    title="Cut records">
-                    <i class="fa fa-cut"></i>
-                </a>
-            </li>
-            <li data-ng-show="user.permissions.projects == 'edit'">
-                <a role="button"
-                    a-disabled="currentNode.Status == 'Approved'"
-                    data-ng-click="deleteConfirmation()"
-                    title="Delete records">
-                    <i class="fa fa-trash"></i>
-                </a>
-            </li>
-            <li data-ng-show="user.permissions.projects == 'edit' && showBudgetActions">
-                <a role="button"
-                    a-disabled="currentNode.Status == 'Approved'"
-                    data-target="#editSelectionMarkup"
-                    data-ng-click="loadSelectionMarkup()"
-                    data-backdrop="static"
-                    data-toggle="modal"
-                    title="Edit markup">
-                    <i class="fa fa-money"></i>
-                </a>
-            </li>
-        </ul>
-    </div>
-</nav>
-
-<div id="debugProjectModal" class="modal fade" tabindex='-1'>
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close"
-                        data-dismiss="modal" aria-hidden="true">&times;
-                </button>
-                <h3 class="modal-title">Selected node information</h3>
-            </div>
-            <div class="modal-body">
-                <div class="info-box">
-                    <span>
-                        <b>ID: </b>{{currentNode.ID}}<br>
-                        <b>Parent ID: </b>{{currentNode.ParentID}}<br>
-                        <b>Description: </b>{{currentNode.Description}}<br>
-                        <b>Type: </b>{{currentNode.NodeType}}<br>
-                        <b>Ordered: </b>{{currentNode.Ordered}}<br>
-                        <b>Invoiced: </b>{{currentNode.Invoiced}}<br>
-                        <b>Total: </b>{{currentNode.Total}}<br>
-                    </span>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="select" class="btn btn-primary" data-dismiss="modal">Close</button>
-            </div>
+        <div class="centered-pills">
+            <ul data-ng-show="rowsSelected" class="nav nav-pills">
+                <li data-ng-show="user.permissions.projects == 'edit'">
+                    <a role="button" data-ng-click="copySelectedRecords(currentNode)"
+                       title="Copy records">
+                        <i class="fa fa-files-o"></i>
+                    </a>
+                </li>
+                <li data-ng-show="user.permissions.projects == 'edit'">
+                    <a role="button"
+                        a-disabled="currentNode.Status == 'Approved'"
+                        data-ng-click="cutSelectedRecords(currentNode)"
+                        title="Cut records">
+                        <i class="fa fa-cut"></i>
+                    </a>
+                </li>
+                <li data-ng-show="user.permissions.projects == 'edit'">
+                    <a role="button"
+                        a-disabled="currentNode.Status == 'Approved'"
+                        data-ng-click="deleteConfirmation()"
+                        title="Delete records">
+                        <i class="fa fa-trash"></i>
+                    </a>
+                </li>
+                <li data-ng-show="user.permissions.projects == 'edit' && showBudgetActions">
+                    <a role="button"
+                        a-disabled="currentNode.Status == 'Approved'"
+                        data-target="#editSelectionMarkup"
+                        data-ng-click="loadSelectionMarkup()"
+                        data-backdrop="static"
+                        data-toggle="modal"
+                        title="Edit markup">
+                        <i class="fa fa-money"></i>
+                    </a>
+                </li>
+            </ul>
         </div>
     </div>
-</div>
+</nav>
 
 <!-- template for the overheads modal -->
 <div custom-modals modal-id="editOverheads"
@@ -134,6 +107,9 @@
 <div custom-modals modal-id="addResourcePart"
     modal-type="{{addingNodeType}}"
     modal-src="modal_templates/addResourcePart.html">
+</div>
+<div custom-modals modal-id="debugModal"
+    modal-src="modal_templates/debugModal.html">
 </div>
 
 <!-- templates for the report modals -->
@@ -181,8 +157,17 @@
             Are you sure you want to deleted the selected records?</h4>
     </div>
     <div class="modal-footer">
-        <button data-ng-show="!rowsSelected" type="submit" class="btn btn-primary delete-node" data-ng-click="deleteThisNode(currentNode.ID); $close()" autofocus="true">Delete</button>
-        <button data-ng-show="rowsSelected" type="submit" class="btn btn-primary delete-node" data-ng-click="deleteSelectedRecords(currentNode.ID); $close()">Delete</button>
+        <button data-ng-show="!rowsSelected"
+                type="submit"
+                class="btn btn-primary delete-node"
+                data-ng-click="deleteThisNode(currentNode.ID); $close()"
+                autofocus="true">Delete
+        </button>
+        <button data-ng-show="rowsSelected"
+                type="submit"
+                class="btn btn-primary delete-node"
+                data-ng-click="deleteSelectedRecords(currentNode); $close()">Delete
+        </button>
         <button type="button" class="btn btn-default" data-ng-click="$dismiss()">Cancel</button>
     </div>
 </script>
