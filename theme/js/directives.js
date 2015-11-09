@@ -823,6 +823,26 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                             dataView.updateItem(item.id, item);
                             args.item = item;
                             updateCells(e, args);
+
+                            // update the column header checkbox
+                            var columnname = grid.getColumns()[grid.getColumnIndex("VAT")].name;
+                            var checked = (columnname == "<i class='fa fa-check-square-o fa-lg'></i>");
+                            if (checked != item.VAT){
+                                if (checked){
+                                    columnname = "<i class='fa fa-square-o fa-lg'></i>";
+                                }
+                                else{
+                                    columnname = "<i class='fa fa-check-square-o fa-lg'></i>";
+                                    var items = dataView.getItems();
+                                    for (var i in items){
+                                        if (!items[i].VAT){
+                                            columnname = "<i class='fa fa-square-o fa-lg'></i>";
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            grid.updateColumnHeader('VAT', columnname)
                         }
                     }
                 }
@@ -885,6 +905,7 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                                     'Subtotal': ordersubtotal,
                                     'VATCost': ordervatcost,
                                     'Total': ordertotal,
+                                    'VAT': true,
                                     'cssClasses': 'cell-title non-editable-column'};
 
                     gridlist.push(totals);
