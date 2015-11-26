@@ -165,4 +165,92 @@ describe('Orders page', function() {
         });
         addOrderModal.element(by.buttonText('Update')).click();
     });
+
+    it('should process an order', function(){
+        element(by.repeater('obj in jsonorders').row(0)).click();
+        element(by.css('nav ul li a i.fa-arrow-right')).click();
+        // check the order was processed
+        element(by.repeater('obj in jsonorders').row(0).column('obj.Status')).getText().then(function(name){
+            expect(name).toBe('Processed');
+        });
+    });
+
+    it('should view a processed order', function(){
+        element(by.repeater('obj in jsonorders').row(0)).click();
+        element(by.css('nav ul li a i.fa-square-o')).click();
+        // check the order cant be edited
+        var addOrderModal = element(by.id('saveOrderModal'));
+        expect(addOrderModal.element(
+            by.css('.modal-footer i.fa-plus')).isDisplayed()
+        ).toBe(false);
+
+        addOrderModal.element(by.buttonText('Close')).click();
+    });
+
+    it('should retract an order', function(){
+        element(by.repeater('obj in jsonorders').row(0)).click();
+        element(by.css('nav ul li a i.fa-arrow-left')).click();
+        // check the order was retracted
+        element(by.repeater('obj in jsonorders').row(0).column('obj.Status')).getText().then(function(name){
+            expect(name).toBe('Draft');
+        });
+    });
+
+    it('should filter an order by order number', function(){
+        var orderno;
+        element(by.repeater('obj in jsonorders').row(0).column('obj.ID')).getText().then(function(number){
+            orderno = number;
+            element(by.css('li.dropdown:nth-child(1) > a:nth-child(1)')).click();
+            element(by.css('li.dropdown:nth-child(1) > ul:nth-child(2) > li:nth-child(1) > input:nth-child(1)')
+                ).sendKeys(orderno);
+            // check the order is displayed
+            element(by.repeater('obj in jsonorders').row(0).column('obj.ID')).getText().then(function(number){
+                expect(number).toBe(orderno);
+            });
+        });
+    });
+
+    it('should filter an order by project', function(){
+        element(by.css('li.dropdown:nth-child(2) > a:nth-child(1)')).click();
+        browser.switchTo().activeElement().sendKeys('TestProject');
+        element(by.css('.ac-select-highlight')).click()
+
+        // check the order is displayed
+        element(by.repeater('obj in jsonorders').row(0).column('obj.Project')).getText().then(function(project){
+            expect(project).toBe('TestProject');
+        });
+    });
+
+    it('should filter an order by client', function(){
+        element(by.css('li.dropdown:nth-child(3) > a:nth-child(1)')).click();
+        browser.switchTo().activeElement().sendKeys('TestClient');
+        element(by.css('.ac-select-highlight')).click()
+        // check the order is displayed
+        element(by.repeater('obj in jsonorders').row(0).column('obj.Client')).getText().then(function(client){
+            expect(client).toBe('TestClient');
+        });
+    });
+
+    it('should filter an order by supplier', function(){
+        element(by.css('li.dropdown:nth-child(4) > a:nth-child(1)')).click();
+        browser.switchTo().activeElement().sendKeys('TestSupplier');
+        element(by.css('.ac-select-highlight')).click()
+
+        // check the order is displayed
+        element(by.repeater('obj in jsonorders').row(0).column('obj.Supplier')).getText().then(function(supplier){
+            expect(supplier).toBe('TestSupplier');
+        });
+    });
+
+    it('should filter an order by status', function(){
+        element(by.css('li.dropdown:nth-child(5) > a:nth-child(1)')).click();
+        browser.switchTo().activeElement().sendKeys('Draft');
+        element(by.css('.ac-select-highlight')).click()
+
+        // check the order is displayed
+        element(by.repeater('obj in jsonorders').row(0).column('obj.Status')).getText().then(function(stat){
+            expect(stat).toBe('Draft');
+        });
+    });
 });
+

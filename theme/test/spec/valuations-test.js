@@ -68,4 +68,26 @@ describe('Valuations page', function() {
             expect(amount).toBe('R970.00');
         });
     });
+
+    it('should filter an invoice by project', function(){
+        element(by.css('li.dropdown:nth-child(1) > a:nth-child(1)')).click();
+        browser.switchTo().activeElement().sendKeys('TestProject');
+        element(by.css('.ac-select-highlight')).click()
+
+        // check the order is displayed
+        element(by.repeater('obj in jsonvaluations').row(0).column('obj.Project')).getText().then(function(project){
+            expect(project).toBe('TestProject');
+        });
+    });
+
+    it('should filter an invoice by status', function(){
+        element(by.css('.navbar-right > li:nth-child(3) > a:nth-child(1)')).click();
+        browser.switchTo().activeElement().sendKeys('Draft');
+        element(by.css('.ac-select-highlight')).click()
+
+        // check the order is displayed
+        element(by.repeater('obj in jsonvaluations').row(0).column('obj.Status')).getText().then(function(stat){
+            expect(stat).toBe('Draft');
+        });
+    });
 });
