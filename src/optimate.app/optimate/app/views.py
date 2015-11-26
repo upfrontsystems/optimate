@@ -3177,16 +3177,16 @@ def paymentview(request):
         deleteid = request.matchdict['id']
         # Deleting it from the table deletes the object
         deletethis = DBSession.query(Payment).filter_by(ID=deleteid).first()
-        claimid = deletethis.ClaimID
+        claim = DBSession.query(Claim).filter_by(ID=deletethis.ClaimID).first()
+        # if the claim has been paid before set the status to Claimed
+        if ((claim.Total + deletethis.Amount) > Decimal(0)
+            and claim.Status == 'Paid'):
+            claim.Status = 'Claimed'
 
         qry = DBSession.delete(deletethis)
         if qry == 0:
             return HTTPNotFound(text=u'ServerResponse: Payment not found')
         transaction.commit()
-        claim = DBSession.query(Claim).filter_by(ID=claimid).first()
-        # if the claim has been paid before set the status to Claimed
-        if claim.Total > Decimal(0) and claim.Status == 'Paid':
-            claim.Status = 'Claimed'
 
         return HTTPOk()
 
