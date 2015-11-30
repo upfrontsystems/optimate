@@ -25,8 +25,7 @@ describe('Units Page', function () {
         // open the add unit modal and fill in the form
         element(by.css('ul.nav:nth-child(1) > li:nth-child(2) > a:nth-child(1)')).click();
         element(by.model('newUnit.Name')).sendKeys('TestUnit');
-
-        element(by.css('ul.nav:nth-child(1) > li:nth-child(1) > button:nth-child(2)')).click()
+        element(by.css('button.ng-scope')).click()
 
         // check the unit was added
         expect(checkResult('TestUnit')).toBe(true);
@@ -51,7 +50,7 @@ describe('Units Page', function () {
         element(by.repeater('obj in unitList').row(0)).click();
         element(by.css('nav ul li a i.fa-pencil')).click();
         element(by.model('newUnit.Name')).clear().sendKeys('EditUnit');
-        element(by.css('ul.nav:nth-child(1) > li:nth-child(1) > button:nth-child(3)')).click()
+        element(by.css('button.ng-scope')).click()
 
         // check the unit was changed
         element(by.css('.navbar-right > li:nth-child(2) > a:nth-child(1)')).click();
@@ -64,7 +63,7 @@ describe('Units Page', function () {
             element(by.repeater('obj in unitList').row(0)).click();
             element(by.css('nav ul li a i.fa-pencil')).click();
             element(by.model('newUnit.Name')).clear().sendKeys('TestUnit');
-            element(by.css('ul.nav:nth-child(1) > li:nth-child(1) > button:nth-child(3)')).click()
+            element(by.css('button.ng-scope')).click()
         });
     });
 });

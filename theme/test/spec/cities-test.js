@@ -25,8 +25,7 @@ describe('Cities Page', function () {
         // open the add city modal and fill in the form
         element(by.css('ul.nav:nth-child(1) > li:nth-child(2) > a:nth-child(1)')).click();
         element(by.model('newItem.Name')).sendKeys('TestCity');
-
-        element(by.css('ul.nav:nth-child(1) > li:nth-child(1) > button:nth-child(2)')).click()
+        element(by.css('button.ng-scope')).click()
 
         // check the city was added
         expect(checkResult('TestCity')).toBe(true);
@@ -51,7 +50,7 @@ describe('Cities Page', function () {
         element(by.repeater('obj in cityList').row(0)).click();
         element(by.css('nav ul li a i.fa-pencil')).click();
         element(by.model('newItem.Name')).clear().sendKeys('EditCity');
-        element(by.css('ul.nav:nth-child(1) > li:nth-child(1) > button:nth-child(3)')).click()
+        element(by.css('button.ng-scope')).click()
 
         // check the city was changed
         element(by.css('.navbar-right > li:nth-child(2) > a:nth-child(1)')).click();
@@ -64,7 +63,7 @@ describe('Cities Page', function () {
             element(by.repeater('obj in cityList').row(0)).click();
             element(by.css('nav ul li a i.fa-pencil')).click();
             element(by.model('newItem.Name')).clear().sendKeys('TestCity');
-            element(by.css('ul.nav:nth-child(1) > li:nth-child(1) > button:nth-child(3)')).click()
+            element(by.css('button.ng-scope')).click()
         });
     });
 });

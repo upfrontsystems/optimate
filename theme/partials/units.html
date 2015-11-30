@@ -2,15 +2,20 @@
     <div class="container-fluid">
         <ul class="nav nav-pills navbar-left">
             <li data-ng-show="savingState">
-                <input type="text" ng-model="newUnit.Name" placeholder="Enter name">
-                <button data-ng-show="savingState == 'add'"
-                        data-ng-click="addUnit()" title="Add">
-                    <i class="fa fa-plus"></i>
-                </button>
-                <button data-ng-show="savingState == 'edit'"
-                        data-ng-click="editUnit()" title="Save edits">
-                    <i class="fa fa-plus"></i>
-                </button>
+                <form>
+                    <input type="text"
+                        focus-on="focusInput"
+                        data-ng-model="newUnit.Name"
+                        placeholder="Enter name">
+                    <button data-ng-if="savingState == 'add'"
+                            data-ng-click="addUnit()" title="Add">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                    <button data-ng-if="savingState == 'edit'"
+                            data-ng-click="editUnit()" title="Save edits">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                </form>
             </li>
             <li data-ng-show="user.permissions.setup == 'edit'">
                 <a title="Add unit"
@@ -39,11 +44,13 @@
             <li class="dropdown">
                 <a href=""
                     data-toggle="dropdown"
-                    data-ng-class="{'filter-unselected': !filters.Name}">
+                    data-ng-class="{'filter-unselected': !filters.Name}"
+                    data-ng-click="focusName=true">
                     Name <span class="caret"></span>
                 </a>
                 <ul class="dropdown-menu keep-open">
                     <li><input type="text"
+                        focus-on="focusName"
                         class="filter-textbox"
                         data-ng-model="filters.Name"
                         placeholder="Name"></li>

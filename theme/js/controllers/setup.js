@@ -274,6 +274,7 @@ myApp.controller('citiesController', ['$scope', '$http', '$modal', '$log', 'glob
         };
 
         $scope.setState = function(state, item){
+            $scope.focusInput = true;
             $scope.savingState = state;
             $scope.newItem = item;
         }
@@ -332,7 +333,7 @@ myApp.controller('citiesController', ['$scope', '$http', '$modal', '$log', 'glob
                         var textB = b.Name.toUpperCase();
                         return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
                     });
-                    console.log("Unit edited");
+                    console.log("City edited");
                 });
             }
         }
@@ -373,6 +374,7 @@ myApp.controller('unitsController', ['$scope', '$http', '$modal', '$log', 'globa
         };
 
         $scope.setState = function(state, item){
+            $scope.focusInput = true;
             $scope.savingState = state;
             $scope.newUnit = item;
         }

@@ -113,11 +113,13 @@
             <li class="dropdown">
                 <a href=""
                     data-toggle="dropdown"
-                    data-ng-class="{'filter-unselected': !filters.InvoiceNumber}">
+                    data-ng-class="{'filter-unselected': !filters.InvoiceNumber}"
+                    data-ng-click="focusInvoiceNumber=true">
                     Invoice Number <span class="caret"></span>
                 </a>
                 <ul class="dropdown-menu keep-open">
                     <li><input type="text"
+                        focus-on="focusInvoiceNumber"
                         class="filter-textbox"
                         data-ng-model="filters.InvoiceNumber"
                         data-ng-model-options="{ debounce: 500 }"
@@ -128,11 +130,13 @@
             <li class="dropdown">
                 <a href=""
                     data-toggle="dropdown"
-                    data-ng-class="{'filter-unselected': !filters.OrderNumber}">
+                    data-ng-class="{'filter-unselected': !filters.OrderNumber}"
+                    data-ng-click="focusOrderNumber=true">
                     Order number <span class="caret"></span>
                 </a>
                 <ul class="dropdown-menu keep-open">
                     <li><input type="number"
+                            focus-on="focusOrderNumber"
                             class="filter-textbox"
                             data-ng-model="filters.OrderNumber"
                             data-ng-model-options="{ debounce: 500 }"

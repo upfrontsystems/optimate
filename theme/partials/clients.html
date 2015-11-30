@@ -30,11 +30,13 @@
             <li class="dropdown">
                 <a href=""
                     data-toggle="dropdown"
-                    data-ng-class="{'filter-unselected': !filters.Name}">
+                    data-ng-class="{'filter-unselected': !filters.Name}"
+                    data-ng-click="focusName=true">
                     Name <span class="caret"></span>
                 </a>
                 <ul class="dropdown-menu keep-open">
                     <li><input type="text"
+                        focus-on="focusName"
                         class="filter-textbox"
                         data-ng-model="filters.Name"
                         placeholder="Name"></li>
