@@ -49,4 +49,40 @@ describe('Suppliers Page', function () {
         // check the supplier was added
         expect(checkResult('TestSupplier')).toBe(true);
     });
+
+    it('should filter a supplier by name', function(){
+        element(by.css('li.dropdown:nth-child(1) > a:nth-child(1)')).click();
+        element(by.css('li.dropdown:nth-child(1) > ul:nth-child(2) > li:nth-child(1) > input:nth-child(1)')
+            ).sendKeys('TestSupplier');
+        // check the supplier is displayed
+        element(by.repeater('obj in jsonsuppliers').row(0).column('obj.Name')).getText().then(function(name){
+            expect(name).toBe('TestSupplier');
+        });
+    });
+
+    it('should edit a supplier', function () {
+        // find the supplier
+        element(by.css('li.dropdown:nth-child(1) > a:nth-child(1)')).click();
+        element(by.css('li.dropdown:nth-child(1) > ul:nth-child(2) > li:nth-child(1) > input:nth-child(1)')
+            ).sendKeys('TestSupplier');
+        // open the edit modal and fill in the form
+        element(by.repeater('obj in jsonsuppliers').row(0)).click();
+        element(by.css('nav ul li a i.fa-pencil')).click();
+        element(by.model('formData.Name')).clear().sendKeys('EditSupplier');
+        element(by.buttonText('Update')).click();
+
+        // check the supplier was changed
+        element(by.css('.navbar-right > li:nth-child(2) > a:nth-child(1)')).click();
+        element(by.css('li.dropdown:nth-child(1) > a:nth-child(1)')).click();
+        element(by.css('li.dropdown:nth-child(1) > ul:nth-child(2) > li:nth-child(1) > input:nth-child(1)')
+            ).sendKeys('EditSupplier');
+        element(by.repeater('obj in jsonsuppliers').row(0).column('obj.Name')).getText().then(function(name){
+            expect(name).toBe('EditSupplier');
+            // change the name back
+            element(by.repeater('obj in jsonsuppliers').row(0)).click();
+            element(by.css('nav ul li a i.fa-pencil')).click();
+            element(by.model('formData.Name')).clear().sendKeys('TestSupplier');
+            element(by.buttonText('Update')).click();
+        });
+    });
 });

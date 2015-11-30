@@ -4,6 +4,7 @@ myApp.controller('usersController', ['$scope', '$http', '$modal', 'globalServerU
         toggleMenu('setup');
         $scope.users = [];
         $scope.isDisabled = false;
+        $scope.filters = {};
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};

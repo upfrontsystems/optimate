@@ -69,7 +69,7 @@ describe('Valuations page', function() {
         });
     });
 
-    it('should filter an invoice by project', function(){
+    it('should filter a valuation by project', function(){
         element(by.css('li.dropdown:nth-child(1) > a:nth-child(1)')).click();
         browser.switchTo().activeElement().sendKeys('TestProject');
         element(by.css('.ac-select-highlight')).click()
@@ -80,7 +80,7 @@ describe('Valuations page', function() {
         });
     });
 
-    it('should filter an invoice by status', function(){
+    it('should filter a valuation by status', function(){
         element(by.css('.navbar-right > li:nth-child(3) > a:nth-child(1)')).click();
         browser.switchTo().activeElement().sendKeys('Draft');
         element(by.css('.ac-select-highlight')).click()

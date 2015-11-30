@@ -48,4 +48,40 @@ describe('Clients Page', function () {
         // check the client was added
         expect(checkResult('TestClient')).toBeTruthy();
     });
+
+    it('should filter a client by name', function(){
+        element(by.css('li.dropdown:nth-child(1) > a:nth-child(1)')).click();
+        element(by.css('li.dropdown:nth-child(1) > ul:nth-child(2) > li:nth-child(1) > input:nth-child(1)')
+            ).sendKeys('TestClient');
+        // check the client is displayed
+        element(by.repeater('obj in jsonclients').row(0).column('obj.Name')).getText().then(function(name){
+            expect(name).toBe('TestClient');
+        });
+    });
+
+    it('should edit a client', function () {
+        // find the client
+        element(by.css('li.dropdown:nth-child(1) > a:nth-child(1)')).click();
+        element(by.css('li.dropdown:nth-child(1) > ul:nth-child(2) > li:nth-child(1) > input:nth-child(1)')
+            ).sendKeys('TestClient');
+        // open the edit modal and fill in the form
+        element(by.repeater('obj in jsonclients').row(0)).click();
+        element(by.css('nav ul li a i.fa-pencil')).click();
+        element(by.model('formData.Name')).clear().sendKeys('EditClient');
+        element(by.buttonText('Update')).click();
+
+        // check the client was changed
+        element(by.css('.navbar-right > li:nth-child(2) > a:nth-child(1)')).click();
+        element(by.css('li.dropdown:nth-child(1) > a:nth-child(1)')).click();
+        element(by.css('li.dropdown:nth-child(1) > ul:nth-child(2) > li:nth-child(1) > input:nth-child(1)')
+            ).sendKeys('EditClient');
+        element(by.repeater('obj in jsonclients').row(0).column('obj.Name')).getText().then(function(name){
+            expect(name).toBe('EditClient');
+            // change the name back
+            element(by.repeater('obj in jsonclients').row(0)).click();
+            element(by.css('nav ul li a i.fa-pencil')).click();
+            element(by.model('formData.Name')).clear().sendKeys('TestClient');
+            element(by.buttonText('Update')).click();
+        });
+    });
 });

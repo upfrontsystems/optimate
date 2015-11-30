@@ -1,7 +1,7 @@
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div data-ng-show="user.permissions.setup == 'edit'"
         class="container-fluid">
-        <ul class="nav nav-pills">
+        <ul class="nav nav-pills  navbar-left">
             <li>
                 <a title="Add Supplier"
                     data-ng-click="addingState()"
@@ -26,6 +26,27 @@
                     data-backdrop="static"
                     data-toggle="modal">
                     <i class="fa fa-trash"></i>
+                </a>
+            </li>
+        </ul>
+        <ul class="nav nav-pills navbar-right ">
+            <li class="dropdown">
+                <a href=""
+                    data-toggle="dropdown"
+                    data-ng-class="{'filter-unselected': !filters.Name}">
+                    Name <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu keep-open">
+                    <li><input type="text"
+                        class="filter-textbox"
+                        data-ng-model="filters.Name"
+                        placeholder="Name"></li>
+                </ul>
+            </li>
+            <li>
+                <a href=""
+                    data-ng-click="filters = {}">
+                    Clear
                 </a>
             </li>
         </ul>
@@ -62,7 +83,8 @@
                 </tr>
             </thead>
             <tbody>
-                <tr ng-repeat="obj in jsonsuppliers" ng-click="showActionsFor(obj)" id="supplier-{{obj.ID}}">
+                <tr ng-repeat="obj in jsonsuppliers | filter:filters"
+                    ng-click="showActionsFor(obj)" id="supplier-{{obj.ID}}">
                     <td>{{obj.Name}}</td>
                     <td>{{obj.Address}}</td>
                     <td>{{obj.Phone}}</td>

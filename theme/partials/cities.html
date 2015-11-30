@@ -1,6 +1,6 @@
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div class="container-fluid">
-        <ul class="nav nav-pills">
+        <ul class="nav nav-pills navbar-left">
             <li data-ng-show="savingState">
                 <td>
                     <input type="text" ng-model="newItem.Name" placeholder="Enter name">
@@ -40,6 +40,27 @@
                 </a>
             </li>
         </ul>
+        <ul class="nav nav-pills navbar-right ">
+            <li class="dropdown">
+                <a href=""
+                    data-toggle="dropdown"
+                    data-ng-class="{'filter-unselected': !filters.Name}">
+                    Name <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu keep-open">
+                    <li><input type="text"
+                        class="filter-textbox"
+                        data-ng-model="filters.Name"
+                        placeholder="Name"></li>
+                </ul>
+            </li>
+            <li>
+                <a href=""
+                    data-ng-click="filters = {}">
+                    Clear
+                </a>
+            </li>
+        </ul>
     </div>
 </nav>
 
@@ -73,7 +94,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr ng-repeat="obj in cityList"
+                <tr ng-repeat="obj in cityList | filter:filters"
                     id="city-{{obj.ID}}"
                     data-ng-click="showActionsFor(obj, $index)"
                     data-ng-class="{active:obj.active}"

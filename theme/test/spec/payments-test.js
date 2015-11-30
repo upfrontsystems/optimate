@@ -80,4 +80,15 @@ describe('Payments Page', function () {
                 expect(status).toBe('Paid');
         });
     });
+
+    it('should filter a payment by project', function(){
+        element(by.css('li.dropdown:nth-child(1) > a:nth-child(1)')).click();
+        browser.switchTo().activeElement().sendKeys('TestProject');
+        element(by.css('.ac-select-highlight')).click()
+
+        // check the claim is displayed
+        element(by.repeater('obj in jsonpayments').row(0).column('obj.Project')).getText().then(function(project){
+            expect(project).toBe('TestProject');
+        });
+    });
 });

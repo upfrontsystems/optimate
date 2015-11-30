@@ -248,6 +248,7 @@ myApp.controller('citiesController', ['$scope', '$http', '$modal', '$log', 'glob
         $scope.newItem = {};
         $scope.cityList = [];
         $scope.selectedItem = undefined;
+        $scope.filters = {};
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
@@ -347,6 +348,7 @@ myApp.controller('unitsController', ['$scope', '$http', '$modal', '$log', 'globa
         $scope.newUnit = {};
         $scope.unitList = [];
         $scope.selectedItem = undefined;
+        $scope.filters = {};
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};

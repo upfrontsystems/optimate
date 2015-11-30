@@ -158,11 +158,11 @@ a.budget-item-button {
 }
 
 .circle.ResourcePart {
-    background: #663300;
+    background: #B8860B;
 }
 
 a.resource-part-button {
-    color: #663300;
+    color: #B8860B;
 }
 
 .circle.Resource {
@@ -174,11 +174,11 @@ a.resource-button {
 }
 
 .circle.ResourceUnit {
-    background: #FF9966;
+    background: #FFA500;
 }
 
 a.resource-unit-button {
-    color: #FF9966;
+    color: #FFA500;
 }
 
 .circle.ResourceCategory {
