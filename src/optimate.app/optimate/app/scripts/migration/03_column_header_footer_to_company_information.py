@@ -1,5 +1,4 @@
 from optimate.app.models import Base
-from optimate.app.models import Numeric
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -12,10 +11,10 @@ if __name__ == '__main__':
     production_uri = ''
     if os.name == 'posix':
         pathlist = cwd.split('/')
-        production_uri = ('/').join(pathlist[:-5]) + '/server.sqlite'
+        production_uri = ('/').join(pathlist[:-6]) + '/server.sqlite'
     else:
         pathlist = cwd.split('\\')
-        production_uri = ('\\').join(pathlist[:-5]) + '\\server.sqlite'
+        production_uri = ('\\').join(pathlist[:-6]) + '\\server.sqlite'
 
     # create the engine
     engine = create_engine('sqlite:///' + production_uri)
@@ -24,9 +23,10 @@ if __name__ == '__main__':
     session.configure(bind=engine)
     s = session()
     try:
-        engine.execute('ALTER TABLE ValuationMarkup ADD COLUMN BudgetTotal Numeric')
+        engine.execute('ALTER TABLE CompanyInformation ADD COLUMN Header LargeBinary')
+        engine.execute('ALTER TABLE CompanyInformation ADD COLUMN Footer LargeBinary')
         s.commit()
-        print "Added column BudgetTotal to table ValuationMarkup"
+        print "Added column Header and Footer to table CompanyInformation"
     except:
         s.rollback()
         print "Error altering table"

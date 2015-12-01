@@ -173,8 +173,8 @@ class Project(Node):
                 primary_key=True)
     Name = Column(Text(50))
     Description = Column(Text(100))
-    ClientID = Column(Integer, ForeignKey('Client.ID'))
-    CityID = Column(Integer, ForeignKey('City.ID'))
+    ClientID = Column(Integer, ForeignKey('Client.ID'), nullable=False)
+    CityID = Column(Integer, ForeignKey('City.ID'), nullable=False)
     SiteAddress = Column(Text(50))
     FileNumber = Column(Text(50))
     Ordered = Column(Numeric(12, 2), default=Decimal(0.00))
@@ -1148,8 +1148,8 @@ class Resource(Node):
     Code = Column(Text(50))
     Name = Column(Text(50))
     Description = Column(Text(100))
-    UnitID = Column(Integer, ForeignKey('Unit.ID'))
-    Type = Column(Integer, ForeignKey('ResourceType.ID'))
+    UnitID = Column(Integer, ForeignKey('Unit.ID'), nullable=False)
+    Type = Column(Integer, ForeignKey('ResourceType.ID'), nullable=False)
     _Rate = Column('Rate', Numeric)
     SupplierID = Column(Integer, ForeignKey('Supplier.ID'))
 
@@ -1592,8 +1592,8 @@ class Order(Base):
     ID = Column(Integer, primary_key=True)
     UserCode = Column(Text(50))
     Authorisation = Column(Text(50))
-    ProjectID = Column(Integer, ForeignKey('Project.ID'))
-    SupplierID = Column(Integer, ForeignKey('Supplier.ID'))
+    ProjectID = Column(Integer, ForeignKey('Project.ID'), nullable=False)
+    SupplierID = Column(Integer, ForeignKey('Supplier.ID'), nullable=False)
     ClientID = Column(Integer, ForeignKey('Client.ID'))
     Total = Column(Numeric)
     DeliveryAddress = Column(Text(100))
@@ -1850,7 +1850,7 @@ class Invoice(Base):
     __tablename__ = 'Invoice'
     ID = Column(Integer, primary_key=True)
     InvoiceNumber = Column(Text(100), index=True)
-    OrderID = Column(Integer, ForeignKey('Order.ID'))
+    OrderID = Column(Integer, ForeignKey('Order.ID'), nullable=False)
     InvoiceDate = Column(DateTime)
     PaymentDate = Column(DateTime)
     VAT = Column(Numeric)
@@ -1969,7 +1969,7 @@ class Valuation(Base):
     """ A table to hold valuations. """
     __tablename__ = 'Valuation'
     ID = Column(Integer, primary_key=True)
-    ProjectID = Column(Integer, ForeignKey('Project.ID'))
+    ProjectID = Column(Integer, ForeignKey('Project.ID'), nullable=False)
     Date = Column(DateTime)
 
     Project = relationship('Project')
@@ -2036,7 +2036,7 @@ class Valuation(Base):
                 'Project': self.Project.Name,
                 'Date': date,
                 'ReadableDate': readable_date,
-                'PercentageClaimed': percentage,
+                'PercentageClaimed': str(percentage),
                 'AmountClaimed': str(total),
                 'Status': self.Status}
 
@@ -2106,10 +2106,10 @@ class Claim(Base):
     """ A table to hold Claims """
     __tablename__ = 'Claim'
     ID = Column(Integer, primary_key=True)
-    ProjectID = Column(Integer, ForeignKey('Project.ID'))
+    ProjectID = Column(Integer, ForeignKey('Project.ID'), nullable=False)
     Date = Column(DateTime)
     Status = Column(Text(50), default='Draft')
-    ValuationID = Column(Integer, ForeignKey('Valuation.ID'))
+    ValuationID = Column(Integer, ForeignKey('Valuation.ID'), nullable=False)
 
     Project = relationship('Project')
     Valuation = relationship('Valuation', uselist=False)
@@ -2155,8 +2155,8 @@ class Payment(Base):
     """ A table for payments """
     __tablename__ = 'Payment'
     ID = Column(Integer, primary_key=True)
-    ProjectID = Column(Integer, ForeignKey('Project.ID'))
-    ClaimID = Column(Integer, ForeignKey('Claim.ID'))
+    ProjectID = Column(Integer, ForeignKey('Project.ID'), nullable=False)
+    ClaimID = Column(Integer, ForeignKey('Claim.ID'), nullable=False)
     Date = Column(DateTime)
     ReferenceNumber = Column(Text(50))
     Amount = Column(Numeric)
