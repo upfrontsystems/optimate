@@ -228,14 +228,14 @@ class TestClientSuccessCondition(unittest.TestCase):
         from optimate.app.views import clientview
         return clientview(request)
 
-    def test_delete_client(self):
+    def test_delete_client_in_use(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.method = 'DELETE'
         request.matchdict = {'id': 1}
         response = self._callFUT(request)
-        # test if the correct name is returned
-        self.assertEqual(response.code, 200)
+        # test if the correct code is returned
+        self.assertEqual(response.code, 409)
 
     def test_add_client(self):
         _registerRoutes(self.config)

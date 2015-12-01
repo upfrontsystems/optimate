@@ -528,13 +528,13 @@ class TestOrderViewSuccessCondition(unittest.TestCase):
         # the project id of the order is 1
         self.assertEqual(response['ProjectID'], 1)
 
-    def test_delete(self):
+    def test_delete_order_in_use(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.method = 'DELETE'
         request.matchdict['id'] = 1
         response = self._callFUT(request)
-        self.assertEqual(response.code, 200)
+        self.assertEqual(response.code, 409)
 
     def test_add(self):
         _registerRoutes(self.config)
@@ -723,6 +723,14 @@ class TestInvoiceViewSuccessCondition(unittest.TestCase):
         request.method = 'DELETE'
         request.matchdict['id'] = 1
         response = self._callFUT(request)
+        self.assertEqual(response.code, 200)
+
+        # test an order can now be deleted
+        request = testing.DummyRequest()
+        request.method = 'DELETE'
+        request.matchdict['id'] = 1
+        from optimate.app.views import orderview
+        response = orderview(request)
         self.assertEqual(response.code, 200)
 
     def test_add(self):

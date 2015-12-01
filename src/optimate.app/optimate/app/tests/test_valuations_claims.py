@@ -247,14 +247,14 @@ class TestValuationView(unittest.TestCase):
         from optimate.app.views import valuationview
         return valuationview(request)
 
-    def test_delete(self):
+    def test_delete_valuation_in_use(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.method = 'DELETE'
         request.matchdict = {'id': 1}
         response = self._callFUT(request)
-        # test if the response is ok
-        self.assertEqual(response.code, 200)
+        # test if the response code is correct
+        self.assertEqual(response.code, 409)
 
     def test_get(self):
         _registerRoutes(self.config)
@@ -427,6 +427,15 @@ class TestClaimView(unittest.TestCase):
         request.method = 'DELETE'
         request.matchdict = {'id': 1}
         response = self._callFUT(request)
+        # test if the response is ok
+        self.assertEqual(response.code, 200)
+
+        # test the valuation can now be deleted
+        request = testing.DummyRequest()
+        request.method = 'DELETE'
+        request.matchdict = {'id': 1}
+        from optimate.app.views import valuationview
+        response = valuationview(request)
         # test if the response is ok
         self.assertEqual(response.code, 200)
 
