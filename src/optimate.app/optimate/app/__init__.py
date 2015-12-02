@@ -167,5 +167,8 @@ def main(global_config, **settings):
     # currencies
     config.add_route('currencyview', '/currency', factory=makeProtectedFunction('setup'))
 
+    # exception views
+    config.add_route('integrity_error', '')
+
     config.scan()
     return config.make_wsgi_app()

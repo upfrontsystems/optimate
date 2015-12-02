@@ -164,7 +164,6 @@ def node_children(request):
         adds it to a list and returns it to the JSON renderer
         in a format that is acceptable to angular.treeview
     """
-
     parentid = 0
     if 'parentid' in request.matchdict:
         parentid = request.matchdict['parentid']
@@ -566,10 +565,9 @@ def deleteitemview(request):
                 parent.Ordered -= deletethis.Ordered
             if hasattr(deletethis, 'Invoiced'):
                 parent.Invoiced -= deletethis.Invoiced
-        qry = DBSession.delete(deletethis)
+        DBSession.delete(deletethis)
         transaction.commit()
     except IntegrityError:
-        DBSession.rollback()
         return HTTPConflict(text=u'ServerResponse: Selection in use')
 
     return {"parentid": parentid}
@@ -1510,16 +1508,14 @@ def clientview(request):
         if not request.has_permission('edit'):
             return HTTPForbidden()
         deleteid = request.matchdict['id']
-
         deletethis = DBSession.query(Client).filter_by(ID=deleteid).first()
+        if not deletethis:
+            return HTTPNotFound(text=u'ServerResponse: Client not found')
+
         try:
-            qry = DBSession.delete(deletethis)
+            DBSession.delete(deletethis)
             transaction.commit()
-            if qry == 0:
-                return HTTPNotFound(
-                                text=u'ServerResponse: Client not found')
         except IntegrityError:
-            DBSession.rollback()
             return HTTPConflict(text=u'ServerResponse: Client in use')
 
         return HTTPOk()
@@ -1594,14 +1590,13 @@ def supplierview(request):
             return HTTPForbidden()
         deleteid = request.matchdict['id']
         deletethis = DBSession.query(Supplier).filter_by(ID=deleteid).first()
+        if not deletethis:
+            return HTTPNotFound(text=u'ServerResponse: Supplier not found')
+
         try:
-            qry = DBSession.delete(deletethis)
+            DBSession.delete(deletethis)
             transaction.commit()
-            if qry == 0:
-                return HTTPNotFound(
-                                text=u'ServerResponse: Supplier not found')
         except IntegrityError:
-            DBSession.rollback()
             return HTTPConflict(text=u'ServerResponse: Supplier in use')
 
         return HTTPOk()
@@ -1750,17 +1745,14 @@ def unitview(request):
             return HTTPForbidden()
         deleteid = request.matchdict['id']
         deletethis = DBSession.query(Unit).filter_by(ID=deleteid).first()
-        # only delete if this Unit is not in use by any Resource
-        try:
-            qry = DBSession.delete(deletethis)
-            transaction.commit()
-            if qry == 0:
-                return HTTPNotFound(
-                                text=u'ServerResponse: Unit not found')
-        except IntegrityError:
-            DBSession.rollback()
-            return HTTPConflict(text=u'ServerResponse: Unit in use')
+        if not deletethis:
+            return HTTPNotFound(text=u'ServerResponse:City not found')
 
+        try:
+           DBSession.delete(deletethis)
+           transaction.commit()
+        except IntegrityError as e:
+            return HTTPConflict(text=u'ServerResponse:City in use')
         return HTTPOk()
 
     # if the method is post, add a new unit
@@ -1841,16 +1833,14 @@ def cityview(request):
             return HTTPForbidden()
         deleteid = request.matchdict['id']
         deletethis = DBSession.query(City).filter_by(ID=deleteid).first()
+        if not deletethis:
+            return HTTPNotFound(text=u'ServerResponse: City not found')
         # only delete if this City is not in use by any other table
         try:
-            qry = DBSession.delete(deletethis)
+            DBSession.delete(deletethis)
             transaction.commit()
-            if qry == 0:
-                return HTTPNotFound(
-                                text=u'ServerResponse: City not found')
         except IntegrityError:
-            DBSession.rollback()
-            return HTTPConflict(text=u'ServerResponse: City in use')
+            return HTTPOk(text=u'ServerResponse: City in use')
 
         return HTTPOk()
 
@@ -2024,21 +2014,19 @@ def orderview(request):
         if not request.has_permission('edit'):
             return HTTPForbidden()
         deleteid = request.matchdict['id']
-
         deletethis = DBSession.query(Order).filter_by(ID=deleteid).first()
+        if not deletethis:
+            return HTTPNotFound(text=u'ServerResponse: Order not found')
+
         try:
             # update the budgetitem ordered amounts
             for orderitem in deletethis.OrderItems:
                 if orderitem.BudgetItem:
                     orderitem.BudgetItem.Ordered = (orderitem.BudgetItem.Ordered -
                                                     orderitem.Total)
-            qry = DBSession.delete(deletethis)
+            DBSession.delete(deletethis)
             transaction.commit()
-            if qry == 0:
-                return HTTPNotFound(
-                                text=u'ServerResponse: Order not found')
         except IntegrityError:
-            DBSession.rollback()
             return HTTPConflict(text=u'ServerResponse: Order in use')
 
         return HTTPOk()
@@ -2318,14 +2306,13 @@ def valuationview(request):
             return HTTPForbidden()
         deleteid = request.matchdict['id']
         deletethis = DBSession.query(Valuation).filter_by(ID=deleteid).first()
+        if not deletethis:
+            return HTTPNotFound(text=u'ServerResponse: Valuation not found')
+
         try:
             qry = DBSession.delete(deletethis)
             transaction.commit()
-            if qry == 0:
-                return HTTPNotFound(
-                                text=u'ServerResponse: Valuation not found')
         except IntegrityError:
-            DBSession.rollback()
             return HTTPConflict(text=u'ServerResponse: Valuation in use')
 
         return HTTPOk()
@@ -2834,6 +2821,8 @@ def invoiceview(request):
         deleteid = request.matchdict['id']
         # Deleting it from the table deletes the object
         deletethis = DBSession.query(Invoice).filter_by(ID=deleteid).first()
+        if not deletethis:
+            return HTTPNotFound(text=u'ServerResponse: Invoice not found')
 
         try:
             # update the budgetitem invoiced amounts
@@ -2847,13 +2836,9 @@ def invoiceview(request):
                 else:
                     orderitem.BudgetItem.Invoiced = 0
 
-            qry = DBSession.delete(deletethis)
+            DBSession.delete(deletethis)
             transaction.commit()
-            if qry == 0:
-                return HTTPNotFound(
-                                text=u'ServerResponse: Invoice not found')
         except IntegrityError:
-            DBSession.rollback()
             return HTTPConflict(text=u'ServerResponse: Invoice in use')
 
         return HTTPOk()
@@ -3093,17 +3078,14 @@ def claimview(request):
         if not request.has_permission('edit'):
             return HTTPForbidden()
         deleteid = request.matchdict['id']
-        # Deleting it from the table deletes the object
         deletethis = DBSession.query(Claim).filter_by(ID=deleteid).first()
+        if not deletethis:
+            return HTTPNotFound(text=u'ServerResponse: Claim not found')
 
         try:
-            qry = DBSession.delete(deletethis)
+            DBSession.delete(deletethis)
             transaction.commit()
-            if qry == 0:
-                return HTTPNotFound(
-                                text=u'ServerResponse: Claim not found')
         except IntegrityError:
-            DBSession.rollback()
             return HTTPConflict(text=u'ServerResponse: Claim in use')
 
         return HTTPOk()
@@ -3212,6 +3194,8 @@ def paymentview(request):
         deleteid = request.matchdict['id']
         # Deleting it from the table deletes the object
         deletethis = DBSession.query(Payment).filter_by(ID=deleteid).first()
+        if not deletethis:
+            return HTTPNotFound(text=u'ServerResponse: Payment not found')
 
         try:
             claim = DBSession.query(Claim).filter_by(ID=deletethis.ClaimID).first()
@@ -3219,13 +3203,9 @@ def paymentview(request):
             if ((claim.Total + deletethis.Amount) > Decimal(0)
                 and claim.Status == 'Paid'):
                 claim.Status = 'Claimed'
-            qry = DBSession.delete(deletethis)
+            DBSession.delete(deletethis)
             transaction.commit()
-            if qry == 0:
-                return HTTPNotFound(
-                                text=u'ServerResponse: Payment not found')
         except IntegrityError:
-            DBSession.rollback()
             return HTTPConflict(text=u'ServerResponse: Payment in use')
 
         return HTTPOk()
