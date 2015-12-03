@@ -51,6 +51,9 @@ import unittest
 import transaction
 from pyramid import testing
 from decimal import Decimal
+from nose.tools import assert_raises
+from pyramid.httpexceptions import HTTPConflict
+
 
 def _initTestingDB():
     """ Build a database with default data
@@ -533,8 +536,7 @@ class TestOrderViewSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.method = 'DELETE'
         request.matchdict['id'] = 1
-        response = self._callFUT(request)
-        self.assertEqual(response.code, 409)
+        assert_raises(HTTPConflict, self._callFUT, request)
 
     def test_add(self):
         _registerRoutes(self.config)

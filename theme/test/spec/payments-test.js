@@ -81,6 +81,21 @@ describe('Payments Page', function () {
         });
     });
 
+    it('should revert payment on a claim', function(){
+        // delete the payment
+        element(by.repeater('obj in jsonpayments').row(0)).click();
+        // delete
+        element(by.css('nav ul li a i.fa-trash')).click();
+        element(by.buttonText('Delete')).click();
+
+        // check the claim was reverted
+        browser.get('http://127.0.0.1:8000/#/claims');
+        element(by.repeater('obj in jsonclaims').row(0).column('obj.Status')
+            ).getText().then(function(status){
+                expect(status).toBe('Claimed');
+        });
+    });
+
     it('should filter a payment by project', function(){
         element(by.css('li.dropdown:nth-child(1) > a:nth-child(1)')).click();
         browser.switchTo().activeElement().sendKeys('TestProject');

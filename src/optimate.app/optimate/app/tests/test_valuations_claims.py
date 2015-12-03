@@ -4,6 +4,8 @@ import datetime
 from decimal import Decimal
 from pyramid import testing
 from pyramid.httpexceptions import HTTPUnauthorized, HTTPMethodNotAllowed
+from nose.tools import assert_raises
+from pyramid.httpexceptions import HTTPConflict
 
 from sqlalchemy import create_engine
 from optimate.app.models import Base, DBSession
@@ -252,9 +254,8 @@ class TestValuationView(unittest.TestCase):
         request = testing.DummyRequest()
         request.method = 'DELETE'
         request.matchdict = {'id': 1}
-        response = self._callFUT(request)
-        # test if the response code is correct
-        self.assertEqual(response.code, 409)
+        assert_raises(HTTPConflict, self._callFUT, request)
+
 
     def test_get(self):
         _registerRoutes(self.config)

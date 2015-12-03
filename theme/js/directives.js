@@ -336,11 +336,13 @@ myApp.directive('projectslickgridjs', ['globalServerURL', '$http',
             $scope.handleReloadSlickgrid = function(nodeid) {
                 var url = globalServerURL +'node/' + nodeid + '/grid/'
                 var target = document.getElementsByClassName('slick-viewport');
-                var spinner = new Spinner().spin(target[0]);
+                // var spinner = new Spinner().spin(target[0]);
 
                 $http.get(url).success(function(response) {
-                    spinner.stop(); // stop the spinner - ajax call complete
                     loadSlickgrid(response);
+                }).finally(function(){
+                    // spinner.stop();
+                    var tp = 0;
                 });
             };
 

@@ -764,6 +764,21 @@ class BudgetItem(Node):
         subitem = []
         if len(self.Children) > 0:
             subitem = [{'Name': '...', 'NodeType': 'Default'}]
+
+        # if the resource has been deleted
+        if not self.Resource:
+            return {'Name': 'Resource Deleted',
+                    'ID': self.ID,
+                    'id': self.ID,
+                    'ParentID': self.ParentID,
+                    'ParentType': self.Parent.type,
+                    'OverheadList': [],
+                    'Subitem': subitem,
+                    'NodeType': self.type,
+                    'NodeTypeAbbr' : 'I',
+                    'Status': self.Status,
+                    'Variation': self.Variation}
+
         return {'Name': self.Name,
                 'Description': self.Description,
                 'ID': self.ID,

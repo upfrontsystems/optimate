@@ -224,6 +224,7 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
 
         // process a claim
         $scope.toggleClaimStatus = function(status, index){
+            console.log(status);
             $http({
                 method: 'POST',
                 url: globalServerURL + 'claim/' + $scope.selectedItems[0].ID + '/status',

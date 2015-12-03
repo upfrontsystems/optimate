@@ -51,6 +51,8 @@ import unittest
 import transaction
 from pyramid import testing
 from decimal import Decimal
+from nose.tools import assert_raises
+from pyramid.httpexceptions import HTTPConflict
 
 def _initTestingDB():
     """ Build a database with default data
@@ -233,9 +235,8 @@ class TestClientSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.method = 'DELETE'
         request.matchdict = {'id': 1}
-        response = self._callFUT(request)
-        # test if the correct code is returned
-        self.assertEqual(response.code, 409)
+        assert_raises(HTTPConflict, self._callFUT, request)
+
 
     def test_add_client(self):
         _registerRoutes(self.config)
@@ -493,9 +494,9 @@ class TestUnitViewSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.method = 'DELETE'
         request.matchdict['id'] = 1
-        response = self._callFUT(request)
         # the unit is used so it should be kept
-        self.assertEqual(response.code, 409)
+        assert_raises(HTTPConflict, self._callFUT, request)
+
 
 class TestCitiesViewSuccessCondition(unittest.TestCase):
     """ Test the citiesview
@@ -559,9 +560,8 @@ class TestCityViewSuccessCondition(unittest.TestCase):
         request = testing.DummyRequest()
         request.method = 'DELETE'
         request.matchdict['id'] = 1
-        response = self._callFUT(request)
-        # the city is used so it should be kept
-        self.assertEqual(response.code, 409)
+        assert_raises(HTTPConflict, self._callFUT, request)
+
 
     def test_add(self):
         _registerRoutes(self.config)

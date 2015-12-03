@@ -141,7 +141,6 @@ class ProtectedFunction(object):
         if 'workflow' in self.function:
             acl = [(Allow, Everyone, 'view')]
             users = DBSession.query(User).all()
-
             for user in users:
                 right = DBSession.query(UserRight).filter_by(
                                 UserID=user.ID, Function=self.function).first()
