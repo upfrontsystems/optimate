@@ -21,6 +21,7 @@
                     <tbody>
                         <tr data-ng-repeat="overhead in overheadList">
                             <td><input type="text"
+                                    focus-on="focusEdit"
                                     data-ng-disabled="!overhead.edit"
                                     data-ng-model="overhead.Name"></td>
                             <td><input type="text"
@@ -29,11 +30,17 @@
                                     data-ng-model="overhead.Percentage">%</td>
                             <td data-ng-show="overhead.edit">
                                 <label>
-                                    <input type="radio" ng-model="overhead.Type" value="Project">
+                                    <input type="radio"
+                                        class="input-inline-label"
+                                        ng-model="overhead.Type"
+                                        value="Project">
                                     Project
                                 </label>
                                 <label>
-                                    <input type="radio" ng-model="overhead.Type" value="BudgetItem">
+                                    <input type="radio"
+                                        class="input-inline-label"
+                                        ng-model="overhead.Type"
+                                        value="BudgetItem">
                                     Item
                                 </label>
                             </td>
@@ -45,7 +52,7 @@
                             </td>
                             <td data-ng-show="user.permissions.projects == 'edit'"
                                 data-ng-hide="overhead.edit">
-                                <button data-ng-click="overhead.edit = true"
+                                <button data-ng-click="overhead.edit = true; (focusEdit=true)"
                                         title="Edit this overhead">
                                     <i class="fa fa-pencil"></i>
                                 </button>
@@ -60,7 +67,11 @@
                         </tr>
                         <tr data-ng-show="user.permissions.projects == 'edit'">
                             <td>
-                                <input type="text" ng-model="newOverhead.Name" placeholder="Name">
+                                <input type="text"
+                                    id="inputName"
+                                    focus-on="focusInput"
+                                    ng-model="newOverhead.Name"
+                                    placeholder="Name">
                             </td>
                             <td>
                                 <input type="text" ng-model="newOverhead.Percentage"
@@ -68,16 +79,22 @@
                             </td>
                             <td style="display: block;">
                                 <label>
-                                    <input type="radio" ng-model="newOverhead.Type" value="Project">
+                                    <input type="radio"
+                                        class="input-inline-label"
+                                        ng-model="newOverhead.Type"
+                                        value="Project">
                                     Project
                                 </label>
                                 <label>
-                                    <input type="radio" ng-model="newOverhead.Type" value="BudgetItem">
+                                    <input type="radio"
+                                        class="input-inline-label"
+                                        ng-model="newOverhead.Type"
+                                        value="BudgetItem">
                                     Item
                                 </label>
                             </td>
                             <td>
-                                <button data-ng-click="addOverhead()"
+                                <button data-ng-click="addOverhead(); (focusInput=true)"
                                         data-ng-disabled="!newOverhead"
                                         title="Add a new overhead">
                                     <i class="fa fa-plus"></i>

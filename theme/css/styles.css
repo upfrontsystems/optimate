@@ -569,3 +569,8 @@ th.modal-table-row{
 div.order-tree-node-content:hover {
     background-color: #f5f5f5;
 }
+
+/* align input inline with its label */
+.input-inline-label{
+    vertical-align:-10%;
+}

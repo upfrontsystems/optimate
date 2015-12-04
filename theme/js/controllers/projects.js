@@ -1171,6 +1171,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             var doAll = undefined;
             var overwrite = false;
             var keys = Object.keys(duplicatelist);
+            var stopped = false;
 
             var openModal = function() {
                 var modalInstance = $modal.open({
@@ -1190,40 +1191,44 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                     }
                 }, function () {
                     $scope.statusMessage("Stopped", 2000, 'alert-info');
+                    stopped = true;
                 });
             };
             (function checkItems() {
-                // get the first key and remove it from array
-                var key = keys.shift();
-                var duplicateResource = duplicatelist[key];
-                if (doAll == undefined) {
-                    // open the modal
-                    $scope.selections = {'overwrite': overwrite,
-                                        'doAll': doAll,
-                                        'resourceName': duplicateResource.Name};
-                    // continue when response from modal is returned
-                    openModal().then(function() {
-                        selectionlist[duplicateResource.Code] = overwrite;
+                if (!stopped){
+                    // get the first key and remove it from array
+                    var key = keys.shift();
+                    var duplicateResource = duplicatelist[key];
+                    if (doAll == undefined) {
+                        // open the modal
+                        $scope.selections = {'overwrite': overwrite,
+                                            'doAll': doAll,
+                                            'resourceName': duplicateResource.Name};
+                        // continue when response from modal is returned
+                        openModal().then(function() {
+                            selectionlist[duplicateResource.Code] = overwrite;
+                            if (keys.length) {
+                                checkItems();
+                            }
+                            else {
+                                $scope.pasteAction(node, selectionlist, index);
+                            }
+                        // modal dismissed, stop
+                        },function () {
+                            $scope.statusMessage("Stopped", 2000, 'alert-info');
+                            stopped = true;
+                        });
+                    }
+                    else {
+                        // skip has been selected
+                        // set the overwrite to the skip value
+                        selectionlist[duplicateResource.Code] = doAll;
                         if (keys.length) {
                             checkItems();
                         }
                         else {
                             $scope.pasteAction(node, selectionlist, index);
                         }
-                    // modal dismissed, stop
-                    },function () {
-                        $scope.statusMessage("Stopped", 2000, 'alert-info');
-                    });
-                }
-                else {
-                    // skip has been selected
-                    // set the overwrite to the skip value
-                    selectionlist[duplicateResource.Code] = doAll;
-                    if (keys.length) {
-                        checkItems();
-                    }
-                    else {
-                        $scope.pasteAction(node, selectionlist, index);
                     }
                 }
             })();

@@ -97,11 +97,11 @@
                                 <table>
                                     <tr data-ng-repeat="overhead in budgetItemOverheadList"
                                         data-ng-click="overhead.selected = !overhead.selected">
-                                        <td>{{overhead.Name}} &nbsp;</td>
                                         <td>
                                             <button class="custom-checkbox">
                                                 <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[overhead.selected]"></i>
                                             </button>
+                                            {{overhead.Name}}
                                         </td>
                                     </tr>
                                 </table>

@@ -11,11 +11,12 @@
                 <form class="form-horizontal" name="resourceListReportForm" novalidate>
                     <div class="form-group">
                         <label class="col-sm-3"
-                                data-ng-click="filterBySupplier = !filterBySupplier">
+                                for="filterSupplier">
                                 Filter by Supplier:
                         </label>
                         <button class="custom-checkbox" ng-model="filterBySupplier"
-                              data-ng-click="filterBySupplier = !filterBySupplier">
+                                id="filterSupplier"
+                                data-ng-click="filterBySupplier = !filterBySupplier">
                             <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[filterBySupplier]">
                             </i>
                         </button>

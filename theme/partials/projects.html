@@ -177,17 +177,14 @@
         <h3 class="modal-title">{{selections.resourceName}} already exists in this resource list.</h3>
     </div>
     <div class="modal-body">
-        <p>Do you want to overwrite it or skip it?</p>
-        <table>
-            <tr data-ng-click="selections.doAll = !selections.doAll">
-                <td>
-                    <button class="custom-checkbox">
-                        <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[selections.doAll]"></i>
-                    </button>
-                </td>
-                <td>&nbsp;Do this for all existing resources</td>
-            </tr>
-        </table>
+        <h4>Do you want to overwrite it or skip it?</h4>
+        <span>&nbsp;</span>
+        <button id="selectAll"
+                class="custom-checkbox"
+                data-ng-click="selections.doAll = !selections.doAll">
+            <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[selections.doAll]"></i>
+        </button>
+        <label for="selectAll">Do this for all existing resources</label>
     </div>
     <div class="modal-footer">
         <button class="btn btn-primary" type="submit" data-ng-click="skip()">Skip</button>
@@ -209,8 +206,8 @@
                     <button class="custom-checkbox">
                         <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[selection.selected]"></i>
                     </button>
+                    {{selection.Name}}
                 </td>
-                <td>&nbsp;{{selection.Name}}</td>
             </tr>
         </table>
     </div>
