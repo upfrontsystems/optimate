@@ -134,70 +134,66 @@ class ProtectedFunction(object):
     @reify
     def __acl__(self):
         # This is called on every request. Employ some caching
-        try:
-            if self.function in self._cache:
-                return self._cache[self.function]
+        if self.function in self._cache:
+            return self._cache[self.function]
 
-            # for workflow permissions
-            if 'workflow' in self.function:
-                acl = [(Allow, Everyone, 'view')]
-                users = DBSession.query(User).all()
-                for user in users:
+        # for workflow permissions
+        if 'workflow' in self.function:
+            acl = [(Allow, Everyone, 'view')]
+            users = DBSession.query(User).all()
+            for user in users:
+                right = DBSession.query(UserRight).filter_by(
+                                UserID=user.ID, Function=self.function).first()
+                if right:
+                    for perm in right.Permission.split('_'):
+                        acl.append((Allow,
+                                    u'user:{}'.format(user.username),
+                                    perm))
+        # for page permissions
+        else:
+            acl = []
+            # add the project workflow permission to the project permission
+            if self.function == 'projects':
+                users_with_project_workflow = DBSession.query(User).join(
+                            User.UserRights, aliased=True).filter_by(
+                            Function='projects_workflow').all()
+
+                for user in users_with_project_workflow:
                     right = DBSession.query(UserRight).filter_by(
-                                    UserID=user.ID, Function=self.function).first()
+                            UserID=user.ID, Function='projects_workflow').first()
                     if right:
                         for perm in right.Permission.split('_'):
                             acl.append((Allow,
                                         u'user:{}'.format(user.username),
                                         perm))
-            # for page permissions
-            else:
-                acl = []
-                # add the project workflow permission to the project permission
-                if self.function == 'projects':
-                    users_with_project_workflow = DBSession.query(User).join(
-                                User.UserRights, aliased=True).filter_by(
-                                Function='projects_workflow').all()
 
-                    for user in users_with_project_workflow:
-                        right = DBSession.query(UserRight).filter_by(
-                                UserID=user.ID, Function='projects_workflow').first()
-                        if right:
-                            for perm in right.Permission.split('_'):
-                                acl.append((Allow,
-                                            u'user:{}'.format(user.username),
-                                            perm))
+            users_with_edit = DBSession.query(User).join(
+                            User.UserRights, aliased=True).filter_by(
+                            Function=self.function, Permission='edit').all()
+            users_with_view = DBSession.query(User).join(
+                            User.UserRights, aliased=True).filter_by(
+                            Function=self.function, Permission='view').all()
 
-                users_with_edit = DBSession.query(User).join(
-                                User.UserRights, aliased=True).filter_by(
-                                Function=self.function, Permission='edit').all()
-                users_with_view = DBSession.query(User).join(
-                                User.UserRights, aliased=True).filter_by(
-                                Function=self.function, Permission='view').all()
+            users_with_view = [u.username for u in users_with_view]
+            users_with_edit = [u.username for u in users_with_edit]
 
-                users_with_view = [u.username for u in users_with_view]
-                users_with_edit = [u.username for u in users_with_edit]
+            # Ensure that editors are also viewers
+            users_with_view = dict.fromkeys(
+                users_with_edit + users_with_view).keys()
 
-                # Ensure that editors are also viewers
-                users_with_view = dict.fromkeys(
-                    users_with_edit + users_with_view).keys()
+            acl += [(Allow, u'user:{}'.format(u), 'view')
+                for u in users_with_view] + [
+                (Allow, u'user:{}'.format(u), 'edit')
+                for u in users_with_edit] + [
+                (Allow, Administrator, 'view'), # Always allow Admin and Manager
+                (Allow, Manager, 'view'),
+                (Allow, Administrator, 'edit'),
+                (Allow, Manager, 'edit'),
+                (Deny, Everyone, 'view') # Catch-all, must be last.
+            ]
 
-                acl += [(Allow, u'user:{}'.format(u), 'view')
-                    for u in users_with_view] + [
-                    (Allow, u'user:{}'.format(u), 'edit')
-                    for u in users_with_edit] + [
-                    (Allow, Administrator, 'view'), # Always allow Admin and Manager
-                    (Allow, Manager, 'view'),
-                    (Allow, Administrator, 'edit'),
-                    (Allow, Manager, 'edit'),
-                    (Deny, Everyone, 'view') # Catch-all, must be last.
-                ]
-
-            self.cache_acl(self.function, acl)
-            return acl
-        except Exception, e:
-            print e
-            return []
+        self.cache_acl(self.function, acl)
+        return acl
 
 def makeProtected(*roles):
     """
