@@ -988,7 +988,7 @@ def cashflow(request):
     rows = []
     # create a matrix of valuations and valuation items
     if len(valuations) > 0:
-        data = []
+        columns = []
         budgetgroups = []
         for bg in budgetgroupsqry:
             budgetgroups.append(bg.dict())
@@ -1007,7 +1007,7 @@ def cashflow(request):
                 for item in rootitems:
                     data = item.dict()
                     budgettotal = item.BudgetGroup.Total
-                    if item.Total > 0:
+                    if budgettotal > 0:
                         data['PercentageComplete'] = float(item.Total/budgettotal)*100
                     else:
                         data['PercentageComplete'] = 0
@@ -1015,12 +1015,12 @@ def cashflow(request):
 
             col=1
             column['Items'] = items
-            data.append(column)
+            columns.append(column)
 
         # rearange the data into a table
         headers.append('Detail')
         headers.append('Budget Total')
-        for column in data:
+        for column in columns:
             headers.append('%')
             headers.append('Amount')
             dateheader.append(column['Valuation']['ReadableDate'])
@@ -1031,7 +1031,7 @@ def cashflow(request):
             pair.append(budgetgroups[i]['Name'])
             pair.append(budgetgroups[i]['Total'])
             row.append(pair)
-            for column in data:
+            for column in columns:
                 pair = []
                 pair.append(column['Items'][i]['PercentageComplete'])
                 pair.append(column['Items'][i]['AmountComplete'])
