@@ -563,7 +563,7 @@ class BudgetItem(Node):
         if self.Resource:
             return self.Resource.Name
         else:
-            return "no resource"
+            return "Resource Deleted"
 
     @property
     def Description(self):
@@ -767,13 +767,13 @@ class BudgetItem(Node):
 
         # if the resource has been deleted
         if not self.Resource:
-            return {'Name': 'Resource Deleted',
+            return {'Name': self.Name,
                     'ID': self.ID,
                     'id': self.ID,
                     'ParentID': self.ParentID,
                     'ParentType': self.Parent.type,
                     'OverheadList': [],
-                    'Subitem': subitem,
+                    'Subitem': [],
                     'NodeType': self.type,
                     'NodeTypeAbbr' : 'I',
                     'Status': self.Status,
@@ -951,6 +951,35 @@ class SimpleBudgetItem(BudgetItem):
                                 ClientCost=self.ClientCost,
                                 ProjectedProfit=self.ProjectedProfit,
                                 ActualProfit=self.ActualProfit)
+
+    def dict(self):
+        """ Override the dict function for budget item
+        """
+        return {'Name': self.Name,
+                'Description': self.Description,
+                'ID': self.ID,
+                'id': self.ID,
+                'ParentID': self.ParentID,
+                'ParentType': self.Parent.type,
+                'Subitem': [],
+                'Rate': str(self.Rate),
+                'Quantity': self.Quantity,
+                'Total': str(self.Total),
+                'Markup': str(self.Total-self.Subtotal),
+                'Subtotal': str(self.Subtotal),
+                'Ordered': str(self.Ordered),
+                'Invoiced': str(self.Invoiced),
+                'ResourceID': self.ResourceID,
+                'ResourceName': self.Name,
+                'OverheadList': [],
+                'Unit': self.Unit,
+                'UnitID': self.UnitID,
+                'ResourceTypeID': self.Type,
+                'NodeType': self.type,
+                'NodeTypeAbbr' : 'I',
+                'Status': self.Status,
+                'Variation': self.Variation
+        }
 
     def __repr__(self):
         """ return a representation of this simplebudgetitem
