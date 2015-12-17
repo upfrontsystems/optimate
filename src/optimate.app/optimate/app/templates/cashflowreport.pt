@@ -84,34 +84,36 @@
         </tr>
     </table>
     <div>&nbsp;</div>
-    <table class="order-font">
-        <tr style="border-top: 1px solid #000;">
-            <th></th>
-        </tr>
-        <tr>
-            <th></th>
-            <th></th>
-            <th class="bold" style="width: 400px; text-align:right" colspan="2" tal:repeat="date dateheader">
-                ${date}
-            </th>
-        </tr>
-        <tr style="border-bottom: 1px solid #000;">
-            <th class="bold" style="width: 400px; text-align:left" tal:repeat="header headers">
-                ${header}
-            </th>
-        </tr>
-        <tr><th></th></tr>
-    </table>
-    <table class="order-font">
-        <tr tal:repeat="row rows">
-            <td class="bold" style="width: 400px; text-align:left">${row[0][0]}</td>
-            <td class="bold" style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(float(row[0][1])).strip()|nothing}</td>
-            <span tal:repeat="cell row[1:]">
-                <td style="width: 100px; text-align:right">${str(cell[0]) + '%'}</td>
-                <td style="width: 400px; text-align:right">${currency + '{:20,.2f}'.format(float(cell[1])).strip()|nothing}</td>
-            </span>
-        </tr>
-    </table>
+    <div tal:repeat="group groups">
+        <table class="order-font">
+            <tr style="border-top: 1px solid #000;">
+                <th></th>
+            </tr>
+            <tr>
+                <th></th>
+                <th></th>
+                <th class="bold" style="width: 400px; text-align:right" colspan="2" tal:repeat="date group['dateheader']">
+                    ${date}
+                </th>
+            </tr>
+            <tr style="border-bottom: 1px solid #000;">
+                <th class="bold" style="width: 400px; text-align:left" tal:repeat="header headers">
+                    ${header}
+                </th>
+            </tr>
+            <tr><th></th></tr>
+        </table>
+        <table class="order-font">
+            <tr tal:repeat="row group['rows']">
+                <td class="bold" style="width: 400px; text-align:left">${row[0][0]}</td>
+                <td class="bold" style="width: 200px; text-align:right">${currency + '{:20,.2f}'.format(float(row[0][1])).strip()|nothing}</td>
+                <span tal:repeat="cell row[1:]">
+                    <td style="width: 100px; text-align:right">${str(cell[0]) + '%'}</td>
+                    <td style="width: 400px; text-align:right">${currency + '{:20,.2f}'.format(float(cell[1])).strip()|nothing}</td>
+                </span>
+            </tr>
+        </table>
+    </div>
 
     <div id="footerContent">
         <table>

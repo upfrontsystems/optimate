@@ -983,60 +983,69 @@ def cashflow(request):
                                 ).order_by(Valuation.Date.asc()
                                 ).order_by(Valuation.ID.asc()).all()
 
-    dateheader = []
-    headers = []
-    rows = []
     # create a matrix of valuations and valuation items
     if len(valuations) > 0:
-        columns = []
-        budgetgroups = []
-        for bg in budgetgroupsqry:
-            budgetgroups.append(bg.dict())
+        # break the valuations up into groups of three
+        groups = []
+        i = 0
+        while i*3<len(valuations):
+            rows = []
+            columns = []
+            budgetgroups = []
+            dateheader = []
+            for bg in budgetgroupsqry:
+                budgetgroups.append(bg.dict())
 
-        col = 0
-        for valuation in valuations:
-            column = {}
-            column['Valuation'] = valuation.dict()
-            items = []
-            rootitems = DBSession.query(ValuationItem).filter_by(
-                                                    ValuationID=valuation.ID,
-                                                    ParentID=0).all()
-            if len(rootitems) == len(valuation.ValuationItems):
-                items = [v.dict() for v in rootitems]
-            else:
-                for item in rootitems:
-                    data = item.dict()
-                    budgettotal = item.BudgetGroup.Total
-                    if budgettotal > 0:
-                        data['PercentageComplete'] = float(item.Total/budgettotal)*100
-                    else:
-                        data['PercentageComplete'] = 0
-                    items.append(data)
+            col = 0
+            for valuation in valuations[i*3:i*3+3]:
+                column = {}
+                column['Valuation'] = valuation.dict()
+                items = []
+                rootitems = DBSession.query(ValuationItem).filter_by(
+                                                        ValuationID=valuation.ID,
+                                                        ParentID=0).all()
+                if len(rootitems) == len(valuation.ValuationItems):
+                    items = [v.dict() for v in rootitems]
+                else:
+                    for item in rootitems:
+                        data = item.dict()
+                        budgettotal = item.BudgetGroup.Total
+                        if budgettotal > 0:
+                            data['PercentageComplete'] = float(item.Total/budgettotal)*100
+                        else:
+                            data['PercentageComplete'] = 0
+                        items.append(data)
 
-            col=1
-            column['Items'] = items
-            columns.append(column)
+                col=1
+                column['Items'] = items
+                columns.append(column)
 
-        # rearange the data into a table
-        headers.append('Detail')
-        headers.append('Budget Total')
-        for column in columns:
-            headers.append('%')
-            headers.append('Amount')
-            dateheader.append(column['Valuation']['ReadableDate'])
-
-        for i in range(len(budgetgroups)):
-            row = []
-            pair = []
-            pair.append(budgetgroups[i]['Name'])
-            pair.append(budgetgroups[i]['Total'])
-            row.append(pair)
+            # rearange the data into a table
             for column in columns:
+                dateheader.append(column['Valuation']['ReadableDate'])
+
+            for n in range(len(budgetgroups)):
+                row = []
                 pair = []
-                pair.append(column['Items'][i]['PercentageComplete'])
-                pair.append(column['Items'][i]['AmountComplete'])
+                pair.append(budgetgroups[n]['Name'])
+                pair.append(budgetgroups[n]['Total'])
                 row.append(pair)
-            rows.append(row)
+                for column in columns:
+                    pair = []
+                    pair.append(column['Items'][n]['PercentageComplete'])
+                    pair.append(column['Items'][n]['AmountComplete'])
+                    row.append(pair)
+                rows.append(row)
+            print dateheader
+            groups.append({'dateheader':dateheader, 'rows':rows})
+            i+=1
+
+    headers = ['Detail', 'Budget Total', '%', 'Amount',
+                                        '%', 'Amount',
+                                        '%', 'Amount']
+
+    print len(groups)
+
 
     # inject valuation data into template
     now = datetime.now()
@@ -1048,9 +1057,8 @@ def cashflow(request):
                             'company_info': compinfo,
                             'today': today,
                             'print_date' : now.strftime("%d %B %Y - %k:%M"),
-                            'dateheader': dateheader,
                             'headers': headers,
-                            'rows': rows,
+                            'groups': groups,
                             'client': client,
                             'currency': currency},
                             request=request)
