@@ -1040,12 +1040,9 @@ def cashflow(request):
             groups.append({'dateheader':dateheader, 'rows':rows})
             i+=1
 
-    headers = ['Detail', 'Budget Total', '%', 'Amount',
-                                        '%', 'Amount',
-                                        '%', 'Amount']
-
-    print len(groups)
-
+    headers = ['Budget Total', '%', 'Amount',
+                                '%', 'Amount',
+                                '%', 'Amount']
 
     # inject valuation data into template
     now = datetime.now()
