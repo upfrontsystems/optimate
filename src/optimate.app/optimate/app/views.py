@@ -627,7 +627,7 @@ def node_budgetgroups(request):
                 childrenlist.append(data)
             # get data and append parents valuation items to parent list
             else:
-                # check if the bg has child budget groups
+                # check if the budgetgroup has child budget groups
                 level = '1'
                 children = DBSession.query(BudgetGroup
                                         ).filter_by(ParentID=bg.ID).first()
@@ -2023,8 +2023,8 @@ def orderview(request):
             # update the budgetitem ordered amounts
             for orderitem in deletethis.OrderItems:
                 if orderitem.BudgetItem:
-                    orderitem.BudgetItem.Ordered = (orderitem.BudgetItem.Ordered -
-                                                    orderitem.Total)
+                    orderitem.BudgetItem.Ordered = (orderitem.BudgetItem.Ordered
+                                                    - orderitem.Total)
             DBSession.delete(deletethis)
             transaction.commit()
         except IntegrityError:
@@ -2085,7 +2085,8 @@ def orderview(request):
         neworder.resetTotal()
         # update the budgetitem ordered amounts
         for orderitem in neworder.OrderItems:
-            orderitem.BudgetItem.Ordered += orderitem.Total
+            if orderitem.BudgetItem:
+                orderitem.BudgetItem.Ordered += orderitem.Total
         return neworder.dict()
 
     # if the method is put, edit an existing order
@@ -2154,7 +2155,8 @@ def orderview(request):
                 # update the budget item ordered amount
                 bi = DBSession.query(BudgetItem).filter_by(
                                                 ID=budgetitem['ID']).first()
-                bi.Ordered +=neworderitem.Total
+                if bi:
+                    bi.Ordered +=neworderitem.Total
             else:
                 # otherwise update the item and remove the id from the list
                 orderitemid = iddict[budgetitem['ID']]
@@ -2174,12 +2176,14 @@ def orderview(request):
                 # update the budget item ordered amount
                 bi = DBSession.query(BudgetItem).filter_by(
                                                 ID=budgetitem['ID']).first()
-                bi.Ordered = bi.Ordered - oldtotal + orderitem.Total
+                if bi:
+                    bi.Ordered = bi.Ordered - oldtotal + orderitem.Total
                 del iddict[budgetitem['ID']]
         # delete the leftover id's and update the ordered total
         for oldid in iddict.values():
             deletethis = DBSession.query(OrderItem).filter_by(ID=oldid).first()
-            deletethis.BudgetItem.Ordered -= deletethis.Total
+            if deletethis.BudgetItem:
+                deletethis.BudgetItem.Ordered -= deletethis.Total
             qry = DBSession.delete(deletethis)
 
         transaction.commit()
@@ -2831,11 +2835,12 @@ def invoiceview(request):
             ordertotal = order.Total
             invoicetotal = deletethis.Total
             for orderitem in order.OrderItems:
-                if ordertotal > 0:
-                    proportion = orderitem.Total/ordertotal
-                    orderitem.BudgetItem.Invoiced -= invoicetotal * proportion
-                else:
-                    orderitem.BudgetItem.Invoiced = 0
+                if orderitem.BudgetItem:
+                    if ordertotal > 0:
+                        proportion = orderitem.Total/ordertotal
+                        orderitem.BudgetItem.Invoiced -= invoicetotal * proportion
+                    else:
+                        orderitem.BudgetItem.Invoiced = 0
 
             DBSession.delete(deletethis)
             transaction.commit()
@@ -2867,12 +2872,13 @@ def invoiceview(request):
         ordertotal = order.Total
 
         for orderitem in order.OrderItems:
-            if ordertotal > 0:
-                proportion = orderitem.Total/ordertotal
-                orderitem.BudgetItem.Invoiced += invoicetotal * proportion
-            else:
-                if not orderitem.BudgetItem.Invoiced:
-                    orderitem.BudgetItem.Invoiced = 0
+            if orderitem.BudgetItem:
+                if ordertotal > 0:
+                    proportion = orderitem.Total/ordertotal
+                    orderitem.BudgetItem.Invoiced += invoicetotal * proportion
+                else:
+                    if not orderitem.BudgetItem.Invoiced:
+                        orderitem.BudgetItem.Invoiced = 0
 
         newinvoice = Invoice(OrderID=orderid,
                             InvoiceNumber=request.json_body['InvoiceNumber'],
@@ -2917,12 +2923,13 @@ def invoiceview(request):
         if oldtotal != newtotal:
             order = DBSession.query(Order).filter_by(ID=invoice.OrderID).first()
             for orderitem in order.OrderItems:
-                if order.Total > 0:
-                    proportion = orderitem.Total/order.Total
-                    difference = oldtotal * proportion - newtotal * proportion
-                    orderitem.BudgetItem.Invoiced += difference
-                else:
-                    orderitem.BudgetItem.Invoiced = 0
+                if orderitem.BudgetItem:
+                    if order.Total > 0:
+                        proportion = orderitem.Total/order.Total
+                        difference = oldtotal * proportion - newtotal * proportion
+                        orderitem.BudgetItem.Invoiced += difference
+                    else:
+                        orderitem.BudgetItem.Invoiced = 0
         transaction.commit()
         # return the edited invoice
         invoice = DBSession.query(Invoice).filter_by(

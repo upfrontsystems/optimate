@@ -1560,7 +1560,7 @@ class Client(Base):
 
 
 class Supplier(Base):
-    """A table containing the data relavent to a supplier of Optimate
+    """A table containing the data relevant to a supplier of Optimate
     """
     __tablename__ = 'Supplier'
     ID = Column(Integer, primary_key=True)
@@ -1630,7 +1630,7 @@ class CompanyInformation(Base):
 
 
 class Order(Base):
-    """ A table containing the data relavent to an order of Optimate
+    """ A table containing the data relevant to an order of Optimate
     """
     __tablename__ = 'Order'
     ID = Column(Integer, primary_key=True)
@@ -1791,18 +1791,44 @@ class OrderItem(Base):
                     float(self.Subtotal)*self.Discount/100.0
                     ) * (1 + self.VAT/100.0)
 
+    @property
+    def Name(self):
+        """ Return the BudgetItem Name, if it exists
+        """
+        if self.BudgetItem:
+            return self.BudgetItem.Name
+        else:
+            return 'Item Deleted'
+
+    @property
+    def Unit(self):
+        """ Return the BudgetItem Unit, if it exists
+        """
+        if self.BudgetItem:
+            return self.BudgetItem.Unit
+        else:
+            return ''
+
     def dict(self):
         """ Override the dict function
         """
         vatcost = Decimal(float(self.Total) - (float(self.Subtotal)
                             - float(self.Subtotal)*self.Discount/100)
                             ).quantize(Decimal('.01'))
-        return {'Name': self.BudgetItem.Name,
-                'ParentName': self.BudgetItem.Parent.Name,
-                'ID': self.BudgetItemID,
-                'id': self.BudgetItemID,
+
+        if self.BudgetItem:
+            parentname = self.BudgetItem.Parent.Name
+            checkedid = self.BudgetItemID
+        else:
+            parentname = ''
+            checkedid = 'DELETED' + str(self.ID)
+
+        return {'Name': self.Name,
+                'ParentName': parentname,
+                'ID': checkedid,
+                'id': checkedid,
                 'Quantity': self.Quantity,
-                'Unit': self.BudgetItem.Unit,
+                'Unit': self.Unit,
                 'Rate': str(self.Rate),
                 'VAT': self.VAT,
                 'Subtotal': str(self.Subtotal),

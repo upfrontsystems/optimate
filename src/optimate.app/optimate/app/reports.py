@@ -593,7 +593,10 @@ def order(request):
     for orderitem in order.OrderItems:
         # get the resource id
         data = orderitem.dict()
-        data['ResourceID'] = orderitem.BudgetItem.ResourceID
+        if orderitem.BudgetItem:
+            data['ResourceID'] = orderitem.BudgetItem.ResourceID
+        else:
+            data['ResourceID'] = 'DELETED' + str(orderitem.ID)
         orderitems.append(data)
 
     # sort by resourceid
@@ -1580,7 +1583,10 @@ def excelorder(request):
     for orderitem in order.OrderItems:
         # get the resource id
         data = orderitem.dict()
-        data['ResourceID'] = orderitem.BudgetItem.ResourceID
+        if orderitem.BudgetItem:
+            data['ResourceID'] = orderitem.BudgetItem.ResourceID
+        else:
+            data['ResourceID'] = 'DELETED' + str(orderitem.ID)
         orderitems.append(data)
 
     # sort by resourceid
@@ -2320,7 +2326,7 @@ def excelcashflow(request):
             for item in rootitems:
                 data = item.dict()
                 budgettotal = item.BudgetGroup.Total
-                if item.Total > 0:
+                if budgettotal > 0:
                     data['PercentageComplete'] = float(item.Total/budgettotal)*100
                 else:
                     data['PercentageComplete'] = 0
