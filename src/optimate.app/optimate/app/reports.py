@@ -692,30 +692,42 @@ def valuation(request):
 
     for item in valuation.ValuationItems:
         bg = item.BudgetGroup
-        # get data and append children valuation items to children list
-        if item.ParentID != 0:
-            data = bg.valuation()
-            totalbudget = item.BudgetGroupTotal
-            if totalbudget is not None:
-                totalbudget = str(totalbudget)
-            data['TotalBudget'] = totalbudget
-            data['AmountComplete'] = str(item.Total)
-            data['PercentageComplete'] = item.PercentageComplete
-            data['Indent'] = 'level1'
-            childrenlist.append(data)
-        # get data and append parents valuation items to parent list
+        if bg:
+            # get data and append children valuation items to children list
+            if item.ParentID != 0:
+                data = bg.valuation()
+                totalbudget = item.BudgetGroupTotal
+                if totalbudget is not None:
+                    totalbudget = str(totalbudget)
+                data['TotalBudget'] = totalbudget
+                data['AmountComplete'] = str(item.Total)
+                data['PercentageComplete'] = item.PercentageComplete
+                data['Indent'] = 'level1'
+                childrenlist.append(data)
+            # get data and append parents valuation items to parent list
+            else:
+                budget_total += float(item.BudgetGroup.Total)
+                data = bg.valuation()
+                if len(item.Children) > 0:
+                    data['expanded'] = True
+                data['AmountComplete'] = str(item.Total)
+                data['PercentageComplete'] = item.PercentageComplete
+                totalbudget = item.BudgetGroupTotal
+                if totalbudget is not None:
+                    totalbudget = str(totalbudget)
+                data['TotalBudget'] = totalbudget
+                data['Indent'] = 'level0'
+                parentlist.append(data)
+        # if the budget group does not exist
         else:
-            budget_total += float(item.BudgetGroup.Total)
-            data = bg.valuation()
-            if len(item.Children) > 0:
-                data['expanded'] = True
+            data = item.dict()
+            data['ID'] = 'DELETED' + str(data['ID'])
+            data['id'] = 'GDELETED' + str(data['ID'])
+            data['Total'] = data['TotalBudget']
             data['AmountComplete'] = str(item.Total)
-            data['PercentageComplete'] = item.PercentageComplete
-            totalbudget = item.BudgetGroupTotal
-            if totalbudget is not None:
-                totalbudget = str(totalbudget)
-            data['TotalBudget'] = totalbudget
+            data['level'] = '0'
             data['Indent'] = 'level0'
+            data['expanded'] = False
             parentlist.append(data)
 
     # sort the list, place children after parents
@@ -1012,7 +1024,9 @@ def cashflow(request):
                 else:
                     for item in rootitems:
                         data = item.dict()
-                        budgettotal = item.BudgetGroup.Total
+                        budgettotal = 0
+                        if item.BudgetGroup:
+                            budgettotal = item.BudgetGroup.Total
                         if budgettotal > 0:
                             data['PercentageComplete'] = float(item.Total/budgettotal)*100
                         else:
@@ -1885,28 +1899,45 @@ def excelvaluation(request):
 
     for item in valuation.ValuationItems:
         bg = item.BudgetGroup
-        # get data and append children valuation items to children list
-        if item.ParentID != 0:
-            data = bg.valuation()
-            totalbudget = item.BudgetGroupTotal
-            if totalbudget is not None:
-                totalbudget = float(totalbudget)
-            data['TotalBudget'] = totalbudget
-            data['AmountComplete'] = float(item.Total)
-            percentagecomp = None
-            if item.PercentageComplete is not None:
-                percentagecomp = float(item.PercentageComplete)/100
-            data['PercentageComplete'] = percentagecomp
-            data['Indent'] = 1
-            childrenlist.append(data)
-        # get data and append parents valuation items to parent list
+        if bg:
+            # get data and append children valuation items to children list
+            if item.ParentID != 0:
+                data = bg.valuation()
+                totalbudget = item.BudgetGroupTotal
+                if totalbudget is not None:
+                    totalbudget = float(totalbudget)
+                data['TotalBudget'] = totalbudget
+                data['AmountComplete'] = float(item.Total)
+                percentagecomp = None
+                if item.PercentageComplete is not None:
+                    percentagecomp = float(item.PercentageComplete)/100
+                data['PercentageComplete'] = percentagecomp
+                data['Indent'] = 1
+                childrenlist.append(data)
+            # get data and append parents valuation items to parent list
+            else:
+                budget_total += float(item.Total)
+                data = bg.valuation()
+                if len(item.Children) > 0:
+                    data['expanded'] = True
+                data['AmountComplete'] = float(item.Total)
+                percentagecomp = None
+                if item.PercentageComplete is not None:
+                    percentagecomp = float(item.PercentageComplete)/100
+                data['PercentageComplete'] = percentagecomp
+                totalbudget = item.BudgetGroupTotal
+                if totalbudget is not None:
+                    totalbudget = float(totalbudget)
+                data['TotalBudget'] = totalbudget
+                data['Indent'] = 0
+                parentlist.append(data)
+        # if the budget group does not exist
         else:
-            budget_total += float(item.Total)
-            data = bg.valuation()
-            if len(item.Children) > 0:
-                data['expanded'] = True
+            data = item.dict()
+            data['ID'] = 'DELETED' + str(data['ID'])
+            data['id'] = 'GDELETED' + str(data['ID'])
+            data['Total'] = data['TotalBudget']
             data['AmountComplete'] = float(item.Total)
-            percentagecomp = None
             if item.PercentageComplete is not None:
                 percentagecomp = float(item.PercentageComplete)/100
             data['PercentageComplete'] = percentagecomp
@@ -1914,7 +1945,9 @@ def excelvaluation(request):
             if totalbudget is not None:
                 totalbudget = float(totalbudget)
             data['TotalBudget'] = totalbudget
+            data['level'] = '0'
             data['Indent'] = 0
+            data['expanded'] = False
             parentlist.append(data)
 
     # sort the list, place children after parents
@@ -2325,7 +2358,9 @@ def excelcashflow(request):
         else:
             for item in rootitems:
                 data = item.dict()
-                budgettotal = item.BudgetGroup.Total
+                budgettotal = 0
+                if item.BudgetGroup:
+                    budgettotal = item.BudgetGroup.Total
                 if budgettotal > 0:
                     data['PercentageComplete'] = float(item.Total/budgettotal)*100
                 else:

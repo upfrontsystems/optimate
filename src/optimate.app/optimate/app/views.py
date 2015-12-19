@@ -619,26 +619,40 @@ def node_budgetgroups(request):
         childrenlist = []
         for item in most_recent_valuation.ValuationItems:
             bg = item.BudgetGroup
-            # get data and append children valuation items to children list
-            if item.ParentID != 0:
-                data = bg.valuation('2')
-                data['AmountComplete'] = str(item.Total)
-                data['PercentageComplete'] = item.PercentageComplete
-                childrenlist.append(data)
-            # get data and append parents valuation items to parent list
-            else:
-                # check if the budgetgroup has child budget groups
-                level = '1'
-                children = DBSession.query(BudgetGroup
-                                        ).filter_by(ParentID=bg.ID).first()
-                if not children:
-                    level = '0'
-                data = bg.valuation(level)
-                if len(item.Children) > 0:
-                    data['expanded'] = True
-                data['AmountComplete'] = str(item.Total)
-                data['PercentageComplete'] = item.PercentageComplete
-                parentlist.append(data)
+            if bg:
+                # get data and append children valuation items to children list
+                if item.ParentID != 0:
+                    data = bg.valuation('2')
+                    data['AmountComplete'] = str(item.Total)
+                    data['PercentageComplete'] = item.PercentageComplete
+                    childrenlist.append(data)
+                # get data and append parents valuation items to parent list
+                else:
+                    # check if the budgetgroup has child budget groups
+                    level = '1'
+                    children = DBSession.query(BudgetGroup
+                                            ).filter_by(ParentID=bg.ID).first()
+                    if not children:
+                        level = '0'
+                    data = bg.valuation(level)
+                    if len(item.Children) > 0:
+                        data['expanded'] = True
+                    data['AmountComplete'] = str(item.Total)
+                    data['PercentageComplete'] = item.PercentageComplete
+                    parentlist.append(data)
+
+        # add budget groups that don't have valuation items to the list
+        new_budgetgroups = DBSession.query(BudgetGroup).filter(
+                                            BudgetGroup.ParentID == proj_id,
+                                            BudgetGroup.ValuationItems == None
+                                            ).all()
+        for bg in new_budgetgroups:
+            level = '1'
+            children = DBSession.query(BudgetGroup
+                                    ).filter_by(ParentID=bg.ID).first()
+            if not children:
+                level = '0'
+            parentlist.append(bg.valuation(level))
 
         # sort the list, place children after parents
         parentlist = sorted(parentlist, key=lambda k: k['Name'].upper())
@@ -2350,7 +2364,6 @@ def valuationview(request):
 
             if total is not None:
                 total = Decimal(total).quantize(Decimal('01'))
-            bg = DBSession.query(BudgetGroup).filter_by(ID=bgid).first()
             # add a second level valuation item using the parent id
             # that was generated previously
             if level == '2':
@@ -2487,32 +2500,43 @@ def valuationview(request):
 
     for item in valuation.ValuationItems:
         bg = item.BudgetGroup
-        # get data and append children valuation items to children list
-        if item.ParentID != 0:
-            data = bg.valuation('2')
-            totalbudget = item.BudgetGroupTotal
-            if totalbudget is not None:
-                totalbudget = str(totalbudget)
-            data['TotalBudget'] = totalbudget
-            data['AmountComplete'] = str(item.Total)
-            data['PercentageComplete'] = item.PercentageComplete
-            childrenlist.append(data)
-        # get data and append parents valuation items to parent list
-        else:
-            data = bg.valuation()
-            if len(item.Children) > 0:
-                data['expanded'] = True
+        if bg:
+            # get data and append children valuation items to children list
+            if item.ParentID != 0:
+                data = bg.valuation('2')
+                totalbudget = item.BudgetGroupTotal
+                if totalbudget is not None:
+                    totalbudget = str(totalbudget)
+                data['TotalBudget'] = totalbudget
+                data['AmountComplete'] = str(item.Total)
+                data['PercentageComplete'] = item.PercentageComplete
+                childrenlist.append(data)
+            # get data and append parents valuation items to parent list
             else:
-                children = DBSession.query(BudgetGroup
-                                        ).filter_by(ParentID=bg.ID).first()
-                if not children:
-                    data['level'] = '0'
+                data = bg.valuation()
+                if len(item.Children) > 0:
+                    data['expanded'] = True
+                else:
+                    children = DBSession.query(BudgetGroup
+                                            ).filter_by(ParentID=bg.ID).first()
+                    if not children:
+                        data['level'] = '0'
+                data['AmountComplete'] = str(item.Total)
+                data['PercentageComplete'] = item.PercentageComplete
+                totalbudget = item.BudgetGroupTotal
+                if totalbudget is not None:
+                    totalbudget = str(totalbudget)
+                data['TotalBudget'] = totalbudget
+                parentlist.append(data)
+        # if the budget group does not exist
+        else:
+            data = item.dict()
+            data['ID'] = 'DELETED' + str(data['ID'])
+            data['id'] = 'GDELETED' + str(data['ID'])
+            data['Total'] = data['TotalBudget']
             data['AmountComplete'] = str(item.Total)
-            data['PercentageComplete'] = item.PercentageComplete
-            totalbudget = item.BudgetGroupTotal
-            if totalbudget is not None:
-                totalbudget = str(totalbudget)
-            data['TotalBudget'] = totalbudget
+            data['level'] = '0'
+            data['expanded'] = False
             parentlist.append(data)
 
     # sort the list, place children after parents

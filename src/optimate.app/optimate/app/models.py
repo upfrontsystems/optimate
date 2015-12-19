@@ -2150,6 +2150,16 @@ class ValuationItem(Base):
                 total += child.Total
         return Decimal(total).quantize(Decimal('.01'))
 
+    @property
+    def Name(self):
+        """ Return the BudgetGroup Name if it exists
+        """
+        if self.BudgetGroup:
+            return self.BudgetGroup.Name
+        else:
+            return "Item Deleted"
+
+
     def dict(self):
         """ Returns a dictionary of this ValuationItem
         """
@@ -2159,7 +2169,7 @@ class ValuationItem(Base):
         return {'ID': self.ID,
                 'id': self.ID,
                 'BudgetGroup': self.BudgetGroupID,
-                'Name': self.BudgetGroup.Name,
+                'Name': self.Name,
                 'PercentageComplete': self.PercentageComplete,
                 'AmountComplete': str(self.Total),
                 'TotalBudget': str(bgtotal),

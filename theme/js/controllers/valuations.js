@@ -355,7 +355,6 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
                     url: globalServerURL + 'valuation_report/' + $scope.selectedValuations[0].ID + '/',
                     responseType: 'arraybuffer'
                 }).success(function (response, status, headers, config) {
-                    spinner.stop();
                     var file = new Blob([response], {type: 'application/pdf'});
                     var filename_header = headers('Content-Disposition');
                     var filename = filename_header.split('filename=')[1];
@@ -367,6 +366,8 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
                     FileSaver.saveAs(config);
                 }).error(function(data, status, headers, config) {
                     console.log("Valuation pdf download error")
+                }).finally(function(){
+                    spinner.stop();
                 });
             }
         };
@@ -380,7 +381,6 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
                     url: globalServerURL + 'excel_valuation_report/' + $scope.selectedValuations[0].ID + '/',
                     responseType: 'arraybuffer'
                 }).success(function (response, status, headers, config) {
-                    spinner.stop();
                     var blob = new Blob([response], {
                         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                     });
@@ -394,6 +394,8 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
                     FileSaver.saveAs(config);
                 }).error(function(data, status, headers, config) {
                     console.log("Valuation excel download error")
+                }).finally(function(){
+                    spinner.stop();
                 });
             }
         };
