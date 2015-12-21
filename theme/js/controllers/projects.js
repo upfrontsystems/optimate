@@ -1658,8 +1658,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                   filename: filename,
                 };
                 FileSaver.saveAs(config);
-            }).error(function(data, status, headers, config) {
-                console.log("Report pdf download error")
             }).finally(function(){
                 spinner.stop();
             });

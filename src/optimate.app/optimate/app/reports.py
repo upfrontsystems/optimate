@@ -12,6 +12,7 @@ from xhtml2pdf import pisa
 import xlsxwriter
 from xlsxwriter.utility import xl_rowcol_to_cell
 import csv
+from sqlalchemy import func
 
 from optimate.app.models import (
     DBSession,
@@ -990,8 +991,8 @@ def cashflow(request):
     compinfo = DBSession.query(CompanyInformation).first()
 
     budgetgroupsqry = DBSession.query(BudgetGroup
-                                    ).filter_by(ParentID=projectid
-                                    ).order_by(BudgetGroup.Name.asc()).all()
+                                ).filter_by(ParentID=projectid
+                                ).order_by(func.lower(BudgetGroup.Name)).all()
 
     valuations = DBSession.query(Valuation
                                 ).filter_by(ProjectID=projectid
@@ -1033,6 +1034,19 @@ def cashflow(request):
                             data['PercentageComplete'] = 0
                         items.append(data)
 
+                # if there are budgetgroups that do not have valuation items
+                # add a blank record
+                non_budgetgroups = DBSession.query(BudgetGroup
+                                    ).filter_by(ParentID=projectid
+                                    ).filter(BudgetGroup.ValuationItems==None
+                                    ).all()
+                for bg in non_budgetgroups:
+                    items.append({'Name':bg.Name,
+                                'PercentageComplete': '0',
+                                'AmountComplete': '0'
+                        })
+                items = sorted(items, key=lambda k: k['Name'].upper())
+
                 col=1
                 column['Items'] = items
                 columns.append(column)
@@ -1053,7 +1067,6 @@ def cashflow(request):
                     pair.append(column['Items'][n]['AmountComplete'])
                     row.append(pair)
                 rows.append(row)
-            print dateheader
             groups.append({'dateheader':dateheader, 'rows':rows})
             i+=1
 
@@ -2328,14 +2341,16 @@ def excelcashflow(request):
                                 ).order_by(Valuation.ID.asc()).all()
     # list the budget groups
     budgetgroups = DBSession.query(BudgetGroup
-                                    ).filter_by(ParentID=projectid
-                                    ).order_by(BudgetGroup.Name.asc()).all()
+                                ).filter_by(ParentID=projectid
+                                ).order_by(func.lower(BudgetGroup.Name)).all()
     row+=2
     for bg in budgetgroups:
         worksheet.write(row, 1, bg.Name)
         worksheet.write(row, 2, bg.Total, money)
         row+=1
-    worksheet.write_formula(row, 2, '{=SUM(C'+str(headerrow+3)+':C'+str(row)+')}', boldmoney)
+    worksheet.write_formula(row, 2,
+                            '{=SUM(C'+str(headerrow+3)+':C'+str(row)+')}',
+                            boldmoney)
 
     col = 3
     for valuation in valuations:
@@ -2366,6 +2381,18 @@ def excelcashflow(request):
                 else:
                     data['PercentageComplete'] = 0
                 valuationitems.append(data)
+
+        # if there are budgetgroups that do not have valuation items
+        # add a blank record
+        non_budgetgroups = DBSession.query(BudgetGroup
+                            ).filter_by(ParentID=projectid
+                            ).filter(BudgetGroup.ValuationItems==None
+                            ).all()
+        for bg in non_budgetgroups:
+            valuationitems.append({'Name':bg.Name,
+                                'PercentageComplete': 0,
+                                'AmountComplete': 0
+                                })
 
         valuationitems = sorted(valuationitems, key=lambda k: k['Name'].upper())
 

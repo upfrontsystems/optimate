@@ -2418,7 +2418,10 @@ def valuationview(request):
         # get a list of ids used in the valuationitems
         iddict = {}
         for valuationitem in valuation.ValuationItems:
-            iddict[valuationitem.BudgetGroupID] = valuationitem.ID
+            if valuationitem.BudgetGroup:
+                iddict[valuationitem.BudgetGroupID] = valuationitem.ID
+            else:
+                iddict['DELETED' + str(valuationitem.ID)] = valuationitem.ID
         # get the list of budget groups used in the slickgrid
         budgetgrouplist = request.json_body.get('BudgetGroupList', [])
         # iterate through the new ids and add any new valuations

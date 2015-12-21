@@ -45,7 +45,8 @@ myApp.factory('RequestsErrorHandler', ['$q', function($q) {
                 else{
                     // get the 'ServerReponse' message
                     var custom_reponse = '';
-                    if (rejection.data.indexOf('ServerResponse') > -1){
+                    var reject_string = String(rejection.data);
+                    if (reject_string.indexOf('ServerResponse') > -1){
                         custom_reponse = rejection.data.replace('ServerResponse', '');
                     }
                     var text = "Server error";
