@@ -71,7 +71,9 @@ describe('Valuations page', function() {
 
     it('should filter a valuation by project', function(){
         element(by.css('li.dropdown:nth-child(1) > a:nth-child(1)')).click();
+        browser.waitForAngular();
         browser.switchTo().activeElement().sendKeys('TestProject');
+        browser.waitForAngular();
         element(by.css('.ac-select-highlight')).click()
 
         // check the order is displayed

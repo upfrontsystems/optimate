@@ -2140,7 +2140,10 @@ def orderview(request):
         # get a list of id's used in the orderitems
         iddict = {}
         for orderitem in order.OrderItems:
-            iddict[orderitem.BudgetItemID] = orderitem.ID
+            if orderitem.BudgetItem:
+                iddict[orderitem.BudgetItemID] = orderitem.ID
+            else:
+                iddict['DELETED' + str(orderitem.ID)] = orderitem.ID
         # get the list of budgetitems used in the form
         budgetitemslist = request.json_body.get('BudgetItemsList', [])
         # iterate through the new id's and add any new orders

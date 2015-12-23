@@ -98,6 +98,7 @@ describe('Payments Page', function () {
 
     it('should filter a payment by project', function(){
         element(by.css('li.dropdown:nth-child(1) > a:nth-child(1)')).click();
+        browser.waitForAngular();
         browser.switchTo().activeElement().sendKeys('TestProject');
         element(by.css('.ac-select-highlight')).click()
 
