@@ -12,9 +12,9 @@ PyPDF2==1.24
 pyramid==1.5.7
 pyramid-chameleon==0.3
 pyramid-debugtoolbar==2.4
+pyramid-exclog==0.8
 pyramid-mako==1.0.2
 pyramid-tm==0.12
-pysqlite==2.6.3
 reportlab==3.2.0
 repoze.lru==0.6
 six==1.9.0
