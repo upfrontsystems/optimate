@@ -173,8 +173,8 @@ class Project(Node):
                 primary_key=True)
     Name = Column(Text(50))
     Description = Column(Text(100))
-    ClientID = Column(Integer, ForeignKey('Client.ID'))
-    CityID = Column(Integer, ForeignKey('City.ID'))
+    ClientID = Column(Integer, ForeignKey('Client.ID'), nullable=False)
+    CityID = Column(Integer, ForeignKey('City.ID'), nullable=False)
     SiteAddress = Column(Text(50))
     FileNumber = Column(Text(50))
     Ordered = Column(Numeric(12, 2), default=Decimal(0.00))
@@ -183,7 +183,7 @@ class Project(Node):
     _Total = Column('Total', Numeric)
 
     Client = relationship('Client')
-    OverheadList = relationship('Overhead')
+    OverheadList = relationship('Overhead', cascade='all')
     City = relationship('City')
     Orders = relationship('Order')
     Valuations = relationship('Valuation')
@@ -563,7 +563,7 @@ class BudgetItem(Node):
         if self.Resource:
             return self.Resource.Name
         else:
-            return "no resource"
+            return "Resource Deleted"
 
     @property
     def Description(self):
@@ -764,6 +764,21 @@ class BudgetItem(Node):
         subitem = []
         if len(self.Children) > 0:
             subitem = [{'Name': '...', 'NodeType': 'Default'}]
+
+        # if the resource has been deleted
+        if not self.Resource:
+            return {'Name': self.Name,
+                    'ID': self.ID,
+                    'id': self.ID,
+                    'ParentID': self.ParentID,
+                    'ParentType': self.Parent.type,
+                    'OverheadList': [],
+                    'Subitem': [],
+                    'NodeType': self.type,
+                    'NodeTypeAbbr' : 'I',
+                    'Status': self.Status,
+                    'Variation': self.Variation}
+
         return {'Name': self.Name,
                 'Description': self.Description,
                 'ID': self.ID,
@@ -936,6 +951,35 @@ class SimpleBudgetItem(BudgetItem):
                                 ClientCost=self.ClientCost,
                                 ProjectedProfit=self.ProjectedProfit,
                                 ActualProfit=self.ActualProfit)
+
+    def dict(self):
+        """ Override the dict function for budget item
+        """
+        return {'Name': self.Name,
+                'Description': self.Description,
+                'ID': self.ID,
+                'id': self.ID,
+                'ParentID': self.ParentID,
+                'ParentType': self.Parent.type,
+                'Subitem': [],
+                'Rate': str(self.Rate),
+                'Quantity': self.Quantity,
+                'Total': str(self.Total),
+                'Markup': str(self.Total-self.Subtotal),
+                'Subtotal': str(self.Subtotal),
+                'Ordered': str(self.Ordered),
+                'Invoiced': str(self.Invoiced),
+                'ResourceID': self.ResourceID,
+                'ResourceName': self.Name,
+                'OverheadList': [],
+                'Unit': self.Unit,
+                'UnitID': self.UnitID,
+                'ResourceTypeID': self.Type,
+                'NodeType': self.type,
+                'NodeTypeAbbr' : 'I',
+                'Status': self.Status,
+                'Variation': self.Variation
+        }
 
     def __repr__(self):
         """ return a representation of this simplebudgetitem
@@ -1148,8 +1192,8 @@ class Resource(Node):
     Code = Column(Text(50))
     Name = Column(Text(50))
     Description = Column(Text(100))
-    UnitID = Column(Integer, ForeignKey('Unit.ID'))
-    Type = Column(Integer, ForeignKey('ResourceType.ID'))
+    UnitID = Column(Integer, ForeignKey('Unit.ID'), nullable=False)
+    Type = Column(Integer, ForeignKey('ResourceType.ID'), nullable=False)
     _Rate = Column('Rate', Numeric)
     SupplierID = Column(Integer, ForeignKey('Supplier.ID'))
 
@@ -1516,7 +1560,7 @@ class Client(Base):
 
 
 class Supplier(Base):
-    """A table containing the data relavent to a supplier of Optimate
+    """A table containing the data relevant to a supplier of Optimate
     """
     __tablename__ = 'Supplier'
     ID = Column(Integer, primary_key=True)
@@ -1586,14 +1630,14 @@ class CompanyInformation(Base):
 
 
 class Order(Base):
-    """ A table containing the data relavent to an order of Optimate
+    """ A table containing the data relevant to an order of Optimate
     """
     __tablename__ = 'Order'
     ID = Column(Integer, primary_key=True)
     UserCode = Column(Text(50))
     Authorisation = Column(Text(50))
-    ProjectID = Column(Integer, ForeignKey('Project.ID'))
-    SupplierID = Column(Integer, ForeignKey('Supplier.ID'))
+    ProjectID = Column(Integer, ForeignKey('Project.ID'), nullable=False)
+    SupplierID = Column(Integer, ForeignKey('Supplier.ID'), nullable=False)
     ClientID = Column(Integer, ForeignKey('Client.ID'))
     Total = Column(Numeric)
     DeliveryAddress = Column(Text(100))
@@ -1747,18 +1791,44 @@ class OrderItem(Base):
                     float(self.Subtotal)*self.Discount/100.0
                     ) * (1 + self.VAT/100.0)
 
+    @property
+    def Name(self):
+        """ Return the BudgetItem Name, if it exists
+        """
+        if self.BudgetItem:
+            return self.BudgetItem.Name
+        else:
+            return 'Item Deleted'
+
+    @property
+    def Unit(self):
+        """ Return the BudgetItem Unit, if it exists
+        """
+        if self.BudgetItem:
+            return self.BudgetItem.Unit
+        else:
+            return ''
+
     def dict(self):
         """ Override the dict function
         """
         vatcost = Decimal(float(self.Total) - (float(self.Subtotal)
                             - float(self.Subtotal)*self.Discount/100)
                             ).quantize(Decimal('.01'))
-        return {'Name': self.BudgetItem.Name,
-                'ParentName': self.BudgetItem.Parent.Name,
-                'ID': self.BudgetItemID,
-                'id': self.BudgetItemID,
+
+        if self.BudgetItem:
+            parentname = self.BudgetItem.Parent.Name
+            checkedid = self.BudgetItemID
+        else:
+            parentname = ''
+            checkedid = 'DELETED' + str(self.ID)
+
+        return {'Name': self.Name,
+                'ParentName': parentname,
+                'ID': checkedid,
+                'id': checkedid,
                 'Quantity': self.Quantity,
-                'Unit': self.BudgetItem.Unit,
+                'Unit': self.Unit,
                 'Rate': str(self.Rate),
                 'VAT': self.VAT,
                 'Subtotal': str(self.Subtotal),
@@ -1850,7 +1920,7 @@ class Invoice(Base):
     __tablename__ = 'Invoice'
     ID = Column(Integer, primary_key=True)
     InvoiceNumber = Column(Text(100), index=True)
-    OrderID = Column(Integer, ForeignKey('Order.ID'))
+    OrderID = Column(Integer, ForeignKey('Order.ID'), nullable=False)
     InvoiceDate = Column(DateTime)
     PaymentDate = Column(DateTime)
     VAT = Column(Numeric)
@@ -1969,7 +2039,7 @@ class Valuation(Base):
     """ A table to hold valuations. """
     __tablename__ = 'Valuation'
     ID = Column(Integer, primary_key=True)
-    ProjectID = Column(Integer, ForeignKey('Project.ID'))
+    ProjectID = Column(Integer, ForeignKey('Project.ID'), nullable=False)
     Date = Column(DateTime)
 
     Project = relationship('Project')
@@ -1989,41 +2059,55 @@ class Valuation(Base):
     def Status(cls):
         """ Expression to filter Valuation by Status
         """
-        return case([(select([Claim.Status]).where(cls.ID == Claim.ValuationID).as_scalar() == None, 'Draft')],
-                    else_=select([Claim.Status]).where(cls.ID == Claim.ValuationID).as_scalar()).label('Status')
-
-    @property
-    def TotalPercentage(self):
-        if self.Project.Total == 0:
-            return 0.0
-        totalp = (self.Total/self.Project.Total)*100
-        return '{:20,.2f}'.format(float(totalp)).strip()
+        return case([(select([Claim.Status]).where(
+                                        cls.ID == Claim.ValuationID
+                                        ).as_scalar() == None, 'Draft')],
+                    else_=select([Claim.Status]).where(
+                                        cls.ID == Claim.ValuationID
+                                        ).as_scalar()).label('Status')
 
     @property
     def Total(self):
+        """ Return the total of a valuation
+            Total equals sum of valuation items plus valuation markup
+        """
         total = 0
-        for valuationitem in self.ValuationItems:
-            total += valuationitem.Total
+        for item in self.ValuationItems:
+            bgtotal = 0
+            if item.BudgetGroupTotal:
+                bgtotal = float(item.BudgetGroupTotal)
+            perc = 0
+            if item.PercentageComplete:
+                perc = item.PercentageComplete/100
+            total += bgtotal * perc
+
+        for markup in self.MarkupList:
+            total+=float(markup.Total)
         return Decimal(total).quantize(Decimal('.01'))
 
     def dict(self):
         """ Override the dict function
         """
+        date = ''
+        readable_date = ''
         if self.Date:
             date = self.Date.isoformat()
             date = date + '.000Z'
             readable_date = self.Date.strftime("%d %B %Y")
-        else:
-            date = ''
-            readable_date = ''
+
+        total = self.Total
+        percentage = self.Project.Total
+        if percentage > 0:
+            percentage = (total/percentage)*100
+            percentage = '{:20,.2f}'.format(float(percentage)).strip()
 
         return {'ID': self.ID,
                 'id': self.ID,
                 'Project': self.Project.Name,
                 'Date': date,
                 'ReadableDate': readable_date,
-                'PercentageClaimed': self.TotalPercentage,
-                'AmountClaimed': str(self.Total),
+                'PercentageClaimed': str(percentage),
+                'AmountClaimed': str(total),
                 'Status': self.Status}
 
     def __repr__(self):
@@ -2066,6 +2150,16 @@ class ValuationItem(Base):
                 total += child.Total
         return Decimal(total).quantize(Decimal('.01'))
 
+    @property
+    def Name(self):
+        """ Return the BudgetGroup Name if it exists
+        """
+        if self.BudgetGroup:
+            return self.BudgetGroup.Name
+        else:
+            return "Item Deleted"
+
+
     def dict(self):
         """ Returns a dictionary of this ValuationItem
         """
@@ -2075,7 +2169,7 @@ class ValuationItem(Base):
         return {'ID': self.ID,
                 'id': self.ID,
                 'BudgetGroup': self.BudgetGroupID,
-                'Name': self.BudgetGroup.Name,
+                'Name': self.Name,
                 'PercentageComplete': self.PercentageComplete,
                 'AmountComplete': str(self.Total),
                 'TotalBudget': str(bgtotal),
@@ -2092,10 +2186,10 @@ class Claim(Base):
     """ A table to hold Claims """
     __tablename__ = 'Claim'
     ID = Column(Integer, primary_key=True)
-    ProjectID = Column(Integer, ForeignKey('Project.ID'))
+    ProjectID = Column(Integer, ForeignKey('Project.ID'), nullable=False)
     Date = Column(DateTime)
     Status = Column(Text(50), default='Draft')
-    ValuationID = Column(Integer, ForeignKey('Valuation.ID'))
+    ValuationID = Column(Integer, ForeignKey('Valuation.ID'), nullable=False)
 
     Project = relationship('Project')
     Valuation = relationship('Valuation', uselist=False)
@@ -2141,8 +2235,8 @@ class Payment(Base):
     """ A table for payments """
     __tablename__ = 'Payment'
     ID = Column(Integer, primary_key=True)
-    ProjectID = Column(Integer, ForeignKey('Project.ID'))
-    ClaimID = Column(Integer, ForeignKey('Claim.ID'))
+    ProjectID = Column(Integer, ForeignKey('Project.ID'), nullable=False)
+    ClaimID = Column(Integer, ForeignKey('Claim.ID'), nullable=False)
     Date = Column(DateTime)
     ReferenceNumber = Column(Text(50))
     Amount = Column(Numeric)
@@ -2179,6 +2273,7 @@ class ValuationMarkup(Base):
     ID = Column(Integer, primary_key=True)
     OverheadID = Column(Integer,ForeignKey('Overhead.ID'))
     PercentageComplete = Column(Float, default=0.0)
+    BudgetTotal = Column(Numeric, default=Decimal(0))
     ValuationID = Column(Integer, ForeignKey('Valuation.ID'))
 
     Overhead = relationship('Overhead')
@@ -2192,14 +2287,30 @@ class ValuationMarkup(Base):
                             BudgetGroupTotal=self.BudgetGroupTotal,
                             ValuationID=valuationid)
 
+    @property
+    def Total(self):
+        """ The Total of a valuation markup is the budget total times
+            percentage complete
+        """
+        return Decimal(float(self.BudgetTotal) * (self.PercentageComplete/100)
+                        ).quantize(Decimal('.01'))
+
+    @property
+    def Name(self):
+        return self.Overhead.Name
+
+    @property
+    def Percentage(self):
+        return self.Overhead.Percentage
+
     def dict(self):
         """ Override the dict function
         """
         return {'ID': self.ID,
                 'id': self.ID,
-                'Name': self.Overhead.Name,
-                'Percentage': self.Overhead.Percentage,
-                'TotalBudget': self.Overhead.Amount,
+                'Name': self.Name,
+                'Percentage': self.Percentage,
+                'TotalBudget': str(self.BudgetTotal),
                 'PercentageComplete': self.PercentageComplete,
                 'ValuationID': self.ValuationID,
                 'NodeType': 'ValuationMarkup'}
@@ -2215,4 +2326,4 @@ class ValuationMarkup(Base):
         """Return a representation of this markup
         """
         return '<ValuationMarkup(Name="%s", Percentage="%f", ID="%s", ValuationID="%s")>' % (
-            self.Name, self.Percentage, self.Type, self.ID, self.ValuationID)
+            self.Name, self.Percentage, self.ID, self.ValuationID)

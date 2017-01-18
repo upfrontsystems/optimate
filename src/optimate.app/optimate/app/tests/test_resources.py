@@ -157,6 +157,8 @@ def _initTestingDB():
 
         projecta = Project(ID=17,
                             Name="ProjectA",
+                            ClientID=client1.ID,
+                            CityID=city1.ID,
                             ParentID=0)
         rescata = ResourceCategory(ID=18,
                                 Name="Resource List",

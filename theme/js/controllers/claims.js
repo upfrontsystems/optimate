@@ -9,7 +9,14 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
         $scope.claimList = [];
         $scope.valuationsList = [];
         $scope.selectedItems = [];
-        $scope.statusList = [{'Status': 'Draft'}, {'Status': 'Claimed'}, {'Status': 'Paid'}];
+        $scope.statusList = [{'Status': 'Draft'},
+                            {'Status': 'Claimed'},
+                            {'Status': 'Paid'}];
+        // Pagination variables
+        $scope.pageSize = 100;
+        $scope.currentPage = 1;
+        $scope.maxPageSize = 20;
+        $scope.itemListLength = $scope.maxPageSize;
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
@@ -35,28 +42,28 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
             .success(function(data) {
                 $scope.projectsList = data;
             });
+
+            // get the length of all the claims
+            $http.get(globalServerURL + 'claims/length').success(function(data) {
+                $scope.itemListLength = data['length'];
+            });
         }
         $scope.projectsList = [];
         $scope.clearFilters();
 
-        $scope.claimsLengthCheck = function() {
-            if ($scope.jsonclaims.length == 0) {
-               $scope.claimsReportEnabled = false;
-            }
-            else {
-               $scope.claimsReportEnabled = true;
-            }
-        }
-
         $scope.loadClaimSection = function() {
+            $scope.filters.start = ($scope.currentPage-1)*$scope.pageSize;
+            $scope.filters.end = $scope.filters.start + $scope.pageSize;
             var req = {
                 method: 'GET',
                 url: globalServerURL + 'claims',
                 params: $scope.filters
             };
             $http(req).success(function(response) {
-                $scope.jsonclaims = response;
-                $scope.claimsLengthCheck();
+                $scope.jsonclaims = response['claims'];
+                if (response['length']){
+                    $scope.itemListLength = response['length']
+                }
                 console.log("Claims loaded");
             });
         }
@@ -138,7 +145,6 @@ myApp.controller('claimsController', ['$scope', '$http', 'globalServerURL', 'Ses
                 var idB = b.id;
                 return (idA > idB) ? -1 : (idA < idB) ? 1 : 0;
             });
-            $scope.claimsLengthCheck();
             console.log ("Claim added");
         }
 

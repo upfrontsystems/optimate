@@ -17,11 +17,11 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
         $scope.budgetItemsList = [];
         $scope.invoiceList = [];
         $scope.selectedOrderingOn = {};
-        // Pagination variables and functions
+        // Pagination variables
         $scope.pageSize = 100;
         $scope.currentPage = 1;
         $scope.maxPageSize = 20;
-        $scope.orderListLength = $scope.maxPageSize + 1;
+        $scope.orderListLength = $scope.maxPageSize;
         $scope.filters = {};
         $scope.statusList = [{'Status': 'Draft'}, {'Status': 'Processed'}];
         // semaphore for the slickgrid spinner
@@ -92,10 +92,9 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
                         'Status': $scope.filters.Status}
             };
             $http(req).success(function(response) {
-                var length = response.pop();
-                $scope.jsonorders = response;
-                if (length) {
-                    $scope.orderListLength = length;
+                $scope.jsonorders = response['orders'];
+                if (response['length']) {
+                    $scope.orderListLength = response['length'];
                 }
                 console.log("Orders loaded");
             });
@@ -173,7 +172,6 @@ myApp.controller('ordersController', ['$scope', '$http', 'globalServerURL', '$ti
 
         // add a new order to the list and sort
         $scope.handleNew = function(neworder) {
-            console.log($scope.filters == true);
             // reload the list if filters are applied
             if ($scope.filters){
                 $scope.loadOrderSection();

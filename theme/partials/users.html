@@ -1,7 +1,7 @@
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div class="container-fluid">
         <ul data-ng-show="user.permissions.setup == 'edit'"
-            class="nav nav-pills">
+            class="nav nav-pills navbar-left">
             <li>
                 <a title="Add User" data-ng-click="addingState()"
                     data-target="#saveUser"
@@ -22,6 +22,29 @@
                     data-backdrop="static"
                     data-toggle="modal">
                     <i class="fa fa-trash"></i></a>
+            </li>
+        </ul>
+        <ul class="nav nav-pills navbar-right ">
+            <li class="dropdown">
+                <a href=""
+                    data-toggle="dropdown"
+                    data-ng-class="{'filter-unselected': !filters.username}"
+                    data-ng-click="focusName=true">
+                    Username <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu keep-open">
+                    <li><input type="text"
+                        focus-on="focusName"
+                        class="filter-textbox"
+                        data-ng-model="filters.username"
+                        placeholder="Username"></li>
+                </ul>
+            </li>
+            <li>
+                <a href=""
+                    data-ng-click="filters = {}">
+                    Clear
+                </a>
             </li>
         </ul>
     </div>
@@ -55,7 +78,8 @@
                 </tr>
             </thead>
             <tbody>
-                <tr ng-repeat="obj in users" ng-click="showActionsFor(obj)"
+                <tr ng-repeat="obj in users | filter:filters"
+                    ng-click="showActionsFor(obj)"
                     ng-class="{active: obj.selected}">
                     <td>{{obj.username}}</td>
                 </tr>

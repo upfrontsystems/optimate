@@ -61,10 +61,11 @@
                     </div>
                     <div class="form-group">
                         <label class="col-sm-5"
-                              data-ng-click="printSelectedBudgetGroups = !printSelectedBudgetGroups">
+                              for="selectedBudgetGroups">
                               Print only selected budget groups:
                         </label>
                         <button class="custom-checkbox" ng-model="printSelectedBudgetGroups"
+                              id="selectedBudgetGroups"
                               data-ng-click="printSelectedBudgetGroups = !printSelectedBudgetGroups">
                             <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[printSelectedBudgetGroups]">
                             </i>

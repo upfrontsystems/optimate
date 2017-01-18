@@ -4,6 +4,8 @@ import datetime
 from decimal import Decimal
 from pyramid import testing
 from pyramid.httpexceptions import HTTPUnauthorized, HTTPMethodNotAllowed
+from nose.tools import assert_raises
+from pyramid.httpexceptions import HTTPConflict
 
 from sqlalchemy import create_engine
 from optimate.app.models import Base, DBSession
@@ -206,7 +208,7 @@ class TestValuationsView(unittest.TestCase):
         response = self._callFUT(request)
         # test if the correct number of valuations are returned
         valuations = DBSession.query(Valuation).all()
-        self.assertEqual(len(response), len(valuations))
+        self.assertEqual(len(response['valuations']), len(valuations))
 
 class TestValuationsLength(unittest.TestCase):
     """ Test the valuations length responds correctly
@@ -247,14 +249,13 @@ class TestValuationView(unittest.TestCase):
         from optimate.app.views import valuationview
         return valuationview(request)
 
-    def test_delete(self):
+    def test_delete_valuation_in_use(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.method = 'DELETE'
         request.matchdict = {'id': 1}
-        response = self._callFUT(request)
-        # test if the response is ok
-        self.assertEqual(response.code, 200)
+        assert_raises(HTTPConflict, self._callFUT, request)
+
 
     def test_get(self):
         _registerRoutes(self.config)
@@ -394,7 +395,7 @@ class TestClaimsView(unittest.TestCase):
         response = self._callFUT(request)
         # test if the correct number of claims are returned
         claims = DBSession.query(Claim).all()
-        self.assertEqual(len(response), len(claims))
+        self.assertEqual(len(response['claims']), len(claims))
 
     def test_filter(self):
         _registerRoutes(self.config)
@@ -403,7 +404,7 @@ class TestClaimsView(unittest.TestCase):
         response = self._callFUT(request)
         # test if the correct number of claims are returned
         claims = DBSession.query(Claim).filter_by(ProjectID=1).all()
-        self.assertEqual(len(response), len(claims))
+        self.assertEqual(response['length'], len(claims))
 
 class TestClaimView(unittest.TestCase):
     """ Test the claim view responds correctly
@@ -427,6 +428,15 @@ class TestClaimView(unittest.TestCase):
         request.method = 'DELETE'
         request.matchdict = {'id': 1}
         response = self._callFUT(request)
+        # test if the response is ok
+        self.assertEqual(response.code, 200)
+
+        # test the valuation can now be deleted
+        request = testing.DummyRequest()
+        request.method = 'DELETE'
+        request.matchdict = {'id': 1}
+        from optimate.app.views import valuationview
+        response = valuationview(request)
         # test if the response is ok
         self.assertEqual(response.code, 200)
 

@@ -12,6 +12,7 @@ from xhtml2pdf import pisa
 import xlsxwriter
 from xlsxwriter.utility import xl_rowcol_to_cell
 import csv
+from sqlalchemy import func
 
 from optimate.app.models import (
     DBSession,
@@ -593,7 +594,10 @@ def order(request):
     for orderitem in order.OrderItems:
         # get the resource id
         data = orderitem.dict()
-        data['ResourceID'] = orderitem.BudgetItem.ResourceID
+        if orderitem.BudgetItem:
+            data['ResourceID'] = orderitem.BudgetItem.ResourceID
+        else:
+            data['ResourceID'] = 'DELETED' + str(orderitem.ID)
         orderitems.append(data)
 
     # sort by resourceid
@@ -689,30 +693,42 @@ def valuation(request):
 
     for item in valuation.ValuationItems:
         bg = item.BudgetGroup
-        # get data and append children valuation items to children list
-        if item.ParentID != 0:
-            data = bg.valuation()
-            totalbudget = item.BudgetGroupTotal
-            if totalbudget is not None:
-                totalbudget = str(totalbudget)
-            data['TotalBudget'] = totalbudget
-            data['AmountComplete'] = str(item.Total)
-            data['PercentageComplete'] = item.PercentageComplete
-            data['Indent'] = 'level1'
-            childrenlist.append(data)
-        # get data and append parents valuation items to parent list
+        if bg:
+            # get data and append children valuation items to children list
+            if item.ParentID != 0:
+                data = bg.valuation()
+                totalbudget = item.BudgetGroupTotal
+                if totalbudget is not None:
+                    totalbudget = str(totalbudget)
+                data['TotalBudget'] = totalbudget
+                data['AmountComplete'] = str(item.Total)
+                data['PercentageComplete'] = item.PercentageComplete
+                data['Indent'] = 'level1'
+                childrenlist.append(data)
+            # get data and append parents valuation items to parent list
+            else:
+                budget_total += float(item.BudgetGroup.Total)
+                data = bg.valuation()
+                if len(item.Children) > 0:
+                    data['expanded'] = True
+                data['AmountComplete'] = str(item.Total)
+                data['PercentageComplete'] = item.PercentageComplete
+                totalbudget = item.BudgetGroupTotal
+                if totalbudget is not None:
+                    totalbudget = str(totalbudget)
+                data['TotalBudget'] = totalbudget
+                data['Indent'] = 'level0'
+                parentlist.append(data)
+        # if the budget group does not exist
         else:
-            budget_total += float(item.BudgetGroup.Total)
-            data = bg.valuation()
-            if len(item.Children) > 0:
-                data['expanded'] = True
+            data = item.dict()
+            data['ID'] = 'DELETED' + str(data['ID'])
+            data['id'] = 'GDELETED' + str(data['ID'])
+            data['Total'] = data['TotalBudget']
             data['AmountComplete'] = str(item.Total)
-            data['PercentageComplete'] = item.PercentageComplete
-            totalbudget = item.BudgetGroupTotal
-            if totalbudget is not None:
-                totalbudget = str(totalbudget)
-            data['TotalBudget'] = totalbudget
+            data['level'] = '0'
             data['Indent'] = 'level0'
+            data['expanded'] = False
             parentlist.append(data)
 
     # sort the list, place children after parents
@@ -975,68 +991,88 @@ def cashflow(request):
     compinfo = DBSession.query(CompanyInformation).first()
 
     budgetgroupsqry = DBSession.query(BudgetGroup
-                                    ).filter_by(ParentID=projectid
-                                    ).order_by(BudgetGroup.Name.asc()).all()
+                                ).filter_by(ParentID=projectid
+                                ).order_by(func.lower(BudgetGroup.Name)).all()
 
     valuations = DBSession.query(Valuation
                                 ).filter_by(ProjectID=projectid
                                 ).order_by(Valuation.Date.asc()
                                 ).order_by(Valuation.ID.asc()).all()
 
-    dateheader = []
-    headers = []
-    rows = []
     # create a matrix of valuations and valuation items
     if len(valuations) > 0:
-        data = []
-        budgetgroups = []
-        for bg in budgetgroupsqry:
-            budgetgroups.append(bg.dict())
+        # break the valuations up into groups of three
+        groups = []
+        i = 0
+        while i*3<len(valuations):
+            rows = []
+            columns = []
+            budgetgroups = []
+            dateheader = []
+            for bg in budgetgroupsqry:
+                budgetgroups.append(bg.dict())
 
-        col = 0
-        for valuation in valuations:
-            column = {}
-            column['Valuation'] = valuation.dict()
-            items = []
-            rootitems = DBSession.query(ValuationItem).filter_by(
-                                                    ValuationID=valuation.ID,
-                                                    ParentID=0).all()
-            if len(rootitems) == len(valuation.ValuationItems):
-                items = [v.dict() for v in rootitems]
-            else:
-                for item in rootitems:
-                    data = item.dict()
-                    budgettotal = item.BudgetGroup.Total
-                    if item.Total > 0:
-                        data['PercentageComplete'] = float(item.Total/budgettotal)*100
-                    else:
-                        data['PercentageComplete'] = 0
-                    items.append(data)
+            col = 0
+            for valuation in valuations[i*3:i*3+3]:
+                column = {}
+                column['Valuation'] = valuation.dict()
+                items = []
+                rootitems = DBSession.query(ValuationItem).filter_by(
+                                                        ValuationID=valuation.ID,
+                                                        ParentID=0).all()
+                if len(rootitems) == len(valuation.ValuationItems):
+                    items = [v.dict() for v in rootitems]
+                else:
+                    for item in rootitems:
+                        data = item.dict()
+                        budgettotal = 0
+                        if item.BudgetGroup:
+                            budgettotal = item.BudgetGroup.Total
+                        if budgettotal > 0:
+                            data['PercentageComplete'] = float(item.Total/budgettotal)*100
+                        else:
+                            data['PercentageComplete'] = 0
+                        items.append(data)
 
-            col=1
-            column['Items'] = items
-            data.append(column)
+                # if there are budgetgroups that do not have valuation items
+                # add a blank record
+                non_budgetgroups = DBSession.query(BudgetGroup
+                                    ).filter_by(ParentID=projectid
+                                    ).filter(BudgetGroup.ValuationItems==None
+                                    ).all()
+                for bg in non_budgetgroups:
+                    items.append({'Name':bg.Name,
+                                'PercentageComplete': '0',
+                                'AmountComplete': '0'
+                        })
+                items = sorted(items, key=lambda k: k['Name'].upper())
 
-        # rearange the data into a table
-        headers.append('Detail')
-        headers.append('Budget Total')
-        for column in data:
-            headers.append('%')
-            headers.append('Amount')
-            dateheader.append(column['Valuation']['ReadableDate'])
+                col=1
+                column['Items'] = items
+                columns.append(column)
 
-        for i in range(len(budgetgroups)):
-            row = []
-            pair = []
-            pair.append(budgetgroups[i]['Name'])
-            pair.append(budgetgroups[i]['Total'])
-            row.append(pair)
-            for column in data:
+            # rearange the data into a table
+            for column in columns:
+                dateheader.append(column['Valuation']['ReadableDate'])
+
+            for n in range(len(budgetgroups)):
+                row = []
                 pair = []
-                pair.append(column['Items'][i]['PercentageComplete'])
-                pair.append(column['Items'][i]['AmountComplete'])
+                pair.append(budgetgroups[n]['Name'])
+                pair.append(budgetgroups[n]['Total'])
                 row.append(pair)
-            rows.append(row)
+                for column in columns:
+                    pair = []
+                    pair.append(column['Items'][n]['PercentageComplete'])
+                    pair.append(column['Items'][n]['AmountComplete'])
+                    row.append(pair)
+                rows.append(row)
+            groups.append({'dateheader':dateheader, 'rows':rows})
+            i+=1
+
+    headers = ['Budget Total', '%', 'Amount',
+                                '%', 'Amount',
+                                '%', 'Amount']
 
     # inject valuation data into template
     now = datetime.now()
@@ -1048,9 +1084,8 @@ def cashflow(request):
                             'company_info': compinfo,
                             'today': today,
                             'print_date' : now.strftime("%d %B %Y - %k:%M"),
-                            'dateheader': dateheader,
                             'headers': headers,
-                            'rows': rows,
+                            'groups': groups,
                             'client': client,
                             'currency': currency},
                             request=request)
@@ -1575,7 +1610,10 @@ def excelorder(request):
     for orderitem in order.OrderItems:
         # get the resource id
         data = orderitem.dict()
-        data['ResourceID'] = orderitem.BudgetItem.ResourceID
+        if orderitem.BudgetItem:
+            data['ResourceID'] = orderitem.BudgetItem.ResourceID
+        else:
+            data['ResourceID'] = 'DELETED' + str(orderitem.ID)
         orderitems.append(data)
 
     # sort by resourceid
@@ -1874,28 +1912,45 @@ def excelvaluation(request):
 
     for item in valuation.ValuationItems:
         bg = item.BudgetGroup
-        # get data and append children valuation items to children list
-        if item.ParentID != 0:
-            data = bg.valuation()
-            totalbudget = item.BudgetGroupTotal
-            if totalbudget is not None:
-                totalbudget = float(totalbudget)
-            data['TotalBudget'] = totalbudget
-            data['AmountComplete'] = float(item.Total)
-            percentagecomp = None
-            if item.PercentageComplete is not None:
-                percentagecomp = float(item.PercentageComplete)/100
-            data['PercentageComplete'] = percentagecomp
-            data['Indent'] = 1
-            childrenlist.append(data)
-        # get data and append parents valuation items to parent list
+        if bg:
+            # get data and append children valuation items to children list
+            if item.ParentID != 0:
+                data = bg.valuation()
+                totalbudget = item.BudgetGroupTotal
+                if totalbudget is not None:
+                    totalbudget = float(totalbudget)
+                data['TotalBudget'] = totalbudget
+                data['AmountComplete'] = float(item.Total)
+                percentagecomp = None
+                if item.PercentageComplete is not None:
+                    percentagecomp = float(item.PercentageComplete)/100
+                data['PercentageComplete'] = percentagecomp
+                data['Indent'] = 1
+                childrenlist.append(data)
+            # get data and append parents valuation items to parent list
+            else:
+                budget_total += float(item.Total)
+                data = bg.valuation()
+                if len(item.Children) > 0:
+                    data['expanded'] = True
+                data['AmountComplete'] = float(item.Total)
+                percentagecomp = None
+                if item.PercentageComplete is not None:
+                    percentagecomp = float(item.PercentageComplete)/100
+                data['PercentageComplete'] = percentagecomp
+                totalbudget = item.BudgetGroupTotal
+                if totalbudget is not None:
+                    totalbudget = float(totalbudget)
+                data['TotalBudget'] = totalbudget
+                data['Indent'] = 0
+                parentlist.append(data)
+        # if the budget group does not exist
         else:
-            budget_total += float(item.Total)
-            data = bg.valuation()
-            if len(item.Children) > 0:
-                data['expanded'] = True
+            data = item.dict()
+            data['ID'] = 'DELETED' + str(data['ID'])
+            data['id'] = 'GDELETED' + str(data['ID'])
+            data['Total'] = data['TotalBudget']
             data['AmountComplete'] = float(item.Total)
-            percentagecomp = None
             if item.PercentageComplete is not None:
                 percentagecomp = float(item.PercentageComplete)/100
             data['PercentageComplete'] = percentagecomp
@@ -1903,7 +1958,9 @@ def excelvaluation(request):
             if totalbudget is not None:
                 totalbudget = float(totalbudget)
             data['TotalBudget'] = totalbudget
+            data['level'] = '0'
             data['Indent'] = 0
+            data['expanded'] = False
             parentlist.append(data)
 
     # sort the list, place children after parents
@@ -2284,14 +2341,16 @@ def excelcashflow(request):
                                 ).order_by(Valuation.ID.asc()).all()
     # list the budget groups
     budgetgroups = DBSession.query(BudgetGroup
-                                    ).filter_by(ParentID=projectid
-                                    ).order_by(BudgetGroup.Name.asc()).all()
+                                ).filter_by(ParentID=projectid
+                                ).order_by(func.lower(BudgetGroup.Name)).all()
     row+=2
     for bg in budgetgroups:
         worksheet.write(row, 1, bg.Name)
         worksheet.write(row, 2, bg.Total, money)
         row+=1
-    worksheet.write_formula(row, 2, '{=SUM(C'+str(headerrow+3)+':C'+str(row)+')}', boldmoney)
+    worksheet.write_formula(row, 2,
+                            '{=SUM(C'+str(headerrow+3)+':C'+str(row)+')}',
+                            boldmoney)
 
     col = 3
     for valuation in valuations:
@@ -2314,12 +2373,26 @@ def excelcashflow(request):
         else:
             for item in rootitems:
                 data = item.dict()
-                budgettotal = item.BudgetGroup.Total
-                if item.Total > 0:
+                budgettotal = 0
+                if item.BudgetGroup:
+                    budgettotal = item.BudgetGroup.Total
+                if budgettotal > 0:
                     data['PercentageComplete'] = float(item.Total/budgettotal)*100
                 else:
                     data['PercentageComplete'] = 0
                 valuationitems.append(data)
+
+        # if there are budgetgroups that do not have valuation items
+        # add a blank record
+        non_budgetgroups = DBSession.query(BudgetGroup
+                            ).filter_by(ParentID=projectid
+                            ).filter(BudgetGroup.ValuationItems==None
+                            ).all()
+        for bg in non_budgetgroups:
+            valuationitems.append({'Name':bg.Name,
+                                'PercentageComplete': 0,
+                                'AmountComplete': 0
+                                })
 
         valuationitems = sorted(valuationitems, key=lambda k: k['Name'].upper())
 

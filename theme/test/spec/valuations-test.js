@@ -36,4 +36,60 @@ describe('Valuations page', function() {
             expect(name).toBe(projectname);
         });
     });
+
+    it('should edit a valuation', function(){
+        element(by.repeater('obj in jsonvaluations').row(0)).click();
+        expect(element(by.css('nav ul li a i.fa-pencil')).isDisplayed()).toBe(true);
+        element(by.css('nav ul li a i.fa-pencil')).click();
+
+        var addValuationModal = element(by.id('saveValuationModal'));
+        expect(addValuationModal.isDisplayed()).toBe(true);
+
+        // expand a budgetgroup
+        addValuationModal.element(by.css('div.slick-cell.l0.r0')).click();
+        expect(addValuationModal.element(
+            by.css('i.fa-caret-square-o-down')
+            ).isDisplayed()).toBe(true);
+        addValuationModal.element(by.css('i.fa-caret-square-o-down')).click();
+        // edit the budget total
+        addValuationModal.element(by.css('div:nth-child(2) > div.slick-cell.l1.r1.cell.editable-column')).click();
+        addValuationModal.element(by.css('.editor-text')).sendKeys(1000);
+        addValuationModal.element(by.css('div:nth-child(2) > div.slick-cell.l2.r2.cell.editable-column')).click();
+        addValuationModal.element(by.css('.editor-text')).sendKeys(95);
+        addValuationModal.element(by.css('div.ui-widget-content:nth-child(4) > div:nth-child(2)')).click();
+        addValuationModal.element(by.css('.editor-text')).sendKeys(100);
+        addValuationModal.element(by.css('div.ui-widget-content:nth-child(4) > div:nth-child(3)')).click();
+        addValuationModal.element(by.css('.editor-text')).sendKeys(20);
+        addValuationModal.element(by.css('div.ui-widget-content:nth-child(4) > div:nth-child(1)')).click();
+        addValuationModal.element(by.buttonText('Update')).click();
+        // check the total has changed
+        element(by.repeater('obj in jsonvaluations').row(0).column('obj.AmountClaimed')
+            ).getText().then(function(amount){
+            expect(amount).toBe('R970.00');
+        });
+    });
+
+    it('should filter a valuation by project', function(){
+        element(by.css('li.dropdown:nth-child(1) > a:nth-child(1)')).click();
+        browser.waitForAngular();
+        browser.switchTo().activeElement().sendKeys('TestProject');
+        browser.waitForAngular();
+        element(by.css('.ac-select-highlight')).click()
+
+        // check the order is displayed
+        element(by.repeater('obj in jsonvaluations').row(0).column('obj.Project')).getText().then(function(project){
+            expect(project).toBe('TestProject');
+        });
+    });
+
+    it('should filter a valuation by status', function(){
+        element(by.css('.navbar-right > li:nth-child(3) > a:nth-child(1)')).click();
+        browser.switchTo().activeElement().sendKeys('Draft');
+        element(by.css('.ac-select-highlight')).click()
+
+        // check the order is displayed
+        element(by.repeater('obj in jsonvaluations').row(0).column('obj.Status')).getText().then(function(stat){
+            expect(stat).toBe('Draft');
+        });
+    });
 });

@@ -38,7 +38,8 @@
                         <i class="fa fa-trash"></i>
                 </a>
             </li>
-            <li data-ng-show="paymentsReportEnabled">
+            <li data-ng-show="false">
+                <!-- data-ng-show="jsonpayments.length > 0"> -->
                 <a title="PDF Payments Report"
                     data-ng-show="selectedItems.length == 1"
                     data-target="#paymentsReport"
@@ -48,7 +49,8 @@
                     class="pdf_download">
                     <i class="fa fa-file-pdf-o"></i></a>
             </li>
-            <li data-ng-show="paymentsReportEnabled">
+            <li data-ng-show="false">
+                <!-- data-ng-show="jsonpayments.length > 0"> -->
                 <a title="Excel Payments Report"
                     data-ng-show="selectedItems.length == 1"
                     data-target="#paymentsReport"
@@ -109,6 +111,20 @@
         </ul>
     </div>
 </nav>
+
+<pagination data-ng-show="itemListLength > maxPageSize"
+            boundary-links="true"
+            total-items="itemListLength"
+            items-per-page="pageSize"
+            data-ng-model="currentPage"
+            data-ng-change="loadPaymentSection()"
+            max-size="maxPageSize"
+            class="pagination-sm nav-center"
+            previous-text="&lsaquo;"
+            next-text="&rsaquo;"
+            first-text="&laquo;"
+            last-text="&raquo;">
+</pagination>
 
 <div custom-modals modal-id="savePaymentModal"
     modal-type="payment"

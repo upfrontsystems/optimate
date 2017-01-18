@@ -30,4 +30,14 @@ describe('Users Page', function () {
             expect(elem[0]).toBeTruthy();
         })
     });
+
+    it('should filter a user by name', function(){
+        element(by.css('li.dropdown:nth-child(1) > a:nth-child(1)')).click();
+        element(by.css('li.dropdown:nth-child(1) > ul:nth-child(2) > li:nth-child(1) > input:nth-child(1)')
+            ).sendKeys('TestUser');
+        // check the unit is displayed
+        element(by.repeater('obj in users').row(0).column('obj.username')).getText().then(function(name){
+            expect(name).toBe('TestUser');
+        });
+    });
 });

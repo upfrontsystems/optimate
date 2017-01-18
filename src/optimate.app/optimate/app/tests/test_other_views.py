@@ -51,6 +51,8 @@ import unittest
 import transaction
 from pyramid import testing
 from decimal import Decimal
+from nose.tools import assert_raises
+from pyramid.httpexceptions import HTTPConflict
 
 def _initTestingDB():
     """ Build a database with default data
@@ -228,14 +230,13 @@ class TestClientSuccessCondition(unittest.TestCase):
         from optimate.app.views import clientview
         return clientview(request)
 
-    def test_delete_client(self):
+    def test_delete_client_in_use(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.method = 'DELETE'
         request.matchdict = {'id': 1}
-        response = self._callFUT(request)
-        # test if the correct name is returned
-        self.assertEqual(response.code, 200)
+        assert_raises(HTTPConflict, self._callFUT, request)
+
 
     def test_add_client(self):
         _registerRoutes(self.config)
@@ -486,16 +487,16 @@ class TestUnitViewSuccessCondition(unittest.TestCase):
         request.matchdict['id'] = 5
         response = self._callFUT(request)
         # the unit is not used so it is deleted
-        self.assertEqual(response['status'], 'remove')
+        self.assertEqual(response.code, 200)
 
     def test_delete_keep(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.method = 'DELETE'
         request.matchdict['id'] = 1
-        response = self._callFUT(request)
         # the unit is used so it should be kept
-        self.assertEqual(response['status'], 'keep')
+        assert_raises(HTTPConflict, self._callFUT, request)
+
 
 class TestCitiesViewSuccessCondition(unittest.TestCase):
     """ Test the citiesview
@@ -552,16 +553,15 @@ class TestCityViewSuccessCondition(unittest.TestCase):
         request.matchdict['id'] = 4
         response = self._callFUT(request)
         # the city is not used so it is deleted
-        self.assertEqual(response['status'], 'remove')
+        self.assertEqual(response.code, 200)
 
     def test_delete_keep(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.method = 'DELETE'
         request.matchdict['id'] = 1
-        response = self._callFUT(request)
-        # the city is used so it should be kept
-        self.assertEqual(response['status'], 'keep')
+        assert_raises(HTTPConflict, self._callFUT, request)
+
 
     def test_add(self):
         _registerRoutes(self.config)

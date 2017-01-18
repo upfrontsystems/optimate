@@ -248,6 +248,7 @@ myApp.controller('citiesController', ['$scope', '$http', '$modal', '$log', 'glob
         $scope.newItem = {};
         $scope.cityList = [];
         $scope.selectedItem = undefined;
+        $scope.filters = {};
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
@@ -273,6 +274,7 @@ myApp.controller('citiesController', ['$scope', '$http', '$modal', '$log', 'glob
         };
 
         $scope.setState = function(state, item){
+            $scope.focusInput = true;
             $scope.savingState = state;
             $scope.newItem = item;
         }
@@ -331,7 +333,7 @@ myApp.controller('citiesController', ['$scope', '$http', '$modal', '$log', 'glob
                         var textB = b.Name.toUpperCase();
                         return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
                     });
-                    console.log("Unit edited");
+                    console.log("City edited");
                 });
             }
         }
@@ -347,6 +349,7 @@ myApp.controller('unitsController', ['$scope', '$http', '$modal', '$log', 'globa
         $scope.newUnit = {};
         $scope.unitList = [];
         $scope.selectedItem = undefined;
+        $scope.filters = {};
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
@@ -371,6 +374,7 @@ myApp.controller('unitsController', ['$scope', '$http', '$modal', '$log', 'globa
         };
 
         $scope.setState = function(state, item){
+            $scope.focusInput = true;
             $scope.savingState = state;
             $scope.newUnit = item;
         }

@@ -4,6 +4,7 @@ myApp.controller('suppliersController', ['$scope', '$http', 'globalServerURL', '
 
         toggleMenu('setup');
         $scope.isDisabled = false;
+        $scope.filters = {};
 
         // get the user permissions
         $scope.user = {'username':SessionService.username()};

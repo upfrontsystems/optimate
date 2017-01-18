@@ -15,7 +15,15 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
         $scope.invoiceList = [];
         $scope.selectedInvoices = [];
         $scope.amounts = {};
-        $scope.statusList = [{'Status':'Draft'}, {'Status': 'Due'}, {'Status': 'Paid'}];
+        $scope.statusList = [{'Status':'Draft'},
+                            {'Status': 'Due'},
+                            {'Status': 'Paid'}];
+        // Pagination variables
+        $scope.pageSize = 100;
+        $scope.currentPage = 1;
+        $scope.maxPageSize = 20;
+        $scope.itemListLength = $scope.maxPageSize;
+
         // get the user permissions
         $scope.user = {'username':SessionService.username()};
         SessionService.permissions().then(function(perm){
@@ -44,6 +52,11 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
             .success(function(data) {
                 $scope.clientsList = data;
             });
+
+            // get the length of all the invoices
+            $http.get(globalServerURL + 'invoices/length').success(function(data) {
+                $scope.itemListLength = data['length'];
+            });
         }
         $scope.projectsList = [];
         $scope.suppliersList = [];
@@ -51,6 +64,8 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
         $scope.clearFilters();
 
         $scope.loadInvoiceSection = function() {
+            $scope.filters.start = ($scope.currentPage-1)*$scope.pageSize;
+            $scope.filters.end = $scope.filters.start + $scope.pageSize;
             var req = {
                 method: 'GET',
                 url: globalServerURL + 'invoices',
@@ -59,6 +74,9 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
             $http(req).success(function(response) {
                 $scope.amounts = response.amounts;
                 $scope.jsoninvoices = response.invoices;
+                if (response['length']){
+                    $scope.itemListLength = response['length']
+                }
                 console.log("Invoices loaded");
             });
         }
@@ -114,13 +132,12 @@ myApp.controller('invoicesController', ['$scope', '$http', 'globalServerURL', '$
                     params: {'OrderNumber': searchterm}
                 };
                 $http(req).success(function(response) {
-                    response.pop();
+                    $scope.ordersList = response['orders'];
                     // if nothing has been found, add a non-selectable option
-                    if (response.length == 0){
-                        response.push({'ID': 'No match found',
+                    if ($scope.ordersList.length == 0){
+                        $scope.ordersList.push({'ID': 'No match found',
                                         'nothingFound': true})
                     }
-                    $scope.ordersList = response;
                 });
             }
         };

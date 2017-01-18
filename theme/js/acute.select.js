@@ -294,7 +294,6 @@ angular.module("acute.select", [])
 
             $scope.comboTextChange = function() {
                 $scope.searchText = $scope.comboText;
-                console.log($scope.comboText);
                 if ($scope.comboText == '') {
                     $scope.clearSelection();
                 }

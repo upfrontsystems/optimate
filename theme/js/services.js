@@ -50,10 +50,15 @@ angular.module('services', ['config'])
 
         this.permissions = function(){
             var deferred = $q.defer();
-            $http.get(globalServerURL + 'rights/' + this.username() + '/')
-            .success(function(response){
-                deferred.resolve(response);
-            });
+            if (this.username()){
+                $http.get(globalServerURL + 'rights/' + this.username() + '/')
+                .success(function(response){
+                    deferred.resolve(response);
+                });
+            }
+            else{
+                deferred.resolve();
+            }
             return deferred.promise;
         };
 

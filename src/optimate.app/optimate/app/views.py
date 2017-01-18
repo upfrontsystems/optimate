@@ -7,6 +7,7 @@ and send responses with appropriate data
 import json
 import transaction
 import re
+import sys
 from datetime import datetime
 from pyramid.view import view_config
 from decimal import Decimal
@@ -14,6 +15,7 @@ from sqlalchemy.sql import collate
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
+from sqlalchemy.exc import IntegrityError
 
 from pyramid.httpexceptions import (
     HTTPOk,
@@ -162,7 +164,6 @@ def node_children(request):
         adds it to a list and returns it to the JSON renderer
         in a format that is acceptable to angular.treeview
     """
-
     parentid = 0
     if 'parentid' in request.matchdict:
         parentid = request.matchdict['parentid']
@@ -297,7 +298,7 @@ def additemview(request):
         if resource.type == 'ResourceUnit':
             expandBudgetItem(newnode.ID, resource)
         # set the node's quantity
-        # this will set it's total and the quantity of any children it may have
+        # this will set its total and the quantity of any children it may have
         newnode.Quantity=quantity
 
         # if the parent is already approved, the budgetitem is a variation
@@ -552,19 +553,22 @@ def deleteitemview(request):
     # Delete it from the table
     deletethis = DBSession.query(Node).filter_by(ID=deleteid).first()
     if not deletethis:
-        return HTTPNotFound(text=u'ServerResponse: Object not found')
+        return HTTPNotFound(text=u'ServerResponse: Selection not found')
     parent = deletethis.Parent
     parentid = parent.ID
-    # update the parent costs
-    if parentid != 0:
-        parent.Total = parent.Total - deletethis.Total
-        if hasattr(deletethis, 'Ordered'):
-            parent.Ordered -= deletethis.Ordered
-        if hasattr(deletethis, 'Invoiced'):
-            parent.Invoiced -= deletethis.Invoiced
 
-    qry = DBSession.delete(deletethis)
-    transaction.commit()
+    try:
+        # update the parent costs
+        if parentid != 0:
+            parent.Total = parent.Total - deletethis.Total
+            if hasattr(deletethis, 'Ordered'):
+                parent.Ordered -= deletethis.Ordered
+            if hasattr(deletethis, 'Invoiced'):
+                parent.Invoiced -= deletethis.Invoiced
+        DBSession.delete(deletethis)
+        transaction.commit()
+    except IntegrityError:
+        raise HTTPConflict(text=u'ServerResponse: Selection in use')
 
     return {"parentid": parentid}
 
@@ -587,7 +591,8 @@ def node_budgetitems(request):
     if 'supplier' in paramkeys:
         supid = int(paramsdict['supplier'][0])
         budgetitemslist = [
-                x for x in budgetitemslist if x.Resource.SupplierID == supid]
+                x for x in budgetitemslist if (x.Resource and
+                                            x.Resource.SupplierID == supid)]
 
     itemlist = []
     for bi in budgetitemslist:
@@ -599,7 +604,7 @@ def node_budgetitems(request):
 
 @view_config(route_name="node_budgetgroups", renderer='json', permission='view')
 def node_budgetgroups(request):
-    """ Returns a list of the first level budget groups in a node
+    """ Returns a list of the valuation budget groups in a node
     """
     proj_id = request.matchdict['id']
     itemlist = []
@@ -614,20 +619,40 @@ def node_budgetgroups(request):
         childrenlist = []
         for item in most_recent_valuation.ValuationItems:
             bg = item.BudgetGroup
-            # get data and append children valuation items to children list
-            if item.ParentID != 0:
-                data = bg.valuation('2')
-                data['AmountComplete'] = str(item.Total)
-                data['PercentageComplete'] = item.PercentageComplete
-                childrenlist.append(data)
-            # get data and append parents valuation items to parent list
-            else:
-                data = bg.valuation()
-                if len(item.Children) > 0:
-                    data['expanded'] = True
-                data['AmountComplete'] = str(item.Total)
-                data['PercentageComplete'] = item.PercentageComplete
-                parentlist.append(data)
+            if bg:
+                # get data and append children valuation items to children list
+                if item.ParentID != 0:
+                    data = bg.valuation('2')
+                    data['AmountComplete'] = str(item.Total)
+                    data['PercentageComplete'] = item.PercentageComplete
+                    childrenlist.append(data)
+                # get data and append parents valuation items to parent list
+                else:
+                    # check if the budgetgroup has child budget groups
+                    level = '1'
+                    children = DBSession.query(BudgetGroup
+                                            ).filter_by(ParentID=bg.ID).first()
+                    if not children:
+                        level = '0'
+                    data = bg.valuation(level)
+                    if len(item.Children) > 0:
+                        data['expanded'] = True
+                    data['AmountComplete'] = str(item.Total)
+                    data['PercentageComplete'] = item.PercentageComplete
+                    parentlist.append(data)
+
+        # add budget groups that don't have valuation items to the list
+        new_budgetgroups = DBSession.query(BudgetGroup).filter(
+                                            BudgetGroup.ParentID == proj_id,
+                                            BudgetGroup.ValuationItems == None
+                                            ).all()
+        for bg in new_budgetgroups:
+            level = '1'
+            children = DBSession.query(BudgetGroup
+                                    ).filter_by(ParentID=bg.ID).first()
+            if not children:
+                level = '0'
+            parentlist.append(bg.valuation(level))
 
         # sort the list, place children after parents
         parentlist = sorted(parentlist, key=lambda k: k['Name'].upper())
@@ -644,7 +669,12 @@ def node_budgetgroups(request):
         # add the project's budgetgroup children to the list
         bgs = DBSession.query(BudgetGroup).filter_by(ParentID=proj_id).all()
         for child in bgs:
-            itemlist.append(child.valuation())
+            level = '1'
+            children = DBSession.query(BudgetGroup
+                                    ).filter_by(ParentID=child.ID).first()
+            if not children:
+                level = '0'
+            itemlist.append(child.valuation(level))
         itemlist = sorted(itemlist, key=lambda k: k['Name'].upper())
 
     return itemlist
@@ -665,9 +695,7 @@ def node_expand_budgetgroup(request):
     parentnode = DBSession.query(BudgetGroup).filter_by(ID=bg_id).first()
     parent = parentnode.valuation()
     if not bgroups:
-        parent['expanded'] = True
-        parent['PercentageComplete'] = None
-        return parent
+        return [parent]
 
     children = []
     for bg in bgroups:
@@ -707,6 +735,7 @@ def projects(request):
     projects = []
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
+
     # if only selected projects are required
     if 'open_projects' in paramkeys:
         open_projects = paramsdict['open_projects']
@@ -773,7 +802,7 @@ def project_resources(request):
         elif currentnode.type == 'ResourceUnit':
             # add it to the excluded nodes
             excludedlist.append(currentnode)
-            # and go through all it's resource parts and add their parents
+            # and go through all its resource parts and add their parents
             for part in currentnode.ResourceParts:
                 excludedlist.append(part.Parent)
             # add all the children
@@ -864,7 +893,8 @@ def overheadsview(request):
         # if the type is specified, filter by it
         if 'NodeType' in paramkeys:
             overheads = DBSession.query(
-                    Overhead).filter_by(ProjectID=projectid, Type=paramsdict['NodeType'][0]).all()
+                    Overhead).filter_by(ProjectID=projectid,
+                                        Type=paramsdict['NodeType'][0]).all()
         else:
             overheads = DBSession.query(
                     Overhead).filter_by(ProjectID=projectid).all()
@@ -1205,7 +1235,7 @@ def node_paste(request):
             # the category had already existed, so don't return an id
             pasted_id = None
         transaction.commit()
-    # check the node isnt being pasted into it's parent
+    # check the node isnt being pasted into its parent
     elif destinationid != source.ParentID:
         if source.type == 'Resource' or source.type == 'ResourceUnit':
             # check the resource is not being duplicated
@@ -1492,14 +1522,15 @@ def clientview(request):
         if not request.has_permission('edit'):
             return HTTPForbidden()
         deleteid = request.matchdict['id']
-
-        # Deleting it from the node table deleted the object
         deletethis = DBSession.query(Client).filter_by(ID=deleteid).first()
-        qry = DBSession.delete(deletethis)
-
-        if qry == 0:
+        if not deletethis:
             return HTTPNotFound(text=u'ServerResponse: Client not found')
-        transaction.commit()
+
+        try:
+            DBSession.delete(deletethis)
+            transaction.commit()
+        except IntegrityError:
+            raise HTTPConflict(text=u'ServerResponse: Client in use')
 
         return HTTPOk()
 
@@ -1572,14 +1603,15 @@ def supplierview(request):
         if not request.has_permission('edit'):
             return HTTPForbidden()
         deleteid = request.matchdict['id']
-
-        # Deleting it from the node table deleted the object
         deletethis = DBSession.query(Supplier).filter_by(ID=deleteid).first()
-        qry = DBSession.delete(deletethis)
-
-        if qry == 0:
+        if not deletethis:
             return HTTPNotFound(text=u'ServerResponse: Supplier not found')
-        transaction.commit()
+
+        try:
+            DBSession.delete(deletethis)
+            transaction.commit()
+        except IntegrityError:
+            raise HTTPConflict(text=u'ServerResponse: Supplier in use')
 
         return HTTPOk()
 
@@ -1726,16 +1758,17 @@ def unitview(request):
         if not request.has_permission('edit'):
             return HTTPForbidden()
         deleteid = request.matchdict['id']
-        # Deleting it from the node table deletes the object
         deletethis = DBSession.query(Unit).filter_by(ID=deleteid).first()
-        # only delete if this Unit is not in use by any Resource
-        if len(deletethis.Resources) == 0:
-            qry = DBSession.delete(deletethis)
-            if qry == 0:
-                return HTTPNotFound(text=u'ServerResponse: Unit not found')
+        if not deletethis:
+            return HTTPNotFound(text=u'ServerResponse:Unit not found')
+
+        try:
+            DBSession.delete(deletethis)
             transaction.commit()
-            return HTTPOk()
-        return HTTPConflict(text=u'ServerResponse: Unit in use')
+        except IntegrityError:
+            raise HTTPConflict(text=u'ServerResponse: Unit in use')
+
+        return HTTPOk()
 
     # if the method is post, add a new unit
     if request.method == 'POST':
@@ -1814,19 +1847,17 @@ def cityview(request):
         if not request.has_permission('edit'):
             return HTTPForbidden()
         deleteid = request.matchdict['id']
-        # Deleting it from the node table deletes the object
         deletethis = DBSession.query(City).filter_by(ID=deleteid).first()
+        if not deletethis:
+            return HTTPNotFound(text=u'ServerResponse: City not found')
         # only delete if this City is not in use by any other table
-        if len(deletethis.Projects) == 0:
-            if len(deletethis.Clients) == 0:
-                if len(deletethis.Suppliers) == 0:
-                    qry = DBSession.delete(deletethis)
-                    if qry == 0:
-                        return HTTPNotFound(
-                                        text=u'ServerResponse: City not found')
-                    transaction.commit()
-                    return HTTPOk()
-        return HTTPConflict(text=u'ServerResponse: City in use')
+        try:
+            DBSession.delete(deletethis)
+            transaction.commit()
+        except IntegrityError:
+            raise HTTPConflict(text=u'ServerResponse: City in use')
+
+        return HTTPOk()
 
     # if the method is post, add a new city
     if request.method == 'POST':
@@ -1936,8 +1967,7 @@ def ordersview(request):
     length = None
     if setLength:
         length = qry.count()
-    orderlist.append(length)
-    return orderlist
+    return {'orders': orderlist, 'length': length}
 
 
 @view_config(route_name='orders_filter', renderer='json', permission='view')
@@ -1999,15 +2029,20 @@ def orderview(request):
         if not request.has_permission('edit'):
             return HTTPForbidden()
         deleteid = request.matchdict['id']
-        # Deleting it from the table deletes the object
         deletethis = DBSession.query(Order).filter_by(ID=deleteid).first()
-        # update the budgetitem ordered amounts
-        for orderitem in deletethis.OrderItems:
-            if orderitem.BudgetItem:
-                orderitem.BudgetItem.Ordered = (orderitem.BudgetItem.Ordered -
-                                                orderitem.Total)
-        qry = DBSession.delete(deletethis)
-        transaction.commit()
+        if not deletethis:
+            return HTTPNotFound(text=u'ServerResponse: Order not found')
+
+        try:
+            # update the budgetitem ordered amounts
+            for orderitem in deletethis.OrderItems:
+                if orderitem.BudgetItem:
+                    orderitem.BudgetItem.Ordered = (orderitem.BudgetItem.Ordered
+                                                    - orderitem.Total)
+            DBSession.delete(deletethis)
+            transaction.commit()
+        except IntegrityError:
+            raise HTTPConflict(text=u'ServerResponse: Order in use')
 
         return HTTPOk()
 
@@ -2064,7 +2099,8 @@ def orderview(request):
         neworder.resetTotal()
         # update the budgetitem ordered amounts
         for orderitem in neworder.OrderItems:
-            orderitem.BudgetItem.Ordered += orderitem.Total
+            if orderitem.BudgetItem:
+                orderitem.BudgetItem.Ordered += orderitem.Total
         return neworder.dict()
 
     # if the method is put, edit an existing order
@@ -2104,7 +2140,10 @@ def orderview(request):
         # get a list of id's used in the orderitems
         iddict = {}
         for orderitem in order.OrderItems:
-            iddict[orderitem.BudgetItemID] = orderitem.ID
+            if orderitem.BudgetItem:
+                iddict[orderitem.BudgetItemID] = orderitem.ID
+            else:
+                iddict['DELETED' + str(orderitem.ID)] = orderitem.ID
         # get the list of budgetitems used in the form
         budgetitemslist = request.json_body.get('BudgetItemsList', [])
         # iterate through the new id's and add any new orders
@@ -2133,7 +2172,8 @@ def orderview(request):
                 # update the budget item ordered amount
                 bi = DBSession.query(BudgetItem).filter_by(
                                                 ID=budgetitem['ID']).first()
-                bi.Ordered +=neworderitem.Total
+                if bi:
+                    bi.Ordered +=neworderitem.Total
             else:
                 # otherwise update the item and remove the id from the list
                 orderitemid = iddict[budgetitem['ID']]
@@ -2153,12 +2193,14 @@ def orderview(request):
                 # update the budget item ordered amount
                 bi = DBSession.query(BudgetItem).filter_by(
                                                 ID=budgetitem['ID']).first()
-                bi.Ordered = bi.Ordered - oldtotal + orderitem.Total
+                if bi:
+                    bi.Ordered = bi.Ordered - oldtotal + orderitem.Total
                 del iddict[budgetitem['ID']]
         # delete the leftover id's and update the ordered total
         for oldid in iddict.values():
             deletethis = DBSession.query(OrderItem).filter_by(ID=oldid).first()
-            deletethis.BudgetItem.Ordered -= deletethis.Total
+            if deletethis.BudgetItem:
+                deletethis.BudgetItem.Ordered -= deletethis.Total
             qry = DBSession.delete(deletethis)
 
         transaction.commit()
@@ -2216,14 +2258,18 @@ def valuationsview(request):
     qry = DBSession.query(Valuation).order_by(Valuation.ID.desc())
 
     # filter by filters
+    setLength = False
     if 'Project' in paramkeys:
         qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
+        setLength = True
     if 'Date' in paramkeys:
         date = ''.join(paramsdict['Date'])
         date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
         qry = qry.filter_by(Date=date)
+        setLength = True
     if 'Status' in paramkeys:
         qry = qry.filter_by(Status=paramsdict['Status'][0])
+        setLength = True
 
     # cut the section
     if 'start' not in paramkeys:
@@ -2236,7 +2282,10 @@ def valuationsview(request):
     valuationlist = []
     for valuation in section:
         valuationlist.append(valuation.dict())
-    return valuationlist
+    length = None
+    if setLength:
+        length = qry.count()
+    return {'valuations': valuationlist, 'length': length}
 
 
 @view_config(route_name='valuations_filter', renderer='json', permission='view')
@@ -2278,12 +2327,15 @@ def valuationview(request):
         if not request.has_permission('edit'):
             return HTTPForbidden()
         deleteid = request.matchdict['id']
-        # Deleting it from the table deletes the object
         deletethis = DBSession.query(Valuation).filter_by(ID=deleteid).first()
-        qry = DBSession.delete(deletethis)
-        if qry == 0:
+        if not deletethis:
             return HTTPNotFound(text=u'ServerResponse: Valuation not found')
-        transaction.commit()
+
+        try:
+            qry = DBSession.delete(deletethis)
+            transaction.commit()
+        except IntegrityError:
+            raise HTTPConflict(text=u'ServerResponse: Valuation in use')
 
         return HTTPOk()
 
@@ -2312,10 +2364,18 @@ def valuationview(request):
             bgid = budgetgroup['ID']
             level = budgetgroup['level']
             total = budgetgroup.get('TotalBudget', None)
+
             if total is not None:
                 total = Decimal(total).quantize(Decimal('01'))
-            bg = DBSession.query(BudgetGroup).filter_by(ID=bgid).first()
-            if level == '1':
+            # add a second level valuation item using the parent id
+            # that was generated previously
+            if level == '2':
+                DBSession.add(ValuationItem(ValuationID=newid,
+                                            ParentID=parentid,
+                                            BudgetGroupID=bgid,
+                                            BudgetGroupTotal=total,
+                                            PercentageComplete=p_complete))
+            else:
                 newitem = ValuationItem(ValuationID=newid,
                                         ParentID=0,
                                         BudgetGroupID=bgid,
@@ -2324,14 +2384,6 @@ def valuationview(request):
                 DBSession.add(newitem)
                 DBSession.flush()
                 parentid = newitem.ID
-            # add a second level valuation item using the parent id
-            # that was generated previously
-            elif level == '2':
-                DBSession.add(ValuationItem(ValuationID=newid,
-                                            ParentID=parentid,
-                                            BudgetGroupID=bgid,
-                                            BudgetGroupTotal=total,
-                                            PercentageComplete=p_complete))
 
         # add the valuation markups
         markuplist = request.json_body.get('ValuationMarkups', [])
@@ -2343,6 +2395,7 @@ def valuationview(request):
             budgettotal = markup['TotalBudget']
             DBSession.add(ValuationMarkup(ValuationID=newid,
                                         OverheadID=overheadid,
+                                        BudgetTotal=budgettotal,
                                         PercentageComplete=p_complete))
 
         transaction.commit()
@@ -2365,13 +2418,16 @@ def valuationview(request):
 
         valuation.ProjectID = proj
         valuation.Date = date
-        # get a list of id's used in the valuationitems
+        # get a list of ids used in the valuationitems
         iddict = {}
         for valuationitem in valuation.ValuationItems:
-            iddict[valuationitem.BudgetGroupID] = valuationitem.ID
+            if valuationitem.BudgetGroup:
+                iddict[valuationitem.BudgetGroupID] = valuationitem.ID
+            else:
+                iddict['DELETED' + str(valuationitem.ID)] = valuationitem.ID
         # get the list of budget groups used in the slickgrid
         budgetgrouplist = request.json_body.get('BudgetGroupList', [])
-        # iterate through the new id's and add any new valuations
+        # iterate through the new ids and add any new valuations
         # remove the id from the list if it is there already
         for budgetgroup in budgetgrouplist:
             p_complete = budgetgroup.get('PercentageComplete', None)
@@ -2382,14 +2438,7 @@ def valuationview(request):
                 total = Decimal(total).quantize(Decimal('01'))
             if budgetgroup['ID'] not in iddict.keys():
                 # add the new valuation item
-                if budgetgroup['level'] == '1':
-                    DBSession.add(ValuationItem(ValuationID=vid,
-                                            ParentID=0,
-                                            BudgetGroupID=budgetgroup['ID'],
-                                            BudgetGroupTotal=total,
-                                            PercentageComplete=p_complete))
-                    DBSession.flush()
-                else:
+                if budgetgroup['level'] == '2':
                     # find the parent of the second level valuation item
                     parent = DBSession.query(ValuationItem).filter_by(
                                 ValuationID=vid,
@@ -2399,6 +2448,13 @@ def valuationview(request):
                                             BudgetGroupID=budgetgroup['ID'],
                                             BudgetGroupTotal=total,
                                             PercentageComplete=p_complete))
+                else:
+                    DBSession.add(ValuationItem(ValuationID=vid,
+                                            ParentID=0,
+                                            BudgetGroupID=budgetgroup['ID'],
+                                            BudgetGroupTotal=total,
+                                            PercentageComplete=p_complete))
+                    DBSession.flush()
             else:
                 # otherwise remove the id from the list and update the
                 # percentage complete & total
@@ -2416,9 +2472,19 @@ def valuationview(request):
         # go through the markups and update the percentages
         markuplist = request.json_body.get('ValuationMarkups', [])
         for markup in markuplist:
-            valuationmarkup = DBSession.query(ValuationMarkup
+            complete = float(markup.get('PercentageComplete', 0))
+            budgettotal = markup['TotalBudget']
+            vmarkup = DBSession.query(ValuationMarkup
                                             ).filter_by(ID=markup['ID']).first()
-            valuationmarkup.PercentageComplete = float(markup['PercentageComplete'])
+            if not vmarkup:
+                overheadid = markup['ID']
+                DBSession.add(ValuationMarkup(ValuationID=vid,
+                                        OverheadID=overheadid,
+                                        BudgetTotal=budgettotal,
+                                        PercentageComplete=complete))
+            else:
+                vmarkup.BudgetTotal = budgettotal
+                vmarkup.PercentageComplete = complete
         transaction.commit()
         # return the edited valuation
         valuation = DBSession.query(Valuation).filter_by(ID=vid).first()
@@ -2440,27 +2506,43 @@ def valuationview(request):
 
     for item in valuation.ValuationItems:
         bg = item.BudgetGroup
-        # get data and append children valuation items to children list
-        if item.ParentID != 0:
-            data = bg.valuation('2')
-            totalbudget = item.BudgetGroupTotal
-            if totalbudget is not None:
-                totalbudget = str(totalbudget)
-            data['TotalBudget'] = totalbudget
-            data['AmountComplete'] = str(item.Total)
-            data['PercentageComplete'] = item.PercentageComplete
-            childrenlist.append(data)
-        # get data and append parents valuation items to parent list
+        if bg:
+            # get data and append children valuation items to children list
+            if item.ParentID != 0:
+                data = bg.valuation('2')
+                totalbudget = item.BudgetGroupTotal
+                if totalbudget is not None:
+                    totalbudget = str(totalbudget)
+                data['TotalBudget'] = totalbudget
+                data['AmountComplete'] = str(item.Total)
+                data['PercentageComplete'] = item.PercentageComplete
+                childrenlist.append(data)
+            # get data and append parents valuation items to parent list
+            else:
+                data = bg.valuation()
+                if len(item.Children) > 0:
+                    data['expanded'] = True
+                else:
+                    children = DBSession.query(BudgetGroup
+                                            ).filter_by(ParentID=bg.ID).first()
+                    if not children:
+                        data['level'] = '0'
+                data['AmountComplete'] = str(item.Total)
+                data['PercentageComplete'] = item.PercentageComplete
+                totalbudget = item.BudgetGroupTotal
+                if totalbudget is not None:
+                    totalbudget = str(totalbudget)
+                data['TotalBudget'] = totalbudget
+                parentlist.append(data)
+        # if the budget group does not exist
         else:
-            data = bg.valuation()
-            if len(item.Children) > 0:
-                data['expanded'] = True
+            data = item.dict()
+            data['ID'] = 'DELETED' + str(data['ID'])
+            data['id'] = 'GDELETED' + str(data['ID'])
+            data['Total'] = data['TotalBudget']
             data['AmountComplete'] = str(item.Total)
-            data['PercentageComplete'] = item.PercentageComplete
-            totalbudget = item.BudgetGroupTotal
-            if totalbudget is not None:
-                totalbudget = str(totalbudget)
-            data['TotalBudget'] = totalbudget
+            data['level'] = '0'
+            data['expanded'] = False
             parentlist.append(data)
 
     # sort the list, place children after parents
@@ -2476,10 +2558,26 @@ def valuationview(request):
 
     # get a list of valuation markups
     markuplist = []
+    existing_overheads = []
     for markup in valuation.MarkupList:
+        existing_overheads.append(markup.OverheadID)
         data = markup.dict()
         data['AmountComplete'] = float(data['TotalBudget'])*(markup.PercentageComplete/100)
         markuplist.append(data)
+    # add any project markups that are not in the list
+    extras = DBSession.query(Overhead).filter_by(ProjectID=valuation.ProjectID,
+                                                    Type='Project').all()
+
+    for overhead in extras:
+        if overhead.ID not in existing_overheads:
+            data = overhead.dict()
+            data['TotalBudget'] = data['Amount']
+            data['PercentageComplete'] = 0
+            data['ValuationID'] = valuation.ID
+            data['NodeType'] = 'ValuationMarkup'
+            markuplist.append(data)
+    markuplist = sorted(markuplist, key=lambda k: k['Name'].upper())
+
     return {'ID': valuation.ID,
             'ProjectID': valuation.ProjectID,
             'BudgetGroupList': itemlist,
@@ -2625,23 +2723,33 @@ def invoicesview(request):
     qry = DBSession.query(Invoice).order_by(Invoice.ID.desc())
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
+
+    # filter the invoices
+    setLength = False
     if 'InvoiceNumber' in paramkeys:
         qry = qry.filter(Invoice.InvoiceNumber.like(
                                         paramsdict['InvoiceNumber'][0]+'%'))
+        setLength = True
     if 'OrderNumber' in paramkeys:
         qry = qry.filter(Invoice.OrderID.like(paramsdict['OrderNumber'][0]+'%'))
+        setLength = True
     if 'Client' in paramkeys:
         qry = qry.filter_by(ClientID=paramsdict['Client'][0])
+        setLength = True
     if 'Supplier' in paramkeys:
         qry = qry.filter_by(SupplierID=paramsdict['Supplier'][0])
+        setLength = True
     if 'PaymentDate' in paramkeys:
         date = ''.join(paramsdict['PaymentDate'])
         date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
         qry = qry.filter_by(PaymentDate=date)
+        setLength = True
     if 'Status' in paramkeys:
         qry = qry.filter(Invoice.Status.like(paramsdict['Status'][0]+'%'))
+        setLength = True
     if 'Project' in paramkeys:
         qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
+        setLength = True
 
         # if invoices are filtered by project get totals
         for invoice in qry.all():
@@ -2656,13 +2764,29 @@ def invoicesview(request):
             receivedtotal+=payment.Amount
         available = receivedtotal - paidtotal
 
-    for invoice in qry.all():
-        invoicelist.append(invoice.dict())
+    # check if the length needs to change
+    length = None
+    if setLength:
+        length = qry.count()
+
+    # cut the section
+    if 'start' not in paramkeys:
+        start = 0
+        end = -1
+    else:
+        start = int(paramsdict['start'][0])
+        end = int(paramsdict['end'][0])
+    section = qry.slice(start,end).all()
+    invoicelist = []
+    for item in section:
+        invoicelist.append(item.dict())
+
     return {'invoices':invoicelist,
             'amounts': {'total': str(invoicetotal),
                         'paid': str(paidtotal),
                         'received': str(receivedtotal),
-                        'available': str(available)}
+                        'available': str(available)},
+            'length': length
             }
 
 
@@ -2713,6 +2837,12 @@ def invoices_filter(request):
             'clients': sorted(clientslist, key=lambda k: k['Name'].upper()),
             'suppliers': sorted(supplierslist, key=lambda k: k['Name'].upper())}
 
+@view_config(route_name='invoices_length', renderer='json', permission='view')
+def invoices_length(request):
+    """ Returns the number of invoices in the database
+    """
+    rows = DBSession.query(func.count(Invoice.ID)).scalar()
+    return {'length': rows}
 
 @view_config(route_name='invoiceview', renderer='json', permission='view')
 def invoiceview(request):
@@ -2726,22 +2856,26 @@ def invoiceview(request):
         deleteid = request.matchdict['id']
         # Deleting it from the table deletes the object
         deletethis = DBSession.query(Invoice).filter_by(ID=deleteid).first()
-
-        # update the budgetitem invoiced amounts
-        order = DBSession.query(Order).filter_by(ID=deletethis.OrderID).first()
-        ordertotal = order.Total
-        invoicetotal = deletethis.Total
-        for orderitem in order.OrderItems:
-            if ordertotal > 0:
-                proportion = orderitem.Total/ordertotal
-                orderitem.BudgetItem.Invoiced -= invoicetotal * proportion
-            else:
-                orderitem.BudgetItem.Invoiced = 0
-
-        qry = DBSession.delete(deletethis)
-        if qry == 0:
+        if not deletethis:
             return HTTPNotFound(text=u'ServerResponse: Invoice not found')
-        transaction.commit()
+
+        try:
+            # update the budgetitem invoiced amounts
+            order = DBSession.query(Order).filter_by(ID=deletethis.OrderID).first()
+            ordertotal = order.Total
+            invoicetotal = deletethis.Total
+            for orderitem in order.OrderItems:
+                if orderitem.BudgetItem:
+                    if ordertotal > 0:
+                        proportion = orderitem.Total/ordertotal
+                        orderitem.BudgetItem.Invoiced -= invoicetotal * proportion
+                    else:
+                        orderitem.BudgetItem.Invoiced = 0
+
+            DBSession.delete(deletethis)
+            transaction.commit()
+        except IntegrityError:
+            raise HTTPConflict(text=u'ServerResponse: Invoice in use')
 
         return HTTPOk()
 
@@ -2768,12 +2902,13 @@ def invoiceview(request):
         ordertotal = order.Total
 
         for orderitem in order.OrderItems:
-            if ordertotal > 0:
-                proportion = orderitem.Total/ordertotal
-                orderitem.BudgetItem.Invoiced += invoicetotal * proportion
-            else:
-                if not orderitem.BudgetItem.Invoiced:
-                    orderitem.BudgetItem.Invoiced = 0
+            if orderitem.BudgetItem:
+                if ordertotal > 0:
+                    proportion = orderitem.Total/ordertotal
+                    orderitem.BudgetItem.Invoiced += invoicetotal * proportion
+                else:
+                    if not orderitem.BudgetItem.Invoiced:
+                        orderitem.BudgetItem.Invoiced = 0
 
         newinvoice = Invoice(OrderID=orderid,
                             InvoiceNumber=request.json_body['InvoiceNumber'],
@@ -2818,12 +2953,13 @@ def invoiceview(request):
         if oldtotal != newtotal:
             order = DBSession.query(Order).filter_by(ID=invoice.OrderID).first()
             for orderitem in order.OrderItems:
-                if order.Total > 0:
-                    proportion = orderitem.Total/order.Total
-                    difference = oldtotal * proportion - newtotal * proportion
-                    orderitem.BudgetItem.Invoiced += difference
-                else:
-                    orderitem.BudgetItem.Invoiced = 0
+                if orderitem.BudgetItem:
+                    if order.Total > 0:
+                        proportion = orderitem.Total/order.Total
+                        difference = oldtotal * proportion - newtotal * proportion
+                        orderitem.BudgetItem.Invoiced += difference
+                    else:
+                        orderitem.BudgetItem.Invoiced = 0
         transaction.commit()
         # return the edited invoice
         invoice = DBSession.query(Invoice).filter_by(
@@ -2889,18 +3025,38 @@ def claimsview(request):
     qry = DBSession.query(Claim).order_by(Claim.ID.desc())
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
+
+    # filter the claims
+    setLength = False
     if 'Project' in paramkeys:
+        setLength = True
         qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
     if 'Date' in paramkeys:
+        setLength = True
         date = ''.join(paramsdict['Date'])
         date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
         qry = qry.filter_by(Date=date)
     if 'Status' in paramkeys:
+        setLength = True
         qry =qry.filter_by(Status=paramsdict['Status'][0])
 
-    for claim in qry:
-        claimslist.append(claim.dict())
-    return claimslist
+    # check if the length needs to change
+    length = None
+    if setLength:
+        length = qry.count()
+
+    # cut the section
+    if 'start' not in paramkeys:
+        start = 0
+        end = -1
+    else:
+        start = int(paramsdict['start'][0])
+        end = int(paramsdict['end'][0])
+    section = qry.slice(start,end).all()
+    for item in section:
+        claimslist.append(item.dict())
+
+    return {'claims': claimslist, 'length': length}
 
 
 @view_config(route_name='claims_filter', renderer='json', permission='view')
@@ -2922,6 +3078,14 @@ def claims_filter(request):
         if project.Project:
             projectlist.append({'Name': project.Project.Name, 'ID': project.ProjectID})
     return {'projects': sorted(projectlist, key=lambda k: k['Name'].upper())}
+
+
+@view_config(route_name='claims_length', renderer='json', permission='view')
+def claims_length(request):
+    """ Returns the number of claims in the database
+    """
+    rows = DBSession.query(func.count(Claim.ID)).scalar()
+    return {'length': rows}
 
 
 @view_config(route_name='claimstatus', renderer='json', permission='view')
@@ -2952,13 +3116,15 @@ def claimview(request):
         if not request.has_permission('edit'):
             return HTTPForbidden()
         deleteid = request.matchdict['id']
-        # Deleting it from the table deletes the object
         deletethis = DBSession.query(Claim).filter_by(ID=deleteid).first()
-
-        qry = DBSession.delete(deletethis)
-        if qry == 0:
+        if not deletethis:
             return HTTPNotFound(text=u'ServerResponse: Claim not found')
-        transaction.commit()
+
+        try:
+            DBSession.delete(deletethis)
+            transaction.commit()
+        except IntegrityError:
+            raise HTTPConflict(text=u'ServerResponse: Claim in use')
 
         return HTTPOk()
 
@@ -3007,6 +3173,15 @@ def claimview(request):
 
     return claim.dict()
 
+
+@view_config(route_name='payments_length', renderer='json', permission='view')
+def payments_length(request):
+    """ Returns the number of claims in the database
+    """
+    rows = DBSession.query(func.count(Claim.ID)).scalar()
+    return {'length': rows}
+
+
 @view_config(route_name='paymentsview', renderer='json', permission='view')
 def paymentsview(request):
     """ The paymentsview returns a list in json format of all the payments
@@ -3016,16 +3191,33 @@ def paymentsview(request):
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
 
+    setLength = False
     if 'Project' in paramkeys:
         qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
+        setLength = True
     if 'Date' in paramkeys:
         date = ''.join(paramsdict['Date'])
         date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
         qry = qry.filter_by(Date=date)
+        setLength = True
 
-    for payment in qry:
-        paymentslist.append(payment.dict())
-    return paymentslist
+    # check if the length needs to change
+    length = None
+    if setLength:
+        length = qry.count()
+
+    # cut the section
+    if 'start' not in paramkeys:
+        start = 0
+        end = -1
+    else:
+        start = int(paramsdict['start'][0])
+        end = int(paramsdict['end'][0])
+    section = qry.slice(start,end).all()
+    for item in section:
+        paymentslist.append(item.dict())
+
+    return {'payments': paymentslist, 'length': length}
 
 
 @view_config(route_name='paymentview', renderer='json', permission='view')
@@ -3040,11 +3232,19 @@ def paymentview(request):
         deleteid = request.matchdict['id']
         # Deleting it from the table deletes the object
         deletethis = DBSession.query(Payment).filter_by(ID=deleteid).first()
-
-        qry = DBSession.delete(deletethis)
-        if qry == 0:
+        if not deletethis:
             return HTTPNotFound(text=u'ServerResponse: Payment not found')
-        transaction.commit()
+
+        try:
+            claim = DBSession.query(Claim).filter_by(ID=deletethis.ClaimID).first()
+            # if the claim has been paid before set the status to Claimed
+            if ((claim.Total + deletethis.Amount) > Decimal(0)
+                and claim.Status == 'Paid'):
+                claim.Status = 'Claimed'
+            DBSession.delete(deletethis)
+            transaction.commit()
+        except IntegrityError:
+            raise HTTPConflict(text=u'ServerResponse: Payment in use')
 
         return HTTPOk()
 
@@ -3106,6 +3306,10 @@ def paymentview(request):
                                         ID=request.json_body['ClaimID']).first()
         if claim.Total <= Decimal(0):
             claim.Status = 'Paid'
+        # otherwise if a claim has been paid and the total has changed
+        elif claim.Status == 'Paid':
+            # set the claim status back to claimed
+            claim.Status = 'Claimed'
         # return the edited payment
         payment = DBSession.query(Payment
                                 ).filter_by(ID=request.matchdict['id']).first()

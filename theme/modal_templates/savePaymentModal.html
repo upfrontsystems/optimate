@@ -23,6 +23,7 @@
                                 data-ng-model="formData.ProjectID"
                                 data-ng-options="project.ID as project.Name for project in projectsList"
                                 data-ng-change="loadProjectClaims(formData.ProjectID); formData.ClaimID=undefined"
+                                data-ng-disabled="modalState == 'Edit'"
                                 required>
                             <option value="">Select a project</option>
                         </select>
@@ -35,6 +36,7 @@
                                 data-ng-model="formData.ClaimID"
                                 data-ng-options="claim.ID as claim.ID for claim in claimsList"
                                 data-ng-change="claimSelected(formData.ClaimID)"
+                                data-ng-disabled="modalState == 'Edit'"
                                 required>
                             <option value="">Select a claim</option>
                         </select>

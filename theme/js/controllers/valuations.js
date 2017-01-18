@@ -26,11 +26,11 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
         $scope.budgetgroupList = [];
         $scope.modalForm = [];
         $scope.statusList = [{'Status': 'Draft'}, {'Status': 'Paid'}];
-        // Pagination variables and functions
+        // Pagination variables
         $scope.pageSize = 100;
         $scope.currentPage = 1;
         $scope.maxPageSize = 20;
-        $scope.valuationListLength = $scope.maxPageSize + 1;
+        $scope.valuationListLength = $scope.maxPageSize;
 
         // get the length of the list of all the valuations
         $http.get(globalServerURL + 'valuations/length').success(function(data) {
@@ -66,7 +66,10 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
                         'Status': $scope.filters.Status}
             };
             $http(req).success(function(response) {
-                $scope.jsonvaluations = response;
+                $scope.jsonvaluations = response['valuations'];
+                if (response['length']){
+                    $scope.valuationListLength = response['length'];
+                }
                 console.log("Valuations loaded");
             });
         }
@@ -270,7 +273,6 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
                 // on the last loop reload the slickgrid and node
                 if (index == rows.length-1) {
                     // on the last loop reload the slickgrid and node
-                    // $scope.setSelectedRows();
                     $scope.toggleRowsSelected(true, true);
                     $scope.handleReloadValuationSlickgrid();
                 }
@@ -353,7 +355,6 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
                     url: globalServerURL + 'valuation_report/' + $scope.selectedValuations[0].ID + '/',
                     responseType: 'arraybuffer'
                 }).success(function (response, status, headers, config) {
-                    spinner.stop();
                     var file = new Blob([response], {type: 'application/pdf'});
                     var filename_header = headers('Content-Disposition');
                     var filename = filename_header.split('filename=')[1];
@@ -365,6 +366,8 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
                     FileSaver.saveAs(config);
                 }).error(function(data, status, headers, config) {
                     console.log("Valuation pdf download error")
+                }).finally(function(){
+                    spinner.stop();
                 });
             }
         };
@@ -378,7 +381,6 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
                     url: globalServerURL + 'excel_valuation_report/' + $scope.selectedValuations[0].ID + '/',
                     responseType: 'arraybuffer'
                 }).success(function (response, status, headers, config) {
-                    spinner.stop();
                     var blob = new Blob([response], {
                         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                     });
@@ -392,6 +394,8 @@ myApp.controller('valuationsController', ['$scope', '$http', 'globalServerURL', 
                     FileSaver.saveAs(config);
                 }).error(function(data, status, headers, config) {
                     console.log("Valuation excel download error")
+                }).finally(function(){
+                    spinner.stop();
                 });
             }
         };

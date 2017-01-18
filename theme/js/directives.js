@@ -339,8 +339,9 @@ myApp.directive('projectslickgridjs', ['globalServerURL', '$http',
                 var spinner = new Spinner().spin(target[0]);
 
                 $http.get(url).success(function(response) {
-                    spinner.stop(); // stop the spinner - ajax call complete
                     loadSlickgrid(response);
+                }).finally(function(){
+                    spinner.stop();
                 });
             };
 
@@ -663,7 +664,7 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                                 cssClass: "cell non-editable-column",
                                 formatter: CurrencyFormatter}
                 vat_column = {id: "VAT", field: "VAT",
-                                name: "<i class='fa fa-square-o fa-lg'></i>",
+                                name: "<i class='fa fa-check-square-o fa-lg'></i>",
                                 maxWidth: 20,
                                 toolTip: "VAT on/off for all",
                                 cssClass: "slick-cell-checkboxsel",
@@ -823,6 +824,26 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                             dataView.updateItem(item.id, item);
                             args.item = item;
                             updateCells(e, args);
+
+                            // update the column header checkbox
+                            var columnname = grid.getColumns()[grid.getColumnIndex("VAT")].name;
+                            var checked = (columnname == "<i class='fa fa-check-square-o fa-lg'></i>");
+                            if (checked != item.VAT){
+                                if (checked){
+                                    columnname = "<i class='fa fa-square-o fa-lg'></i>";
+                                }
+                                else{
+                                    columnname = "<i class='fa fa-check-square-o fa-lg'></i>";
+                                    var items = dataView.getItems();
+                                    for (var i in items){
+                                        if (!items[i].VAT){
+                                            columnname = "<i class='fa fa-square-o fa-lg'></i>";
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            grid.updateColumnHeader('VAT', columnname)
                         }
                     }
                 }
@@ -885,6 +906,7 @@ myApp.directive('budgetitemslickgridjs', ['globalServerURL', '$http', '$timeout'
                                     'Subtotal': ordersubtotal,
                                     'VATCost': ordervatcost,
                                     'Total': ordertotal,
+                                    'VAT': true,
                                     'cssClasses': 'cell-title non-editable-column'};
 
                     gridlist.push(totals);
@@ -1156,7 +1178,12 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                         parts.push('00');
                     }
                     else if (parts.length > 1) {
-                        parts[parts.length-1] = parts[parts.length-1].slice(0,2);
+                        if(parts[parts.length-1].length == 1){
+                            parts[parts.length-1]+='0';
+                        }
+                        else{
+                            parts[parts.length-1] = parts[parts.length-1].slice(0,2);
+                        }
                     }
                     return $scope.currency + parts.join(".");
                 }
@@ -1301,8 +1328,8 @@ myApp.directive('budgetgroupslickgridjs', ['globalServerURL', '$http', '$timeout
                         var ids = dataView.mapRowsToIds(grid.getSelectedRows());
                         for (var i in ids){
                             var node = dataView.getItemById(ids[i]);
-                            // if any of the nodes are level 2, cant select
-                            if (node.level == '2'){
+                            // can only select level 1 budgetgroups
+                            if (node.level != '1'){
                                 selectable = false;
                                 break;
                             }
@@ -1468,4 +1495,20 @@ myApp.directive('aDisabled', function() {
             };
         }
     };
+});
+
+// directive to focus element on event
+myApp.directive('focusOn', function($timeout) {
+  return {
+    link: function(scope, element, attrs) {
+      scope.$watch(attrs.focusOn, function(value) {
+        if(value === true) {
+          $timeout(function() {
+            element[0].focus();
+            scope[attrs.focusOn] = false;
+          });
+        }
+      });
+    }
+  };
 });

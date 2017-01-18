@@ -1,20 +1,21 @@
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div class="container-fluid">
-        <ul class="nav nav-pills">
+        <ul class="nav nav-pills navbar-left">
             <li data-ng-show="savingState">
-                <td>
-                    <input type="text" ng-model="newItem.Name" placeholder="Enter name">
-                </td>
-                <td>
-                    <button data-ng-show="savingState == 'add'"
+                <form>
+                    <input type="text"
+                        focus-on="focusInput"
+                        data-ng-model="newItem.Name"
+                        placeholder="Enter name">
+                    <button data-ng-if="savingState == 'add'"
                             data-ng-click="addCity()" title="Add">
                         <i class="fa fa-plus"></i>
                     </button>
-                    <button data-ng-show="savingState == 'edit'"
+                    <button data-ng-if="savingState == 'edit'"
                             data-ng-click="editCity()" title="Save edits">
                         <i class="fa fa-plus"></i>
                     </button>
-                </td>
+                </form>
             </li>
             <li data-ng-show="user.permissions.setup == 'edit'"
                 data-ng-hide="savingState">
@@ -37,6 +38,29 @@
                     data-backdrop="static"
                     data-toggle="modal">
                         <i class="fa fa-trash"></i>
+                </a>
+            </li>
+        </ul>
+        <ul class="nav nav-pills navbar-right ">
+            <li class="dropdown">
+                <a href=""
+                    data-toggle="dropdown"
+                    data-ng-class="{'filter-unselected': !filters.Name}"
+                    data-ng-click="focusName=true">
+                    Name <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu keep-open">
+                    <li><input type="text"
+                        focus-on="focusName"
+                        class="filter-textbox"
+                        data-ng-model="filters.Name"
+                        placeholder="Name"></li>
+                </ul>
+            </li>
+            <li>
+                <a href=""
+                    data-ng-click="filters = {}">
+                    Clear
                 </a>
             </li>
         </ul>
@@ -73,7 +97,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr ng-repeat="obj in cityList"
+                <tr ng-repeat="obj in cityList | filter:filters"
                     id="city-{{obj.ID}}"
                     data-ng-click="showActionsFor(obj, $index)"
                     data-ng-class="{active:obj.active}"

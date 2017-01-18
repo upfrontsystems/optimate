@@ -37,4 +37,48 @@ describe('Claims page', function() {
             expect(name).toBe(projectname);
        });
     });
+
+    it('should submit a claim', function(){
+        // click the claim that was added
+        element(by.repeater('obj in jsonclaims').row(0)).click();
+        expect(element(by.css('nav ul li a i.fa-arrow-right')).isDisplayed()).toBe(true);
+        element(by.css('nav ul li a i.fa-arrow-right')).click();
+
+        // check the claim status has changed
+        element(by.repeater('obj in jsonclaims').row(0).column('obj.Status')
+            ).getText().then(function(status){
+                expect(status).toBe('Claimed');
+        });
+    });
+
+    it('should retract a claim', function(){
+        element(by.repeater('obj in jsonclaims').row(0)).click();
+        element(by.css('nav ul li a i.fa-arrow-left')).click();
+        // check the claim was retracted
+        element(by.repeater('obj in jsonclaims').row(0).column('obj.Status')).getText().then(function(name){
+            expect(name).toBe('Draft');
+        });
+    });
+
+    it('should filter a claim by project', function(){
+        element(by.css('li.dropdown:nth-child(1) > a:nth-child(1)')).click();
+        browser.switchTo().activeElement().sendKeys('TestProject');
+        element(by.css('.ac-select-highlight')).click()
+
+        // check the claim is displayed
+        element(by.repeater('obj in jsonclaims').row(0).column('obj.Project')).getText().then(function(project){
+            expect(project).toBe('TestProject');
+        });
+    });
+
+    it('should filter a claim by status', function(){
+        element(by.css('li.dropdown:nth-child(3) > a:nth-child(1)')).click();
+        browser.switchTo().activeElement().sendKeys('Draft');
+        element(by.css('.ac-select-highlight')).click()
+
+        // check the claim is displayed
+        element(by.repeater('obj in jsonclaims').row(0).column('obj.Status')).getText().then(function(stat){
+            expect(stat).toBe('Draft');
+        });
+    });
 });

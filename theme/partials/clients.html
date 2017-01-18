@@ -1,7 +1,7 @@
 <nav class="navbar navbar-default navbar-fixed-top action-bar">
     <div data-ng-show="user.permissions.setup == 'edit'"
         class="container-fluid">
-        <ul class="nav nav-pills">
+        <ul class="nav nav-pills navbar-left">
             <li>
                 <a title="Add Client" data-ng-click="addingState()"
                     data-target="#saveModal"
@@ -23,6 +23,29 @@
                     data-backdrop="static"
                     data-toggle="modal">
                     <i class="fa fa-trash"></i>
+                </a>
+            </li>
+        </ul>
+        <ul class="nav nav-pills navbar-right ">
+            <li class="dropdown">
+                <a href=""
+                    data-toggle="dropdown"
+                    data-ng-class="{'filter-unselected': !filters.Name}"
+                    data-ng-click="focusName=true">
+                    Name <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu keep-open">
+                    <li><input type="text"
+                        focus-on="focusName"
+                        class="filter-textbox"
+                        data-ng-model="filters.Name"
+                        placeholder="Name"></li>
+                </ul>
+            </li>
+            <li>
+                <a href=""
+                    data-ng-click="filters = {}">
+                    Clear
                 </a>
             </li>
         </ul>
@@ -61,7 +84,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr data-ng-repeat="obj in jsonclients"
+                <tr data-ng-repeat="obj in jsonclients | filter:filters"
                     data-ng-click="showActionsFor(obj)"
                     id="client-{{obj.ID}}"
                     data-ng-class="{active:obj.active}"

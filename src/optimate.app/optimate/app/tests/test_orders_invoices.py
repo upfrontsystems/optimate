@@ -51,6 +51,9 @@ import unittest
 import transaction
 from pyramid import testing
 from decimal import Decimal
+from nose.tools import assert_raises
+from pyramid.httpexceptions import HTTPConflict
+
 
 def _initTestingDB():
     """ Build a database with default data
@@ -430,7 +433,7 @@ class TestOrdersViewSuccessCondition(unittest.TestCase):
         request.params = DummyOrder()
         response = self._callFUT(request)
         # should return one order
-        self.assertEqual(response[1], 1)
+        self.assertEqual(len(response['orders']), 1)
 
 class TestOrdersFilterViewSuccessCondition(unittest.TestCase):
     """ Test if the filter works on orders
@@ -528,13 +531,12 @@ class TestOrderViewSuccessCondition(unittest.TestCase):
         # the project id of the order is 1
         self.assertEqual(response['ProjectID'], 1)
 
-    def test_delete(self):
+    def test_delete_order_in_use(self):
         _registerRoutes(self.config)
         request = testing.DummyRequest()
         request.method = 'DELETE'
         request.matchdict['id'] = 1
-        response = self._callFUT(request)
-        self.assertEqual(response.code, 200)
+        assert_raises(HTTPConflict, self._callFUT, request)
 
     def test_add(self):
         _registerRoutes(self.config)
@@ -723,6 +725,14 @@ class TestInvoiceViewSuccessCondition(unittest.TestCase):
         request.method = 'DELETE'
         request.matchdict['id'] = 1
         response = self._callFUT(request)
+        self.assertEqual(response.code, 200)
+
+        # test an order can now be deleted
+        request = testing.DummyRequest()
+        request.method = 'DELETE'
+        request.matchdict['id'] = 1
+        from optimate.app.views import orderview
+        response = orderview(request)
         self.assertEqual(response.code, 200)
 
     def test_add(self):

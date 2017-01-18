@@ -43,6 +43,8 @@ def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
     engine = engine_from_config(settings, 'sqlalchemy.')
+    # fix for association_table cascade delete issues
+    engine.dialect.supports_sane_rowcount = engine.dialect.supports_sane_multi_rowcount = False
     DBSession.configure(bind=engine)
     Base.metadata.bind = engine
 
@@ -110,6 +112,7 @@ def main(global_config, **settings):
     config.add_route('invoicestatus', '/invoice/{id}/status', factory=makeProtectedFunction('invoices_workflow'))
     config.add_route('invoices_filter', '/invoices/filter', factory=makeProtectedFunction('invoices'))
     config.add_route('invoiceview', '/invoice/{id}/', factory=makeProtectedFunction('invoices'))
+    config.add_route('invoices_length', '/invoices/length', factory=makeProtectedFunction('invoices'))
 
     # valuations
     config.add_route('valuationsview', '/valuations', factory=makeProtectedFunction('valuations'))
@@ -123,11 +126,13 @@ def main(global_config, **settings):
     config.add_route('claimstatus', '/claim/{id}/status', factory=makeProtectedFunction('claims_workflow'))
     config.add_route('claims_filter', '/claims/filter', factory=makeProtectedFunction('claims'))
     config.add_route('claim_valuations', '/claim/valuations', factory=makeProtectedFunction('claims'))
+    config.add_route('claims_length', '/claims/length', factory=makeProtectedFunction('claims'))
 
     # payments
     config.add_route('paymentsview', '/payments', factory=makeProtectedFunction('payments'))
     config.add_route('paymentview', '/payment/{id}/', factory=makeProtectedFunction('payments'))
     config.add_route('payment_claims', '/payment/claims', factory=makeProtectedFunction('payments'))
+    config.add_route('payments_length', '/payments/length', factory=makeProtectedFunction('payments'))
 
     # Editing users
     config.add_route('usersview', '/users', factory=makeProtectedFunction('setup'))

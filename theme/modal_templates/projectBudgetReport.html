@@ -68,8 +68,8 @@
                                     <button class="custom-checkbox">
                                         <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[allBudgetItemTypes]"></i>
                                     </button>
+                                    All
                                 </td>
-                                <td>All &nbsp;</td>
                             </tr>
                             <tr data-ng-repeat="bi_type in budgetItemTypeList"
                                 data-ng-click="toggleBudgetItemType(bi_type)">
@@ -77,8 +77,8 @@
                                     <button class="custom-checkbox">
                                         <i data-ng-class="{true:'fa fa-check-square-o',undefined:'fa fa-square-o', false:'fa fa-square-o'}[bi_type.selected]"></i>
                                     </button>
+                                    {{bi_type.Name}}
                                 </td>
-                                <td>{{bi_type.Name}} &nbsp;</td>
                             </tr>
                         </table>
                     </div>

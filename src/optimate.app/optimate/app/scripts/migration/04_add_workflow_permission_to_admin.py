@@ -15,10 +15,10 @@ if __name__ == '__main__':
     production_uri = ''
     if os.name == 'posix':
         pathlist = cwd.split('/')
-        production_uri = ('/').join(pathlist[:-5]) + '/server.sqlite'
+        production_uri = ('/').join(pathlist[:-6]) + '/server.sqlite'
     else:
         pathlist = cwd.split('\\')
-        production_uri = ('\\').join(pathlist[:-5]) + '\\server.sqlite'
+        production_uri = ('\\').join(pathlist[:-6]) + '\\server.sqlite'
 
     workflowpermissions = [
                 {'Function': 'projects_workflow',

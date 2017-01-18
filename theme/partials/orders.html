@@ -82,11 +82,13 @@
             <li class="dropdown">
                 <a href=""
                     data-toggle="dropdown"
-                    data-ng-class="{'filter-unselected': !filters.OrderNumber}">
+                    data-ng-class="{'filter-unselected': !filters.OrderNumber}"
+                    data-ng-click="focusNumber=true">
                     Order number <span class="caret"></span>
                 </a>
                 <ul class="dropdown-menu keep-open">
                     <li><input type="number"
+                        focus-on="focusNumber"
                         class="filter-textbox"
                         data-ng-model="filters.OrderNumber"
                         data-ng-model-options="{debounce: 1000}"

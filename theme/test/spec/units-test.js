@@ -25,10 +25,45 @@ describe('Units Page', function () {
         // open the add unit modal and fill in the form
         element(by.css('ul.nav:nth-child(1) > li:nth-child(2) > a:nth-child(1)')).click();
         element(by.model('newUnit.Name')).sendKeys('TestUnit');
-
-        element(by.css('ul.nav:nth-child(1) > li:nth-child(1) > button:nth-child(2)')).click()
+        element(by.css('button.ng-scope')).click()
 
         // check the unit was added
         expect(checkResult('TestUnit')).toBe(true);
+    });
+
+    it('should filter a unit by name', function(){
+        element(by.css('li.dropdown:nth-child(1) > a:nth-child(1)')).click();
+        element(by.css('li.dropdown:nth-child(1) > ul:nth-child(2) > li:nth-child(1) > input:nth-child(1)')
+            ).sendKeys('TestUnit');
+        // check the unit is displayed
+        element(by.repeater('obj in unitList').row(0).column('obj.Name')).getText().then(function(name){
+            expect(name).toBe('TestUnit');
+        });
+    });
+
+    it('should edit a unit', function () {
+        // find the unit
+        element(by.css('li.dropdown:nth-child(1) > a:nth-child(1)')).click();
+        element(by.css('li.dropdown:nth-child(1) > ul:nth-child(2) > li:nth-child(1) > input:nth-child(1)')
+            ).sendKeys('TestUnit');
+        // open the unit modal and fill in the form
+        element(by.repeater('obj in unitList').row(0)).click();
+        element(by.css('nav ul li a i.fa-pencil')).click();
+        element(by.model('newUnit.Name')).clear().sendKeys('EditUnit');
+        element(by.css('button.ng-scope')).click()
+
+        // check the unit was changed
+        element(by.css('.navbar-right > li:nth-child(2) > a:nth-child(1)')).click();
+        element(by.css('li.dropdown:nth-child(1) > a:nth-child(1)')).click();
+        element(by.css('li.dropdown:nth-child(1) > ul:nth-child(2) > li:nth-child(1) > input:nth-child(1)')
+            ).sendKeys('EditUnit');
+        element(by.repeater('obj in unitList').row(0).column('obj.Name')).getText().then(function(name){
+            expect(name).toBe('EditUnit');
+            // change the name back
+            element(by.repeater('obj in unitList').row(0)).click();
+            element(by.css('nav ul li a i.fa-pencil')).click();
+            element(by.model('newUnit.Name')).clear().sendKeys('TestUnit');
+            element(by.css('button.ng-scope')).click()
+        });
     });
 });

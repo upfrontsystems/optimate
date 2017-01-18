@@ -23,7 +23,7 @@
                                     name="inputOrderNumber"
                                     on-select="orderSelected($item)"
                                     theme="bootstrap"
-                                    ng-disabled="disabled"
+                                    ng-disabled="modalState == 'Edit'"
                                     reset-search-input="true"
                                     class="col-sm-7"
                                     required>
@@ -34,7 +34,7 @@
                                     ui-disable-choice="order.nothingFound"
                                     repeat="order in ordersList"
                                     refresh="refreshOrders($select.search)"
-                                    refresh-delay="1000">
+                                    refresh-delay="500">
                                 <div ng-bind-html="''+order.ID | highlight: $select.search"></div>
                             </ui-select-choices>
                         </ui-select>
@@ -101,7 +101,7 @@
                                smart-float>
                     </div>
                     <div class="form-group">
-                        <label for="inputVAT" class="col-sm-2 control-label">VAT amount:</label>
+                        <label for="inputVAT" class="col-sm-2 control-label">VAT - Discount:</label>
                         <input type="text"
                                class="col-sm-7"
                                id="inputVAT"
