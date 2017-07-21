@@ -1,3 +1,4 @@
+#pylint: disable=invalid-name
 # -*- coding: utf-8 -*-
 """
 views uses pyramid and sqlalchemy to recieve requests from a user
@@ -5,21 +6,13 @@ and send responses with appropriate data
 """
 
 import json
-import transaction
 import re
-import sys
-from datetime import datetime
-from pyramid.view import view_config
 from decimal import Decimal
-from sqlalchemy.sql import collate
-from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy import func
-from sqlalchemy.orm import aliased
-from sqlalchemy.exc import IntegrityError
-
+from datetime import datetime
+import transaction
+from pyramid.view import view_config
 from pyramid.httpexceptions import (
     HTTPOk,
-    HTTPFound,
     HTTPNotFound,
     HTTPInternalServerError,
     HTTPMethodNotAllowed,
@@ -28,9 +21,12 @@ from pyramid.httpexceptions import (
     HTTPConflict,
     HTTPForbidden
 )
+from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 
 from optimate.app.security import create_token
-from optimate.app.security import Administrator, Manager, ProtectedFunction
+from optimate.app.security import ProtectedFunction
 from optimate.app.models import (
     DBSession,
     Node,
@@ -60,20 +56,9 @@ from optimate.app.models import (
     UserRight,
     ValuationMarkup
 )
+from optimate.app.vocabularies import currencies
+from optimate.app.vocabularies import superscripts as sups
 
-# the categories the resources fall into
-resourcecatlist = {"A-B": ("A-B"),
-                    "C-D": ("C-D"),
-                    "E-F": ("E-F"),
-                    "G-H": ("G-H"),
-                    "I-J": ("I-J"),
-                    "K-L": ("K-L"),
-                    "M-N": ("M-N"),
-                    "O-P": ("O-P"),
-                    "Q-R": ("Q-R"),
-                    "S-T": ("S-T"),
-                    "U-V": ("U-V"),
-                    "W-X-Y-Z": ("W-X-Y-Z")}
 
 def sortResource(rcat, categoryName):
     """ Given the Resource List id and original Category name,
@@ -82,20 +67,21 @@ def sortResource(rcat, categoryName):
     while rcat.Parent.type != 'Project':
         rcat = rcat.Parent
 
-    parentCategoryId =rcat.ID
+    parentCategoryId = rcat.ID
     if categoryName == rcat.Name:
         return parentCategoryId
 
     category = DBSession.query(ResourceCategory).filter_by(
-                    ParentID=parentCategoryId, Name=categoryName).first()
+        ParentID=parentCategoryId, Name=categoryName).first()
     # if the category already exists, return its id, otherwise create it
     if not category:
         original = DBSession.query(ResourceCategory).filter_by(
-                    Name=categoryName).first()
+            Name=categoryName).first()
         category = original.copy(parentCategoryId)
         DBSession.add(category)
         DBSession.flush()
     return category.ID
+
 
 def expandBudgetItem(nodeid, resource):
     """ Add a budgetitem to the existing budgetitem for each
@@ -104,7 +90,7 @@ def expandBudgetItem(nodeid, resource):
     for part in resource.Children:
         childresource = part.Resource
         node = BudgetItem(ParentID=nodeid,
-                        ResourceID=childresource.ID)
+                          ResourceID=childresource.ID)
         DBSession.add(node)
         DBSession.flush()
         if childresource.type == 'ResourceUnit':
@@ -141,7 +127,7 @@ def auth(request):
         ('Pragma', 'no-cache')))
 
     try:
-        user = DBSession().query(User).filter(User.username==username).one()
+        user = DBSession().query(User).filter(User.username == username).one()
     except NoResultFound:
         return HTTPUnauthorized(text=u'ServerResponse: Authentication failed')
     else:
@@ -150,7 +136,7 @@ def auth(request):
 
     return {
         "access_token": create_token(request, username,
-            user.roles and json.loads(user.roles) or [])
+                                     user.roles and json.loads(user.roles) or [])
     }
 
 
@@ -184,7 +170,8 @@ def node_children(request):
     # sort childrenlist
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'].upper())
     # sort categories
-    sorted_categories = sorted(resourcecategories, key=lambda k: k['Name'].upper())
+    sorted_categories = sorted(
+        resourcecategories, key=lambda k: k['Name'].upper())
     completelist = sorted_categories + sorted_childrenlist
 
     return completelist
@@ -247,25 +234,25 @@ def additemview(request):
     # Determine the type of object to be added and build it
     if objecttype == 'Project':
         newnode = Project(Name=request.json_body['Name'],
-                        Description=desc,
-                        ClientID=client,
-                        CityID=city,
-                        SiteAddress=siteaddress,
-                        FileNumber=filenumber,
-                        ParentID=parentid)
+                          Description=desc,
+                          ClientID=client,
+                          CityID=city,
+                          SiteAddress=siteaddress,
+                          FileNumber=filenumber,
+                          ParentID=parentid)
         DBSession.add(newnode)
         DBSession.flush()
         newid = newnode.ID
         # Automatically add a Resource Category to a new Project
         newresourcecat = ResourceCategory(Name='Resource List',
-                                        Description='List of Resources',
-                                        ParentID=newid)
+                                          Description='List of Resources',
+                                          ParentID=newid)
         DBSession.add(newresourcecat)
 
     elif objecttype == 'BudgetGroup':
         newnode = BudgetGroup(Name=request.json_body['Name'],
-                        Description=desc,
-                        ParentID=parentid)
+                              Description=desc,
+                              ParentID=parentid)
         # if the parent is already approved, the budgetgroup is a variation
         if 'Approved' in parent.Status:
             newnode.Variation = True
@@ -280,16 +267,16 @@ def additemview(request):
         resource = DBSession.query(Resource).filter_by(ID=uid).first()
         if not resource:
             return HTTPInternalServerError(
-                        text=u'ServerResponse: No Resource for the Budget Item')
+                text=u'ServerResponse: No Resource for the Budget Item')
         newnode = BudgetItem(ResourceID=resource.ID,
-                        ParentID=parentid)
+                             ParentID=parentid)
         # get the list of overheads used in the checkboxes
         checklist = request.json_body['OverheadList']
         for record in checklist:
             if record.get('selected', False):
                 overheadid = record['ID']
                 overhead = DBSession.query(
-                            Overhead).filter_by(ID=overheadid).first()
+                    Overhead).filter_by(ID=overheadid).first()
                 newnode.Overheads.append(overhead)
         DBSession.add(newnode)
         DBSession.flush()
@@ -299,7 +286,7 @@ def additemview(request):
             expandBudgetItem(newnode.ID, resource)
         # set the node's quantity
         # this will set its total and the quantity of any children it may have
-        newnode.Quantity=quantity
+        newnode.Quantity = quantity
 
         # if the parent is already approved, the budgetitem is a variation
         if 'Approved' in parent.Status:
@@ -328,29 +315,29 @@ def additemview(request):
 
     elif objecttype == 'ResourceCategory':
         newnode = ResourceCategory(Name=request.json_body['Name'],
-                        Description=desc,
-                        ParentID=parentid)
+                                   Description=desc,
+                                   ParentID=parentid)
         DBSession.add(newnode)
 
     elif objecttype == 'Resource' or objecttype == 'ResourceUnit':
         resourcetype = request.json_body['ResourceTypeID']
-        name =  request.json_body['Name']
+        name = request.json_body['Name']
 
         if objecttype == 'Resource':
             newnode = Resource(Name=name,
-                            Description = desc,
-                            UnitID=unit,
-                            Type=resourcetype,
-                            SupplierID=supplier,
-                            _Rate= rate,
-                            ParentID=parentid)
+                               Description=desc,
+                               UnitID=unit,
+                               Type=resourcetype,
+                               SupplierID=supplier,
+                               _Rate=rate,
+                               ParentID=parentid)
         else:
             newnode = ResourceUnit(Name=name,
-                            Description = desc,
-                            UnitID=unit,
-                            Type=resourcetype,
-                            SupplierID=supplier,
-                            ParentID=parentid)
+                                   Description=desc,
+                                   UnitID=unit,
+                                   Type=resourcetype,
+                                   SupplierID=supplier,
+                                   ParentID=parentid)
 
         DBSession.add(newnode)
         DBSession.flush()
@@ -360,10 +347,10 @@ def additemview(request):
         name = re.sub(r"\s+", 'X', name)
         # generate a code for the resource
         if len(name) < 3:
-            name = name + (3-len(name))*'X'
+            name = name + (3 - len(name)) * 'X'
 
-        numerseq = '0'*(4-len(str(newid))) + str(newid)
-        newnode.Code = name+numerseq
+        numerseq = '0' * (4 - len(str(newid))) + str(newid)
+        newnode.Code = name + numerseq
 
     elif objecttype == 'ResourcePart':
         uid = request.json_body['ResourceID']
@@ -372,20 +359,20 @@ def additemview(request):
         resource = DBSession.query(Resource).filter_by(ID=uid).first()
         if not resource:
             return HTTPNotFound(
-                        text=u'ServerResponse: Resource not found')
+                text=u'ServerResponse: Resource not found')
         # make sure the parent rate is set
         parent.Rate
         newnode = ResourcePart(ResourceID=uid,
-                                _Quantity=quantity,
-                                ParentID=parentid)
+                               _Quantity=quantity,
+                               ParentID=parentid)
         DBSession.add(newnode)
         # add a new budgetitem to the budgetitem that references the
         # parent of this resourcePart
         parentresource = DBSession.query(ResourceUnit
-                                            ).filter_by(ID=parentid).first()
+                                         ).filter_by(ID=parentid).first()
         for budgetitem in parentresource.BudgetItems:
             newbudgetitem = BudgetItem(ParentID=budgetitem.ID,
-                                        ResourceID=uid)
+                                       ResourceID=uid)
             DBSession.add(newbudgetitem)
             DBSession.flush()
             if resource.type == 'ResourceUnit':
@@ -396,7 +383,7 @@ def additemview(request):
 
     else:
         return HTTPInternalServerError(
-                        text=u'ServerResponse: Object type not defined')
+            text=u'ServerResponse: Object type not defined')
 
     DBSession.flush()
     newid = newnode.ID
@@ -419,20 +406,20 @@ def edititemview(request):
         siteaddress = request.json_body.get('SiteAddress', '')
         filenumber = request.json_body.get('FileNumber', '')
         project = DBSession.query(Project).filter_by(ID=nodeid).first()
-        project.Name= request.json_body['Name']
-        project.Description=request.json_body.get('Description', '')
-        project.ClientID=client
-        project.CityID=city
-        project.SiteAddress=siteaddress
-        project.FileNumber=filenumber
+        project.Name = request.json_body['Name']
+        project.Description = request.json_body.get('Description', '')
+        project.ClientID = client
+        project.CityID = city
+        project.SiteAddress = siteaddress
+        project.FileNumber = filenumber
         # check if the user has permission for this status
         if request.has_permission(request.json_body['Status']):
             project.Status = request.json_body['Status']
 
     elif objecttype == 'BudgetGroup':
         budgetgroup = DBSession.query(BudgetGroup).filter_by(ID=nodeid).first()
-        budgetgroup.Name= request.json_body['Name']
-        budgetgroup.Description= request.json_body.get('Description', '')
+        budgetgroup.Name = request.json_body['Name']
+        budgetgroup.Description = request.json_body.get('Description', '')
 
     elif objecttype == 'BudgetItem':
         uid = request.json_body['ResourceID']
@@ -442,9 +429,8 @@ def edititemview(request):
         if bi.Resource.ID != uid:
             # A different resource was linked to this budgetitem
             rootparentid = bi.getProjectID()
-            resourcecategory = DBSession.query(
-                ResourceCategory).filter_by(
-                ParentID=rootparentid).first()
+            resourcecategory = DBSession.query(ResourceCategory) \
+                .filter_by(ParentID=rootparentid).first()
             reslist = resourcecategory.getResources()
             assert uid in [x.ID for x in reslist], "Invalid resource id"
             bi.ResourceID = uid
@@ -469,26 +455,27 @@ def edititemview(request):
             if record.get('selected', False):
                 overheadid = record['ID']
                 overhead = DBSession.query(Overhead).filter_by(
-                                                        ID=overheadid).first()
+                    ID=overheadid).first()
                 newoverheads.append(overhead)
         bi.Overheads = newoverheads
-        bi.Quantity=float(request.json_body.get('Quantity', 0))
+        bi.Quantity = float(request.json_body.get('Quantity', 0))
 
     elif objecttype == 'SimpleBudgetItem':
         rate = request.json_body.get('Rate', 0)
         rate = Decimal(rate).quantize(Decimal('.01'))
         simbi = DBSession.query(SimpleBudgetItem).filter_by(
-                                                        ID=nodeid).first()
+            ID=nodeid).first()
         simbi.Name = request.json_body['Name']
-        simbi.Description = request.json_body.get('Description','')
-        simbi.Rate=rate
-        simbi.Type=request.json_body['ResourceTypeID']
-        simbi.Quantity=float(request.json_body.get('Quantity', 0))
+        simbi.Description = request.json_body.get('Description', '')
+        simbi.Rate = rate
+        simbi.Type = request.json_body['ResourceTypeID']
+        simbi.Quantity = float(request.json_body.get('Quantity', 0))
 
     elif objecttype == 'ResourceCategory':
-        resourcecategory = DBSession.query(ResourceCategory).filter_by(ID=nodeid).first()
-        resourcecategory.Name= request.json_body['Name']
-        resourcecategory.Description=request.json_body.get('Description', '')
+        resourcecategory = DBSession.query(
+            ResourceCategory).filter_by(ID=nodeid).first()
+        resourcecategory.Name = request.json_body['Name']
+        resourcecategory.Description = request.json_body.get('Description', '')
 
     elif objecttype == 'Resource':
         rate = request.json_body.get('Rate', 0)
@@ -496,21 +483,21 @@ def edititemview(request):
         unit = request.json_body['UnitID']
         supplier = request.json_body.get('Supplier', '')
         resource = DBSession.query(Resource).filter_by(ID=nodeid).first()
-        resource.Description=request.json_body.get('Description', '')
+        resource.Description = request.json_body.get('Description', '')
         resource.Code = request.json_body['Code']
-        resource.Rate=rate
-        resource.UnitID=request.json_body.get('Unit', '')
-        resource.Type=request.json_body['ResourceTypeID']
-        resource.UnitID=unit
-        resource.SupplierID=supplier
-        resource.Name=request.json_body['Name']
+        resource.Rate = rate
+        resource.UnitID = request.json_body.get('Unit', '')
+        resource.Type = request.json_body['ResourceTypeID']
+        resource.UnitID = unit
+        resource.SupplierID = supplier
+        resource.Name = request.json_body['Name']
 
     elif objecttype == 'ResourceUnit':
         runit = DBSession.query(ResourceUnit).filter_by(ID=nodeid).first()
         runit.Type = request.json_body['ResourceTypeID']
-        runit.Description=request.json_body.get('Description', '')
+        runit.Description = request.json_body.get('Description', '')
         runit.UnitID = request.json_body.get('UnitID', '')
-        runit.SupplierID=request.json_body.get('Supplier', '')
+        runit.SupplierID = request.json_body.get('Supplier', '')
         runit.Name = request.json_body['Name']
 
     elif objecttype == 'ResourcePart':
@@ -536,7 +523,7 @@ def edititemview(request):
 
     else:
         return HTTPInternalServerError(
-                                text=u'ServerResponse: Object type not defined')
+            text=u'ServerResponse: Object type not defined')
 
     DBSession.flush()
     transaction.commit()
@@ -591,8 +578,8 @@ def node_budgetitems(request):
     if 'supplier' in paramkeys:
         supid = int(paramsdict['supplier'][0])
         budgetitemslist = [
-                x for x in budgetitemslist if (x.Resource and
-                                            x.Resource.SupplierID == supid)]
+            x for x in budgetitemslist if (x.Resource and
+                                           x.Resource.SupplierID == supid)]
 
     itemlist = []
     for bi in budgetitemslist:
@@ -613,8 +600,8 @@ def node_budgetgroups(request):
     # get the data from an existing & most recent valuation for this project
     if qry.first() != None:
         # find the valuation closest to the current date
-        most_recent_valuation = qry.order_by(Valuation.Date.desc()
-                                ).order_by(Valuation.ID.desc()).first()
+        most_recent_valuation = qry.order_by(Valuation.Date.desc()) \
+            .order_by(Valuation.ID.desc()).first()
         parentlist = []
         childrenlist = []
         for item in most_recent_valuation.ValuationItems:
@@ -630,8 +617,8 @@ def node_budgetgroups(request):
                 else:
                     # check if the budgetgroup has child budget groups
                     level = '1'
-                    children = DBSession.query(BudgetGroup
-                                            ).filter_by(ParentID=bg.ID).first()
+                    children = DBSession.query(BudgetGroup) \
+                        .filter_by(ParentID=bg.ID).first()
                     if not children:
                         level = '0'
                     data = bg.valuation(level)
@@ -643,13 +630,13 @@ def node_budgetgroups(request):
 
         # add budget groups that don't have valuation items to the list
         new_budgetgroups = DBSession.query(BudgetGroup).filter(
-                                            BudgetGroup.ParentID == proj_id,
-                                            BudgetGroup.ValuationItems == None
-                                            ).all()
+            BudgetGroup.ParentID == proj_id,
+            BudgetGroup.ValuationItems == None
+        ).all()
         for bg in new_budgetgroups:
             level = '1'
-            children = DBSession.query(BudgetGroup
-                                    ).filter_by(ParentID=bg.ID).first()
+            children = DBSession.query(BudgetGroup) \
+                .filter_by(ParentID=bg.ID).first()
             if not children:
                 level = '0'
             parentlist.append(bg.valuation(level))
@@ -661,7 +648,7 @@ def node_budgetgroups(request):
                 dc = [x for x in childrenlist if x['ParentID'] == parent['ID']]
                 dc = sorted(dc, key=lambda k: k['Name'].upper())
                 itemlist.append(parent)
-                itemlist+=dc
+                itemlist += dc
             else:
                 itemlist.append(parent)
     # no valuation exists
@@ -670,8 +657,8 @@ def node_budgetgroups(request):
         bgs = DBSession.query(BudgetGroup).filter_by(ParentID=proj_id).all()
         for child in bgs:
             level = '1'
-            children = DBSession.query(BudgetGroup
-                                    ).filter_by(ParentID=child.ID).first()
+            children = DBSession.query(BudgetGroup) \
+                .filter_by(ParentID=child.ID).first()
             if not children:
                 level = '0'
             itemlist.append(child.valuation(level))
@@ -703,9 +690,9 @@ def node_expand_budgetgroup(request):
 
         # get the most recent valuation item
         item = (DBSession.query(ValuationItem).
-                    filter_by(BudgetGroupID = bg.ID).
-                    join(Valuation, ValuationItem.Valuation).
-                    order_by(Valuation.Date.desc()).first())
+                filter_by(BudgetGroupID=bg.ID).
+                join(Valuation, ValuationItem.Valuation).
+                order_by(Valuation.Date.desc()).first())
         if item:
             # recalculate the amount complete from the valuation item total
             data['AmountComplete'] = str(item.Total)
@@ -727,12 +714,13 @@ def node_expand_budgetgroup(request):
     # return the data
     return [parent] + children
 
+
 @view_config(route_name="projects", renderer='json', permission='view')
 def projects(request):
     """ Returns a list of the Projects in the database
         Accepts an optional list of a set of project Id's
     """
-    projects = []
+    projectslist = []
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
 
@@ -743,33 +731,33 @@ def projects(request):
         for projid in open_projects:
             project = DBSession.query(Project).filter_by(ID=projid).first()
             if project:
-                projects.append(project.dict())
+                projectslist.append(project.dict())
                 existing_projects.append(projid)
 
-        projects = sorted(projects, key=lambda k: k['Name'].upper())
+        projectslist = sorted(projectslist, key=lambda k: k['Name'].upper())
         # append existing project id's to the response
-        projects.append(existing_projects)
-        return projects
+        projectslist.append(existing_projects)
+        return projectslist
     else:
         # Get all the Projects in the Project table
         qry = DBSession.query(Project).all()
         # build the list and only get the neccesary values
-        for project in qry:
-            projects.append({'Name': project.Name,
-                             'ID': project.ID})
-        return sorted(projects, key=lambda k: k['Name'].upper())
+        projectslist = [{'Name': p.Name, 'ID': p.ID} for p in qry]
+        return sorted(projectslist, key=lambda k: k['Name'].upper())
+
 
 def search_resources(categoryid, search):
     """ go through each child resource category and return resources which match
         the search term
     """
-    resources = DBSession.query(Resource).filter(Resource.ParentID==categoryid,
-                            Resource.Name.ilike('%{}%'.format(search))).all()
+    resources = DBSession.query(Resource).filter(Resource.ParentID == categoryid,
+                                                 Resource.Name.ilike('%{}%'.format(search))).all()
     categories = DBSession.query(ResourceCategory.ID).filter_by(
-                            ParentID=categoryid).all()
+        ParentID=categoryid).all()
     for cat in categories:
-        resources+=search_resources(cat.ID, search)
+        resources += search_resources(cat.ID, search)
     return resources
+
 
 @view_config(route_name="project_resources", renderer='json', permission='view')
 def project_resources(request):
@@ -779,7 +767,7 @@ def project_resources(request):
     nodeid = request.matchdict['id']
     currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
     category = DBSession.query(ResourceCategory).filter_by(
-            ParentID=currentnode.getProjectID()).first()
+        ParentID=currentnode.getProjectID()).first()
 
     if 'search' in request.params:
         resources = search_resources(category.ID, request.params['search'])
@@ -812,7 +800,7 @@ def project_resources(request):
         elif currentnode.type == 'ResourcePart':
             # add the parent to the excluded nodes
             excludedlist.append(currentnode.Parent)
-            # and go through all the parents resource parts and add their parents
+            # go through all the parents resource parts and add their parents
             for part in currentnode.Parent.ResourceParts:
                 excludedlist.append(part.Parent)
             # add the children
@@ -822,11 +810,11 @@ def project_resources(request):
 
         filteredlist = [x for x in resources if x not in excludedlist]
         sortedlist = [item.dict()
-                for item in sorted(filteredlist, key=lambda o: o.Name.upper())]
+                      for item in sorted(filteredlist, key=lambda o: o.Name.upper())]
     else:
         resources = category.getResources()
         sortedlist = [item.dict()
-                    for item in sorted(resources, key=lambda o: o.Name.upper())]
+                      for item in sorted(resources, key=lambda o: o.Name.upper())]
 
     return sortedlist
 
@@ -849,7 +837,7 @@ def resourcecategory_resources(request):
     if request.matched_route.name == 'resourcecategory_allresources':
         projectid = resourcecategory.getProjectID()
         resourcecategory = DBSession.query(
-                ResourceCategory).filter_by(ParentID=projectid).first()
+            ResourceCategory).filter_by(ParentID=projectid).first()
 
     resourcelist = []
     uniqueresources = []
@@ -886,22 +874,19 @@ def overheadsview(request):
     if request.method == 'GET':
         paramsdict = request.params.dict_of_lists()
         paramkeys = paramsdict.keys()
-        nodeid = request.matchdict['nodeid']
-        currentnode = DBSession.query(Node).filter_by(ID=nodeid).first()
-        projectid = currentnode.getProjectID()
+        currentnode = DBSession.query(Node) \
+            .filter_by(ID=request.matchdict['nodeid']).first()
 
         # if the type is specified, filter by it
         if 'NodeType' in paramkeys:
             overheads = DBSession.query(
-                    Overhead).filter_by(ProjectID=projectid,
-                                        Type=paramsdict['NodeType'][0]).all()
+                Overhead).filter_by(ProjectID=currentnode.getProjectID(),
+                                    Type=paramsdict['NodeType'][0]).all()
         else:
             overheads = DBSession.query(
-                    Overhead).filter_by(ProjectID=projectid).all()
+                Overhead).filter_by(ProjectID=currentnode.getProjectID()).all()
 
-        overheadlist = []
-        for overhead in overheads:
-            overheadlist.append(overhead.dict())
+        overheadlist = [o.dict() for o in overheads]
         return sorted(overheadlist, key=lambda k: k['Name'].upper())
 
     # apply a list of overheads to a node
@@ -909,20 +894,20 @@ def overheadsview(request):
         if not request.has_permission('edit'):
             return HTTPForbidden()
 
-        nodeid = request.matchdict['nodeid']
         overheadlist = request.json_body['overheadlist']
-
-        node = DBSession.query(Node).filter_by(ID=nodeid).first()
+        node = DBSession.query(Node) \
+            .filter_by(ID=request.matchdict['nodeid']).first()
 
         budgetitems = node.getBudgetItems()
         for budgetitem in budgetitems:
-            # don't apply markup to budgetitems that are children of budgetitems
+            # don't apply markup to budgetitems that are children of
+            # budgetitems
             if budgetitem.Parent.type != 'BudgetItem':
                 for overhead in overheadlist:
                     if overhead.get('selected', False):
                         overheadid = overhead['ID']
-                        overhead = DBSession.query(Overhead
-                                                ).filter_by(ID=overheadid).first()
+                        overhead = DBSession.query(Overhead) \
+                            .filter_by(ID=overheadid).first()
                         if overhead not in budgetitem.Overheads:
                             budgetitem.Overheads.append(overhead)
 
@@ -932,30 +917,30 @@ def overheadsview(request):
         if not request.has_permission('edit'):
             return HTTPForbidden()
 
-        projectid = request.matchdict['nodeid']
         overheadlist = request.json_body['overheadlist']
         for overhead in overheadlist:
             keys = overhead.keys()
             if 'ID' in keys:
                 if 'edit' in keys:
-                    editing = DBSession.query(Overhead
-                                        ).filter_by(ID=overhead['ID']).first()
+                    editing = DBSession.query(Overhead) \
+                        .filter_by(ID=overhead['ID']).first()
                     if editing:
                         editing.Name = overhead['Name']
                         editing.Percentage = float(overhead['Percentage'])
                         editing.Type = overhead['Type']
             else:
                 # Build a new overhead with the data
-                newoverhead = Overhead(Name = overhead['Name'],
-                                    Percentage = float(overhead['Percentage']),
-                                    Type=overhead['Type'],
-                                    ProjectID = projectid)
+                newoverhead = Overhead(Name=overhead['Name'],
+                                       Percentage=float(
+                                           overhead['Percentage']),
+                                       Type=overhead['Type'],
+                                       ProjectID=request.matchdict['nodeid'])
                 DBSession.add(newoverhead)
         transaction.commit()
         return HTTPOk()
 
 
-@view_config(route_name="overheadview",renderer='json', permission='view')
+@view_config(route_name="overheadview", renderer='json', permission='view')
 def overheadview(request):
     """ Perform operations on the Overheads in the database depending in the
         HTTP method
@@ -994,11 +979,12 @@ def node_grid(request):
     # Execute the sql query on the Node table to find the parent
     qry = DBSession.query(Node).filter_by(ParentID=parentid)
     if qry.count() == 0:
-        # if the node doesnt have any children, query for the node's data instead
+        # if the node doesnt have any children, query for the node's data
+        # instead
         qry = DBSession.query(Node).filter_by(ID=parentid)
         if qry.count() == 0:
             # the node has been deleted, return an empty response
-            return {'list':[]}
+            return {'list': []}
     else:
         # otherwise, if the parent is a budgetgroup/item, add it to the list
         parent = DBSession.query(Node).filter_by(ID=parentid).first()
@@ -1010,8 +996,8 @@ def node_grid(request):
     # If there are any Budgetitems or SimpleBudgetItems
     # There wont be empty columns
     emptyresult = qry.filter(
-            (Node.type == 'BudgetItem') |
-            (Node.type == 'SimpleBudgetItem'))
+        (Node.type == 'BudgetItem') |
+        (Node.type == 'SimpleBudgetItem'))
     emptycolumns = emptyresult.count() == 0
 
     # if the query has any BudgetItems it will contain subtotal columns
@@ -1035,7 +1021,7 @@ def node_grid(request):
 
     sorted_childrenlist = sorted(childrenlist, key=lambda k: k['Name'].upper())
     sorted_rescatlist = sorted(rescatlist, key=lambda k: k['Name'].upper())
-    sorted_childrenlist = sorted_rescatlist+sorted_childrenlist
+    sorted_childrenlist = sorted_rescatlist + sorted_childrenlist
     if parentlist:
         sorted_childrenlist = parentlist + sorted_childrenlist
 
@@ -1123,7 +1109,7 @@ def node_paste(request):
             DBSession.flush()
             # get the resource category of the new Project
             resourcecategory = DBSession.query(ResourceCategory).filter_by(
-                                                    ParentID=projectid).first()
+                ParentID=projectid).first()
             # get the resources that were copied
             resourcelist = resourcecategory.getResources()
             resourcelist = sorted(resourcelist, key=lambda k: k.Code)
@@ -1151,7 +1137,7 @@ def node_paste(request):
                 for overhead in originaloverheads:
                     bi.Overheads.remove(overhead)
                     projectoverhead = projectoverheads[
-                                        projectoverheads.index(overhead)]
+                        projectoverheads.index(overhead)]
                     bi.Overheads.append(projectoverhead)
 
             transaction.commit()
@@ -1164,7 +1150,8 @@ def node_paste(request):
                     pastequantity = sel['selected']
                 elif sel['Name'] == 'Rate':
                     pasterate = sel['selected']
-            projectcopy = DBSession.query(Project).filter_by(ID=projectid).first()
+            projectcopy = DBSession.query(
+                Project).filter_by(ID=projectid).first()
             if not (pastequantity and pasterate):
                 projectcopy.clearCosts(pasterate, pastequantity)
             projectcopy.clearOrderedInvoiced()
@@ -1184,7 +1171,7 @@ def node_paste(request):
                         text=u"ServerResponse: Can't cut resources that are in use")
         projectid = dest.getProjectID()
         resourcecategory = DBSession.query(
-                ResourceCategory).filter_by(ParentID=projectid).first()
+            ResourceCategory).filter_by(ParentID=projectid).first()
         rescatid = resourcecategory.ID
         destresources = resourcecategory.getResources()
 
@@ -1192,7 +1179,7 @@ def node_paste(request):
         # set the pasted id to its id
         sourcename = source.Name
         destcategory = DBSession.query(ResourceCategory).filter_by(
-                                    ParentID=rescatid, Name=sourcename).first()
+            ParentID=rescatid, Name=sourcename).first()
 
         # loop through all the source resources
         # if they are duplicated, check what the action should be taken
@@ -1209,7 +1196,7 @@ def node_paste(request):
                 # the original category name
                 categoryName = resource.Parent.Name
                 newparentid = sortResource(resourcecategory,
-                                            categoryName)
+                                           categoryName)
                 newresource = resource.copy(newparentid)
                 DBSession.add(newresource)
                 DBSession.flush()
@@ -1217,13 +1204,13 @@ def node_paste(request):
         # if the source is cut, delete it
         if request.json_body["cut"]:
             deletethis = DBSession.query(
-                            ResourceCategory).filter_by(ID=sourceid).first()
-            qry = DBSession.delete(deletethis)
+                ResourceCategory).filter_by(ID=sourceid).first()
+            DBSession.delete(deletethis)
 
         # get the pasted id
         if not destcategory:
             destcategory = DBSession.query(ResourceCategory).filter_by(
-                                    ParentID=rescatid, Name=sourcename).first()
+                ParentID=rescatid, Name=sourcename).first()
             # if the category was not created, the destination category needs
             # to be reloaded
             if destcategory:
@@ -1241,7 +1228,7 @@ def node_paste(request):
             # check the resource is not being duplicated
             projectid = dest.getProjectID()
             resourcecategory = DBSession.query(
-                        ResourceCategory).filter_by(ParentID=projectid).first()
+                ResourceCategory).filter_by(ParentID=projectid).first()
             destresources = resourcecategory.getResources()
             if source not in destresources:
                 if request.json_body["cut"]:
@@ -1249,7 +1236,7 @@ def node_paste(request):
                     for resource in sourceresources:
                         if len(resource.BudgetItems) > 0:
                             return HTTPInternalServerError(
-                            text=u"ServerResponse: Can't cut resources that are in use")
+                                text=u"ServerResponse: Can't cut resources that are in use")
                     source.ParentID = destinationid
                     pasted_id = source.ID
                 else:
@@ -1262,7 +1249,8 @@ def node_paste(request):
                 if request.json_body["cut"]:
                     destprojectid = dest.getProjectID()
                     sourceprojectid = source.getProjectID()
-                    # if we cut and paste in the same resource category its fine
+                    # if we cut and paste in the same resource category its
+                    # fine
                     if destprojectid == sourceprojectid:
                         source.ParentID = destinationid
                         pasted_id = source.ID
@@ -1271,7 +1259,7 @@ def node_paste(request):
                             text=u"ServerResponse: Can't cut and paste a Resource here")
                 else:
                     return HTTPConflict(
-                            text=u"ServerResponse: Can't copy and paste a Resource here")
+                        text=u"ServerResponse: Can't copy and paste a Resource here")
         # else for budget type nodes
         # if the source is to be cut and pasted into the destination
         elif request.json_body["cut"]:
@@ -1287,9 +1275,8 @@ def node_paste(request):
             if destprojectid != sourceprojectid:
                 projectid = destprojectid
                 # get the resource category the project uses
-                resourcecategory = DBSession.query(
-                                ResourceCategory).filter_by(
-                                ParentID=projectid).first()
+                resourcecategory = DBSession.query(ResourceCategory) \
+                    .filter_by(ParentID=projectid).first()
                 rescatid = resourcecategory.ID
 
                 # get the destination project resources
@@ -1304,8 +1291,9 @@ def node_paste(request):
                         if budgetitem.Resource not in destinationresources:
                             categoryName = budgetitem.Resource.Parent.Name
                             newparentid = sortResource(resourcecategory,
-                                                        categoryName)
-                            copiedresource = budgetitem.Resource.copy(newparentid)
+                                                       categoryName)
+                            copiedresource = budgetitem.Resource.copy(
+                                newparentid)
                             DBSession.add(copiedresource)
                             DBSession.flush()
                             budgetitem.ResourceID = copiedresource.ID
@@ -1369,9 +1357,8 @@ def node_paste(request):
             if destprojectid != sourceprojectid:
                 projectid = destprojectid
                 # get the resource category the project uses
-                resourcecategory = DBSession.query(
-                                ResourceCategory).filter_by(
-                                ParentID=projectid).first()
+                resourcecategory = DBSession.query(ResourceCategory). \
+                    filter_by(ParentID=projectid).first()
                 rescatid = resourcecategory.ID
 
                 # Get the budgetitems that were copied
@@ -1382,8 +1369,8 @@ def node_paste(request):
                 # get the budgetitems that were pasted
                 destbudgetitems = copy_of_source.getBudgetItems()
                 # get the overheads used in the project
-                projectoverheads = DBSession.query(Overhead
-                        ).filter_by(ProjectID=projectid).all()
+                projectoverheads = DBSession.query(Overhead). \
+                    filter_by(ProjectID=projectid).all()
 
                 # copy each unique resource into the new resource category
                 for budgetitem in destbudgetitems:
@@ -1392,8 +1379,9 @@ def node_paste(request):
                         if budgetitem.Resource not in destinationresources:
                             categoryName = budgetitem.Resource.Parent.Name
                             newparentid = sortResource(resourcecategory,
-                                                        categoryName)
-                            copiedresource = budgetitem.Resource.copy(newparentid)
+                                                       categoryName)
+                            copiedresource = budgetitem.Resource.copy(
+                                newparentid)
                             DBSession.add(copiedresource)
                             DBSession.flush()
                             budgetitem.ResourceID = copiedresource.ID
@@ -1408,7 +1396,7 @@ def node_paste(request):
                         if overhead in projectoverheads:
                             budgetitem.Overheads.remove(overhead)
                             projectoverhead = projectoverheads[
-                                                projectoverheads.index(overhead)]
+                                projectoverheads.index(overhead)]
                             budgetitem.Overheads.append(projectoverhead)
                         else:
                             budgetitem.Overheads.remove(overhead)
@@ -1489,7 +1477,7 @@ def node_cost(request):
     # Get the id of the node to be costed
     costid = request.matchdict['id']
     qry = DBSession.query(Node).filter_by(ID=costid).first()
-    if qry == None:
+    if not qry:
         return HTTPNotFound(text=u'ServerResponse: Object not found')
     totalcost = str(qry.Total)
     transaction.commit()
@@ -1539,36 +1527,37 @@ def clientview(request):
         if not request.has_permission('edit'):
             return HTTPForbidden()
         newclient = Client(Name=request.json_body['Name'],
-            Address=request.json_body.get('Address', ''),
-            CityID=request.json_body.get('City', None),
-            StateProvince=request.json_body.get('StateProvince', ''),
-            Country=request.json_body.get('Country', ''),
-            Zipcode=request.json_body.get('Zipcode', ''),
-            Fax=request.json_body.get('Fax', ''),
-            Phone=request.json_body.get('Phone', ''),
-            Cellular=request.json_body.get('Cellular', ''),
-            Contact=request.json_body.get('Contact', ''))
+                           Address=request.json_body.get('Address', ''),
+                           CityID=request.json_body.get('City', None),
+                           StateProvince=request.json_body.get(
+                               'StateProvince', ''),
+                           Country=request.json_body.get('Country', ''),
+                           Zipcode=request.json_body.get('Zipcode', ''),
+                           Fax=request.json_body.get('Fax', ''),
+                           Phone=request.json_body.get('Phone', ''),
+                           Cellular=request.json_body.get('Cellular', ''),
+                           Contact=request.json_body.get('Contact', ''))
         DBSession.add(newclient)
         DBSession.flush()
         newid = newclient.ID
-        return {'newid':newid}
+        return {'newid': newid}
 
     # if the method is put, edit an existing client
     if request.method == 'PUT':
         if not request.has_permission('edit'):
             return HTTPForbidden()
         client = DBSession.query(
-                    Client).filter_by(ID=request.matchdict['id']).first()
-        client.Name=request.json_body['Name']
-        client.Address=request.json_body.get('Address', '')
-        client.CityID=request.json_body.get('City', None)
-        client.StateProvince=request.json_body.get('StateProvince', '')
-        client.Country=request.json_body.get('Country', '')
-        client.Zipcode=request.json_body.get('Zipcode', '')
-        client.Fax=request.json_body.get('Fax', '')
-        client.Phone=request.json_body.get('Phone', '')
-        client.Cellular=request.json_body.get('Cellular', '')
-        client.Contact=request.json_body.get('Contact', '')
+            Client).filter_by(ID=request.matchdict['id']).first()
+        client.Name = request.json_body['Name']
+        client.Address = request.json_body.get('Address', '')
+        client.CityID = request.json_body.get('City', None)
+        client.StateProvince = request.json_body.get('StateProvince', '')
+        client.Country = request.json_body.get('Country', '')
+        client.Zipcode = request.json_body.get('Zipcode', '')
+        client.Fax = request.json_body.get('Fax', '')
+        client.Phone = request.json_body.get('Phone', '')
+        client.Cellular = request.json_body.get('Cellular', '')
+        client.Contact = request.json_body.get('Contact', '')
 
         transaction.commit()
         return HTTPOk()
@@ -1620,39 +1609,40 @@ def supplierview(request):
         if not request.has_permission('edit'):
             return HTTPForbidden()
         newsupplier = Supplier(Name=request.json_body['Name'],
-            Address=request.json_body.get('Address', ''),
-            CityID=request.json_body.get('City', None),
-            StateProvince=request.json_body.get('StateProvince', ''),
-            Country=request.json_body.get('Country', ''),
-            Zipcode=request.json_body.get('Zipcode', ''),
-            Fax=request.json_body.get('Fax', ''),
-            Phone=request.json_body.get('Phone', ''),
-            Cellular=request.json_body.get('Cellular', ''),
-            Contact=request.json_body.get('Contact', ''),
-            SupplierCode=request.json_body.get('SupplierCode', ''))
+                               Address=request.json_body.get('Address', ''),
+                               CityID=request.json_body.get('City', None),
+                               StateProvince=request.json_body.get(
+                                   'StateProvince', ''),
+                               Country=request.json_body.get('Country', ''),
+                               Zipcode=request.json_body.get('Zipcode', ''),
+                               Fax=request.json_body.get('Fax', ''),
+                               Phone=request.json_body.get('Phone', ''),
+                               Cellular=request.json_body.get('Cellular', ''),
+                               Contact=request.json_body.get('Contact', ''),
+                               SupplierCode=request.json_body.get('SupplierCode', ''))
 
         DBSession.add(newsupplier)
         DBSession.flush()
         newid = newsupplier.ID
-        return {'newid':newid}
+        return {'newid': newid}
 
     # if the method is put, edit an existing supplier
     if request.method == 'PUT':
         if not request.has_permission('edit'):
             return HTTPForbidden()
         supplier = DBSession.query(
-                    Supplier).filter_by(ID=request.matchdict['id']).first()
-        supplier.Name=request.json_body['Name']
-        supplier.Address=request.json_body.get('Address', '')
-        supplier.CityID=request.json_body.get('City', None)
-        supplier.StateProvince=request.json_body.get('StateProvince', '')
-        supplier.Country=request.json_body.get('Country', '')
-        supplier.Zipcode=request.json_body.get('Zipcode', '')
-        supplier.Fax=request.json_body.get('Fax', '')
-        supplier.Phone=request.json_body.get('Phone', '')
-        supplier.Cellular=request.json_body.get('Cellular', '')
-        supplier.Contact=request.json_body.get('Contact', '')
-        supplier.SupplierCode=request.json_body.get('SupplierCode', '')
+            Supplier).filter_by(ID=request.matchdict['id']).first()
+        supplier.Name = request.json_body['Name']
+        supplier.Address = request.json_body.get('Address', '')
+        supplier.CityID = request.json_body.get('City', None)
+        supplier.StateProvince = request.json_body.get('StateProvince', '')
+        supplier.Country = request.json_body.get('Country', '')
+        supplier.Zipcode = request.json_body.get('Zipcode', '')
+        supplier.Fax = request.json_body.get('Fax', '')
+        supplier.Phone = request.json_body.get('Phone', '')
+        supplier.Cellular = request.json_body.get('Cellular', '')
+        supplier.Contact = request.json_body.get('Contact', '')
+        supplier.SupplierCode = request.json_body.get('SupplierCode', '')
         transaction.commit()
         return HTTPOk()
 
@@ -1671,21 +1661,24 @@ def company_information(request):
         if not request.has_permission('edit'):
             return HTTPForbidden()
 
-        company_information = DBSession.query(CompanyInformation).first()
+        info = DBSession.query(CompanyInformation).first()
 
-        company_information.Name=request.json_body.get('Name', '')
-        company_information.Address=request.json_body.get('Address', '')
-        company_information.Tel=request.json_body.get('Tel', '')
-        company_information.Fax=request.json_body.get('Fax', '')
-        company_information.Cell=request.json_body.get('Cell', '')
-        company_information.BankName=request.json_body.get('BankName', '')
-        company_information.BranchCode=request.json_body.get('BranchCode', '')
-        company_information.AccountNo=request.json_body.get('AccountNo', '')
-        company_information.AccountName=request.json_body.get('AccountName', '')
-        company_information.DefaultTaxrate=request.json_body.get('DefaultTaxrate', 0)
-        company_information.Currency=request.json_body.get('Currency', 'R')
-        company_information.Footer = request.json_body.get('Footer', None)
-        company_information.Header = request.json_body.get('Header', None)
+        info.Name = request.json_body.get('Name', '')
+        info.Address = request.json_body.get('Address', '')
+        info.Tel = request.json_body.get('Tel', '')
+        info.Fax = request.json_body.get('Fax', '')
+        info.Cell = request.json_body.get('Cell', '')
+        info.BankName = request.json_body.get('BankName', '')
+        info.BranchCode = request.json_body.get(
+            'BranchCode', '')
+        info.AccountNo = request.json_body.get('AccountNo', '')
+        info.AccountName = request.json_body.get(
+            'AccountName', '')
+        info.DefaultTaxrate = request.json_body.get(
+            'DefaultTaxrate', 0)
+        info.Currency = request.json_body.get('Currency', 'R')
+        info.Footer = request.json_body.get('Footer', None)
+        info.Header = request.json_body.get('Header', None)
 
         DBSession.flush()
         transaction.commit()
@@ -1693,20 +1686,20 @@ def company_information(request):
 
     # otherwise return the company information data
     qry = DBSession.query(CompanyInformation).first()
-    if qry == None:
+    if not qry:
         # if the company information has never been entered, enter the defaults
-        company_information = CompanyInformation(ID=0,
-                                 Name='TETIUS RABE PROPERTY SERVICES',
-                                 Address='173 KLEINBOS AVENUE, SOMERSET-WEST',
-                                 Tel='0218511572',
-                                 Fax='0218511572',
-                                 Cell='0832742643',
-                                 BankName='BOE BANK WORCESTER',
-                                 BranchCode='440707',
-                                 AccountNo='2572658703',
-                                 AccountName='TR Property Services',
-                                 DefaultTaxrate='14.00')
-        DBSession.add(company_information)
+        info = CompanyInformation(ID=0,
+                                  Name='TETIUS RABE PROPERTY SERVICES',
+                                  Address='173 KLEINBOS AVENUE, SOMERSET-WEST',
+                                  Tel='0218511572',
+                                  Fax='0218511572',
+                                  Cell='0832742643',
+                                  BankName='BOE BANK WORCESTER',
+                                  BranchCode='440707',
+                                  AccountNo='2572658703',
+                                  AccountName='TR Property Services',
+                                  DefaultTaxrate='14.00')
+        DBSession.add(info)
         DBSession.flush()
         qry = DBSession.query(CompanyInformation).first()
 
@@ -1743,16 +1736,6 @@ def unitview(request):
     """ The unitview handles different cases for units
         depending on the http method
     """
-    sups = {u'0': u'\u2070',
-            u'1': u'\xb9',
-            u'2': u'\xb2',
-            u'3': u'\xb3',
-            u'4': u'\u2074',
-            u'5': u'\u2075',
-            u'6': u'\u2076',
-            u'7': u'\u2077',
-            u'8': u'\u2078',
-            u'9': u'\u2079'}
     # delete the unit, granted it is not in use by any resources
     if request.method == 'DELETE':
         if not request.has_permission('edit'):
@@ -1781,7 +1764,7 @@ def unitview(request):
             splitted = unitname.split('^')
             name = splitted[0].strip()
             exp = ''.join(sups.get(char, char) for char in splitted[1].strip())
-            unitname = name+exp
+            unitname = name + exp
 
         # check if the unit already exists
         existing = DBSession.query(Unit).filter_by(Name=unitname).first()
@@ -1799,7 +1782,7 @@ def unitview(request):
 
         unitname = request.json_body['Name']
         unit = DBSession.query(
-                    Unit).filter_by(ID=request.matchdict['id']).first()
+            Unit).filter_by(ID=request.matchdict['id']).first()
         if unit.Name == unitname:
             return HTTPOk()
         # check for carets in the name, and make it superscript
@@ -1807,14 +1790,14 @@ def unitview(request):
             splitted = unitname.split('^')
             name = splitted[0].strip()
             exp = ''.join(sups.get(char, char) for char in splitted[1].strip())
-            unitname = name+exp
+            unitname = name + exp
 
         # check if the unit already exists
         existing = DBSession.query(Unit).filter_by(Name=unitname).first()
         if existing:
             return HTTPConflict(text=u'ServerResponse: Name already exists')
 
-        unit.Name=request.json_body['Name']
+        unit.Name = request.json_body['Name']
         transaction.commit()
         return HTTPOk()
 
@@ -1889,7 +1872,7 @@ def cityview(request):
         if existing:
             return HTTPConflict(text=u'ServerResponse: Name already exists')
 
-        city.Name=name
+        city.Name = name
         transaction.commit()
         return HTTPOk()
 
@@ -1915,7 +1898,7 @@ def orders_tree_view(request):
         for child in qry.Children:
             # if the child is a leaf budgetitem, add it as an orderitem
             if child.type in ('BudgetItem', 'SimpleBudgetItem') \
-            and len(child.Children) == 0:
+                    and len(child.Children) == 0:
                 childrenlist.append(child.order())
             elif child.type != 'ResourceCategory':
                 childrenlist.append(child.dict())
@@ -1947,7 +1930,7 @@ def ordersview(request):
         qry = qry.filter_by(SupplierID=paramsdict['Supplier'][0])
     if 'OrderNumber' in paramkeys:
         setLength = True
-        qry = qry.filter(Order.ID.like(paramsdict['OrderNumber'][0]+'%'))
+        qry = qry.filter(Order.ID.like(paramsdict['OrderNumber'][0] + '%'))
     if 'Status' in paramkeys:
         setLength = True
         qry = qry.filter_by(Status=paramsdict['Status'][0])
@@ -1959,7 +1942,7 @@ def ordersview(request):
     else:
         start = int(paramsdict['start'][0])
         end = int(paramsdict['end'][0])
-    section = qry.slice(start,end).all()
+    section = qry.slice(start, end).all()
     orderlist = []
     for order in section:
         orderlist.append(order.dict())
@@ -1987,7 +1970,7 @@ def orders_filter(request):
     if 'Supplier' in paramkeys:
         qry = qry.filter_by(SupplierID=paramsdict['Supplier'][0])
     if 'OrderNumber' in paramkeys:
-        qry = qry.filter(Order.ID.like(paramsdict['OrderNumber'][0]+'%'))
+        qry = qry.filter(Order.ID.like(paramsdict['OrderNumber'][0] + '%'))
     if 'Status' in paramkeys:
         qry = qry.filter_by(Status=paramsdict['Status'][0])
     # get the unique values the other filters are to be updated with
@@ -1995,17 +1978,20 @@ def orders_filter(request):
     clientlist = []
     for client in clients:
         if client.Client:
-            clientlist.append({'Name': client.Client.Name, 'ID': client.ClientID})
+            clientlist.append(
+                {'Name': client.Client.Name, 'ID': client.ClientID})
     suppliers = qry.distinct(Order.SupplierID).group_by(Order.SupplierID)
     supplierlist = []
     for supplier in suppliers:
         if supplier.Supplier:
-            supplierlist.append({'Name': supplier.Supplier.Name, 'ID': supplier.SupplierID})
-    projects = qry.distinct(Order.ProjectID).group_by(Order.ProjectID)
+            supplierlist.append(
+                {'Name': supplier.Supplier.Name, 'ID': supplier.SupplierID})
+    projectquery = qry.distinct(Order.ProjectID).group_by(Order.ProjectID)
     projectlist = []
-    for project in projects:
+    for project in projectquery:
         if project.Project:
-            projectlist.append({'Name': project.Project.Name, 'ID': project.ProjectID})
+            projectlist.append(
+                {'Name': project.Project.Name, 'ID': project.ProjectID})
     return {'projects': sorted(projectlist, key=lambda k: k['Name'].upper()),
             'clients': sorted(clientlist, key=lambda k: k['Name'].upper()),
             'suppliers': sorted(supplierlist, key=lambda k: k['Name'].upper())}
@@ -2051,7 +2037,7 @@ def orderview(request):
         if not request.has_permission('edit'):
             return HTTPForbidden()
         user = request.json_body.get('UserCode', '')
-        auth = request.json_body.get('Authorisation', '')
+        orderauth = request.json_body.get('Authorisation', '')
         proj = request.json_body.get('ProjectID', None)
         supplier = request.json_body.get('SupplierID', None)
         address = request.json_body.get('DeliveryAddress', '')
@@ -2063,13 +2049,13 @@ def orderview(request):
         if date:
             date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
         neworder = Order(UserCode=user,
-                            Authorisation=auth,
-                            ProjectID=proj,
-                            SupplierID=supplier,
-                            ClientID=client,
-                            DeliveryAddress=address,
-                            Date=date,
-                            Description=description)
+                         Authorisation=orderauth,
+                         ProjectID=proj,
+                         SupplierID=supplier,
+                         ClientID=client,
+                         DeliveryAddress=address,
+                         Date=date,
+                         Description=description)
         DBSession.add(neworder)
         DBSession.flush()
         # add the order items to the order
@@ -2083,15 +2069,15 @@ def orderview(request):
             vat = budgetitem.get('VAT', False)
             vatpercentage = 0
             if vat:
-                vatpercentage = DBSession.query(CompanyInformation
-                                ).first().DefaultTaxrate
+                vatpercentage = DBSession.query(CompanyInformation) \
+                    .first().DefaultTaxrate
 
             neworderitem = OrderItem(OrderID=newid,
-                                    BudgetItemID=budgetitem['ID'],
-                                    _Quantity=quantity,
-                                    _Rate = rate,
-                                    _Discount = discount,
-                                    VAT=vatpercentage)
+                                     BudgetItemID=budgetitem['ID'],
+                                     _Quantity=quantity,
+                                     _Rate=rate,
+                                     _Discount=discount,
+                                     VAT=vatpercentage)
             DBSession.add(neworderitem)
         transaction.commit()
         # return the new order
@@ -2108,16 +2094,17 @@ def orderview(request):
         if not request.has_permission('edit'):
             return HTTPForbidden()
         order = DBSession.query(
-                    Order).filter_by(ID=request.matchdict['id']).first()
+            Order).filter_by(ID=request.matchdict['id']).first()
 
         user = request.json_body.get('UserCode', '')
-        auth = request.json_body.get('Authorisation', '')
+        orderauth = request.json_body.get('Authorisation', '')
         proj = request.json_body.get('ProjectID', None)
         description = request.json_body.get('Description', '')
         if proj == order.ProjectID:
             client = order.ClientID
         else:
-            client = DBSession.query(Project).filter_by(ID=proj).first().ClientID
+            client = DBSession.query(Project).filter_by(
+                ID=proj).first().ClientID
         supplier = request.json_body.get('SupplierID', None)
         address = request.json_body.get('DeliveryAddress', '')
         # convert to date from json format
@@ -2125,15 +2112,15 @@ def orderview(request):
         if date:
             try:
                 date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
-            except:
+            except Exception:
                 date = datetime.strptime(date, "%d %B %Y")
 
-        order.UserCode=user
-        order.Authorisation=auth
-        order.ProjectID=proj
-        order.SupplierID=supplier
-        order.ClientID=client
-        order.DeliveryAddress=address
+        order.UserCode = user
+        order.Authorisation = orderauth
+        order.ProjectID = proj
+        order.SupplierID = supplier
+        order.ClientID = client
+        order.DeliveryAddress = address
         order.Date = date
         order.Description = description
 
@@ -2158,27 +2145,27 @@ def orderview(request):
                 vat = budgetitem.get('VAT', False)
                 vatpercentage = 0
                 if vat:
-                    vatpercentage = DBSession.query(CompanyInformation
-                                ).first().DefaultTaxrate
+                    vatpercentage = DBSession.query(CompanyInformation) \
+                        .first().DefaultTaxrate
 
                 neworderitem = OrderItem(OrderID=order.ID,
-                                        BudgetItemID=budgetitem['ID'],
-                                        _Quantity=quantity,
-                                        _Rate = rate,
-                                        _Discount = discount,
-                                        VAT=vatpercentage)
+                                         BudgetItemID=budgetitem['ID'],
+                                         _Quantity=quantity,
+                                         _Rate=rate,
+                                         _Discount=discount,
+                                         VAT=vatpercentage)
                 DBSession.add(neworderitem)
 
                 # update the budget item ordered amount
                 bi = DBSession.query(BudgetItem).filter_by(
-                                                ID=budgetitem['ID']).first()
+                    ID=budgetitem['ID']).first()
                 if bi:
-                    bi.Ordered +=neworderitem.Total
+                    bi.Ordered += neworderitem.Total
             else:
                 # otherwise update the item and remove the id from the list
                 orderitemid = iddict[budgetitem['ID']]
                 orderitem = DBSession.query(OrderItem).filter_by(
-                                    ID=orderitemid).first()
+                    ID=orderitemid).first()
                 oldtotal = orderitem.Total
                 orderitem.Quantity = budgetitem['Quantity']
                 orderitem.Rate = budgetitem['Rate']
@@ -2186,13 +2173,13 @@ def orderview(request):
                 vat = budgetitem.get('VAT', False)
                 vatpercentage = 0
                 if vat:
-                    vatpercentage = DBSession.query(CompanyInformation
-                                ).first().DefaultTaxrate
+                    vatpercentage = DBSession.query(CompanyInformation) \
+                        .first().DefaultTaxrate
                 orderitem.VAT = vatpercentage
 
                 # update the budget item ordered amount
                 bi = DBSession.query(BudgetItem).filter_by(
-                                                ID=budgetitem['ID']).first()
+                    ID=budgetitem['ID']).first()
                 if bi:
                     bi.Ordered = bi.Ordered - oldtotal + orderitem.Total
                 del iddict[budgetitem['ID']]
@@ -2201,12 +2188,12 @@ def orderview(request):
             deletethis = DBSession.query(OrderItem).filter_by(ID=oldid).first()
             if deletethis.BudgetItem:
                 deletethis.BudgetItem.Ordered -= deletethis.Total
-            qry = DBSession.delete(deletethis)
+            DBSession.delete(deletethis)
 
         transaction.commit()
         # return the edited order
         order = DBSession.query(
-                    Order).filter_by(ID=request.matchdict['id']).first()
+            Order).filter_by(ID=request.matchdict['id']).first()
         order.resetTotal()
         return order.dict()
 
@@ -2215,7 +2202,7 @@ def orderview(request):
     order = DBSession.query(Order).filter_by(ID=orderid).first()
     if not order:
         return HTTPInternalServerError(
-                            text=u'ServerResponse: The order does not exist')
+            text=u'ServerResponse: The order does not exist')
     # build a list of the budgetitem used in the order from the order items
     budgetitemslist = []
     for orderitem in order.OrderItems:
@@ -2241,7 +2228,7 @@ def orderstatus(request):
             if not request.has_permission('Process'):
                 return HTTPForbidden()
         order = DBSession.query(Order).filter_by(
-                                            ID=request.matchdict['id']).first()
+            ID=request.matchdict['id']).first()
         order.Status = request.json_body['status']
         transaction.commit()
         return HTTPOk()
@@ -2278,7 +2265,7 @@ def valuationsview(request):
     else:
         start = int(paramsdict['start'][0])
         end = int(paramsdict['end'][0])
-    section = qry.slice(start,end).all()
+    section = qry.slice(start, end).all()
     valuationlist = []
     for valuation in section:
         valuationlist.append(valuation.dict())
@@ -2301,11 +2288,12 @@ def valuations_filter(request):
     if 'Status' in paramkeys:
         qry = qry.filter_by(Status=paramsdict['Status'][0])
     # get the unique values the other filters are to be updated with
-    projects = qry.distinct(Valuation.ProjectID).group_by(Valuation.ProjectID)
+    projectsquery = qry.distinct(Valuation.ProjectID).group_by(Valuation.ProjectID)
     projectlist = []
-    for project in projects:
+    for project in projectsquery:
         if project.Project:
-            projectlist.append({'Name': project.Project.Name, 'ID': project.ProjectID})
+            projectlist.append(
+                {'Name': project.Project.Name, 'ID': project.ProjectID})
     return {'projects': sorted(projectlist, key=lambda k: k['Name'].upper())}
 
 
@@ -2332,7 +2320,7 @@ def valuationview(request):
             return HTTPNotFound(text=u'ServerResponse: Valuation not found')
 
         try:
-            qry = DBSession.delete(deletethis)
+            DBSession.delete(deletethis)
             transaction.commit()
         except IntegrityError:
             raise HTTPConflict(text=u'ServerResponse: Valuation in use')
@@ -2356,7 +2344,7 @@ def valuationview(request):
         # add the valuation items to the valuation
         newid = newvaluation.ID
         budgetgrouplist = request.json_body.get('BudgetGroupList', [])
-        parentid=0
+        parentid = 0
         for budgetgroup in budgetgrouplist:
             p_complete = budgetgroup.get('PercentageComplete', None)
             if p_complete:
@@ -2394,9 +2382,9 @@ def valuationview(request):
             overheadid = markup['ID']
             budgettotal = markup['TotalBudget']
             DBSession.add(ValuationMarkup(ValuationID=newid,
-                                        OverheadID=overheadid,
-                                        BudgetTotal=budgettotal,
-                                        PercentageComplete=p_complete))
+                                          OverheadID=overheadid,
+                                          BudgetTotal=budgettotal,
+                                          PercentageComplete=p_complete))
 
         transaction.commit()
         # return the new valuation
@@ -2441,32 +2429,34 @@ def valuationview(request):
                 if budgetgroup['level'] == '2':
                     # find the parent of the second level valuation item
                     parent = DBSession.query(ValuationItem).filter_by(
-                                ValuationID=vid,
-                                BudgetGroupID=budgetgroup['ParentID']).first()
+                        ValuationID=vid,
+                        BudgetGroupID=budgetgroup['ParentID']).first()
                     DBSession.add(ValuationItem(ValuationID=vid,
-                                            ParentID=parent.ID,
-                                            BudgetGroupID=budgetgroup['ID'],
-                                            BudgetGroupTotal=total,
-                                            PercentageComplete=p_complete))
+                                                ParentID=parent.ID,
+                                                BudgetGroupID=budgetgroup[
+                                                    'ID'],
+                                                BudgetGroupTotal=total,
+                                                PercentageComplete=p_complete))
                 else:
                     DBSession.add(ValuationItem(ValuationID=vid,
-                                            ParentID=0,
-                                            BudgetGroupID=budgetgroup['ID'],
-                                            BudgetGroupTotal=total,
-                                            PercentageComplete=p_complete))
+                                                ParentID=0,
+                                                BudgetGroupID=budgetgroup[
+                                                    'ID'],
+                                                BudgetGroupTotal=total,
+                                                PercentageComplete=p_complete))
                     DBSession.flush()
             else:
                 # otherwise remove the id from the list and update the
                 # percentage complete & total
                 item = DBSession.query(ValuationItem).filter_by(
-                                    ID=iddict[budgetgroup['ID']]).first()
+                    ID=iddict[budgetgroup['ID']]).first()
                 item.PercentageComplete = p_complete
                 item.BudgetGroupTotal = total
                 del iddict[budgetgroup['ID']]
         # delete the leftover id's
         for oldid in iddict.values():
             deletethis = DBSession.query(
-                            ValuationItem).filter_by(ID=oldid).first()
+                ValuationItem).filter_by(ID=oldid).first()
             DBSession.delete(deletethis)
 
         # go through the markups and update the percentages
@@ -2474,14 +2464,14 @@ def valuationview(request):
         for markup in markuplist:
             complete = float(markup.get('PercentageComplete', 0))
             budgettotal = markup['TotalBudget']
-            vmarkup = DBSession.query(ValuationMarkup
-                                            ).filter_by(ID=markup['ID']).first()
+            vmarkup = DBSession.query(ValuationMarkup) \
+                .filter_by(ID=markup['ID']).first()
             if not vmarkup:
                 overheadid = markup['ID']
                 DBSession.add(ValuationMarkup(ValuationID=vid,
-                                        OverheadID=overheadid,
-                                        BudgetTotal=budgettotal,
-                                        PercentageComplete=complete))
+                                              OverheadID=overheadid,
+                                              BudgetTotal=budgettotal,
+                                              PercentageComplete=complete))
             else:
                 vmarkup.BudgetTotal = budgettotal
                 vmarkup.PercentageComplete = complete
@@ -2523,8 +2513,8 @@ def valuationview(request):
                 if len(item.Children) > 0:
                     data['expanded'] = True
                 else:
-                    children = DBSession.query(BudgetGroup
-                                            ).filter_by(ParentID=bg.ID).first()
+                    children = DBSession.query(BudgetGroup) \
+                        .filter_by(ParentID=bg.ID).first()
                     if not children:
                         data['level'] = '0'
                 data['AmountComplete'] = str(item.Total)
@@ -2552,7 +2542,7 @@ def valuationview(request):
             dc = [x for x in childrenlist if x['ParentID'] == parent['ID']]
             dc = sorted(dc, key=lambda k: k['Name'].upper())
             itemlist.append(parent)
-            itemlist+=dc
+            itemlist += dc
         else:
             itemlist.append(parent)
 
@@ -2562,11 +2552,12 @@ def valuationview(request):
     for markup in valuation.MarkupList:
         existing_overheads.append(markup.OverheadID)
         data = markup.dict()
-        data['AmountComplete'] = float(data['TotalBudget'])*(markup.PercentageComplete/100)
+        data['AmountComplete'] = float(
+            data['TotalBudget']) * (markup.PercentageComplete / 100)
         markuplist.append(data)
     # add any project markups that are not in the list
     extras = DBSession.query(Overhead).filter_by(ProjectID=valuation.ProjectID,
-                                                    Type='Project').all()
+                                                 Type='Project').all()
 
     for overhead in extras:
         if overhead.ID not in existing_overheads:
@@ -2587,6 +2578,7 @@ def valuationview(request):
 
 @view_config(route_name='usersview', renderer='json', permission='view')
 def usersview(request):
+    """ Pyramid view for operations on users """
     if request.method == 'POST':
         if not request.has_permission('edit'):
             return HTTPForbidden()
@@ -2595,7 +2587,7 @@ def usersview(request):
         password = request.json_body['password']
 
         # Check for existing user
-        if DBSession.query(User).filter(User.username==username).count() > 0:
+        if DBSession.query(User).filter(User.username == username).count() > 0:
             return HTTPConflict(text=u'ServerResponse: User name already exists')
 
         # create user
@@ -2607,7 +2599,7 @@ def usersview(request):
         for right in permissions:
             permission = right.get('Permission', None)
             userright = UserRight(Function=right['Function'],
-                                    Permission=permission)
+                                  Permission=permission)
             user.UserRights.append(userright)
 
         # add workflow rights
@@ -2617,14 +2609,14 @@ def usersview(request):
             rights = ''
             for status in perm['Permission']:
                 if status.get('selected', None):
-                    rights+=(status['Name'] + ' ')
+                    rights += (status['Name'] + ' ')
             rights = rights.strip().replace(' ', '_')
 
             userright = UserRight(Function=function, Permission=rights)
             user.UserRights.append(userright)
 
         DBSession().merge(user)
-        ProtectedFunction.invalidate_acls() # Invalidate cache
+        ProtectedFunction.invalidate_acls()  # Invalidate cache
 
         return user.dict()
 
@@ -2637,11 +2629,12 @@ def usersview(request):
 
 @view_config(route_name='userview', renderer='json', permission='view')
 def userview(request):
+    """ Pyramid view for operations on a single user """
     username = request.matchdict['username']
     session = DBSession()
 
     try:
-        user = session.query(User).filter(User.username==username).one()
+        user = session.query(User).filter(User.username == username).one()
     except NoResultFound:
         return HTTPNotFound(text=u'ServerResponse: User not found')
 
@@ -2649,7 +2642,7 @@ def userview(request):
     if request.method == 'POST':
         if not request.has_permission('edit'):
             return HTTPForbidden()
-        password=request.json_body.get('password', None)
+        password = request.json_body.get('password', None)
 
         if password:
             user.set_password(password)
@@ -2657,12 +2650,12 @@ def userview(request):
         for right in permissions:
             permission = right.get('Permission', None)
             userright = DBSession.query(UserRight).filter_by(UserID=user.ID,
-                                            Function=right['Function']).first()
+                                                             Function=right['Function']).first()
             if userright:
                 userright.Permission = permission
             else:
                 userright = UserRight(Function=right['Function'],
-                                        Permission=permission)
+                                      Permission=permission)
                 user.UserRights.append(userright)
 
         # add workflow rights
@@ -2672,36 +2665,37 @@ def userview(request):
             rights = ''
             for status in perm['Permission']:
                 if status.get('selected', None):
-                    rights+=(status['Name'] + ' ')
+                    rights += (status['Name'] + ' ')
             rights = rights.strip().replace(' ', '_')
 
             userright = DBSession.query(UserRight).filter_by(UserID=user.ID,
-                                            Function=function).first()
+                                                             Function=function).first()
             if userright:
                 userright.Permission = rights
             else:
                 userright = UserRight(Function=function, Permission=rights)
                 user.UserRights.append(userright)
 
-        ProtectedFunction.invalidate_acls() # Invalidate cache
+        ProtectedFunction.invalidate_acls()  # Invalidate cache
 
     # delete a user
     elif request.method == 'DELETE':
         if not request.has_permission('edit'):
             return HTTPForbidden()
         session.delete(user)
-        ProtectedFunction.invalidate_acls() # Invalidate cache
+        ProtectedFunction.invalidate_acls()  # Invalidate cache
         return {}
 
     # return the user
     return user.dict()
+
 
 @view_config(route_name='userrights', renderer='json')
 def userrights(request):
     """ Get the rights of this user
     """
     username = request.matchdict['username']
-    user = DBSession.query(User).filter(User.username==username).first()
+    user = DBSession.query(User).filter(User.username == username).first()
     permissions = {}
     if user is not None:
         for right in user.UserRights:
@@ -2719,7 +2713,6 @@ def invoicesview(request):
     paidtotal = Decimal(0)
     available = Decimal(0)
 
-    invoicelist = []
     qry = DBSession.query(Invoice).order_by(Invoice.ID.desc())
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
@@ -2728,10 +2721,11 @@ def invoicesview(request):
     setLength = False
     if 'InvoiceNumber' in paramkeys:
         qry = qry.filter(Invoice.InvoiceNumber.like(
-                                        paramsdict['InvoiceNumber'][0]+'%'))
+            paramsdict['InvoiceNumber'][0] + '%'))
         setLength = True
     if 'OrderNumber' in paramkeys:
-        qry = qry.filter(Invoice.OrderID.like(paramsdict['OrderNumber'][0]+'%'))
+        qry = qry.filter(Invoice.OrderID.like(
+            paramsdict['OrderNumber'][0] + '%'))
         setLength = True
     if 'Client' in paramkeys:
         qry = qry.filter_by(ClientID=paramsdict['Client'][0])
@@ -2745,7 +2739,7 @@ def invoicesview(request):
         qry = qry.filter_by(PaymentDate=date)
         setLength = True
     if 'Status' in paramkeys:
-        qry = qry.filter(Invoice.Status.like(paramsdict['Status'][0]+'%'))
+        qry = qry.filter(Invoice.Status.like(paramsdict['Status'][0] + '%'))
         setLength = True
     if 'Project' in paramkeys:
         qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
@@ -2754,14 +2748,14 @@ def invoicesview(request):
         # if invoices are filtered by project get totals
         for invoice in qry.all():
             total = invoice.Total
-            invoicetotal+=total
+            invoicetotal += total
             if invoice.Status == 'Paid':
-                paidtotal+=total
+                paidtotal += total
 
         projectpayments = DBSession.query(Payment).filter_by(
-                                    ProjectID=paramsdict['Project'][0]).all()
+            ProjectID=paramsdict['Project'][0]).all()
         for payment in projectpayments:
-            receivedtotal+=payment.Amount
+            receivedtotal += payment.Amount
         available = receivedtotal - paidtotal
 
     # check if the length needs to change
@@ -2776,12 +2770,10 @@ def invoicesview(request):
     else:
         start = int(paramsdict['start'][0])
         end = int(paramsdict['end'][0])
-    section = qry.slice(start,end).all()
-    invoicelist = []
-    for item in section:
-        invoicelist.append(item.dict())
+    section = qry.slice(start, end).all()
+    invoicelist = [item.dict() for item in section]
 
-    return {'invoices':invoicelist,
+    return {'invoices': invoicelist,
             'amounts': {'total': str(invoicetotal),
                         'paid': str(paidtotal),
                         'received': str(receivedtotal),
@@ -2799,9 +2791,11 @@ def invoices_filter(request):
     paramsdict = request.params.dict_of_lists()
     paramkeys = paramsdict.keys()
     if 'InvoiceNumber' in paramkeys:
-        qry = qry.filter(Invoice.InvoiceNumber.like(paramsdict['InvoiceNumber'][0]+'%'))
+        qry = qry.filter(Invoice.InvoiceNumber.like(
+            paramsdict['InvoiceNumber'][0] + '%'))
     if 'OrderNumber' in paramkeys:
-        qry = qry.filter(Invoice.OrderID.like(paramsdict['OrderNumber'][0]+'%'))
+        qry = qry.filter(Invoice.OrderID.like(
+            paramsdict['OrderNumber'][0] + '%'))
     if 'Project' in paramkeys:
         qry = qry.filter_by(ProjectID=paramsdict['Project'][0])
     if 'Client' in paramkeys:
@@ -2813,29 +2807,33 @@ def invoices_filter(request):
         date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
         qry = qry.filter_by(PaymentDate=date)
     if 'Status' in paramkeys:
-        qry = qry.filter(Invoice.Status.like(paramsdict['Status'][0]+'%'))
+        qry = qry.filter(Invoice.Status.like(paramsdict['Status'][0] + '%'))
 
     # distinct does not work on hybrid expressions, manually filter lists
-    projects = []
+    projectids = []
     projectslist = []
     suppliers = []
     supplierslist = []
     clients = []
     clientslist = []
     for invoice in qry:
-        if invoice.ProjectID not in projects:
-            projects.append(invoice.ProjectID)
-            projectslist.append({'Name': invoice.ProjectName, 'ID': invoice.ProjectID})
+        if invoice.ProjectID not in projectids:
+            projectids.append(invoice.ProjectID)
+            projectslist.append(
+                {'Name': invoice.ProjectName, 'ID': invoice.ProjectID})
         if invoice.ClientID not in clients:
             clients.append(invoice.ClientID)
-            clientslist.append({'Name': invoice.ClientName, 'ID': invoice.ClientID})
+            clientslist.append(
+                {'Name': invoice.ClientName, 'ID': invoice.ClientID})
         if invoice.SupplierID not in suppliers:
             suppliers.append(invoice.SupplierID)
-            supplierslist.append({'Name': invoice.SupplierName, 'ID': invoice.SupplierID})
+            supplierslist.append(
+                {'Name': invoice.SupplierName, 'ID': invoice.SupplierID})
 
     return {'projects': sorted(projectslist, key=lambda k: k['Name'].upper()),
             'clients': sorted(clientslist, key=lambda k: k['Name'].upper()),
             'suppliers': sorted(supplierslist, key=lambda k: k['Name'].upper())}
+
 
 @view_config(route_name='invoices_length', renderer='json', permission='view')
 def invoices_length(request):
@@ -2843,6 +2841,7 @@ def invoices_length(request):
     """
     rows = DBSession.query(func.count(Invoice.ID)).scalar()
     return {'length': rows}
+
 
 @view_config(route_name='invoiceview', renderer='json', permission='view')
 def invoiceview(request):
@@ -2852,22 +2851,23 @@ def invoiceview(request):
     # if the method is delete, delete the invoice
     if request.method == 'DELETE':
         if not request.has_permission('edit'):
-            return HTTPForbidden()
+            raise HTTPForbidden()
         deleteid = request.matchdict['id']
         # Deleting it from the table deletes the object
         deletethis = DBSession.query(Invoice).filter_by(ID=deleteid).first()
         if not deletethis:
-            return HTTPNotFound(text=u'ServerResponse: Invoice not found')
+            raise HTTPNotFound(text=u'ServerResponse: Invoice not found')
 
         try:
             # update the budgetitem invoiced amounts
-            order = DBSession.query(Order).filter_by(ID=deletethis.OrderID).first()
+            order = DBSession.query(Order).filter_by(
+                ID=deletethis.OrderID).first()
             ordertotal = order.Total
             invoicetotal = deletethis.Total
             for orderitem in order.OrderItems:
                 if orderitem.BudgetItem:
                     if ordertotal > 0:
-                        proportion = orderitem.Total/ordertotal
+                        proportion = orderitem.Total / ordertotal
                         orderitem.BudgetItem.Invoiced -= invoicetotal * proportion
                     else:
                         orderitem.BudgetItem.Invoiced = 0
@@ -2882,8 +2882,7 @@ def invoiceview(request):
     # if the method is post, add a new invoice
     if request.method == 'POST':
         if not request.has_permission('edit'):
-            return HTTPForbidden()
-        orderid = request.json_body['OrderID']
+            raise HTTPForbidden()
         # convert to date from json format
         indate = request.json_body.get('Invoicedate', None)
         if indate:
@@ -2898,24 +2897,25 @@ def invoiceview(request):
 
         invoicetotal = amount + vat
         # update the budgetitem invoiced amounts
-        order = DBSession.query(Order).filter_by(ID=orderid).first()
+        order = DBSession.query(Order) \
+            .filter_by(ID=request.json_body['OrderID']).first()
         ordertotal = order.Total
 
         for orderitem in order.OrderItems:
             if orderitem.BudgetItem:
                 if ordertotal > 0:
-                    proportion = orderitem.Total/ordertotal
+                    proportion = orderitem.Total / ordertotal
                     orderitem.BudgetItem.Invoiced += invoicetotal * proportion
                 else:
                     if not orderitem.BudgetItem.Invoiced:
                         orderitem.BudgetItem.Invoiced = 0
 
-        newinvoice = Invoice(OrderID=orderid,
-                            InvoiceNumber=request.json_body['InvoiceNumber'],
-                            InvoiceDate=indate,
-                            PaymentDate=paydate,
-                            Amount=amount,
-                            VAT=vat)
+        newinvoice = Invoice(OrderID=request.json_body['OrderID'],
+                             InvoiceNumber=request.json_body['InvoiceNumber'],
+                             InvoiceDate=indate,
+                             PaymentDate=paydate,
+                             Amount=amount,
+                             VAT=vat)
         DBSession.add(newinvoice)
         DBSession.flush()
         newid = newinvoice.ID
@@ -2927,9 +2927,9 @@ def invoiceview(request):
     # if the method is put, edit an existing invoice
     if request.method == 'PUT':
         if not request.has_permission('edit'):
-            return HTTPForbidden()
+            raise HTTPForbidden()
         invoice = DBSession.query(Invoice).filter_by(
-                                            ID=request.matchdict['id']).first()
+            ID=request.matchdict['id']).first()
         oldtotal = invoice.Total
         indate = request.json_body.get('Invoicedate', None)
         if indate:
@@ -2951,11 +2951,12 @@ def invoiceview(request):
         newtotal = invoice.Total
         # if the totals are different update the invoiced amounts
         if oldtotal != newtotal:
-            order = DBSession.query(Order).filter_by(ID=invoice.OrderID).first()
+            order = DBSession.query(Order).filter_by(
+                ID=invoice.OrderID).first()
             for orderitem in order.OrderItems:
                 if orderitem.BudgetItem:
                     if order.Total > 0:
-                        proportion = orderitem.Total/order.Total
+                        proportion = orderitem.Total / order.Total
                         difference = oldtotal * proportion - newtotal * proportion
                         orderitem.BudgetItem.Invoiced += difference
                     else:
@@ -2963,7 +2964,7 @@ def invoiceview(request):
         transaction.commit()
         # return the edited invoice
         invoice = DBSession.query(Invoice).filter_by(
-                                            ID=request.matchdict['id']).first()
+            ID=request.matchdict['id']).first()
         return invoice.dict()
 
     # otherwise return the selected invoice
@@ -2979,7 +2980,7 @@ def invoicestatus(request):
     """
     if request.method == 'POST':
         invoice = DBSession.query(Invoice).filter_by(
-                                            ID=request.matchdict['id']).first()
+            ID=request.matchdict['id']).first()
 
         if request.json_body['status'] == 'Draft':
             if not request.has_permission('Revert'):
@@ -3005,8 +3006,8 @@ def claim_valuations(request):
     """ Returns which valuations of a project can still be claimed
     """
     qry = DBSession.query(Valuation).filter_by(
-                        ProjectID=request.params.dict_of_lists()['Project'][0]
-                        ).order_by(Valuation.ID.desc()).all()
+        ProjectID=request.params.dict_of_lists()['Project'][0]
+    ).order_by(Valuation.ID.desc()).all()
 
     # only add valuations that don't have claims
     vals = []
@@ -3038,7 +3039,7 @@ def claimsview(request):
         qry = qry.filter_by(Date=date)
     if 'Status' in paramkeys:
         setLength = True
-        qry =qry.filter_by(Status=paramsdict['Status'][0])
+        qry = qry.filter_by(Status=paramsdict['Status'][0])
 
     # check if the length needs to change
     length = None
@@ -3052,7 +3053,7 @@ def claimsview(request):
     else:
         start = int(paramsdict['start'][0])
         end = int(paramsdict['end'][0])
-    section = qry.slice(start,end).all()
+    section = qry.slice(start, end).all()
     for item in section:
         claimslist.append(item.dict())
 
@@ -3072,11 +3073,12 @@ def claims_filter(request):
     if 'Status' in paramkeys:
         qry = qry.filter_by(Status=paramsdict['Status'][0])
     # get the unique values the other filters are to be updated with
-    projects = qry.distinct(Claim.ProjectID).group_by(Claim.ProjectID)
+    projectsquery = qry.distinct(Claim.ProjectID).group_by(Claim.ProjectID)
     projectlist = []
-    for project in projects:
+    for project in projectsquery:
         if project.Project:
-            projectlist.append({'Name': project.Project.Name, 'ID': project.ProjectID})
+            projectlist.append(
+                {'Name': project.Project.Name, 'ID': project.ProjectID})
     return {'projects': sorted(projectlist, key=lambda k: k['Name'].upper())}
 
 
@@ -3100,7 +3102,7 @@ def claimstatus(request):
             if not request.has_permission('Submit'):
                 return HTTPForbidden()
         claim = DBSession.query(Claim).filter_by(
-                                            ID=request.matchdict['id']).first()
+            ID=request.matchdict['id']).first()
         claim.Status = request.json_body['status']
         transaction.commit()
         return HTTPOk()
@@ -3114,11 +3116,11 @@ def claimview(request):
     # if the method is delete, delete the claim
     if request.method == 'DELETE':
         if not request.has_permission('edit'):
-            return HTTPForbidden()
+            raise HTTPForbidden()
         deleteid = request.matchdict['id']
         deletethis = DBSession.query(Claim).filter_by(ID=deleteid).first()
         if not deletethis:
-            return HTTPNotFound(text=u'ServerResponse: Claim not found')
+            raise HTTPNotFound(text=u'ServerResponse: Claim not found')
 
         try:
             DBSession.delete(deletethis)
@@ -3131,7 +3133,7 @@ def claimview(request):
     # if the method is post, add a new claim
     if request.method == 'POST':
         if not request.has_permission('edit'):
-            return HTTPForbidden()
+            raise HTTPForbidden()
         projectid = request.json_body['ProjectID']
         # convert to date from json format
         date = request.json_body.get('Date', None)
@@ -3140,8 +3142,8 @@ def claimview(request):
         valuationid = request.json_body['ValuationID']
 
         newclaim = Claim(ProjectID=projectid,
-                            Date=date,
-                            ValuationID=valuationid)
+                         Date=date,
+                         ValuationID=valuationid)
         DBSession.add(newclaim)
         DBSession.flush()
 
@@ -3151,11 +3153,11 @@ def claimview(request):
     # if the method is put, edit an existing claim
     if request.method == 'PUT':
         if not request.has_permission('edit'):
-            return HTTPForbidden()
-        claim = DBSession.query(Claim
-                                ).filter_by(ID=request.matchdict['id']).first()
+            raise HTTPForbidden()
+        claim = DBSession.query(Claim) \
+            .filter_by(ID=request.matchdict['id']).first()
         claim.ProjectID = request.json_body['ProjectID']
-        claim.ValuationID= request.json_body['ValuationID']
+        claim.ValuationID = request.json_body['ValuationID']
         date = request.json_body.get('Date', None)
         if date:
             date = datetime.strptime(date, '%Y-%m-%dT%H:%M:%S.%fZ')
@@ -3163,8 +3165,8 @@ def claimview(request):
 
         transaction.commit()
         # return the edited claim
-        claim = DBSession.query(Claim
-                                ).filter_by(ID=request.matchdict['id']).first()
+        claim = DBSession.query(Claim) \
+            .filter_by(ID=request.matchdict['id']).first()
         return claim.dict()
 
     # otherwise return the selected claim
@@ -3213,7 +3215,7 @@ def paymentsview(request):
     else:
         start = int(paramsdict['start'][0])
         end = int(paramsdict['end'][0])
-    section = qry.slice(start,end).all()
+    section = qry.slice(start, end).all()
     for item in section:
         paymentslist.append(item.dict())
 
@@ -3228,18 +3230,19 @@ def paymentview(request):
     # if the method is delete, delete the payment
     if request.method == 'DELETE':
         if not request.has_permission('edit'):
-            return HTTPForbidden()
+            raise HTTPForbidden()
         deleteid = request.matchdict['id']
         # Deleting it from the table deletes the object
         deletethis = DBSession.query(Payment).filter_by(ID=deleteid).first()
         if not deletethis:
-            return HTTPNotFound(text=u'ServerResponse: Payment not found')
+            raise HTTPNotFound(text=u'ServerResponse: Payment not found')
 
         try:
-            claim = DBSession.query(Claim).filter_by(ID=deletethis.ClaimID).first()
+            claim = DBSession.query(Claim).filter_by(
+                ID=deletethis.ClaimID).first()
             # if the claim has been paid before set the status to Claimed
             if ((claim.Total + deletethis.Amount) > Decimal(0)
-                and claim.Status == 'Paid'):
+                    and claim.Status == 'Paid'):
                 claim.Status = 'Claimed'
             DBSession.delete(deletethis)
             transaction.commit()
@@ -3251,7 +3254,7 @@ def paymentview(request):
     # if the method is post, add a new payment
     if request.method == 'POST':
         if not request.has_permission('edit'):
-            return HTTPForbidden()
+            raise HTTPForbidden()
         projectid = request.json_body['ProjectID']
         # convert to date from json format
         date = request.json_body.get('Date', None)
@@ -3261,7 +3264,7 @@ def paymentview(request):
         amount = Decimal(0.00)
         if 'Amount' in request.json_body.keys():
             amount = Decimal(request.json_body['Amount']
-                                ).quantize(Decimal('.01'))
+                            ).quantize(Decimal('.01'))
         # if the total payment on a claim is equal or bigger than its total
         # update its status to 'Paid'
         claimid = request.json_body['ClaimID']
@@ -3271,10 +3274,10 @@ def paymentview(request):
             claim.Status = "Paid"
 
         newpayment = Payment(ProjectID=projectid,
-                            Date=date,
-                            ReferenceNumber=refnumber,
-                            Amount=amount,
-                            ClaimID=claimid)
+                             Date=date,
+                             ReferenceNumber=refnumber,
+                             Amount=amount,
+                             ClaimID=claimid)
         DBSession.add(newpayment)
         DBSession.flush()
 
@@ -3284,15 +3287,16 @@ def paymentview(request):
     # if the method is put, edit an existing payment
     if request.method == 'PUT':
         if not request.has_permission('edit'):
-            return HTTPForbidden()
+            raise HTTPForbidden()
         payment = DBSession.query(Payment
-                                ).filter_by(ID=request.matchdict['id']).first()
+                                  ).filter_by(ID=request.matchdict['id']).first()
         payment.ProjectID = request.json_body['ProjectID']
         payment.ReferenceNumber = request.json_body.get('ReferenceNumber', '')
         payment.ClaimID = request.json_body['ClaimID']
         amount = Decimal(0.00)
         if 'Amount' in request.json_body.keys():
-            amount = Decimal(request.json_body['Amount']).quantize(Decimal('.01'))
+            amount = Decimal(request.json_body['Amount']).quantize(
+                Decimal('.01'))
         payment.Amount = amount
         date = request.json_body.get('Date', None)
         if date:
@@ -3303,7 +3307,7 @@ def paymentview(request):
 
         # check if the claim has been paid
         claim = DBSession.query(Claim).filter_by(
-                                        ID=request.json_body['ClaimID']).first()
+            ID=request.json_body['ClaimID']).first()
         if claim.Total <= Decimal(0):
             claim.Status = 'Paid'
         # otherwise if a claim has been paid and the total has changed
@@ -3311,8 +3315,8 @@ def paymentview(request):
             # set the claim status back to claimed
             claim.Status = 'Claimed'
         # return the edited payment
-        payment = DBSession.query(Payment
-                                ).filter_by(ID=request.matchdict['id']).first()
+        payment = DBSession.query(Payment) \
+            .filter_by(ID=request.matchdict['id']).first()
         return payment.dict()
 
     # otherwise return the selected payment
@@ -3321,14 +3325,15 @@ def paymentview(request):
 
     return payment.dict()
 
+
 @view_config(route_name='payment_claims', renderer='json', permission='view')
 def payment_claims(request):
     """ Returns which claims on a project can still be paid
     """
     qry = DBSession.query(Claim).filter(
-                Claim.ProjectID==request.params.dict_of_lists()['Project'][0],
-                Claim.Status!='Paid'
-                ).order_by(Claim.ID.desc()).all()
+        Claim.ProjectID == request.params.dict_of_lists()['Project'][0],
+        Claim.Status != 'Paid'
+    ).order_by(Claim.ID.desc()).all()
 
     claims = []
     for claim in qry:
@@ -3336,186 +3341,15 @@ def payment_claims(request):
 
     return claims
 
+
 @view_config(route_name='currencyview', renderer='json', permission='view')
 def currenciesview(request):
     """ The currencyview returns the currency sybol from company information
     """
-    currencies = {
-            'AED':'',
-            'AFA':'',
-            'ALL':'',
-            'AMD':'',
-            'ANG':'',
-            'AOA':'',
-            'ARS':'',
-            'AUD':'$',
-            'AWG':'',
-            'AZM':'',
-            'BAM':'',
-            'BBD':'$',
-            'BDT':'',
-            'BGN':'',
-            'BHD':'',
-            'BIF':'',
-            'BMD':'$',
-            'BND':'$',
-            'BOB':'',
-            'BRL':'',
-            'BSD':'$',
-            'BTN':'',
-            'BWP':'',
-            'BYR':'',
-            'BZD':'$',
-            'CAD':'$',
-            'CDF':'',
-            'CHF':'',
-            'CLP':'',
-            'CNY':'',
-            'COP':'',
-            'CRC':'₡',
-            'CUP':'',
-            'CVE':'',
-            'CYP':'',
-            'CZK':'',
-            'DJF':'',
-            'DKK':'',
-            'DOP':'',
-            'DZD':'',
-            'EEK':'',
-            'EGP':'',
-            'ERN':'',
-            'ETB':'',
-            'EUR':'€',
-            'FJD':'$',
-            'FKP':'',
-            'GBP':'£',
-            'GEL':'',
-            'GGP':'',
-            'GHC':'',
-            'GIP':'',
-            'GMD':'',
-            'GNF':'',
-            'GTQ':'',
-            'GYD':'$',
-            'HKD':'HK$',
-            'HNL':'',
-            'HRK':'',
-            'HTG':'',
-            'HUF':'',
-            'IDR':'',
-            'ILS':'₪',
-            'IMP':'',
-            'INR':'₹',
-            'IQD':'',
-            'IRR':'',
-            'ISK':'',
-            'JEP':'',
-            'JMD':'$',
-            'JOD':'',
-            'JPY':'¥',
-            'KES':'',
-            'KGS':'',
-            'KHR':'',
-            'KMF':'',
-            'KPW': '₩',
-            'KRW':'₩',
-            'KWD':'',
-            'KYD':'$',
-            'KZT':'',
-            'LAK':'',
-            'LBP':'',
-            'LKR':'₹',
-            'LRD':'L$',
-            'LSL':'',
-            'LTL':'',
-            'LVL':'',
-            'LYD':'',
-            'MAD':'',
-            'MDL':'',
-            'MGA':'',
-            'MKD':'',
-            'MMK':'',
-            'MNT':'',
-            'MOP':'',
-            'MRO':'',
-            'MTL':'',
-            'MUR':'₹',
-            'MVR':'',
-            'MWK':'',
-            'MXN':'',
-            'MYR':'',
-            'MZM':'',
-            'NAD':'N$',
-            'NGN':'₦',
-            'NIO':'',
-            'NOK':'',
-            'NPR':'₹',
-            'NZD':'$',
-            'OMR':'',
-            'PAB':'',
-            'PEN':'',
-            'PGK':'',
-            'PHP':'₱',
-            'PKR':'₹',
-            'PLN':'zł',
-            'PYG':'₲',
-            'QAR':'',
-            'ROL':'',
-            'RUR':'',
-            'RWF':'',
-            'SAR':'',
-            'SBD':'SI$',
-            'SCR':'₹',
-            'SDD':'',
-            'SEK':'',
-            'SGD':'S$',
-            'SHP':'',
-            'SIT':'',
-            'SKK':'',
-            'SLL':'',
-            'SOS':'',
-            'SPL':'',
-            'SRG':'',
-            'STD':'',
-            'SVC':'',
-            'SYP':'',
-            'SZL':'',
-            'THB':'฿',
-            'TJS':'',
-            'TMM':'',
-            'TND':'',
-            'TOP':'',
-            'TRL':'₺',
-            'TTD':'$',
-            'TVD':'$',
-            'TWD':'NT$',
-            'TZS':'',
-            'UAH':'₴',
-            'UGX':'',
-            'USD':'$',
-            'UYU':'',
-            'UZS':'',
-            'VEB':'',
-            'VND':'₫',
-            'VUV':'',
-            'WST':'',
-            'XAF':'',
-            'XAG':'',
-            'XAU':'',
-            'XCD':'$',
-            'XDR':'',
-            'XOF':'',
-            'XPD':'',
-            'XPF':'',
-            'XPT':'',
-            'YER':'',
-            'YUM':'',
-            'ZAR':'R',
-            'ZMK':'',
-            'ZWD':'$'
-        }
-    if DBSession.query(CompanyInformation).first():
-        return currencies[DBSession.query(CompanyInformation).first().Currency]
+
+    currency = DBSession.query(CompanyInformation.Currency).first()
+    if currency:
+        return currencies[currency[0]]
     else:
         # company information not set
-        return None
+        return ''

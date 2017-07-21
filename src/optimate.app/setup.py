@@ -26,7 +26,8 @@ requires = [
     'PyCrypto', # For secure authentication tokens
     'xhtml2pdf',
     'Products.FinanceFields',
-    'xlsxwriter'
+    'xlsxwriter',
+    'html5lib==1.0b8'
     ]
 
 setup(name='optimate.app',
@@ -34,11 +35,11 @@ setup(name='optimate.app',
       description='optimate.app',
       long_description=README + '\n\n' + CHANGES,
       classifiers=[
-        "Programming Language :: Python",
-        "Framework :: Pyramid",
-        "Topic :: Internet :: WWW/HTTP",
-        "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
-        ],
+          "Programming Language :: Python",
+          "Framework :: Pyramid",
+          "Topic :: Internet :: WWW/HTTP",
+          "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+      ],
       author='',
       author_email='',
       url='',
@@ -55,4 +56,4 @@ setup(name='optimate.app',
       [console_scripts]
       initialize_server_db = optimate.app.scripts.initializedb:main
       """,
-      )
+     )

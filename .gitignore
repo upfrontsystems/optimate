@@ -20,8 +20,11 @@ lib
 local
 theme/bower_components
 theme/node_modules
+share
+
 *.sqlite
 *.sqlite-journal
+
 
 # Excel data files
 exceldata

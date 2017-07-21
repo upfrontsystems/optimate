@@ -220,31 +220,26 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             // load the unit list
             $http.get(globalServerURL + 'units').success(function(data) {
                 $scope.unitList = data;
-                console.log("Unit list loaded");
             });
 
             // load the resource types
             $http.get(globalServerURL + 'resourcetypes').success(function(data) {
                 $scope.restypeList = data;
-                console.log("Resource Type list loaded");
             });
 
             // load the suppliers list
             $http.get(globalServerURL + 'suppliers').success(function(data) {
                 $scope.supplierList = data;
-                console.log("Resource Supplier list loaded");
             });
 
             // load the city list
             $http.get(globalServerURL + 'cities').success(function(data) {
                 $scope.cityList = data;
-                console.log("City list loaded");
             });
 
             // load the client list
             $http.get(globalServerURL + 'clients').success(function(data) {
                 $scope.clientList = data;
-                console.log("Client list loaded");
             });
         };
 
@@ -299,7 +294,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 else {
                     console.log("LOCAL STORAGE NOT SUPPORTED!")
                 }
-                console.log("Project added");
             }
         };
 
@@ -595,7 +589,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             }
             $http(req).success(function(data) {
                 $scope.overheadList = data;
-                console.log("Overhead list loaded");
             });
             $scope.newOverhead = {'Type': 'BudgetItem'};
         };
@@ -610,7 +603,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             }
             $http(req).success(function(data) {
                 $scope.budgetItemOverheadList = data;
-                console.log("BudgetItem overhead list loaded");
                 deferred.resolve();
             });
             return deferred.promise;
@@ -629,12 +621,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                     method: 'DELETE',
                     url: globalServerURL + 'overhead/' + overhead.ID + '/'
                 }
-                $http(req).success(function() {
-                    console.log("Overhead deleted");
-                });
-            }
-            else{
-                console.log("Overhead removed");
+                $http(req).success(function() {});
             }
             var index = $scope.overheadList.indexOf(overhead);
             $scope.overheadList.splice(index, 1);
@@ -660,9 +647,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 url: globalServerURL + projectid + '/overheads/',
                 data: {'overheadlist':$scope.overheadList}
             }
-            $http(req).success(function() {
-                console.log("Overheads updated");
-            });
+            $http(req).success(function() {});
             $scope.newOverhead = {'Type': 'BudgetItem'};
         }
 
@@ -764,7 +749,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                     if (node.ParentID === $scope.currentNode.ID) {
                         $scope.handleNew(node);
                     }
-                    console.log("Node added");
                 });
             }
         };
@@ -932,7 +916,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                     data: $scope.formData,
                 }
                 $http(req).success(function(response) {
-                    console.log(nodetype + " edited")
                     // check if the name has changed
                     if ($scope.currentNode.Name != $scope.formData.Name) {
                         $scope.currentNode.Name = $scope.formData.Name;
@@ -1027,7 +1010,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             $scope.statusMessage(node.Name + " copied.", 2000, 'alert-info');
             node.cut = false;
             $scope.copiedNode = node;
-            console.log("Node id copied: " + node.ID);
         }
 
         // Function to cut a node
@@ -1047,7 +1029,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             if ($scope.currentNodeScope.$nodeScope.$parentNodeScope){
                 $scope.cutScope = $scope.currentNodeScope.$nodeScope.$parentNodeScope.$modelValue;
             }
-            console.log("Node id cut: " + node.ID);
         }
 
         // handle pasting nodes
@@ -1059,7 +1040,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                         'cut': $scope.copiedNode.cut,
                         'selections': selectionlist}
             }).success(function (response) {
-                console.log('Success: Node pasted');
                 // expand the node if this is its first child
                 if ($scope.currentNode.Subitem.length == 0) {
                     $scope.currentNode.expanded = true;
@@ -1283,13 +1263,11 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             }
             if (flag && (cnode.ID == node.ID)) {
                 flag = false;
-                console.log("You can't paste a node into itself");
                 $scope.statusMessage("You can't paste a node into itself", 2000, 'alert-warning');
             }
             // check the allowed array for the types
             if (flag && ($scope.allowed[node.NodeType].indexOf(cnode.NodeType) == -1)) {
                 flag = false;
-                console.log("You can't paste a " + cnode.NodeType + " into a " + node.NodeType);
                 $scope.statusMessage("You can't paste a " + cnode.NodeType + " into a " + node.NodeType, 2000, 'alert-warning');
                 // if the index is set, paste the next record
                 if (index !== undefined) {
@@ -1307,7 +1285,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 if ((cnode.NodeType == 'ResourceCategory') && (node.NodeType == 'ResourceCategory')) {
                     flag = false;
                     if (cnode.ParentID == node.ID) {
-                        console.log("You can't paste a Resource Category into the same list");
                         $scope.statusMessage("You can't paste a Resource Category into the same list", 2000, 'alert-warning');
                         if (index !== undefined) {
                             index+=1;
@@ -1423,7 +1400,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                             }
                         }
                         parent.Subitem = newchildren;
-                        console.log("Children loaded");
                     });
                 }
             }
@@ -1440,7 +1416,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             $scope.budgetItemTypeList = bitypes;
             $scope.allBudgetItemTypes = true;
             $scope.printSelectedBudgetGroups = false;
-            console.log("Budget Item Type list loaded");
         };
 
         $scope.loadSuppliers = function() {
@@ -1453,7 +1428,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
             $http(req).success(function(data) {
                 $scope.suppliersList = data;
             });
-            console.log("Suppliers list loaded");
             $scope.filterBySupplier = false;
         };
 
@@ -1463,7 +1437,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 $scope.cutScope = $scope.currentNode;
                 $scope.toggleCopiedRecords($scope.getSelectedNodes(), false);
                 $scope.copiedNode = {'NodeType': 'Records'};
-                console.log("Records copied");
                 $scope.statusMessage("Records copied.", 2000, 'alert-info');
             }
         };
@@ -1478,7 +1451,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 $scope.copiedNode = {'NodeType': 'Records'};
                 // remove rows from slickgrid
                 $scope.cutSelectedNodes(selectedRows);
-                console.log("Records cut");
                 $scope.statusMessage("Records cut.", 2000, 'alert-info');
             }
         };
@@ -1580,7 +1552,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                     data: {'overheadlist':$scope.budgetItemOverheadList}
                 }
                 $http(req).success(function() {
-                    console.log("Overheads applied to " + selectedRows[count].ID);
                     if (count == selectedRows.length -1){
                         $scope.loadNodeChildren($scope.currentNode);
                         $scope.handleReloadSlickgrid($scope.currentNode.ID);
@@ -1703,7 +1674,7 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
 
                 FileSaver.saveAs(config);
             }).error(function(data, status, headers, config) {
-                console.log("Report excel download error")
+                $scope.statusMessage("Problem getting report", 2000, 'alert-warning');
             }).finally(function(){
                 spinner.stop();
             });
@@ -1739,7 +1710,6 @@ myApp.controller('projectsController',['$scope', '$http', '$cacheFactory', 'glob
                 var parentid = selectedNode.ID;
                 $http.get(globalServerURL + "reports/tree/" + parentid + '/').success(function(data) {
                     selectedNode.Subitem = data;
-                    console.log("Children loaded");
                 });
             }
             else {

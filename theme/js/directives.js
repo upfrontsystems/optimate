@@ -329,7 +329,6 @@ myApp.directive('projectslickgridjs', ['globalServerURL', '$http',
                     }
                 }
                 renderGrid(newcolumns, data)
-                console.log("Slickgrid data loaded");
             }
 
             // reload the slickgrid
@@ -460,10 +459,6 @@ myApp.directive('projectslickgridjs', ['globalServerURL', '$http',
                             grid.editActiveCell();
                             dataView.syncGridSelection(grid, true);
                         }
-                        console.log('Node '+ item.id + ' updated')
-                    }
-                    else {
-                        console.log("No updates performed");
                     }
                 })
             });

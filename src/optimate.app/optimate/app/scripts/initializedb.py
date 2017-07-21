@@ -9,39 +9,11 @@ from sqlalchemy.orm.exc import NoResultFound
 import transaction
 from pyramid.scripts.common import parse_vars
 from sqlalchemy import engine_from_config
-
 from pyramid.paster import (
     get_appsettings,
     setup_logging,
 )
-
-from optimate.app.models import (
-    DBSession,
-    Node,
-    Project,
-    BudgetGroup,
-    BudgetItem,
-    Overhead,
-    Unit,
-    City,
-    ResourceType,
-    ResourceCategory,
-    Resource,
-    ResourceUnit,
-    ResourcePart,
-    Base,
-    CompanyInformation,
-    User,
-    Order,
-    OrderItem,
-    Invoice,
-    Valuation,
-    ValuationItem,
-    Claim,
-    Payment,
-    UserRight,
-    ValuationMarkup
-)
+from optimate.app.models import *
 
 def usage(argv):
     cmd = os.path.basename(argv[0])
@@ -58,10 +30,17 @@ def main(argv=sys.argv):
     settings = get_appsettings(config_uri, options=options)
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
-
-    # Invoice.__table__.drop(engine)
-
     Base.metadata.create_all(engine)
+
+    # add the root node
+    root = Node(ID=0)
+    DBSession.add(root)
+
+    # add resource type
+    DBSession.add(ResourceType(ID=1, Name='Labour'))
+    DBSession.add(ResourceType(ID=2, Name='Material'))
+    DBSession.add(ResourceType(ID=3, Name='Subcontractor'))
+    DBSession.add(ResourceType(ID=4, Name='Equipment'))
 
     # Initialise user database with an admin user
     try:
@@ -71,7 +50,7 @@ def main(argv=sys.argv):
         user.username = u'admin'
         user.set_password('admin')
         for right in ['projects','orders','invoices','valuations',
-                        'claims','payments','setup']:
+                      'claims','payments','setup']:
             userright = UserRight(Function=right, Permission='edit')
             user.UserRights.append(userright)
         user.roles = json.dumps(['Administrator'])
