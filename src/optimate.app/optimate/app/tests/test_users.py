@@ -11,7 +11,7 @@ def initdb():
     Base.metadata.create_all(engine)
     DBSession.configure(bind=engine)
     with transaction.manager:
-        user = User(username='john')
+        user = User(username=u'john')
         user.set_password('john')
         user.UserRights.append(UserRight(UserID=user.ID,
                                 Function='projects', Permission='view'))
@@ -47,7 +47,7 @@ class TestUsersView(unittest.TestCase):
     def test_add(self):
         request = testing.DummyRequest()
         request.method = 'POST'
-        request.json_body = {'username': 'another',
+        request.json_body = {'username': u'another',
                                 'password': 'another',
                                 'permissions': [{'Function': 'projects',
                                                 'Permission': 'edit'},
@@ -79,7 +79,7 @@ class TestUserView(unittest.TestCase):
 
     def test_get(self):
         request = testing.DummyRequest()
-        request.matchdict = {'username': 'john'}
+        request.matchdict = {'username': u'john'}
         response = self._callFUT(request)
         # test the user is returned
         self.assertEqual(response['username'], 'john')
@@ -87,8 +87,8 @@ class TestUserView(unittest.TestCase):
     def test_edit(self):
         request = testing.DummyRequest()
         request.method = 'POST'
-        request.matchdict = {'username': 'john'}
-        request.json_body = {'username': 'another',
+        request.matchdict = {'username': u'john'}
+        request.json_body = {'username': u'another',
                                 'password': 'another',
                                 'permissions': [{'Function': 'projects',
                                                 'Permission': 'view'},
@@ -101,7 +101,7 @@ class TestUserView(unittest.TestCase):
 
     def test_delete(self):
         request = testing.DummyRequest()
-        request.matchdict = {'username': 'john'}
+        request.matchdict = {'username': u'john'}
         request.method = 'DELETE'
         response = self._callFUT(request)
         # test nothing is returned
@@ -126,7 +126,7 @@ class TestUserRightsView(unittest.TestCase):
 
     def test_get(self):
         request = testing.DummyRequest()
-        request.matchdict = {'username': 'john'}
+        request.matchdict = {'username': u'john'}
         response = self._callFUT(request)
         # two user rights are returned
         self.assertEqual(len(response), 2)

@@ -1299,7 +1299,7 @@ class TestAddItemSuccessCondition(unittest.TestCase):
             'Quantity': newbiquant,
             'NodeType': 'SimpleBudgetItem',
             'Description': 'A simple budget item',
-            'Name': 'SimpleBudgetItem',
+            'Name': u'SimpleBudgetItem',
             'ResourceTypeID': 2
         })
         # add it to id:21

@@ -1,23 +1,16 @@
+#pylint: disable=invalid-name
 """ Models file defines and builds the models used in Optimate
 """
-
 import os
 import hashlib
+from decimal import Decimal
 from zope.sqlalchemy import ZopeTransactionExtension
 from sqlalchemy.ext.hybrid import hybrid_property
-from decimal import *
-from datetime import datetime
 import sqlalchemy.types as types
-
-from sqlalchemy.ext.declarative import (
-    declarative_base,
-    declared_attr
-)
-
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import (
     Table,
     Column,
-    Index,
     Integer,
     Float,
     Text,
@@ -25,13 +18,10 @@ from sqlalchemy import (
     Unicode,
     DateTime,
     ForeignKey,
-    ForeignKeyConstraint,
-    func,
     select,
     case,
     LargeBinary
 )
-
 from sqlalchemy.orm import (
     scoped_session,
     sessionmaker,
@@ -46,12 +36,17 @@ Base = declarative_base()
 global DefaultTaxRate
 DefaultTaxRate = None
 
+
 class SqliteNumeric(types.TypeDecorator):
+    """ Numeric currency for SQLite """
     impl = types.String
+
     def load_dialect_impl(self, dialect):
         return dialect.type_descriptor(types.VARCHAR(100))
+
     def process_bind_param(self, value, dialect):
         return str(value)
+
     def process_result_value(self, value, dialect):
         if value != "None":
             return Decimal(value)
@@ -59,6 +54,7 @@ class SqliteNumeric(types.TypeDecorator):
             return None
 
 Numeric = SqliteNumeric
+
 
 class Node(Base):
 
@@ -72,20 +68,19 @@ class Node(Base):
     __tablename__ = 'Node'
     ID = Column(Integer, primary_key=True)
     ParentID = Column(Integer, ForeignKey('Node.ID', ondelete='CASCADE'),
-                        index=True)
+                      index=True)
     OrderCost = Column(Numeric(12, 2), default=Decimal(0.00))
     ClaimedCost = Column(Numeric(12, 2), default=Decimal(0.00))
-    RunningCost=Column(Numeric(12, 2), default=Decimal(0.00))
-    IncomeReceived=Column(Numeric(12, 2), default=Decimal(0.00))
-    ClientCost=Column(Numeric(12, 2), default=Decimal(0.00))
-    ProjectedProfit=Column(Numeric(12, 2), default=Decimal(0.00))
-    ActualProfit=Column(Numeric(12, 2), default=Decimal(0.00))
+    RunningCost = Column(Numeric(12, 2), default=Decimal(0.00))
+    IncomeReceived = Column(Numeric(12, 2), default=Decimal(0.00))
+    ClientCost = Column(Numeric(12, 2), default=Decimal(0.00))
+    ProjectedProfit = Column(Numeric(12, 2), default=Decimal(0.00))
+    ActualProfit = Column(Numeric(12, 2), default=Decimal(0.00))
     type = Column(Text(50))
 
     Children = relationship('Node',
                             cascade='all',
-                            backref=backref('Parent', remote_side='Node.ID'),
-                            )
+                            backref=backref('Parent', remote_side='Node.ID'))
 
     __mapper_args__ = {
         'polymorphic_identity': 'Node',
@@ -97,7 +92,6 @@ class Node(Base):
         return Decimal(0.00)
 
     @Total.setter
-
     def Total(self, total):
         pass
 
@@ -130,12 +124,12 @@ class Node(Base):
             but with the ParentID specified.
         """
         copied = Node(OrderCost=self.OrderCost,
-                    ClaimedCost=self.ClaimedCost,
-                    RunningCost=self.RunningCost,
-                    IncomeReceived=self.IncomeReceived,
-                    ClientCost=self.ClientCost,
-                    ProjectedProfit=self.ProjectedProfit,
-                    ActualProfit=self.ActualProfit)
+                      ClaimedCost=self.ClaimedCost,
+                      RunningCost=self.RunningCost,
+                      IncomeReceived=self.IncomeReceived,
+                      ClientCost=self.ClientCost,
+                      ProjectedProfit=self.ProjectedProfit,
+                      ActualProfit=self.ActualProfit)
         return copied
 
     def paste(self, source, sourcechildren):
@@ -150,7 +144,7 @@ class Node(Base):
     def __eq__(self, other):
         """ Test for equality on the Node ID
         """
-        if other == None:
+        if other is None:
             return False
         else:
             return self.ID == other.ID
@@ -239,22 +233,22 @@ class Project(Node):
             but with the ParentID specified.
         """
         copied = Project(Name=self.Name,
-                        Description=self.Description,
-                        ParentID=parentid,
-                        ClientID=self.ClientID,
-                        CityID=self.CityID,
-                        SiteAddress=self.SiteAddress,
-                        FileNumber=self.FileNumber,
-                        _Total = self.Total,
-                        Ordered = self.Ordered,
-                        Invoiced = self.Invoiced,
-                        OrderCost=self.OrderCost,
-                        ClaimedCost=self.ClaimedCost,
-                        RunningCost=self.RunningCost,
-                        IncomeReceived=self.IncomeReceived,
-                        ClientCost=self.ClientCost,
-                        ProjectedProfit=self.ProjectedProfit,
-                        ActualProfit=self.ActualProfit)
+                         Description=self.Description,
+                         ParentID=parentid,
+                         ClientID=self.ClientID,
+                         CityID=self.CityID,
+                         SiteAddress=self.SiteAddress,
+                         FileNumber=self.FileNumber,
+                         _Total=self.Total,
+                         Ordered=self.Ordered,
+                         Invoiced=self.Invoiced,
+                         OrderCost=self.OrderCost,
+                         ClaimedCost=self.ClaimedCost,
+                         RunningCost=self.RunningCost,
+                         IncomeReceived=self.IncomeReceived,
+                         ClientCost=self.ClientCost,
+                         ProjectedProfit=self.ProjectedProfit,
+                         ActualProfit=self.ActualProfit)
         return copied
 
     def paste(self, source, sourcechildren):
@@ -266,7 +260,7 @@ class Project(Node):
         for child in sourcechildren:
             source.paste(child.copy(source.ID), child.Children)
 
-    def getBudgetItems(self, variation = None):
+    def getBudgetItems(self, variation=None):
         """ Returns a list of all the BudgetItems that are used in this project.
         """
         budgetitemslist = []
@@ -287,15 +281,15 @@ class Project(Node):
                 'id': self.ID,
                 'ParentID': self.ParentID,
                 'Subitem': subitem,
-                'Client' : self.ClientID,
-                'City' : self.CityID,
-                'SiteAddress' : self.SiteAddress,
-                'FileNumber' : self.FileNumber,
+                'Client': self.ClientID,
+                'City': self.CityID,
+                'SiteAddress': self.SiteAddress,
+                'FileNumber': self.FileNumber,
                 'Total': str(self.Total),
                 'Ordered': str(self.Ordered.quantize(Decimal('.01'))),
                 'Invoiced': str(self.Invoiced.quantize(Decimal('.01'))),
                 'NodeType': self.type,
-                'NodeTypeAbbr' : 'P',
+                'NodeTypeAbbr': 'P',
                 'Status': self.Status}
 
     def __repr__(self):
@@ -335,7 +329,7 @@ class BudgetGroup(Node):
     _Total = Column('Total', Numeric)
     _Ordered = Column('Ordered', Numeric(12, 2), default=Decimal(0.00))
     _Invoiced = Column('Invoiced', Numeric(12, 2), default=Decimal(0.00))
-    Variation = Column(Boolean,default=False)
+    Variation = Column(Boolean, default=False)
 
     ValuationItems = relationship('ValuationItem')
 
@@ -362,7 +356,7 @@ class BudgetGroup(Node):
     def Total(self):
         """ Get the total property, recalculate the Total if it is None
         """
-        if self._Total == None:
+        if self._Total is None:
             total = Decimal(0.00)
             for child in self.Children:
                 total += child.Total
@@ -424,18 +418,18 @@ class BudgetGroup(Node):
             but with the ParentID specified.
         """
         copied = BudgetGroup(Name=self.Name,
-                            Description=self.Description,
-                            ParentID=parentid,
-                            _Total = self.Total,
-                            _Ordered = self._Ordered,
-                            _Invoiced = self._Invoiced,
-                            OrderCost=self.OrderCost,
-                            ClaimedCost=self.ClaimedCost,
-                            RunningCost=self.RunningCost,
-                            IncomeReceived=self.IncomeReceived,
-                            ClientCost=self.ClientCost,
-                            ProjectedProfit=self.ProjectedProfit,
-                            ActualProfit=self.ActualProfit)
+                             Description=self.Description,
+                             ParentID=parentid,
+                             _Total=self.Total,
+                             _Ordered=self._Ordered,
+                             _Invoiced=self._Invoiced,
+                             OrderCost=self.OrderCost,
+                             ClaimedCost=self.ClaimedCost,
+                             RunningCost=self.RunningCost,
+                             IncomeReceived=self.IncomeReceived,
+                             ClientCost=self.ClientCost,
+                             ProjectedProfit=self.ProjectedProfit,
+                             ActualProfit=self.ActualProfit)
         return copied
 
     def paste(self, source, sourcechildren):
@@ -447,7 +441,7 @@ class BudgetGroup(Node):
         for child in sourcechildren:
             source.paste(child.copy(source.ID), child.Children)
 
-    def getBudgetItems(self, variation = None):
+    def getBudgetItems(self, variation=None):
         """ Returns a list of all the BudgetItems in this BudgetGroup.
         """
         budgetitemslist = []
@@ -472,7 +466,7 @@ class BudgetGroup(Node):
                 'Ordered': str(self.Ordered),
                 'Invoiced': str(self.Invoiced),
                 'NodeType': self.type,
-                'NodeTypeAbbr' : 'G',
+                'NodeTypeAbbr': 'G',
                 'Status': self.Status,
                 'Variation': self.Variation}
 
@@ -511,9 +505,11 @@ class BudgetGroup(Node):
 # Association table for the many-to-many relationship between BudgetItem
 # and Overhead
 association_table = Table('BudgetItemOverheadAssociation', Base.metadata,
-    Column('BudgetItemID', Integer, ForeignKey('BudgetItem.ID')),
-    Column('OverheadID', Integer, ForeignKey('Overhead.ID'))
-)
+                          Column('BudgetItemID', Integer,
+                                 ForeignKey('BudgetItem.ID')),
+                          Column('OverheadID', Integer,
+                                 ForeignKey('Overhead.ID')))
+
 
 class BudgetItem(Node):
     """ A BudgetItem represents a unique cost item in the project.
@@ -530,7 +526,7 @@ class BudgetItem(Node):
     _Total = Column('Total', Numeric)
     _Ordered = Column('Ordered', Numeric(12, 2), default=Decimal(0.00))
     _Invoiced = Column('Invoiced', Numeric(12, 2), default=Decimal(0.00))
-    Variation = Column(Boolean,default=False)
+    Variation = Column(Boolean, default=False)
 
     Resource = relationship('Resource', foreign_keys='BudgetItem.ResourceID')
     Overheads = relationship('Overhead', secondary=association_table)
@@ -581,8 +577,8 @@ class BudgetItem(Node):
     def Rate(self, rate):
         """ Update the Total from changes to the Resource Rate
         """
-        self.Total = Decimal((1.0+self.Markup) * self.Quantity * float(rate)
-                                ).quantize(Decimal('.01'))
+        self.Total = Decimal((1.0 + self.Markup) * self.Quantity * float(rate)
+                            ).quantize(Decimal('.01'))
 
     @property
     def Unit(self):
@@ -609,16 +605,16 @@ class BudgetItem(Node):
         """
         composite = 1.0
         for overhead in self.Overheads:
-            composite = composite*(overhead.Percentage/100.0+1.0)
-        return composite-1
+            composite = composite * (overhead.Percentage / 100.0 + 1.0)
+        return composite - 1
 
     @property
     def Total(self):
         """ Get the Total, if it is None recalculate it
         """
-        if self._Total == None:
-            self._Total = Decimal((1.0+self.Markup) * self.Quantity * \
-                                float(self.Rate)).quantize(Decimal('.01'))
+        if self._Total is None:
+            self._Total = Decimal((1.0 + self.Markup) * self.Quantity *
+                                  float(self.Rate)).quantize(Decimal('.01'))
         return self._Total.quantize(Decimal('.01'))
 
     @Total.setter
@@ -638,7 +634,7 @@ class BudgetItem(Node):
         """ Subtotal returns the total of the BudgetItem with the Overhead
             costs removed
         """
-        return (self.Total/Decimal(1+self.Markup)).quantize(Decimal('.01'))
+        return (self.Total / Decimal(1 + self.Markup)).quantize(Decimal('.01'))
 
     @hybrid_property
     def Quantity(self):
@@ -652,7 +648,7 @@ class BudgetItem(Node):
             When the Quantity changes update the children Quantities
         """
         # change the total when the quantity changes
-        self.Total = (1.0+self.Markup) * quantity * float(self.Rate)
+        self.Total = (1.0 + self.Markup) * quantity * float(self.Rate)
         self._Quantity = quantity
         for child in self.Children:
             child.updateQuantity()
@@ -731,7 +727,8 @@ class BudgetItem(Node):
         """ Return a list of the BudgetItems
         """
         budgetitemslist = []
-        # check if the budgetitem satisfies any of the optional search paramaters
+        # check if the budgetitem satisfies any of the optional search
+        # paramaters
         if variation != None:
             if self.Variation == variation:
                 budgetitemslist.append(self)
@@ -775,7 +772,7 @@ class BudgetItem(Node):
                     'OverheadList': [],
                     'Subitem': [],
                     'NodeType': self.type,
-                    'NodeTypeAbbr' : 'I',
+                    'NodeTypeAbbr': 'I',
                     'Status': self.Status,
                     'Variation': self.Variation}
 
@@ -789,7 +786,7 @@ class BudgetItem(Node):
                 'Rate': str(self.Rate),
                 'Quantity': self.Quantity,
                 'Total': str(self.Total),
-                'Markup': str(self.Total-self.Subtotal),
+                'Markup': str(self.Total - self.Subtotal),
                 'Subtotal': str(self.Subtotal),
                 'Ordered': str(self.Ordered),
                 'Invoiced': str(self.Invoiced),
@@ -800,21 +797,20 @@ class BudgetItem(Node):
                 'UnitID': self.UnitID,
                 'ResourceTypeID': self.Type,
                 'NodeType': self.type,
-                'NodeTypeAbbr' : 'I',
+                'NodeTypeAbbr': 'I',
                 'Status': self.Status,
-                'Variation': self.Variation
-        }
+                'Variation': self.Variation}
 
     def copy(self, parentid):
         """ copy returns an exact duplicate of this BudgetItem,
             but with the ParentID specified.
         """
         copied = BudgetItem(ParentID=parentid,
-                            ResourceID = self.ResourceID,
+                            ResourceID=self.ResourceID,
                             _Quantity=self._Quantity,
                             _Total=self._Total,
-                            _Ordered = self._Ordered,
-                            _Invoiced = self._Invoiced,
+                            _Ordered=self._Ordered,
+                            _Invoiced=self._Invoiced,
                             OrderCost=self.OrderCost,
                             ClaimedCost=self.ClaimedCost,
                             RunningCost=self.RunningCost,
@@ -832,19 +828,22 @@ class BudgetItem(Node):
         """
         orderitemsquantity = 0.0
         for orderitem in self.OrderItems:
-            orderitemsquantity+=orderitem.Quantity
+            orderitemsquantity += orderitem.Quantity
         quantity = self.Quantity - orderitemsquantity
         if quantity < 0:
             quantity = 0.0
 
-        subtotal = Decimal(quantity*float(self.Rate)).quantize(Decimal('.01'))
+        subtotal = Decimal(quantity * float(self.Rate)
+                          ).quantize(Decimal('.01'))
         vat = 14
         companyinfo = DBSession.query(CompanyInformation
-                                ).filter_by(ID=0).first()
+                                     ).filter_by(ID=0).first()
         if companyinfo:
             vat = companyinfo.DefaultTaxrate
-        total = Decimal(float(subtotal)*(1+vat/100.0)).quantize(Decimal('.01'))
-        vatcost = Decimal(float(subtotal)*vat/100.0).quantize(Decimal('.01'))
+        total = Decimal(float(subtotal) * (1 + vat / 100.0)
+                       ).quantize(Decimal('.01'))
+        vatcost = Decimal(float(subtotal) * vat /
+                          100.0).quantize(Decimal('.01'))
         return {'Name': self.Name,
                 'ParentName': self.Parent.Name,
                 'ID': self.ID,
@@ -858,7 +857,7 @@ class BudgetItem(Node):
                 'Subtotal': str(subtotal),
                 'Discount': '0.00',
                 'NodeType': 'OrderItem',
-                'NodeTypeAbbr' : 'I',
+                'NodeTypeAbbr': 'I',
                 'Variation': self.Variation}
 
     def __repr__(self):
@@ -904,11 +903,10 @@ class SimpleBudgetItem(BudgetItem):
         return None
 
     @hybrid_property
-
     def Rate(self):
         """ Get the Rate. If it is None return 0
         """
-        if self._Rate == None:
+        if self._Rate is None:
             self._Rate = Decimal(0.00)
         return self._Rate.quantize(Decimal('.01'))
 
@@ -917,7 +915,7 @@ class SimpleBudgetItem(BudgetItem):
         """ Set the Rate and update the Total
         """
         # change the total when the rate changes
-        self.Total = (1.0+self.Markup) * self.Quantity * float(rate)
+        self.Total = (1.0 + self.Markup) * self.Quantity * float(rate)
         self._Rate = Decimal(rate).quantize(Decimal('.01'))
 
     def clearCosts(self):
@@ -940,8 +938,8 @@ class SimpleBudgetItem(BudgetItem):
                                 Description=self.Description,
                                 _Quantity=self._Quantity,
                                 _Total=self._Total,
-                                _Ordered = self._Ordered,
-                                _Invoiced = self._Invoiced,
+                                _Ordered=self._Ordered,
+                                _Invoiced=self._Invoiced,
                                 Type=self.Type,
                                 _Rate=self._Rate,
                                 OrderCost=self.OrderCost,
@@ -965,7 +963,7 @@ class SimpleBudgetItem(BudgetItem):
                 'Rate': str(self.Rate),
                 'Quantity': self.Quantity,
                 'Total': str(self.Total),
-                'Markup': str(self.Total-self.Subtotal),
+                'Markup': str(self.Total - self.Subtotal),
                 'Subtotal': str(self.Subtotal),
                 'Ordered': str(self.Ordered),
                 'Invoiced': str(self.Invoiced),
@@ -976,10 +974,9 @@ class SimpleBudgetItem(BudgetItem):
                 'UnitID': self.UnitID,
                 'ResourceTypeID': self.Type,
                 'NodeType': self.type,
-                'NodeTypeAbbr' : 'I',
+                'NodeTypeAbbr': 'I',
                 'Status': self.Status,
-                'Variation': self.Variation
-        }
+                'Variation': self.Variation}
 
     def __repr__(self):
         """ return a representation of this simplebudgetitem
@@ -1006,7 +1003,7 @@ class Overhead(Base):
     def Amount(self):
         """ Return the overhead percentage of the project total
         """
-        return float(self.Project.Total) * self.Percentage/100
+        return float(self.Project.Total) * self.Percentage / 100
 
     def copy(self, projectid):
         """ Return a copy of this Overhead but with the ProjectID specified
@@ -1031,7 +1028,7 @@ class Overhead(Base):
             Percentage
         """
         return ((self.Name == other.Name) and
-            (self.Percentage == other.Percentage))
+                (self.Percentage == other.Percentage))
 
     def __repr__(self):
         """Return a representation of this overhead
@@ -1077,7 +1074,7 @@ class ResourceCategory(Node):
             else:
                 rlist.append({'title': str(child.Name),
                               'uid': str(child.ID),
-                              'normalized_type': 'document' })
+                              'normalized_type': 'document'})
 
         return rlist
 
@@ -1115,8 +1112,8 @@ class ResourceCategory(Node):
             but with the ParentID specified.
         """
         copied = ResourceCategory(Name=self.Name,
-                         Description=self.Description,
-                         ParentID=parentid)
+                                  Description=self.Description,
+                                  ParentID=parentid)
         return copied
 
     def paste(self, source, sourcechildren):
@@ -1141,7 +1138,7 @@ class ResourceCategory(Node):
                 'ParentID': self.ParentID,
                 'Subitem': subitem,
                 'NodeType': self.type,
-                'NodeTypeAbbr' : 'C',
+                'NodeTypeAbbr': 'C',
                 'Status': self.Status}
 
     # functions to make the resource list iterable
@@ -1198,15 +1195,17 @@ class Resource(Node):
     SupplierID = Column(Integer, ForeignKey('Supplier.ID'))
 
     Suppliers = relationship('Supplier')
-    BudgetItems = relationship('BudgetItem', foreign_keys='BudgetItem.ResourceID')
+    BudgetItems = relationship(
+        'BudgetItem', foreign_keys='BudgetItem.ResourceID')
     ResourceType = relationship('ResourceType')
-    ResourceParts = relationship('ResourcePart', foreign_keys='ResourcePart.ResourceID')
+    ResourceParts = relationship(
+        'ResourcePart', foreign_keys='ResourcePart.ResourceID')
     Unit = relationship('Unit')
 
     __mapper_args__ = {
-            'polymorphic_identity': 'Resource',
-            'inherit_condition': (ID == Node.ID),
-        }
+        'polymorphic_identity': 'Resource',
+        'inherit_condition': (ID == Node.ID),
+    }
 
     @property
     def Rate(self):
@@ -1215,7 +1214,7 @@ class Resource(Node):
         if not self._Rate:
             rate = Decimal(0.00)
             for part in self.Children:
-                rate+=part.Total
+                rate += part.Total
             self._Rate = rate.quantize(Decimal('.01'))
         return self._Rate.quantize(Decimal('.01'))
 
@@ -1231,6 +1230,7 @@ class Resource(Node):
         self._Rate = Decimal(rate).quantize(Decimal('.01'))
 
     def unitName(self):
+        """ Return the name of the unit used in the resource """
         if self.Unit:
             return self.Unit.Name
 
@@ -1239,13 +1239,13 @@ class Resource(Node):
             but with the ParentID specified.
         """
         copied = Resource(Name=self.Name,
-                         Description=self.Description,
-                         Type=self.Type,
-                         Code = self.Code,
-                         UnitID = self.UnitID,
-                         ParentID=parentid,
-                         _Rate = self.Rate,
-                         SupplierID = self.SupplierID)
+                          Description=self.Description,
+                          Type=self.Type,
+                          Code=self.Code,
+                          UnitID=self.UnitID,
+                          ParentID=parentid,
+                          _Rate=self.Rate,
+                          SupplierID=self.SupplierID)
         return copied
 
     def paste(self, source, sourcechildren):
@@ -1257,7 +1257,7 @@ class Resource(Node):
         """ Overwrite this resource with the attributes of another resource
         """
         self.Name = other.Name
-        self.Description= other.Description
+        self.Description = other.Description
         self.Type = other.Type
         self.Code = other.Code
         self.UnitID = other.UnitID
@@ -1295,13 +1295,13 @@ class Resource(Node):
                 'Unit': self.unitName(),
                 'Supplier': self.SupplierID,
                 'NodeType': self.type,
-                'NodeTypeAbbr' : 'R',
+                'NodeTypeAbbr': 'R',
                 'Status': self.Status}
 
     def __eq__(self, other):
         """ Test for equality on the Resource product Code
         """
-        if other == None:
+        if other is None:
             return False
         else:
             return self.Code == other.Code
@@ -1339,13 +1339,13 @@ class ResourceUnit(Resource):
             but with the ParentID specified.
         """
         copied = ResourceUnit(Name=self.Name,
-                         Description=self.Description,
-                         Type=self.Type,
-                         Code = self.Code,
-                         UnitID = self.UnitID,
-                         ParentID=parentid,
-                         _Rate = self.Rate,
-                         SupplierID = self.SupplierID)
+                              Description=self.Description,
+                              Type=self.Type,
+                              Code=self.Code,
+                              UnitID=self.UnitID,
+                              ParentID=parentid,
+                              _Rate=self.Rate,
+                              SupplierID=self.SupplierID)
         return copied
 
     def paste(self, source, sourcechildren):
@@ -1376,7 +1376,7 @@ class ResourceUnit(Resource):
                 'Unit': self.unitName(),
                 'Supplier': self.SupplierID,
                 'NodeType': self.type,
-                'NodeTypeAbbr' : 'U',
+                'NodeTypeAbbr': 'U',
                 'Status': self.Status}
 
     def __repr__(self):
@@ -1393,7 +1393,7 @@ class ResourcePart(Node):
     ID = Column(Integer,
                 ForeignKey('Node.ID', ondelete='CASCADE'),
                 primary_key=True)
-    ResourceID = Column(Integer, ForeignKey('Resource.ID'))
+    ResourceID = Column(Integer, ForeignKey('Resource.ID'), nullable=False)
     _Quantity = Column('Quantity', Float)
     _Total = Column('Total', Numeric)
 
@@ -1410,7 +1410,7 @@ class ResourcePart(Node):
         """
         if not self._Total:
             self._Total = Decimal(self.Quantity * float(self.Rate)
-                            ).quantize(Decimal('.01'))
+                                 ).quantize(Decimal('.01'))
         return self._Total.quantize(Decimal('.01'))
 
     @Total.setter
@@ -1432,7 +1432,8 @@ class ResourcePart(Node):
     def Rate(self, rate):
         """ Update the Total from changes to the Resource Rate
         """
-        self.Total = Decimal(self.Quantity * float(rate)).quantize(Decimal('.01'))
+        self.Total = Decimal(self.Quantity * float(rate)
+                            ).quantize(Decimal('.01'))
 
     @property
     def Name(self):
@@ -1457,7 +1458,7 @@ class ResourcePart(Node):
         """ When the ResourcePart Quantity is set, update the Total
         """
         self.Total = Decimal(float(self.Rate) * float(quantity)
-                                ).quantize(Decimal('.01'))
+                            ).quantize(Decimal('.01'))
         self._Quantity = float(quantity)
 
     def copy(self, parentid):
@@ -1465,8 +1466,8 @@ class ResourcePart(Node):
             but with the ParentID specified.
         """
         copied = ResourcePart(ResourceID=self.ResourceID,
-                        _Quantity=self.Quantity,
-                        ParentID=parentid)
+                              _Quantity=self.Quantity,
+                              ParentID=parentid)
         return copied
 
     def paste(self, source, sourcechildren):
@@ -1489,7 +1490,7 @@ class ResourcePart(Node):
                 'Total': str(self.Total),
                 'ResourceID': self.ResourceID,
                 'NodeType': self.type,
-                'NodeTypeAbbr' : 'P',
+                'NodeTypeAbbr': 'P',
                 'Status': self.Status}
 
     def __repr__(self):
@@ -1662,9 +1663,10 @@ class Order(Base):
 
     @property
     def Subtotal(self):
+        """ Return sum of order items """
         subtotal = Decimal(0.00)
         for item in self.OrderItems:
-            subtotal+=item.Subtotal
+            subtotal += item.Subtotal
         return subtotal
 
     def dict(self):
@@ -1728,9 +1730,9 @@ class OrderItem(Base):
         """
         if not self._Total:
             self._Total = Decimal(
-                    (float(self.Subtotal) -
-                    float(self.Subtotal)*self.Discount/100.0
-                    ) * (1 + self.VAT/100.0)).quantize(Decimal('.01'))
+                (float(self.Subtotal) -
+                 float(self.Subtotal) * self.Discount / 100.0
+                ) * (1 + self.VAT / 100.0)).quantize(Decimal('.01'))
         return self._Total
 
     @Total.setter
@@ -1743,7 +1745,7 @@ class OrderItem(Base):
     def Subtotal(self):
         """ Return the subtotal, which is Quantity*Rate
         """
-        return Decimal(float(self.Rate)*self.Quantity).quantize(Decimal('.01'))
+        return Decimal(float(self.Rate) * self.Quantity).quantize(Decimal('.01'))
 
     @hybrid_property
     def Rate(self):
@@ -1758,8 +1760,8 @@ class OrderItem(Base):
         self._Rate = Decimal(rate).quantize(Decimal('.01'))
         # when the rate changes recalculate the total
         self.Total = (float(self.Subtotal) -
-                    float(self.Subtotal)*self.Discount/100.0
-                    ) * (1 + self.VAT/100.0)
+                      float(self.Subtotal) * self.Discount / 100.0
+                     ) * (1 + self.VAT / 100.0)
 
     @hybrid_property
     def Quantity(self):
@@ -1773,8 +1775,8 @@ class OrderItem(Base):
         """
         self._Quantity = float(quantity)
         self.Total = (float(self.Subtotal) -
-                    float(self.Subtotal)*self.Discount/100.0
-                    ) * (1 + self.VAT/100.0)
+                      float(self.Subtotal) * self.Discount / 100.0
+                     ) * (1 + self.VAT / 100.0)
 
     @hybrid_property
     def Discount(self):
@@ -1788,8 +1790,8 @@ class OrderItem(Base):
         """
         self._Discount = float(discount)
         self.Total = (float(self.Subtotal) -
-                    float(self.Subtotal)*self.Discount/100.0
-                    ) * (1 + self.VAT/100.0)
+                      float(self.Subtotal) * self.Discount / 100.0
+                     ) * (1 + self.VAT / 100.0)
 
     @property
     def Name(self):
@@ -1813,8 +1815,8 @@ class OrderItem(Base):
         """ Override the dict function
         """
         vatcost = Decimal(float(self.Total) - (float(self.Subtotal)
-                            - float(self.Subtotal)*self.Discount/100)
-                            ).quantize(Decimal('.01'))
+                                               - float(self.Subtotal) * self.Discount / 100)
+                         ).quantize(Decimal('.01'))
 
         if self.BudgetItem:
             parentname = self.BudgetItem.Parent.Name
@@ -1834,7 +1836,7 @@ class OrderItem(Base):
                 'Subtotal': str(self.Subtotal),
                 'Total': str(self.Total),
                 'VATCost': str(vatcost),
-                'NodeTypeAbbr' : 'I',
+                'NodeTypeAbbr': 'I',
                 'Discount': str(self.Discount),
                 'NodeType': 'OrderItem'}
 
@@ -1851,16 +1853,18 @@ class User(Base):
     ID = Column(Integer, primary_key=True)
     username = Column(Unicode(length=20), nullable=False, index=True)
     salt = Column(Unicode(length=64), nullable=True)
-    password = Column(Unicode(length=64), nullable=True) # For an sha256 hash
+    password = Column(Unicode(length=64), nullable=True)  # For an sha256 hash
     # to be phased out
     roles = Column(Text(20))
 
     UserRights = relationship('UserRight', cascade='all')
 
     def validate_password(self, password):
+        """ Match the salt to the provided password """
         return hashlib.sha256((self.salt + password).encode('utf-8')).hexdigest() == self.password
 
     def set_password(self, password):
+        """ Salt the password """
         salt = os.urandom(32).encode('hex')
         h = hashlib.sha256((salt + password).encode('utf-8')).hexdigest()
         self.salt = unicode(salt)
@@ -1911,7 +1915,7 @@ class UserRight(Base):
     def __repr__(self):
         """ Return a relationship of this right """
         return '<UserRight(ID="%s", UserID="%s", Function="%s", Permission="%s")>' % (
-                    self.ID, self.UserID, self.Function, self.Permission)
+            self.ID, self.UserID, self.Function, self.Permission)
 
 
 class Invoice(Base):
@@ -1967,10 +1971,12 @@ class Invoice(Base):
 
     @property
     def Subtotal(self):
+        """ Return amout without VAT """
         return self.Amount
 
     @property
     def Total(self):
+        """ Calculate total with VAT """
         return Decimal(self.Amount + self.VAT).quantize(Decimal('.01'))
 
     @property
@@ -2007,12 +2013,12 @@ class Invoice(Base):
             jsonindate = self.InvoiceDate.isoformat() + '.000Z'
             readable_invoice_date = self.InvoiceDate.strftime("%d %B %Y")
         jsonpaydate = None
-        readable_pay_date= None
+        readable_pay_date = None
         if self.PaymentDate:
             jsonpaydate = self.PaymentDate.isoformat() + '.000Z'
             readable_pay_date = self.PaymentDate.strftime("%d %B %Y")
-        return {'ID':self.ID,
-                'id':self.ID,
+        return {'ID': self.ID,
+                'id': self.ID,
                 'InvoiceNumber': self.InvoiceNumber,
                 'OrderID': self.OrderID,
                 'Project': self.ProjectName,
@@ -2060,11 +2066,11 @@ class Valuation(Base):
         """ Expression to filter Valuation by Status
         """
         return case([(select([Claim.Status]).where(
-                                        cls.ID == Claim.ValuationID
-                                        ).as_scalar() == None, 'Draft')],
+            cls.ID == Claim.ValuationID
+        ).as_scalar() == None, 'Draft')],
                     else_=select([Claim.Status]).where(
-                                        cls.ID == Claim.ValuationID
-                                        ).as_scalar()).label('Status')
+                        cls.ID == Claim.ValuationID
+        ).as_scalar()).label('Status')
 
     @property
     def Total(self):
@@ -2073,16 +2079,16 @@ class Valuation(Base):
         """
         total = 0
         for item in self.ValuationItems:
-            bgtotal = 0
+            bgtotal = 0.0
             if item.BudgetGroupTotal:
                 bgtotal = float(item.BudgetGroupTotal)
             perc = 0
             if item.PercentageComplete:
-                perc = item.PercentageComplete/100
+                perc = item.PercentageComplete / 100
             total += bgtotal * perc
 
         for markup in self.MarkupList:
-            total+=float(markup.Total)
+            total += float(markup.Total)
         return Decimal(total).quantize(Decimal('.01'))
 
     def dict(self):
@@ -2098,7 +2104,7 @@ class Valuation(Base):
         total = self.Total
         percentage = self.Project.Total
         if percentage > 0:
-            percentage = (total/percentage)*100
+            percentage = (total / percentage) * 100
             percentage = '{:20,.2f}'.format(float(percentage)).strip()
 
         return {'ID': self.ID,
@@ -2132,18 +2138,18 @@ class ValuationItem(Base):
     Children = relationship('ValuationItem',
                             cascade='all',
                             backref=backref('Parent',
-                                            remote_side='ValuationItem.ID'),
-                            )
+                                            remote_side='ValuationItem.ID'))
 
     @property
     def Total(self):
-        # if the percentage complete is None, return the total of the
-        # children ValuationItems
+        """ if the percentage complete is None,
+            return the total of the children ValuationItems
+        """
         bgtotal = Decimal(0.00)
         if self.BudgetGroupTotal is not None:
             bgtotal = self.BudgetGroupTotal
         if self.PercentageComplete is not None:
-            total = (float(bgtotal)/100) * self.PercentageComplete
+            total = (float(bgtotal) / 100) * self.PercentageComplete
         else:
             total = Decimal(0.00)
             for child in self.Children:
@@ -2158,7 +2164,6 @@ class ValuationItem(Base):
             return self.BudgetGroup.Name
         else:
             return "Item Deleted"
-
 
     def dict(self):
         """ Returns a dictionary of this ValuationItem
@@ -2201,7 +2206,7 @@ class Claim(Base):
         """
         payments = Decimal(0.00)
         for payment in self.Project.Payments:
-            payments+=payment.Amount
+            payments += payment.Amount
         total = self.Valuation.Total
         return Decimal(total - payments).quantize(Decimal('.01'))
 
@@ -2266,12 +2271,13 @@ class Payment(Base):
         return '<Payment(ID="%s", ProjectID="%s", Amount="%s")>' % (
             self.ID, self.ProjectID, str(self.Amount))
 
+
 class ValuationMarkup(Base):
     """ Markup items for a Valuation
     """
     __tablename__ = 'ValuationMarkup'
     ID = Column(Integer, primary_key=True)
-    OverheadID = Column(Integer,ForeignKey('Overhead.ID'))
+    OverheadID = Column(Integer, ForeignKey('Overhead.ID'))
     PercentageComplete = Column(Float, default=0.0)
     BudgetTotal = Column(Numeric, default=Decimal(0))
     ValuationID = Column(Integer, ForeignKey('Valuation.ID'))
@@ -2282,25 +2288,27 @@ class ValuationMarkup(Base):
     def copy(self, valuationid):
         """ Return a copy of this markup but with the ValuationID specified
         """
-        return ValuationMarkup(PercentageComplete = self.PercentageComplete,
-                            OverheadID=self.OverheadID,
-                            BudgetGroupTotal=self.BudgetGroupTotal,
-                            ValuationID=valuationid)
+        return ValuationMarkup(PercentageComplete=self.PercentageComplete,
+                               OverheadID=self.OverheadID,
+                               BudgetGroupTotal=self.BudgetGroupTotal,
+                               ValuationID=valuationid)
 
     @property
     def Total(self):
         """ The Total of a valuation markup is the budget total times
             percentage complete
         """
-        return Decimal(float(self.BudgetTotal) * (self.PercentageComplete/100)
-                        ).quantize(Decimal('.01'))
+        return Decimal(float(self.BudgetTotal) * (self.PercentageComplete / 100)
+                      ).quantize(Decimal('.01'))
 
     @property
     def Name(self):
+        """ Return overhead name """
         return self.Overhead.Name
 
     @property
     def Percentage(self):
+        """ Return overhead percentage """
         return self.Overhead.Percentage
 
     def dict(self):
@@ -2320,7 +2328,7 @@ class ValuationMarkup(Base):
             Overhead
         """
         return ((self.Name == other.Name) and
-            (self.Percentage == other.Percentage))
+                (self.Percentage == other.Percentage))
 
     def __repr__(self):
         """Return a representation of this markup

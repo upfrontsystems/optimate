@@ -11,7 +11,7 @@ def initdb():
     Base.metadata.create_all(engine)
     DBSession.configure(bind=engine)
     with transaction.manager:
-        user = User(username='john')
+        user = User(username=u'john')
         user.set_password('john')
         DBSession.add(user)
         transaction.commit()
@@ -32,7 +32,7 @@ class TestAuth(unittest.TestCase):
         """ Test the crypto token generating and verifying code. """
         from optimate.app.security import create_token, verify_token
 
-        token = create_token(self.request, 'john', ['Janitor'])
+        token = create_token(self.request, u'john', ['Janitor'])
         validated, user, roles = verify_token(self.request, token)
         self.assertTrue(validated, "Token did not validate")
 
@@ -51,7 +51,7 @@ class TestAuth(unittest.TestCase):
         request = testing.DummyRequest()
         request.registry.settings['optimate.app.secret'] = 'aardvark'
         request.json_body = {
-            'username': 'john',
+            'username': u'john',
             'password': 'john'
         }
         self.assertEqual(auth(request).__class__, HTTPMethodNotAllowed,

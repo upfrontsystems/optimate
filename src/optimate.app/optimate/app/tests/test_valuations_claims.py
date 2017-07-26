@@ -87,7 +87,7 @@ def initdb():
                         ResourceID=res.ID,
                         ParentID=budgetgroup.ID)
         sibi = SimpleBudgetItem(ID=8,
-                        Name='Fire pool',
+                        Name=u'Fire pool',
                         Description='Security feature',
                         _Quantity=sibi_quantity,
                         Type=mattype.ID,
